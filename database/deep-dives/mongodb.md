@@ -46,7 +46,7 @@ When someone models a social graph with embedding — storing 10,000 follower ID
 
 Before MongoDB, horizontal scaling meant application-level sharding — routing queries to the correct database by hashing a key in application code. MongoDB built sharding into the database: a `mongos` router layer, a config server for metadata, and shard replica sets for data. Data splits into chunks (128MB by default, defined by shard key ranges), and a balancer automatically migrates chunks between shards.
 
-When you add a shard, you provision the node and the balancer redistributes chunks. But the shard key is chosen once and cannot be changed without dumping and reloading the entire cluster. When you choose a monotonically increasing shard key like `created_at`, all writes hit the shard owning the current timestamp range — one shard handles 100% of write throughput while others sit idle. A low-cardinality key like `status` with 3 values can never split into more than 3 chunks.
+When you add a shard, you provision the node and the balancer redistributes chunks. But changing the shard key later is a heavy operation — MongoDB 5.0 added online resharding (`reshardCollection`), but it requires re-distributing every document across all nodes and is a multi-day affair at scale. When you choose a monotonically increasing shard key like `created_at`, all writes hit the shard owning the current timestamp range — one shard handles 100% of write throughput while others sit idle. A low-cardinality key like `status` with 3 values can never split into more than 3 chunks.
 
 When an event-ingestion system shards on `created_at` because "it's the natural way to query recent events," every write goes to the shard owning "right now." The balancer migrates chunks from the hot shard, but by the time one chunk moves, several more have filled up. Write throughput is permanently capped at one shard's capacity. The shard key cannot be changed — the only fix is dumping every document, re-sharding with a hashed key, and reloading. A multi-day operation on a cluster with 100M documents.
 
@@ -70,17 +70,17 @@ When someone creates a compound index `(category, price)` where `category` is an
 
 MongoDB deliberately excludes features that slow down prototyping: no foreign keys, no multi-document ACID before 4.0, no SQL JOINs. A new collection is created implicitly on first insert — no `CREATE TABLE`, no schema definition.
 
-When you model relational data like orders with line items, you face a choice: embed everything (duplication and update anomalies) or do application-level joins (N+1 queries). Multi-document transactions were added in MongoDB 4.0 but don't work across shards.
+When you model relational data like orders with line items, you face a choice: embed everything (duplication and update anomalies) or do application-level joins (N+1 queries). Multi-document transactions were added in MongoDB 4.0 and support cross-shard operations since 4.2, but distributed transactions across shards are slower than single-shard ones due to two-phase commit coordination.
 
-When a financial application models a ledger as two separate operations — `db.debits.insertOne(...)` and `db.credits.insertOne(...)` — a server crash after the debit but before the credit causes permanent inconsistency. The debit is recorded, the credit is lost. Before 4.0, there was no transaction to wrap both operations. After 4.0, the transaction works only within a single replica set — a sharded deployment still cannot atomically update two documents across shards.
+When a financial application models a ledger as two separate operations — `db.debits.insertOne(...)` and `db.credits.insertOne(...)` — a server crash after the debit but before the credit causes permanent inconsistency. The debit is recorded, the credit is lost. Before 4.0, there was no transaction to wrap both operations. After 4.2, the transaction works across shards but pays the cost of two-phase commit — latency and throughput are significantly worse than single-shard transactions.
 
-**If you're thinking about distributed ACID across shards:** That requires two-phase commit or equivalent coordination, adding latency and reducing availability. MongoDB chose availability and partition tolerance over cross-shard consistency. If you need cross-shard ACID with global consistency, you need Spanner or CockroachDB.
+**If you're thinking about distributed ACID across shards:** MongoDB supports distributed transactions across shards since 4.2, but they require two-phase commit coordination — adding latency and reducing throughput compared to single-shard transactions. If you need cross-shard ACID with global external consistency, you need Spanner or CockroachDB.
 
 ---
 
 **When to reach for it:** Rapid prototyping (schema evolves daily), content with variable structure (product catalogs, CMS), need to scale writes horizontally without manual sharding, embed-heavy data models (user + profile + settings stored together), real-time aggregation pipelines.
 
-**When not to:** Strong consistency across multiple documents (multi-document ACID is expensive and doesn't cross shards), complex JOIN-heavy relational data (use PostgreSQL), small datasets where sharding overhead isn't worth it, need referential integrity with foreign keys, or any workload where query patterns aren't known in advance (shard key must be chosen upfront).
+**When not to:** Strong consistency across multiple documents (multi-document ACID across shards is expensive due to 2PC), complex JOIN-heavy relational data (use PostgreSQL), small datasets where sharding overhead isn't worth it, need referential integrity with foreign keys, or any workload where query patterns aren't known in advance (shard key must be chosen upfront).
 
 ## Architecture
 
