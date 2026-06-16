@@ -7,95 +7,200 @@ created: "2026-06-13"
 
 # Networking
 
-## HTTP&#x20;
+Every web request is a journey through multiple layers of the network stack. Let's follow one: you type `https://api.example.com/users` and press Enter. What actually happens between that keystroke and the JSON response appearing on your screen?
 
-| Version      | Transport  | Key Feature                            | Primary Trade-off                                 |
-| ------------ | ---------- | -------------------------------------- | ------------------------------------------------- |
-| **HTTP/1.1** | TCP        | Persistent Connections                 | Head-of-Line (HOL) Blocking at Application Layer. |
-| **HTTP/2**   | TCP        | Multiplexing & Binary Framing          | HOL Blocking at Transport Layer (TCP-level).      |
-| **HTTP/3**   | UDP (QUIC) | No HOL Blocking & Connection Migration | Higher CPU usage; potential UDP firewall blocks.  |
+## DNS: Finding the Address
 
-* **Cookies:** Client-side storage. Small (\~4KB). Used for session IDs or user preferences.
-* **Sessions:** Server-side storage. The client holds a `SessionID`, but data (cart, user info) stays on the server.
-* **JWT (JSON Web Token):** Stateless authentication. The token contains all user data (claims) and is signed by the server.
-* **Basic Auth:** Username/Password sent in headers (Base64). Must use HTTPS.
-* **OAuth2:** Framework for delegated authorization (e.g., "Login with Google").
+Before any data can flow, your browser needs to know **where** to send it. `api.example.com` is a human-readable name — the network speaks IP addresses. DNS (Domain Name System) translates one to the other.
 
-***
+1. Browser checks its own cache. Did we resolve this domain recently?
+2. OS cache. The operating system remembers recent lookups.
+3. Router / ISP resolver. Your home router forwards the question upstream.
+4. Recursive resolver walks the DNS hierarchy: root servers → `.com` TLD servers → `example.com` authoritative nameserver → `api.example.com` record.
 
-* **Connection Pooling:** Reusing a set of established TCP connections to avoid the "Three-way Handshake" latency.
-* **Keep-Alive:** Header that prevents a connection from closing immediately after a request.
-* **Cache-Control:**
-  * `max-age`: Time (in seconds) the browser should trust the local copy.
-  * `no-cache`: Must re-validate with the server before using.
-  * `immutable`: The resource will never change (great for versioned assets).
-* **ETag:** A unique hash of a resource. Server returns `304 Not Modified` if the hash hasn't changed.
+The answer: `api.example.com` → `142.250.185.14`. Now the browser knows where to connect.
 
-***
+## TCP: The Reliable Pipe
 
-* **HTTPS (TLS):** Encrypts the HTTP request/response. Essential for privacy and data integrity.
-* **CORS (Cross-Origin Resource Sharing):** Security mechanism that restricts how a browser interacts with resources from a different domain.
-* **Idempotency:**
-  * **Idempotent:** GET, PUT, DELETE (Multiple identical requests have the same effect as one).
-  * **Non-Idempotent:** POST (Multiple requests create multiple resources)
+The browser opens a TCP connection to `142.250.185.14:443` (port 443 = HTTPS). TCP provides a reliable, ordered byte stream over the unreliable IP layer.
 
-***
+### The Three-Way Handshake
 
-## Network Address Translation (NAT)
+```
+Client                              Server
+  | -------- SYN (seq=x) ----------> |    "Can we talk?"
+  | <-- SYN-ACK (seq=y, ack=x+1) -- |    "Yes."
+  | -------- ACK (ack=y+1) --------> |    "Great."
+  |                                   |
+  | ===== Connection Established ==== |
+```
 
-NAT was primarily created as a "stop-gap" solution for **IPv4 Exhaustion**. It allows multiple devices on a private network to share a single public IPv4 address.
+This exchange establishes sequence numbers on both sides so each byte can be tracked, acknowledged, and retransmitted if lost. Every connection pays this round-trip cost before any application data flows.
 
-Before getting into complex mapping, you should know the three basic functional types:
+### Connection Pooling
 
-* **Static NAT (1-to-1):** Maps one private IP to one public IP. Used for servers inside a network that need to be accessible from the outside.
-* **Dynamic NAT (M-to-M):** Maps a private IP to a public IP from a pool of available public addresses.
-* **PAT (Port Address Translation / NAT Overload):** The most common form (used in homes). Thousands of private IPs share **one** public IP by using unique port numbers to distinguish sessions.
+Opening a new TCP connection for every HTTP request is wasteful — each one pays the handshake penalty. Connection pooling reuses established connections for multiple requests. The browser (or your backend HTTP client) keeps a pool of open connections and assigns requests to idle ones.
 
-### Packet Flow & Terminology
+### Keep-Alive
 
-* **Inside Local:** The real IP of the device (e.g., 192.168.1.50).
-* **Inside Global:** The public IP assigned by the ISP (e.g., 145.23.66.90).
-* **Outside Global:** The IP of the destination (e.g., Spotify).
+Without Keep-Alive, the server closes the connection after each response. With `Connection: keep-alive`, the connection stays open for subsequent requests. HTTP/1.1 made this the default. HTTP/2 and HTTP/3 assume multiplexed persistent connections.
 
-**The Process:**
+## TLS: The Encrypted Tunnel
 
-1. **Outgoing:** Device (Source: 192.168.1.50:5000) -> Router -> Router translates to (Source: 145.23.66.90:41200) -> Internet.
-2. **NAT Table:** Router saves the mapping: `192.168.1.50:5000 <-> 145.23.66.90:41200`.
-3. **Incoming:** Spotify replies to `145.23.66.90:41200`. Router looks at the table, sees it belongs to `192.168.1.50:5000`, and forwards it.
+TCP gives reliability but not privacy. Anyone on the network between you and the server can read the bytes. TLS (Transport Layer Security) wraps the TCP connection in encryption.
+
+1. Client sends supported cipher suites + a random number.
+2. Server responds with chosen cipher + its certificate (containing its public key).
+3. Client verifies the certificate chain against trusted root CAs.
+4. Both sides derive a shared session key using Diffie-Hellman key exchange.
+5. All subsequent data is encrypted with this session key.
+
+After the TLS handshake, you have an **encrypted, authenticated** channel. A network observer sees only that you connected to `142.250.185.14:443` and the approximate volume of data — nothing about the content.
+
+## HTTP: The Application Protocol
+
+Now the encrypted pipe is open. The browser sends:
+
+```
+GET /users HTTP/1.1
+Host: api.example.com
+Accept: application/json
+```
+
+The server responds:
+
+```
+HTTP/1.1 200 OK
+Content-Type: application/json
+Cache-Control: max-age=3600
+
+[{"id": 1, "name": "Alice"}, {"id": 2, "name": "Bob"}]
+```
+
+### HTTP Version Evolution
+
+| Version | Transport | Key Feature | Primary Trade-off |
+|---|---|---|---|
+| HTTP/1.1 | TCP | Persistent connections | Head-of-Line blocking at application layer. A slow response blocks all later requests on the same connection. |
+| HTTP/2 | TCP | Multiplexing & binary framing | Multiple requests interleaved on one connection, but TCP-level HOL blocking: one lost packet stalls everything. |
+| HTTP/3 | UDP (QUIC) | No HOL blocking & connection migration | Higher CPU usage; some firewalls block UDP. QUIC integrates TLS 1.3 natively. |
+
+The progression is about eliminating blocking at each layer. HTTP/1.1 eliminated per-request connections. HTTP/2 eliminated application-level queuing. HTTP/3 eliminated transport-level head-of-line by moving off TCP entirely to QUIC (UDP-based), where each stream is independent — a lost packet on stream A has zero effect on stream B.
+
+### Caching: Don't Fetch What You Already Have
+
+Caching reduces latency and server load:
+
+- `Cache-Control: max-age=3600` — browser can use its cached copy for 1 hour without contacting the server.
+- `Cache-Control: no-cache` — browser must re-validate with the server before using the cached copy.
+- `Cache-Control: immutable` — the resource will never change. Ideal for versioned assets (`app.abc123.js`).
+- **ETag** — a unique hash of the resource content. Browser sends `If-None-Match: "abc123"` on subsequent requests. If the hash hasn't changed, server returns `304 Not Modified` with no body. Saves bandwidth, not latency.
+
+### Authentication: Proving Who You Are
+
+Web authentication follows a spectrum from simple to complex:
+
+**Cookies** — Client-side storage (~4 KB). The server sets `Set-Cookie: session_id=xyz` and the browser automatically attaches it to every subsequent request. Simple but vulnerable to XSS if not HttpOnly.
+
+**Sessions** — Server-side storage. The cookie holds only a `SessionID`. The actual data (cart, user info, permissions) stays on the server. More secure because sensitive data never leaves the server.
+
+**JWT (JSON Web Token)** — Stateless. The token itself contains all user data (claims) and is cryptographically signed by the server. No server-side lookup needed — the server just verifies the signature. Tradeoff: tokens can't be revoked server-side until they expire.
+
+**Basic Auth** — Username + password, Base64-encoded, sent in the `Authorization` header. Simple but must always run over HTTPS (Base64 is encoding, not encryption).
+
+**OAuth2** — Delegated authorization framework. "Login with Google" uses OAuth2: your app never sees the user's Google password. The user authenticates with Google, Google gives your app a token granting specific permissions.
+
+### Idempotency
+
+Some HTTP methods are safe to retry, others aren't:
+
+- **Idempotent**: GET, PUT, DELETE. Multiple identical requests have the same effect as one. Retrying a `DELETE /users/5` is harmless — the user is already deleted.
+- **Non-idempotent**: POST. Multiple identical POSTs create multiple resources. Retrying a `POST /orders` with a payment creates duplicate charges.
+
+This is why browsers warn "are you sure you want to resubmit?" on POST forms, but not on GET links.
+
+## The Return Path
+
+The request reached the server, but the response's journey back is shaped by infrastructure:
+
+**CDNs (Content Delivery Networks)** — Static assets (images, JS bundles, CSS) are cached at edge locations worldwide. A user in Tokyo doesn't fetch an image from Virginia — the CDN edge node in Tokyo serves it in milliseconds.
+
+**Load Balancers** — Distribute incoming requests across multiple server instances. Layer 4 (TCP) balancers are fast but blind to HTTP. Layer 7 (HTTP) balancers can route based on URL path, headers, or cookies — `/api/` goes to the backend cluster, `/static/` goes to the CDN.
+
+## NAT: How Your Private IP Reaches the Internet
+
+At this point our request has traversed public infrastructure. But your laptop has a `192.168.1.50` address — a **private** IP that can't be routed on the public internet. How does it communicate at all?
+
+### Why NAT Exists
+
+NAT (Network Address Translation) was created as a stopgap for **IPv4 exhaustion**. The IPv4 address space has ~4.3 billion addresses. There are more devices than that. NAT lets thousands of devices share one public IP. It's the reason your home Wi-Fi works without your ISP assigning every phone, laptop, and smart TV its own public address.
+
+### NAT Types
+
+- **Static NAT** (1-to-1): one private IP maps to one public IP. Used for servers inside a network that need to be reachable from outside.
+- **Dynamic NAT** (M-to-M): private IPs map to a pool of public IPs on demand.
+- **PAT / NAT Overload**: the most common form. Thousands of private IPs share **one** public IP by using unique source ports to distinguish sessions.
+
+### Packet Flow
+
+When your laptop (`192.168.1.50:5000`) sends a request to `142.250.185.14:443`:
+
+1. Router receives the packet, creates a NAT table entry: `192.168.1.50:5000 ↔ 145.23.66.90:41200`.
+2. Router rewrites the source to `145.23.66.90:41200` and forwards to the internet.
+3. Server responds to `145.23.66.90:41200`.
+4. Router looks up `41200` in the NAT table, finds `192.168.1.50:5000`, rewrites the destination, forwards.
+
+The NAT table is the critical piece. Without an active mapping, an incoming packet has nowhere to go — the router drops it. This is why NAT acts as a de facto firewall, but also why peer-to-peer connections are hard.
 
 ### NAT Mapping & Filtering (P2P Mechanics)
 
-This determines how "friendly" a NAT is to Peer-to-Peer connections.
+How "friendly" a NAT is to peer-to-peer connections depends on its behavior:
 
-#### Mapping Behavior (Outgoing)
+**Mapping Behavior** (how public ports are assigned for outgoing connections):
 
-![](/assets/nat.png)
+| Type | Behavior | P2P Difficulty |
+|------|----------|----------------|
+| Endpoint-Independent (EIM) | Same public port for all destinations | Easy |
+| Address-Dependent (ADM) | Different port for different destination IPs | Medium |
+| Address-and-Port-Dependent (Symmetric) | Different port for every unique IP:Port | Hard |
 
-1. **Endpoint-Independent Mapping (EIM):** Reuses the same public port for all destinations. (Easiest for P2P).
-2. **Address-Dependent Mapping (ADM):** Different public port for different destination IPs.
-3. **Address-and-Port-Dependent (Symmetric):** Different public port for every unique IP:Port combination. (Hardest for P2P).
+**Filtering Behavior** (who can send data back through an opened port):
 
-#### Filtering Behavior (Incoming)
+| Type | Who Can Send Back | P2P Difficulty |
+|------|-------------------|----------------|
+| Endpoint-Independent Filtering (EIF) | Anyone | Easy |
+| Address-Restricted | Only the IP you contacted | Medium |
+| Port-Restricted | Only the specific IP:Port you contacted | Hard |
 
-![](/assets/nat_filter.png)
+Symmetric NAT + Port-Restricted filtering is the worst case for P2P. This is what most mobile carriers and many home ISPs use.
 
-1. **Endpoint-Independent Filtering (EIF):** Anyone can send data back to the opened public port.
-2. **Address-Restricted:** Only the IP you contacted can send data back.
-3. **Port-Restricted:** Only the specific IP AND Port you contacted can send data back.
+### NAT Traversal: Hole Punching & Relays
 
-### NAT Traversal (Hole Punching & Relays)
+When two devices behind NATs want to connect directly:
 
-* **STUN (Session Traversal Utilities for NAT):** A "What's my IP?" service. Used for Hole Punching. Works for EIM/EIF but fails on Symmetric NAT.
-* **TURN (Traversal Using Relays around NAT):** If STUN fails, traffic is relayed through a middle-man server. High latency/cost, but 100% success rate.
-* **ICE (Interactive Connectivity Establishment):** The "manager" that tries STUN first, and falls back to TURN if needed.
+**STUN** (Session Traversal Utilities for NAT) — A "what's my IP?" service. Both devices ask a STUN server: "What public IP:Port do you see me as?" They exchange these addresses and try to connect directly. Works for EIM/EIF. Fails on Symmetric NAT because the port used for the STUN query differs from the port that would be used for the peer connection.
 
-### Advanced Concepts
+**TURN** (Traversal Using Relays around NAT) — If STUN fails, traffic is relayed through a TURN server. Both devices connect to the relay, and it forwards data between them. 100% success rate, but the relay sees all traffic (encrypted if you use TLS), and bandwidth/latency costs are higher.
 
-* **Hairpinning (NAT Loopback):** Allows a device on the internal network to access another internal device using the **public** IP address. Without this, you can't "see" your own local server via its public URL while on the same Wi-Fi.
-* **CGNAT (Carrier-Grade NAT):** Used by mobile ISPs and many home ISPs. Your "Public IP" on your router is actually _another_ private IP (usually `100.64.x.x`). This is "NAT behind a NAT" and makes port forwarding almost impossible without a VPN or Tunnel (Tailscale/Cloudflare).
-* **UPnP / NAT-PMP:** Protocols that allow apps (like gaming consoles) to automatically ask the router to open a port.
+**ICE** (Interactive Connectivity Establishment) — The manager. ICE collects candidates (local IPs, STUN-derived public IPs, TURN relay addresses), tests connectivity between all pairs, and picks the best working path. Tries direct first, falls back to relay only if necessary.
 
-### References
+### Advanced NAT
+
+**Hairpinning (NAT Loopback)** — Accessing an internal device using the public IP from inside the same network. Without hairpinning, `https://myhome server.com` works from a coffee shop but not from your living room. The router must recognize that the destination public IP is itself and loop the traffic back internally.
+
+**CGNAT (Carrier-Grade NAT)** — Used by mobile ISPs and many home ISPs. Your router's "public IP" is actually another private IP (usually in `100.64.x.x` range). This is double NAT — your home router translates private → carrier-private, and the carrier translates carrier-private → public. Makes port forwarding nearly impossible without a VPN or tunnel (Tailscale, Cloudflare Tunnel).
+
+**UPnP / NAT-PMP** — Protocols that let applications (gaming consoles, torrent clients) automatically request the router to open and forward a port. Convenient but a security concern — any malware on your network can open ports too.
+
+## CORS: The Browser's Security Guard
+
+By default, a script on `app.example.com` cannot read the response from `api.other-domain.com` — even if the request succeeds. This is the Same-Origin Policy: scripts can only read responses from their own origin (same protocol + domain + port).
+
+CORS (Cross-Origin Resource Sharing) is how servers opt in to cross-origin access. When `api.other-domain.com` responds with `Access-Control-Allow-Origin: https://app.example.com`, the browser allows the script to read the response. Without this header, the browser blocks the read even though the server sent the data.
+
+Preflight requests (`OPTIONS`) add an extra round trip: before a cross-origin request with non-simple headers or methods, the browser asks "would you allow this?" and only proceeds if the server says yes.
+
+## References
 
 - [IETF RFC 2616 — HTTP/1.1](https://datatracker.ietf.org/doc/html/rfc2616)
 - [IETF RFC 7540 — HTTP/2](https://datatracker.ietf.org/doc/html/rfc7540)
