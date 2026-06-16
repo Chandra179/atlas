@@ -78,7 +78,7 @@ When a shopping cart app uses `QUORUM` for writes and `ONE` for reads, a user ad
 
 ---
 
-**When to reach for it:** Time-series metrics ingestion (millions of writes from sensors/servers), IoT data streams, messaging systems, recommendation engines, any write-heavy workload that needs linear scalability across many nodes, and can tolerate eventual consistency.
+**When to tjreach for it:** Time-series metrics ingestion (millions of writes from sensors/servers), IoT data streams, messaging systems, recommendation engines, any write-heavy workload that needs linear scalability across many nodes, and can tolerate eventual consistency.
 
 **When not to:** Strongly consistent financial transactions (use Spanner or PostgreSQL), complex ad-hoc queries (Cassandra requires query-driven schema design), small datasets (<1TB — Cassandra overhead isn't worth it), need native SQL JOINs, or when you need to change query patterns frequently (schema changes in Cassandra are expensive and require data migration).
 
