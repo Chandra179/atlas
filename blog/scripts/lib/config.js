@@ -3,7 +3,7 @@ const IGNORE = new Set([
     'CLAUDE.md', 'SUMMARY.md', 'diagrams', 'books.md', 'ROADMAP.md',
     'rate-limit.md', 'real-time-chat-discord.md',
     'notification-system.md', 'distributed-cache.md', 'stale-reports',
-    'blog', 'assets', 'Templates', '.obsidian', '.opencode'
+    'blog', 'assets', 'Templates', '.obsidian', '.opencode', 'docs'
 ]);
 
 const NAME_OVERRIDES = {

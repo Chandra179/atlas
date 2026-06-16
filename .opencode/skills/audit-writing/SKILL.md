@@ -3,24 +3,24 @@ name: audit-writing
 description: >
   Audit markdown files in a knowledge base for writing quality. Analyzes content
   type, style fit, audience, prerequisites, inconsistencies, gaps, structural
-  patterns, scanability, concreteness, and storytelling. Writes findings to
-  WRITING-AUDIT.md at workspace root. Use when user says "audit this file",
+  patterns, scanability, concreteness, sequence, and storytelling. Writes findings to
+  docs/audits/ as per-file audit reports. Use when user says "audit this file",
   "review writing", "analyze quality", "check consistency", "improve narrative",
   or evaluates markdown docs.
 ---
 
 # Audit Writing
 
-Audit a markdown file across 8 dimensions. Write the report to `WRITING-AUDIT.md` at workspace root. Print a 3-line summary inline.
+Audit a markdown file across 9 dimensions. Write the report to `docs/audits/<slug>.audit.md`. Create `docs/audits/` if missing. Print a 3-line summary inline.
 
 ## Workflow
 
 1. Read the target file fully.
-2. Run all 8 dimensions. Skip any dimension marked N/A — some file types don't need them (templates skip storytelling, resumes skip prerequisites, reference tables skip arc).
-3. Write the complete report to `WRITING-AUDIT.md` using the template below.
+2. Run all 9 dimensions. Skip any dimension marked N/A — some file types don't need them (templates skip storytelling, resumes skip prerequisites, reference tables skip arc).
+3. Write the complete report to `docs/audits/<slug>.audit.md`. Ensure `docs/audits/` exists.
 4. Print to the user: file path, style verdict, top 3 issues found.
 
-## The 8 Dimensions
+## The 9 Dimensions
 
 ### 1. Content Summary
 One sentence. What is this teaching? To whom? Be specific — "an explanation of relational database internals for engineers migrating from MySQL to PostgreSQL" not "about databases."
@@ -29,10 +29,10 @@ One sentence. What is this teaching? To whom? Be specific — "an explanation of
 Identify the current style and the recommended style. Use the four general styles from [STYLES.md](STYLES.md): narrative, reference, deep dive, guide. Flag mismatches — a glossary when the content demands a narrative, a wall of prose when the content is lookup-oriented.
 
 ### 3. Audience
-Who is the reader? Answer: beginner encountering the topic first time, experienced practitioner migrating from a known tool, someone who read prerequisite notes, or undefined. Flag when the file targets everyone (serves no one) or shifts audience mid-file (starts beginner-friendly then jumps to advanced without warning).
+Who is the reader? Answer: beginner encountering the topic first time, experienced practitioner, someone who read prerequisite notes, or undefined. Flag when the file targets everyone (serves no one) or shifts audience mid-file (starts beginner-friendly then jumps to advanced without warning).
 
 ### 4. Prerequisites
-What must the reader know before this file makes sense? If the file references another file in the vault, list it. If the file assumes external knowledge (e.g., "the reader knows what a B-Tree is"), state it. If the file is self-contained, say so. Flag missing prerequisites when a concept is used but never linked or defined.
+What must the reader know before this file makes sense? If the file references another file in the vault, list it. If the file assumes external knowledge (e.g., "the reader knows what a B-Tree is"), state it. If the file is self-contained, say so. A prerequisite must be a markdown link `[text](path.md)` — a plain name mention (e.g., "the reader should know Raft") without a hyperlink does not count. Flag any prerequisite that is name-dropped but never linked.
 
 ### 5. Inconsistencies
 Spot-check for:
@@ -58,6 +58,12 @@ Scan-ability: can a reader skim in 30 seconds and find what they need? Headers, 
 
 Concreteness: what ratio of claims are anchored by numbers, examples, or specific scenarios? "It scales well" is noise. "Cold start: 182s on H200" is signal. Flag when abstract claims dominate.
 
+### 9. Sequence & Progression
+Does the file build easy→hard, or does it front-load advanced concepts?
+- Flag when the first substantive section assumes knowledge the reader hasn't been given
+- Flag when specialist jargon appears before basic definitions with no bridge
+- Flag when the file's assumed difficulty doesn't match its placement in a prerequisite chain
+
 ## Storytelling Scorecard
 Score 1–5 on each. Skip arc for reference-only files. Skip all five for templates.
 
@@ -71,7 +77,7 @@ Score 1–5 on each. Skip arc for reference-only files. Skip all five for templa
 
 ## Report Template
 
-Write the report to `WRITING-AUDIT.md` at the workspace root using this exact structure:
+Write the report to `docs/audits/<slug>.audit.md` using this exact structure. Derive slug from the filename (drop `.md`, append `.audit.md`). For duplicate names, prefix with parent directory name.
 
 ```markdown
 # Writing Audit: `path/to/file.md`
@@ -104,6 +110,9 @@ Recommended: [style]
 Scan-ability: [assessment]
 Concreteness: [assessment. Count concrete anchors vs. abstract claims.]
 
+## 9. Sequence & Progression
+[Does the file build easy→hard? Any hard-first flags?]
+
 ## Storytelling Quality
 
 | Dimension | Score (1-5) | Notes |
@@ -117,10 +126,16 @@ Concreteness: [assessment. Count concrete anchors vs. abstract claims.]
 
 ## Cross-File Audit
 
-When the user asks to audit the whole repo, also add a **Ranking** section at the top of the report:
+When the user asks to audit the whole repo, write one audit report per file plus a summary index.
+
+### Per-file audit
+Write `docs/audits/<slug>.audit.md` for each target file using the Report Template above.
+
+### Summary index
+Write `docs/audits/README.md` with ranking:
 
 ```markdown
-## Overall Ranking
+# Writing Audit Summary
 
 **Strongest files (ready to publish):**
 - `path/to/file.md` — why it works
@@ -132,6 +147,7 @@ When the user asks to audit the whole repo, also add a **Ranking** section at th
 
 **Prerequisite chains (read these in order):**
 - `A.md` → `B.md` → `C.md` — why they form a sequence
+- **Sequence validation**: Confirm each chain builds easy→hard. Flag chains where a reader needs file C to understand file B, but C is listed after B.
 ```
 
 Rank by: whether a first-time reader would understand the topic after reading the file.
