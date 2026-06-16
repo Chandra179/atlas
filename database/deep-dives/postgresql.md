@@ -10,12 +10,72 @@ created: "2026-06-13"
 > For the underlying mechanics of B-Trees, heap storage, WAL, MVCC, and related algorithms,
 > see [Storage Engines](../storage-engines.md) and [Database Algorithms](../algorithms.md).
 
-## What Makes It Unique
+## Why This Exists
 
-- **Extensible by design** — pluggable storage, index types, procedural languages, and foreign data wrappers make it more a framework than a database
-- **Strict SQL standards compliance** — closest open-source implementation to the SQL standard, with a philosophy of correctness over convenience
-- **The open-source Oracle** — feature parity with commercial databases for enterprise workloads; most widely deployed object-relational DBMS
-- **Process-per-connection model** — each connection gets an OS process, providing strong isolation at the cost of higher memory per connection
+PostgreSQL is the extensible, standards-compliant relational database — built for applications that need strong ACID guarantees, complex queries, and advanced data types without vendor lock-in. It filled the gap between simple open-source RDBMS (MySQL) and proprietary enterprise databases (Oracle, DB2): full ACID, triggers, views, stored procedures, custom functions, and extensibility — all in open source.
+
+**What it's for:** General-purpose OLTP with analytics, geospatial (PostGIS), custom data types (JSONB, arrays, hstore, range types), regulatory environments demanding data integrity, and workloads that benefit from advanced SQL (CTEs, window functions, recursive queries).
+
+---
+
+### PK is a B-Tree index pointing to heap
+
+In most relational databases, the primary key determines where the row is stored physically. PostgreSQL chose differently. The SQL standard has no definition of a clustered index, so PG treats the table as an unordered heap of rows and the PK as just another B-Tree index pointing to them — no special treatment.
+
+When you do a PK lookup in PG, it takes two steps: first it finds the CTID (a disk address like `page 3, slot 7`) from the index, then it reads the actual row from the heap at that address. When you UPDATE a row, PG writes a new version somewhere else in the heap, so the CTID changes — meaning every index on the table has to insert a new entry pointing to the new location. With 5 indexes, one UPDATE generates 5 index writes even if you only changed a single column. And when you define `PRIMARY KEY (a, b, c)`, it's a single B-Tree with a concatenated key — so `WHERE a = 1` uses the index but `WHERE b = 2` alone does a full table scan, because PG won't infer "if `b` is in the PK it must be indexed."
+
+So when someone coming from MySQL puts a UUID PK on a table with 10 indexes and does frequent `UPDATE last_login`, each login generates 10 extra index writes they never expected. Or when they define `PRIMARY KEY (org_id, user_id)` and query `WHERE user_id = 42`, PG does a full table scan — no error, no warning, just slower queries.
+
+**If you're thinking about clustering like InnoDB:** InnoDB stores the row directly in the PK B-Tree, giving a single-hop lookup and no CTID cascade on UPDATE. But that couples the PK to the physical layout — changing the PK moves rows on disk, and custom index types like GiST or GIN don't fit a clustered model. PG chose flexibility over optimization.
+
+---
+
+### Process-per-connection
+
+When a client connects to PostgreSQL, the server forks a dedicated OS process. Each backend has its own memory space, its own copy of catalog caches, and its own planner state. Extensions like PostGIS and pgvector load as shared libraries into this process.
+
+A single connection costs about 5-10MB of RAM before any query runs — so 500 connections eat 2.5-5GB before touching a single row. This means connection pooling (PgBouncer) becomes mandatory beyond roughly 200 concurrent connections. The planner generates a query plan for every incoming query — no plan caching across sessions by default — so a trivial `SELECT * FROM users WHERE id = ?` can spend more time planning (1-5ms) than executing.
+
+When you run 1000 direct connections without PgBouncer, the OS spends more time context-switching between processes than doing actual query work — throughput drops below what 100 connections with pooling deliver. And when you do 10,000 simple key-lookups per second without prepared statements, each query pays the full optimizer cost and burns a CPU core on planning alone.
+
+**If you're thinking about threads like MySQL:** MySQL uses threads (~200KB per connection instead of ~5MB), so 1000 connections cost only ~200MB. But a crash in one thread can corrupt shared memory and bring down the whole server — PG's process model means an extension crash kills only one session.
+
+---
+
+### MVCC with heap + VACUUM
+
+PostgreSQL implements MVCC by writing new row versions directly into the heap. When you UPDATE a row, PG doesn't modify it in place — it marks the old version as "dead" and appends a new version wherever there's free space. The old version stays on the page until VACUUM reclaims it.
+
+This means readers never wait for writers — concurrent SELECT and UPDATE don't block each other. But dead tuples accumulate in both heap pages and index entries. When a 1M-row table sees constant updates and no vacuum, it can bloat to 10M dead tuples — so every sequential scan reads 10x as much data as it should. WAL is append-only as well, so under heavy writes without checkpointing, it grows until the disk fills.
+
+When developers treat PG like InnoDB and don't tune autovacuum, a 1M-row active table with 10M dead tuples causes every sequential scan to read 10x the data and every index scan to follow longer CTID chains through dead space. The database slows down gradually — no EXPLAIN says "too many dead tuples," no error says "WAL is filling." The fix is invisible until someone measures table bloat or WAL volume.
+
+**If you're thinking about undo logs like Oracle or InnoDB:** Undo keeps old row versions in a separate segment — clean table pages, no dead tuples, no VACUUM needed. But undo is a separate write path with its own management overhead. PG's approach is simpler internally — old versions stay where they were — and shifts the maintenance burden to the operator.
+
+---
+
+### Index-only scans require the Visibility Map
+
+In PG's heap model, the index entry may point to a dead tuple on a page full of MVCC churn. PG needs proof that a page is clean before it can serve a query from the index alone — that proof is the Visibility Map, a per-page bitmap that records "every tuple on this page is visible to all transactions."
+
+When the Visibility Map is clean, a covering index query reads 1 page per row instead of 2 (skipping the heap hop). But only VACUUM updates the VM. Without regular vacuum, every page stays marked dirty, and what should be an index-only scan silently degrades to index plus heap lookup for every row.
+
+When a developer creates a covering index expecting it to serve a dashboard query from the index alone, but autovacuum is too conservative or disabled, the optimizer still plans an index-only scan — yet every row visit hits the heap anyway. Query latency doubles with no schema change, no EXPLAIN warning, no error.
+
+**If you're thinking about using the CTID directly like SQL Server's RID:** SQL Server's RID for heap tables has the same staleness problem — page splits change RIDs, creating forwarding pointer chains. PG's VM approach separates the proof (a bitmap) from the data (the heap), making index-only scans opt-in based on cleanliness. You check a flag instead of chasing pointers.
+
+---
+
+**When to reach for it:** Complex queries with CTEs/window functions/recursive, geospatial (PostGIS), custom data types, need standards compliance, want to avoid vendor lock-in, need table inheritance/partitioning.
+
+**When not to:** Ultra-high connection counts (>200 without pooling), write-heavy append-only logs (use Cassandra), simple key-value (use Redis), need zero-maintenance embedded (use SQLite), or need a clustered PK with single-hop lookups (use InnoDB).
+
+## Architecture
+
+- **Process-per-connection model** — each client connection forks a dedicated OS process; strong isolation at the cost of higher memory per connection
+- **Heap storage with MVCC** — updates create new row versions in the heap; dead tuples accumulate until VACUUM reclaims space
+- **WAL for crash recovery** — REDO-only logging; changes written to WAL before data pages, enabling roll-forward recovery without journaled filesystems
+- **Extensible core** — custom index types, procedural languages, and foreign data wrappers as first-class citizens; even the planner is hookable
 
 ## Storage Model
 

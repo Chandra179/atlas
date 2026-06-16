@@ -27,6 +27,7 @@ Volumes persist across deploys; they are NOT wiped when a container scales down.
 ### Image Building
 
 - **Dependencies**: use `.uv_pip_install("package==version")` on the image chain. Prefer this over raw `pip_install` for consistency with the project's `uv` tooling.
+- **Build/Runtime env vars**: use `.env_var("KEY", "value")` on the image chain. Observed in practice: `HF_XET_HIGH_PERFORMANCE=1` (speeds up HuggingFace Xet-backed downloads) and `VLLM_LOG_STATS_INTERVAL=1` (enables periodic vLLM throughput logging).
 - **Bundled files**: use `.add_local_file(local_path, remote_path, copy=True)`. Without `copy=True`, files are mounted at container startup (not baked into the image layer), making them unavailable for subsequent image build steps.
 - **Decorator params** (`gpu=`, `scaledown_window=`, `volumes=`): these are evaluated at **Python module load time on the deploy host** (your machine), not inside the Modal container. Module-level constants work fine for these.
 
@@ -67,6 +68,42 @@ For limited budgets (e.g., $240 hackathon credit), **30-minute `scaledown_window
 - **`modal deploy`** pushes a new immutable deployment with the current code + image. Existing live containers continue running the OLD deployment.
 - **Killing a container** (`modal app stop`) restarts it from the same old deployment. Code/image changes require `modal deploy` to take effect.
 - **Modal endpoints are public HTTPS URLs** with no built-in auth layer. The backend class must skip API key validation (unlike HuggingFace or OpenRouter).
+- **Endpoint URL pattern**: `https://{username}--{app-name}--{function-name}.modal.run` (e.g., `chandrafirst67--modal-gemma-serve-dev.modal.run`).
+- **Mount paths at deploy**: Modal logs show which local files are mounted — useful for confirming config files are picked up (e.g., `🔨 Created mount /home/.../config.yaml`).
+
+### GPU Memory Snapshots (Alpha)
+
+Modal's GPU memory snapshot feature cuts cold starts from ~3-5 min to ~10-30 sec by capturing GPU memory state (including JIT-compiled Triton kernels and CUDA graphs) after warm-up and restoring it on subsequent starts.
+
+**How it works:**
+
+1. A snapshot-enabled container boots, starts vLLM, runs a warm-up query (triggering JIT compilation), then puts vLLM into sleep mode (`--enable-sleep-mode`) which empties the KV cache and offloads weights to CPU.
+2. Modal snapshots the GPU memory and persists it.
+3. Future containers boot from the snapshot — vLLM wakes from sleep mode in seconds instead of re-compiling.
+
+**Implementation requirements:**
+
+- Refactor from `app.function` to `app.cls` — lifecycle hooks are required.
+- Add to decorator: `enable_memory_snapshot=True`, `experimental_options={"enable_gpu_snapshot": True}`
+- Add env vars: `VLLM_SERVER_DEV_MODE=1`, `TORCHINDUCTOR_COMPILE_THREADS=1`
+- Add vLLM flags: `--enable-sleep-mode`. Constrain `--max-num-seqs` and `--max-model-len` to keep KV cache small/predictable.
+- Lifecycle: `@modal.enter(snap=True)` — start vLLM, warmup, sleep (triggers snapshot). `@modal.enter(snap=False)` — wake from snapshot.
+- `@modal.exit()` — terminate vLLM subprocess cleanly.
+
+**Tradeoffs:**
+
+| Aspect | Current (no snapshot) | With GPU Snapshot |
+|--------|----------------------|-------------------|
+| Cold start | ~3-5 min | ~10-30 sec |
+| Idle cost | $0 | $0 |
+| Complexity | Simple | Medium (refactor to class) |
+| Maturity | Stable | Alpha feature |
+
+**Limitations (all acceptable for single-GPU use):**
+
+- Best with single GPU (`N_GPU=1`) — fine here.
+- Does not speed up weight loading — but that is not the bottleneck.
+- Alpha feature, but Modal's vLLM example is battle-tested.
 
 ---
 

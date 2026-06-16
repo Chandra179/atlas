@@ -16,11 +16,6 @@
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/ml</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
     <loc>https://blog.chan179.workers.dev/psyhco</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
@@ -184,6 +179,16 @@
     <loc>https://blog.chan179.workers.dev/ai</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://blog.chan179.workers.dev/ai/ai-infra</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://blog.chan179.workers.dev/ai/ml</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
   <url>
     <loc>https://blog.chan179.workers.dev/database</loc>

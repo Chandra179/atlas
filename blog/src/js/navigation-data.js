@@ -17,11 +17,6 @@ const navigationData = [
         standalone: true,
     },
     {
-        name: "ML",
-        slug: "ml",
-        standalone: true,
-    },
-    {
         name: "Psyhco",
         slug: "psyhco",
         standalone: true,
@@ -98,6 +93,10 @@ const navigationData = [
     {
         name: "Ai",
         slug: "ai",
+        pages: [
+            { name: "Ai Infra", slug: "ai-infra" },
+            { name: "ML", slug: "ml" },
+        ],
     },
     {
         name: "Database",
