@@ -1,6 +1,6 @@
 # Writing Styles & Structural Patterns
 
-Reference catalog for the audit skill. Use these to identify styles and suggest patterns.
+Reference catalog for the improve-doc skill. Use these to identify styles and suggest patterns.
 
 ## The Four General Styles
 

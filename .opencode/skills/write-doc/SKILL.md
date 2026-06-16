@@ -1,9 +1,9 @@
 ---
 name: write-doc
 description: >
-  Write markdown files following the same quality system used by audit-writing.
+  Write markdown files following the same quality system used by improve-doc.
   Uses the style system (narrative/reference/deep dive/guide) and structural
-  pattern catalog from audit-writing/STYLES.md. Produces full drafts with inline
+  pattern catalog from improve-doc/STYLES.md. Produces full drafts with inline
   citations, a References table, and self-checks against all 9 dimensions.
   Use when user says "write a guide", "draft a doc", "create a reference",
   "write about X", "document Y", or asks for any new markdown content.
@@ -11,12 +11,12 @@ description: >
 
 # Write Doc
 
-Write a full markdown draft using the same 9 dimensions, style system, and pattern catalog that `audit-writing` checks for. Every draft includes inline citations (`[^n]` or `^[...]`) and a References table at the bottom. Write the draft to the specified file path (or derive one from the topic). Print a 3-line summary inline.
+Write a full markdown draft using the same 9 dimensions, style system, and pattern catalog that `improve-doc` checks for. Every draft includes inline citations (`[^n]` or `^[...]`) and a References table at the bottom. Write the draft to the specified file path (or derive one from the topic). Print a 3-line summary inline.
 
 ## Workflow
 
 1. **Understand the request.** What topic? What style fits? Who is the reader? Ask if unclear.
-2. **Determine style, audience, and prerequisites** using the 4 styles from [STYLES.md](../audit-writing/STYLES.md).
+2. **Determine style, audience, and prerequisites** using the 4 styles from [STYLES.md](../improve-doc/STYLES.md).
 3. **Outline the draft** — pick structural patterns from the STYLES.md catalog based on style and audience.
 4. **Write the full draft** — apply all 9 dimensions as generation constraints (see below). Embed `[^n]` footnote markers for every external source. Use `^[inline footnote]` for brief asides.
 5. **Append a References section** — every `[^n]` must have a definition `[^n]: Description — [URL](...)`. Every definition must be referenced in the body. No orphan footnotes.
