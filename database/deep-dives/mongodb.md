@@ -137,7 +137,9 @@ flowchart LR
     M -->|"route to shard 2"| S1[Shard 1<br/>chunks a-h]
     M --> S2[Shard 2<br/>chunks i-p]
     M --> S3[Shard 3<br/>chunks q-z]
-    S1 & S2 & S3 -->|"each shard is<br/>a replica set"| R["Merged Result"]
+    S1 -->|"each shard is<br/>a replica set"| R["Merged Result"]
+    S2 -->|"each shard is<br/>a replica set"| R
+    S3 -->|"each shard is<br/>a replica set"| R
     BAL[Balancer] -.->|"migrates chunks<br/>evenly"| S1
     BAL -.-> S2
     BAL -.-> S3

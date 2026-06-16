@@ -229,7 +229,24 @@ Three families, three approaches to creating new data:
 
 ### Mixture of Experts (MoE)
 
-Instead of one giant model, have many smaller "expert" sub-networks and a router that decides which experts handle each input. Each token activates only ~2 of 8 experts. Result: massive total capacity (trillions of parameters) with compute proportional to only the active experts. Used in Mixtral, GPT-4. [^16]
+Instead of one giant model, have many smaller "expert" sub-networks and a router that decides which experts handle each input. Each token activates only ~2 of 8 experts. Result: massive total capacity with compute proportional to only the active experts. Used in Mixtral, GPT-4, DeepSeek-V3. [^16][^21]
+
+**How routing works** — For each token, the router computes a softmax over all experts and selects the top-k (typically k=2). The token is then processed only by the selected experts. This keeps FLOPs per token roughly constant while scaling total parameters.
+
+**Load balancing** — Naive top-k routing causes expert collapse: the router learns to send most tokens to 1–2 experts, starving the rest. The fix: an auxiliary loss that penalizes imbalanced expert usage. [^22] Without this, MoE training fails — experts that never receive tokens stop receiving gradients and die permanently.
+
+**Tradeoffs vs dense models:**
+
+| Dimension | Dense (e.g., LLaMA 3 70B) | MoE (e.g., Mixtral 8×7B) |
+|-----------|---------------------------|---------------------------|
+| Total params | 70B | ~46B (but 8×7B experts) |
+| Active params per token | 70B | ~12B (2 of 8 experts) |
+| VRAM (inference) | ~140 GB (FP16) | ~92 GB (FP16, all experts loaded) |
+| Training stability | Stable | Requires auxiliary loss, expert balancing |
+| Throughput | Slower per token | Faster per token (fewer active params) |
+| Memory bandwidth | Bottlenecked by loading all weights | Same bottleneck — all experts must be in VRAM |
+
+> Despite lower active params per token, MoE inference VRAM is still high because all experts must reside in memory. The win is compute speed, not memory savings. DeepSeek-V3 pushes this to extreme: 671B total params, 37B active per token — the largest open-weight MoE to date. [^23]
 
 ### Self-Supervised Learning
 
@@ -255,10 +272,42 @@ Powerful models need to be steerable:
 
 - **RLHF** (Reinforcement Learning from Human Feedback): humans rank model outputs → train a reward model that predicts human preference → use PPO (Proximal Policy Optimization) to fine-tune the model to maximize reward. [^12]
 - **Constitutional AI**: the model critiques its own outputs against a set of principles (e.g., "be helpful, harmless, honest") and revises them. No human reward model needed. Used by Claude. [^13]
+- **DPO** (Direct Preference Optimization): eliminates the separate reward model entirely. Instead, it directly optimizes the policy from human preference pairs using a classification-style loss. [^19] DPO is simpler to implement (no PPO training loop, no reward model to maintain), more stable, and matches or exceeds RLHF-PPO on many benchmarks. However, RLHF-PPO can still outperform DPO when you have an online reward model that can label new model outputs during training, rather than relying on a fixed dataset of human preferences. [^20]
+
+| Method | Reward Model | Training Loop | Stability | Data Needed |
+|--------|--------------|---------------|-----------|-------------|
+| RLHF-PPO | Separate model | 4-model pipeline (policy, reference, reward, value) | Brittle | Preference pairs + online reward labels |
+| Constitutional AI | Principles (text) | Self-critique + revision | Stable | Principles + few examples |
+| DPO | None (implicit) | Single model, classification loss | Very stable | Preference pairs only |
 
 ### Prompting as Programming
 
-In-context learning: the model adapts its behavior based on what's in the prompt, without any weight updates. Few-shot examples, chain-of-thought ("think step by step"), and structured instructions all steer the model through the input alone. The prompt is the new programming interface.
+In-context learning: the model adapts its behavior based on what's in the prompt, without any weight updates. The prompt is the new programming interface.
+
+**Few-shot learning** — Provide examples in the prompt. Zero-shot (no examples) works for simple tasks. One-shot (1 example) anchors format. Few-shot (3–10 examples) dramatically improves accuracy on classification, translation, and structured extraction. Performance gains diminish after ~5–8 examples for most tasks.
+
+**Chain-of-Thought (CoT)** — Instead of asking for the answer directly, prompt: "Let's think step by step." [^24] The model generates intermediate reasoning steps, which improves accuracy on multi-step math, logic, and planning tasks. Zero-shot CoT ("Let's think step by step") alone boosts GSM8K math scores from ~18% to ~41% on un-fine-tuned models.
+
+CoT variants:
+- **Tree of Thoughts (ToT)**: explore multiple reasoning branches, evaluate each, backtrack from dead ends. Used when correctness matters more than latency — solves problems GPT-4 with standard prompting can't. [^25]
+- **Self-Consistency**: sample multiple reasoning paths, pick the majority answer. Works well when CoT alone is unreliable — diversity of reasoning compensates for individual errors.
+- **ReAct** (Reason + Act): interleave reasoning with tool calls. "I need the weather → call `get_weather("SF")` → result is 72F → therefore no raincoat needed." [^26] Foundation of agentic workflows.
+
+**System prompt design** — The system message sets the model's role, tone, constraints, and output format. A well-designed system prompt is the difference between a model that follows instructions and one that improvises. Include: who the model is, what it should do, what it must never do, and the exact output format.
+
+**Structured output** — Force the model to emit valid JSON, XML, or function-call syntax. Techniques: JSON mode (grammar-constrained decoding guarantees valid syntax), function calling (model outputs `{"name": "search", "parameters": {...}}`), and constrained sampling (mask tokens that would produce invalid output).
+
+**Token budget** — Every prompt competes for the context window. Strategies: truncate oldest messages first, summarize prior conversation, use prompt compression (LLMLingua), or chunk long documents into overlapping windows. The context window is a finite resource — treat it like RAM.
+
+| Technique | When to Use | Cost |
+|-----------|-------------|------|
+| Zero-shot | Simple tasks, known formats | 1 prompt |
+| Few-shot | Classification, extraction, domain-specific tasks | 1 prompt + N examples |
+| CoT + few-shot | Multi-step reasoning, math | 1 prompt + N reasoned examples |
+| ToT | Planning, puzzles, hard reasoning | 10–100× CoT cost |
+| Self-Consistency | When CoT is noisy, accuracy > latency | 5–40× CoT cost |
+| ReAct | Tasks requiring tools, search, or environment interaction | Variable per action loop |
+| Structured output | API integration, data extraction | Slight latency increase for constrained decoding |
 
 ### Model Differences
 
@@ -337,3 +386,11 @@ This survey covered the ML fundamentals: from a single neuron up to deploying LL
 [^16]: Jiang et al., 2024 — *Mixtral of Experts* — [arXiv](https://arxiv.org/abs/2401.04088)
 [^17]: Ho et al., 2020 — *Denoising Diffusion Probabilistic Models* — [arXiv](https://arxiv.org/abs/2006.11239)
 [^18]: Touvron et al., 2023 — *LLaMA: Open and Efficient Foundation Language Models* — [arXiv](https://arxiv.org/abs/2302.13971)
+[^19]: Rafailov et al., 2023 — *Direct Preference Optimization: Your Language Model is Secretly a Reward Model* — [arXiv](https://arxiv.org/abs/2305.18290)
+[^20]: Xu et al., 2024 — *When is DPO Better than PPO?* — comparison of offline vs online preference optimization — [arXiv](https://arxiv.org/abs/2404.10719)
+[^21]: Lepikhin et al., 2020 — *GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding* — [arXiv](https://arxiv.org/abs/2006.16668)
+[^22]: Fedus et al., 2022 — *Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity* — [arXiv](https://arxiv.org/abs/2101.03961)
+[^23]: DeepSeek-AI, 2024 — *DeepSeek-V3 Technical Report* — [arXiv](https://arxiv.org/abs/2412.19437)
+[^24]: Wei et al., 2022 — *Chain-of-Thought Prompting Elicits Reasoning in Large Language Models* — [arXiv](https://arxiv.org/abs/2201.11903)
+[^25]: Yao et al., 2023 — *Tree of Thoughts: Deliberate Problem Solving with Large Language Models* — [arXiv](https://arxiv.org/abs/2305.10601)
+[^26]: Yao et al., 2022 — *ReAct: Synergizing Reasoning and Acting in Language Models* — [arXiv](https://arxiv.org/abs/2210.03629)

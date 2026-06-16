@@ -463,6 +463,61 @@
     transform: translate(2px, -2px);
 }
 
+/* ========== Footnotes / Citations ========== */
+.footnotes-sep {
+    margin-top: 3em;
+    margin-bottom: 1.5em;
+}
+
+.footnotes {
+    font-size: 0.875em;
+    color: #4b5563;
+}
+
+.footnotes-list {
+    list-style: decimal;
+    padding-left: 1.625em;
+}
+
+.footnotes-list li {
+    margin-top: 0.25em;
+    margin-bottom: 0.25em;
+}
+
+.footnotes-list li p {
+    margin: 0;
+    display: inline;
+}
+
+.footnotes-list li:target {
+    background: #fef3c7;
+    border-radius: 0.25rem;
+    padding: 0.25em 0.5em;
+    margin-left: -0.5em;
+    scroll-margin-top: 80px;
+}
+
+.footnote-ref a {
+    text-decoration: none;
+    font-weight: 600;
+    color: #3b82f6;
+}
+
+.footnote-ref a:hover {
+    color: #2563eb;
+    text-decoration: underline;
+}
+
+.footnote-backref {
+    text-decoration: none;
+    margin-left: 0.25em;
+    color: #9ca3af;
+}
+
+.footnote-backref:hover {
+    color: #3b82f6;
+}
+
 /* ========== Horizontal Rules ========== */
 .prose hr {
     border-color: #e5e7eb;

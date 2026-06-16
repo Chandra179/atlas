@@ -59,6 +59,52 @@ class ContentLoader {
         return doc.body.innerHTML;
     }
 
+    processFootnotes(markdown) {
+        const lines = markdown.split('\n');
+        const footnotes = new Map();
+        let currentNum = null;
+        let currentText = [];
+        const defLineIndices = new Set();
+
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            const defMatch = line.match(/^\[\^(\d+)\]:\s+(.*)/);
+
+            if (defMatch) {
+                if (currentNum !== null) {
+                    footnotes.set(currentNum, currentText.join(' ').trim());
+                }
+                currentNum = defMatch[1];
+                currentText = [defMatch[2]];
+                defLineIndices.add(i);
+            } else if (currentNum !== null && /^\s{2,}/.test(line) && line.trim() !== '') {
+                currentText.push(line.trim());
+                defLineIndices.add(i);
+            } else {
+                if (currentNum !== null) {
+                    footnotes.set(currentNum, currentText.join(' ').trim());
+                    currentNum = null;
+                    currentText = [];
+                }
+            }
+        }
+        if (currentNum !== null) {
+            footnotes.set(currentNum, currentText.join(' ').trim());
+        }
+
+        const filtered = lines.filter((_, i) => !defLineIndices.has(i));
+        let processed = filtered.join('\n');
+
+        processed = processed.replace(/\[\^(\d+)\]/g, (match, num) => {
+            if (footnotes.has(num)) {
+                return `<sup class="footnote-ref" id="fnref-${num}"><a href="#fn-${num}">[${num}]</a></sup>`;
+            }
+            return match;
+        });
+
+        return { markdown: processed, footnotes };
+    }
+
     async loadContent(category, page, anchor) {
         try {
             const standaloneItem = this.navigationData.find(
@@ -121,6 +167,14 @@ class ContentLoader {
                 }
 
                 const contentOk = response.ok && markdown !== null;
+
+                let footnotes = null;
+                if (contentOk) {
+                    const result = this.processFootnotes(markdown);
+                    markdown = result.markdown;
+                    footnotes = result.footnotes;
+                }
+
                 // Parse markdown and rewrite links
                 html = this.rewriteLinks(marked.parse(markdown), category, page);
 
@@ -130,6 +184,19 @@ class ContentLoader {
                     /<p>\s*(<span class="katex-display">[\s\S]+?<\/span>)\s*<\/p>/g,
                     (_, spanHtml) => spanHtml
                 );
+
+                // Render footnotes at the bottom
+                if (footnotes && footnotes.size > 0) {
+                    const sortedNums = [...footnotes.keys()].sort((a, b) => parseInt(a) - parseInt(b));
+                    let fhtml = '<hr class="footnotes-sep">\n<section class="footnotes">\n<ol class="footnotes-list">\n';
+                    for (const num of sortedNums) {
+                        let defHtml = marked.parse(footnotes.get(num));
+                        defHtml = defHtml.replace(/^<p>/, '').replace(/<\/p>\n?$/, '');
+                        fhtml += `<li id="fn-${num}" value="${num}">${defHtml} <a href="#fnref-${num}" class="footnote-backref" aria-label="Back to reference">↩</a></li>\n`;
+                    }
+                    fhtml += '</ol>\n</section>';
+                    html += fhtml;
+                }
 
                 if (contentOk) {
                     this.cache.set(filePath, html);

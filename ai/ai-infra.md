@@ -1,3 +1,11 @@
+---
+tags: [ml, ai, infrastructure]
+audience: Engineers deploying LLMs on serverless GPUs. Python basics assumed.
+style: Deep dive + Operational reference
+prerequisites:
+  - ai/ml.md
+---
+
 # AI Infrastructure Learnings
 
 This document captures operational knowledge for deploying large language models (LLMs) on serverless GPU infrastructure — specifically Google's Gemma 4 31B on a single NVIDIA H200 GPU.
@@ -327,6 +335,170 @@ If you want to force prefetching, start vLLM with --safetensors-load-strategy=pr
 
 Weight loading from `huggingface-cache` volume takes ~27.65s for a 58.25 GiB model (2 safetensors shards).
 
+### Continuous Batching
+
+**Why this matters**: Static batching waits for all requests in a batch to finish before processing the next batch. One request generating 500 tokens holds up 7 other requests that finished at 10 tokens. Continuous batching solves this by swapping completed requests out and new requests in at every iteration.
+
+vLLM uses **iteration-level scheduling**: at each forward pass, it fills the batch up to `max-num-batched-tokens` with tokens from the active request pool. When a request finishes generating (EOS token or `max_tokens`), its slot is freed immediately — not at batch boundary.
+
+| Batching Strategy | How It Works | Throughput | Tail Latency |
+|---|---|---|---|
+| Static batching | Fill batch, process all to completion, drain | Baseline | Worst — one slow request blocks all |
+| Continuous batching (vLLM, SGLang) | Swap finished requests out at every iteration | 2-10× vs static | Low |
+| Inflight batching (TRT-LLM) | Continuous + scheduling reordering for efficiency | Slightly better than continuous | Lowest in class |
+
+**Configuration knobs:**
+- `--max-num-batched-tokens`: max tokens per forward pass (default 8192). Higher → more parallelism but more memory.
+- `--max-num-seqs`: max concurrent sequences. Caps parallel requests regardless of token count per request.
+- Chunked prefill (`--enable-chunked-prefill`): splits long prompts into chunks so prefill doesn't starve decode. Enabled automatically for Gemma4 due to multimodal attention.
+
+Continuous batching reduces the "straggler effect" — one long generation no longer blocks all other requests. Throughput improvement is biggest under high concurrency with mixed-length generations. `max-num-batched-tokens` is the primary tuning knob — set it to the largest value your GPU memory allows after reserving space for model weights and KV cache.
+
+[^6]: Kwon et al., "Efficient Memory Management for Large Language Model Serving with PagedAttention" (vLLM paper), SOSP 2023. [arXiv:2309.06180](https://arxiv.org/abs/2309.06180)
+
+### Observability & Metrics
+
+**Why this matters**: Without metrics, you don't know if your model is performing well, if it's close to OOM, or if a deployment change made things worse. vLLM exposes a Prometheus endpoint and logs key statistics.
+
+vLLM serves metrics at `/metrics` in Prometheus format. Enable periodic stats logging with `VLLM_LOG_STATS_INTERVAL=N` (seconds between reports to stdout).
+
+| Metric | What It Measures | Why It Matters |
+|---|---|---|
+| **TTFT** (Time to First Token) | Latency from request arrival to first token | User-perceived responsiveness. <500ms for chat, <2s for batch. |
+| **TPOT** (Time per Output Token) | Average latency between consecutive tokens | Reading fluency. <50ms is comfortable. Spikes → queue pressure. |
+| **ITL** (Inter-Token Latency) | Max gap between tokens within a request | Detects stragglers per-request. |
+| **Throughput** (tok/s) | Total tokens generated per second | Capacity planning. Drop under load → add GPUs or reduce `max-model-len`. |
+| **Queue time** | Time request waited before processing | Overload signal. Growing queue → scale out or rate-limit. |
+| **KV cache usage (%)** | Fraction of allocated KV cache in use | Memory pressure. >90% → requests may be preempted or rejected. |
+| **Running/Swapped/Waiting** | Count of requests in each scheduling state | Running: active. Waiting: queued. Swapped: preempted (memory pressure). |
+
+**When to alert:**
+- TTFT p99 > 2× p50 → queue saturation. Scale or rate-limit.
+- KV cache usage > 90% sustained → reduce `max-model-len` or add GPU memory.
+- Preemptions (swapped requests) > 0 → memory pressure. Lower `max-num-seqs` or `gpu-memory-utilization`.
+- Generation throughput < 50% of benchmark → backend regression or hardware issue.
+
+[^7]: vLLM metrics. [docs.vllm.ai/en/latest/serving/metrics](https://docs.vllm.ai/en/latest/serving/metrics)
+
+### Prefix Caching
+
+**Why this matters**: Many workloads share a common prefix — a system prompt, few-shot examples, or shared conversation history. Without prefix caching, the model recomputes the KV cache for this prefix on every request, wasting GPU compute and delaying responses.
+
+vLLM implements **Automatic Prefix Caching (APC)** [^8]: it hashes KV cache blocks by their token sequence and checks whether a block already exists before computing it. If a prefix of the new request matches a cached prefix, those blocks are reused — only the divergent suffix is computed fresh.
+
+Enable with: `--enable-prefix-caching`
+
+| Workload | Prefix Shared? | Cache Hit Rate | Speedup |
+|---|---|---|---|
+| Chat with long system prompt | System prompt identical per request | 80-95% of prompt tokens | 2-5× TTFT reduction |
+| RAG with shared context | Retrieved documents form shared prefix | 50-80% with similar queries | 1.5-3× TTFT reduction |
+| Few-shot with examples in prompt | Examples repeated per request | High | 2-4× TTFT reduction |
+| Unique prompts (creative writing) | Each prompt is different | ~0% | No benefit |
+
+**Tradeoffs:**
+- Memory overhead: ~5-10% of KV cache allocation for the hash table tracking cached blocks.
+- Eviction: cached blocks are evicted LRU-style when KV cache is full. Under memory pressure, APC competes with active requests for space.
+- Block granularity: vLLM's block size (default 16 tokens) is the minimum cacheable unit. Prefixes shorter than 16 tokens are not cached.
+- Hash computation cost: negligible per-token but adds up on very long prefixes.
+
+**When to skip:** unique, non-repeating prompts; extremely memory-constrained deployments; prefixes shorter than 16 tokens.
+
+[^8]: vLLM Automatic Prefix Caching. [docs.vllm.ai/en/latest/automatic_prefix_caching](https://docs.vllm.ai/en/latest/automatic_prefix_caching)
+
+### Speculative Decoding
+
+**Why this matters**: Autoregressive decoding generates one token per forward pass. Each forward pass reads all model weights from GPU memory — weight bandwidth, not compute, is the bottleneck. Speculative decoding produces multiple tokens per forward pass by using a small draft model to guess ahead, then verifying with a single target model pass.
+
+**How it works [^9]:**
+1. A small **draft model** (e.g., 0.5B params) generates K candidate tokens cheaply.
+2. The **target model** runs a single forward pass on the concatenated (prefix + K candidates) sequence to verify.
+3. Accepted tokens are appended. The first rejected token is resampled from the target's distribution.
+4. Repeat.
+
+| Draft Quality | Acceptance Rate | Effective Speedup |
+|---|---|---|
+| Same model family, 0.5B draft → 31B target | 70-85% | 2-4× throughput |
+| Different architecture | 40-60% | 1.2-1.5× (marginal) |
+| No draft (baseline) | N/A | 1× (one token per pass) |
+
+**Memory cost:** the draft model adds its own weight memory (~1-2 GiB for a 0.5B model). On an H200 (141 GiB), negligible. On a T4 (16 GiB), likely won't fit.
+
+**vLLM support:** `--speculative-model <model-id>` and `--num-speculative-tokens <K>`. Draft and target must share the tokenizer. vLLM also supports **ngram speculative decoding** (uses previously generated tokens as candidates — no separate draft model needed) and **Medusa heads** (additional prediction heads trained on the target model).
+
+**When to use:** latency-bound workloads (TTFT improvement via parallel prefill verification), throughput-bound workloads (higher tokens-per-pass), or small-batch single-user scenarios (ngram/Medusa avoids draft memory). Skip if memory-constrained or draft model acceptance <50%.
+
+[^9]: Leviathan et al., "Fast Inference from Transformers via Speculative Decoding," ICML 2023. [arXiv:2211.17192](https://arxiv.org/abs/2211.17192)
+
+---
+
+## Scaling Beyond a Single GPU
+
+**Why this matters**: Single GPUs have hard limits. Gemma 4 31B fits on an H200 — but a 70B dense or 405B sparse model won't. Higher throughput demands also require more GPUs.
+
+### Tensor Parallelism (TP)
+
+Splits individual weight matrices across GPUs. Each GPU holds a shard of each layer. Forward pass: GPUs communicate via all-reduce to combine partial results. **Latency-focused** — all GPUs work on the same request.
+
+- `--tensor-parallel-size=2`: split across 2 GPUs.
+- Requires high-bandwidth interconnect (NVLink, NVSwitch). Over PCIe, communication dominates.
+- Best for: fitting a model that doesn't fit on one GPU. Beyond 4 GPUs, communication overhead erodes gains.
+
+### Pipeline Parallelism (PP)
+
+Splits the model into sequential layer stages, each on a different GPU. GPU 0 handles layers 1-10, GPU 1 handles 11-20, etc. Forward pass pipelines through stages. **Throughput-focused** — processes micro-batches while earlier stages work on the next.
+
+- `--pipeline-parallel-size=N`
+- Lower bandwidth requirement than TP (sends only activations at stage boundaries).
+- Almost always combined with TP (3D parallelism) for production.
+
+### Data Parallelism (DP)
+
+Replicates the full model on each GPU, shards the request stream. No communication during inference. **Throughput scaling**.
+
+- Run multiple vLLM instances (one per GPU) behind a load balancer.
+- Modal: deploy multiple replicas or use `allow_concurrent_inputs`.
+- Best for: high throughput when individual requests fit on one GPU.
+
+### Expert Parallelism (EP)
+
+For MoE models: each GPU holds a subset of experts. Tokens routed to the GPU hosting the relevant expert. Reduces per-GPU memory since each GPU holds only 1/N of the experts. vLLM handles EP automatically for MoE architectures.
+
+### Choosing a Strategy
+
+| Goal | Strategy | vLLM Flag | Best When |
+|---|---|---|---|
+| Fit a large model | TP | `--tensor-parallel-size=N` | Single model > GPU memory, low latency needed |
+| Max throughput | DP (multi-instance) | Run N instances + LB | Model fits per GPU, many concurrent users |
+| Both (3D parallelism) | TP + PP + DP | Combine flags | Largest models (70B+), production scale |
+| MoE models | EP (automatic) | None needed | Mixtral, DeepSeek-V3, etc. |
+
+**On Modal:** multi-GPU requires `gpu="H100"` with `count=N` and `tensor-parallel-size=N`. Modal provisions N GPUs on the same physical machine with NVLink — same as a local multi-GPU setup.
+
+[^10]: Narayanan et al., "Efficient Large-Scale Language Model Training on GPU Clusters Using Megatron-LM," SC 2021. [arXiv:2104.04473](https://arxiv.org/abs/2104.04473)
+
+---
+
+## Serving Embedding Models
+
+**Why this matters**: Embedding model serving is fundamentally different from generative model serving — and simpler. No KV cache, no CUDA graphs, no speculative decoding. But different optimizations apply.
+
+**Differences from generative serving:**
+- **No autoregressive decoding**: embeddings are a single forward pass. No KV cache needed.
+- **Higher throughput**: 10,000+ tok/s vs ~55 tok/s for generation on the same GPU.
+- **Smaller models**: embedding models (BGE, E5, GTE) are typically 100M-7B params. Fit on cheaper GPUs (L4, T4).
+- **Pooling step**: after the forward pass, mean/CLS/last-token pooling converts token embeddings to a single vector.
+
+**vLLM embedding endpoint:** vLLM serves embeddings via the `/v1/embeddings` endpoint (OpenAI-compatible). Set `--task embed`. Continuous batching is not needed (no autoregressive loop) — static batching works at high throughput.
+
+| Model Type | Approx Throughput (H200) | GPU Memory |
+|---|---|---|
+| Embedding (BGE-M3, ~567M) | ~50,000 tok/s | ~2 GiB |
+| Generation (Gemma 4, 31B) | ~56 tok/s | ~58 GiB + KV cache |
+
+For production embedding serving, a single L4 GPU ($0.000222/sec on Modal) handles thousands of requests per second. An H200 is overkill for embeddings alone.
+
+**See also:** [`embeddings.md`](embeddings.md) — vector representations, similarity measures, training.
+
 ---
 
 ## HuggingFace Hub
@@ -351,6 +523,60 @@ Models like `google/gemma-4-31b-it` require an **accepted license agreement** on
 
 ---
 
+## Security & API Management
+
+**Why this matters**: Modal endpoints are public URLs with no built-in auth. Anyone who discovers the URL can send requests and burn your budget. Production deployments need auth, rate limiting, and content controls.
+
+### API Authentication
+
+**Option 1: API key in request header.** Add a shared secret check to your endpoint:
+
+```python
+import os
+EXPECTED_API_KEY = os.environ["API_KEY"]
+
+@app.function()
+@modal.web_endpoint()
+def serve(request):
+    if request.headers.get("Authorization") != f"Bearer {EXPECTED_API_KEY}":
+        return JSONResponse({"error": "Unauthorized"}, status_code=401)
+    ...
+```
+
+Set `API_KEY` via Modal secrets (not hardcoded).
+
+**Option 2: Reverse proxy.** Place Cloudflare Tunnel, nginx, or an API gateway in front of Modal. The proxy handles auth, Modal only receives authenticated requests. Adds ~5-20ms latency but centralizes auth across services.
+
+**Option 3: Modal's built-in (limited).** Modal supports `@modal.web_endpoint(auth_mode="public")` (default). There is no built-in API key validation — you must implement it yourself.
+
+### Rate Limiting
+
+Without rate limiting, a burst of requests can overwhelm a single GPU and cause OOM kills or multi-second queue times.
+
+- **Application-level:** track request count per window via an in-memory counter. Return 429 with `Retry-After` header. Not suitable for multi-replica (each has its own counter).
+- **Modal's `max_inputs`:** `@app.function(max_inputs=5)` queues inputs when N are in-flight. Simple burst protection.
+- **External rate limiter (production):** Cloudflare Rate Limiting or a Redis-based token bucket. Works across replicas and survives scale-down.
+
+### Content Filtering
+
+vLLM does not filter output — layers to add:
+
+- **Input validation:** reject prompts exceeding `max-model-len`, containing disallowed patterns, or embedding injection patterns.
+- **Output filtering:** scan generated text for PII or forbidden content before returning to client. Adds ~50-200ms but necessary for compliance.
+- **Model-level guardrails:** fine-tuned safety classifiers (Llama Guard, Google Safety) as a separate service.
+
+### Prompt Injection Defense
+
+The simplest effective defense: use the chat template for system/user separation — never concatenate strings. Chat templates mark system/user/assistant roles with special tokens the model was trained to respect. String concatenation (`system_prompt + user_input`) bypasses this separation and makes injection trivial.
+
+### Key things
+- Modal has no built-in auth — implement API key validation in your endpoint handler or use a reverse proxy.
+- Rate limit at the application level (429 + Retry-After) for burst protection; external rate limiter for production.
+- Use the chat template for system/user separation — never concatenate strings.
+- Content filtering adds latency; evaluate whether you need it before shipping.
+
+---
+
 ## Jargon Quick Reference
 
 | Term | What It Is |
@@ -367,6 +593,14 @@ Models like `google/gemma-4-31b-it` require an **accepted license agreement** on
 | **Chunked prefill** | Processing the input prompt in smaller chunks rather than all at once — reduces peak GPU memory usage during the first pass through the prompt |
 | **FlashInfer** | An optimized GPU library for sampling (top-p, top-k filtering) — vLLM uses it for token selection, not for the attention mechanism |
 | **Heterogeneous head dimensions** | A model architecture where different attention heads use different sizes — requires specific backend handling in vLLM |
+| **Continuous batching** | Swapping completed requests out and new requests in at every forward pass iteration — avoids one slow generation blocking all other requests |
+| **Prefix caching** | Storing and reusing KV cache blocks for shared prompt prefixes (system prompts, few-shot examples) to skip redundant computation |
+| **Speculative decoding** | Using a small draft model to guess ahead, then verifying with one target model pass — produces 2-4× tokens per forward pass |
+| **Tensor parallelism** | Splitting weight matrices across GPUs so each holds a shard — fits models larger than single GPU memory |
+| **Pipeline parallelism** | Splitting model layers into sequential stages across GPUs — throughput-focused, lower communication than TP |
+| **Data parallelism** | Replicating the model on each GPU, sharding requests — scales throughput linearly without inference-time communication |
+| **TTFT** | Time to First Token — latency from request arrival to first token generated. User-perceived responsiveness metric |
+| **TPOT** | Time per Output Token — average latency between consecutive generated tokens. Reading fluency metric |
 
 ---
 
@@ -377,6 +611,11 @@ Models like `google/gemma-4-31b-it` require an **accepted license agreement** on
 [^3]: Modal H200 pricing: [$0.001261/sec (~$4.54/hr)](https://modal.com/pricing).
 [^4]: Modal Volumes — [guide](https://modal.com/docs/guide/volumes).
 [^5]: vLLM sleep mode for GPU snapshots — `VLLM_SERVER_DEV_MODE=1`, `TORCHINDUCTOR_COMPILE_THREADS=1` as used in Modal's [vLLM snapshot example](https://modal.com/docs/examples/vllm_snapshot).
+[^6]: Kwon et al., "Efficient Memory Management for Large Language Model Serving with PagedAttention" (vLLM paper), SOSP 2023. [arXiv:2309.06180](https://arxiv.org/abs/2309.06180).
+[^7]: vLLM metrics. [docs.vllm.ai/en/latest/serving/metrics](https://docs.vllm.ai/en/latest/serving/metrics).
+[^8]: vLLM Automatic Prefix Caching. [docs.vllm.ai/en/latest/automatic_prefix_caching](https://docs.vllm.ai/en/latest/automatic_prefix_caching).
+[^9]: Leviathan et al., "Fast Inference from Transformers via Speculative Decoding," ICML 2023. [arXiv:2211.17192](https://arxiv.org/abs/2211.17192).
+[^10]: Narayanan et al., "Efficient Large-Scale Language Model Training on GPU Clusters Using Megatron-LM," SC 2021. [arXiv:2104.04473](https://arxiv.org/abs/2104.04473).
 
 ### Further Reading
 - [`ml.md`](ml.md) — ML concepts and training infrastructure referenced by this file.

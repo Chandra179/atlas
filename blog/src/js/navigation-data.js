@@ -95,7 +95,13 @@ const navigationData = [
         slug: "ai",
         pages: [
             { name: "Ai Infra", slug: "ai-infra" },
+            { name: "Embeddings", slug: "embeddings" },
+            { name: "Evaluation", slug: "evaluation" },
+            { name: "Fine Tuning", slug: "fine-tuning" },
+            { name: "Inference Engines", slug: "inference-engines" },
             { name: "ML", slug: "ml" },
+            { name: "Quantization", slug: "quantization" },
+            { name: "Tool Use Agents", slug: "tool-use-agents" },
         ],
     },
     {
