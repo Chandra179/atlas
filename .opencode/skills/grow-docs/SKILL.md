@@ -119,6 +119,23 @@ Sources:
 
 Write each brief inline in the growth plan, or to `docs/briefs/<topic-slug>.brief.md` if user wants separate files.
 
+### Citation System (for Topic Briefs)
+
+Topic briefs include a `Sources:` field listing external references. Each source follows `[^n]` notation matching `write-doc`'s citation system so the brief feeds directly into drafting:
+
+```yaml
+Sources:
+  - [^1] Kleppmann, "Designing Data-Intensive Applications" ch.7
+  - [^2] PostgreSQL docs on MVCC
+```
+
+Rules:
+- Sources are optional in the brief but mandatory when the brief is handed to `write-doc` — every `[^n]` in the Outline must have a matching source.
+- Number `[^n]` sequentially in order of first mention in the Outline.
+- Descriptions must be specific enough to identify the source without clicking: "PostgreSQL docs on MVCC" not "docs".
+- Sources carry forward verbatim into the draft's References section when `write-doc` produces the file.
+- Inline footnotes `^[text]` (for brief clarifications without URLs) are not used in briefs — reserve them for the draft stage.
+
 ## Canonical Topic Trees
 
 Use these as the reference for gap analysis. Every domain lists a "minimum viable" set of topics. If the vault covers extras beyond these, note them as strengths. If it's missing core items, flag them.

@@ -9,7 +9,7 @@ created: "2026-06-13"
 
 ## Why This Exists
 
-React is the declarative UI library — describe *what* the UI should look like as a function of state, and React figures out *how* to update the DOM efficiently. It exists because imperative DOM manipulation couples application logic to browser-specific API calls, making UI code hard to reason about, test, and maintain as applications grow beyond a few hundred lines.
+React is the declarative UI library [^1] — describe *what* the UI should look like as a function of state, and React figures out *how* to update the DOM efficiently. It exists because imperative DOM manipulation couples application logic to browser-specific API calls, making UI code hard to reason about, test, and maintain as applications grow beyond a few hundred lines.
 
 **What it's for:** Single-page applications with complex interactive state, component-based design systems, mobile apps (React Native), static and server-rendered sites (Next.js), real-time dashboards, and any UI where "what you see is a function of state" is cleaner than "call appendChild, then removeChild, then update textContent."
 
@@ -19,7 +19,7 @@ React is the declarative UI library — describe *what* the UI should look like 
 
 Most UI frameworks before React required you to write step-by-step DOM instructions. When a user adds an item to a todo list, you `document.createElement('li')`, set `textContent`, `appendChild` to the parent, then remember to remove it later. Every state change has a corresponding DOM mutation sequence — and the sequences for different states can conflict.
 
-React takes the opposite approach. You write a function that returns a description of the entire UI given the current state — a tree of plain JavaScript objects called React elements. This is the **Virtual DOM**. React compares the new description to the previous one and figures out the minimal DOM operations needed.
+React takes the opposite approach. You write a function that returns a description of the entire UI given the current state — a tree of plain JavaScript objects called React elements. This is the **Virtual DOM**. React compares the new description to the previous one and figures out the minimal DOM operations needed. [^1]
 
 ```javascript
 // React element tree (Virtual DOM)
@@ -43,7 +43,7 @@ When someone builds a real-time dashboard with 50 widgets using vanilla JS, ever
 
 An update produces two kinds of work: pure computation (running component functions, building element trees, diffing) and side-effectful DOM mutations. If these are interleaved, you can't pause work, you can't retry failed work, and you can't prioritize urgent updates over background ones.
 
-React separates them into two phases. The **render phase** calls your components, builds the new Virtual DOM, and diffs it against the previous one. This is pure computation — no DOM touched — and it can be interrupted. The **commit phase** applies the minimal set of DOM mutations and schedules effects. This is synchronous and uninterruptible.
+React separates them into two phases. [^2] The **render phase** calls your components, builds the new Virtual DOM, and diffs it against the previous one. This is pure computation — no DOM touched — and it can be interrupted. The **commit phase** applies the minimal set of DOM mutations and schedules effects. This is synchronous and uninterruptible.
 
 ```
 State change → render phase (diff) → commit phase (DOM mutations) → browser paint
@@ -59,7 +59,7 @@ When someone hooks a data-fetching effect directly inside a render function (`us
 
 The general tree-diffing problem — comparing every node to every other node — is O(n³). For a UI tree with 1000 nodes, that's a billion comparisons. Rebuilding the entire DOM on every state change destroys ephemeral browser state: scroll position, focus, input cursor position, video playback progress, text selection.
 
-React reduces this to O(n) with three heuristics grounded in real UI behavior:
+React reduces this to O(n) with three heuristics grounded in real UI behavior: [^3]
 
 1. **Elements of different types** produce a full subtree rebuild. A `<div>` becoming a `<section>` means the whole subtree is new — React doesn't try to reuse nodes across type changes.
 2. **Same element type** — React keeps the DOM node and updates only the changed attributes and children, recursing into the subtree.
@@ -89,7 +89,7 @@ When someone uses array index as the key for a reorderable list (`key={index}`),
 
 The old reconciliation algorithm (React ≤15) recursed through the component tree synchronously. A function component at depth 20 calls its child, which calls its child, which calls its child — the entire call stack fills up, and nothing yields until the root returns. A deeply nested tree with 500 components could block the main thread for 200ms. The browser can't paint, scroll, or respond to clicks during that time. The user sees a frozen screen, types a character, and nothing happens for half a second.
 
-Fiber (React 16+) replaced the recursive walk with a linked-list traversal. Each component instance is a **Fiber node** — a plain object with pointers to its child, sibling, and parent fiber, plus the component's props, state, pending work, and a link to its previous version (the "alternate"). React walks this linked list one node at a time, and after processing each node, it can check: "is there higher-priority work to do? Should I yield to the browser?" This is **time slicing**.
+Fiber (React 16+) replaced the recursive walk with a linked-list traversal. [^4] Each component instance is a **Fiber node** — a plain object with pointers to its child, sibling, and parent fiber, plus the component's props, state, pending work, and a link to its previous version (the "alternate"). React walks this linked list one node at a time, and after processing each node, it can check: "is there higher-priority work to do? Should I yield to the browser?" This is **time slicing**.
 
 ```javascript
 // Simplified Fiber node
@@ -118,7 +118,7 @@ When someone builds a comment thread component that renders 200 nested replies (
 
 If every `setState` call triggered an immediate re-render, a click handler with three state updates would trigger three separate render passes. Each pass builds a Virtual DOM, diffs it, commits mutations, and potentially triggers layout. For a handler that updates a form's dirty flag, the submit button's loading state, and the validation errors, the user would see the button flash three times.
 
-React collects all state updates from the same event handler and flushes them in a single render pass. Since React 18, this batching happens everywhere — not just in React event handlers, but in promises, `setTimeout`, native event listeners, and microtasks.
+React collects all state updates from the same event handler and flushes them in a single render pass. Since React 18, this batching happens everywhere — not just in React event handlers, but in promises, `setTimeout`, native event listeners, and microtasks. [^5]
 
 ```javascript
 // React 18 — all contexts batched
@@ -146,7 +146,7 @@ React's lifecycle model is:
 [Render phase] → [DOM mutation] → [Browser paint] → [useEffect runs]
 ```
 
-The **render phase** is pure — no side effects, no DOM reads. The **commit phase** applies DOM mutations synchronously. After the browser paints the new DOM, React flushes scheduled effects. `useLayoutEffect` runs synchronously after DOM mutations but **before** the browser paint — use it when you need to measure the DOM or make visual adjustments that the user shouldn't see as intermediate states.
+The **render phase** is pure — no side effects, no DOM reads. The **commit phase** applies DOM mutations synchronously. After the browser paints the new DOM, React flushes scheduled effects. [^6] `useLayoutEffect` runs synchronously after DOM mutations but **before** the browser paint [^7] — use it when you need to measure the DOM or make visual adjustments that the user shouldn't see as intermediate states.
 
 ```javascript
 function Profile({ userId }) {
@@ -164,7 +164,7 @@ When someone measures a DOM element's dimensions in a `useEffect` and gets zero,
 
 When someone subscribes to an event bus in `useEffect` without returning a cleanup function, and a parent component unmounts and remounts the component on every render (changing the key prop, for example), the subscription accumulates. After 10 renders, there are 10 subscriptions, each firing for every event, calling setState 10 times, triggering 10 renders per event. The app slows to a crawl as subscription counts grow linearly with time. The fix: always return a cleanup function from `useEffect`.
 
-**Strict Mode** double-invokes reducers and effects in development to surface these bugs:
+**Strict Mode** double-invokes reducers and effects in development to surface these bugs [^8]:
 
 ```javascript
 function DevCounter() {
@@ -183,7 +183,7 @@ function DevCounter() {
 
 Before hooks, sharing stateful logic between components required patterns with structural costs: higher-order components (HOCs) wrapped your component in layers of indirection; render props turned children into functions; mixins (React's early experiment) caused naming collisions and implicit dependencies. A component using three HOCs had three wrapper components in the React devtools, three sets of prop name collisions to debug, and three extra tree levels to traverse.
 
-Hooks let you extract stateful logic into composable functions that live inside your component — no wrapper components, no prop forwarding, no indirection.
+Hooks let you extract stateful logic into composable functions that live inside your component — no wrapper components, no prop forwarding, no indirection. [^9]
 
 ```javascript
 function useOnlineStatus() {
@@ -210,7 +210,7 @@ Eight lines of reusable stateful logic. No wrapper component, no prop forwarding
 
 A component needs to remember values between renders — form input text, toggle state, API response data. Local variables reset on every render. Module-level globals are shared across all component instances. Class components stored state in `this.state`, but function components have no `this`.
 
-`useState` gives function components persistent state that lives on the fiber's `memoizedState`. The setter can take a new value or an updater function: `setCount(c => c + 1)`. Setting the same value (`Object.is` comparison) bails out — React skips re-rendering the component and its children.
+`useState` gives function components persistent state that lives on the fiber's `memoizedState`. [^10] The setter can take a new value or an updater function: `setCount(c => c + 1)`. Setting the same value (`Object.is` comparison) bails out — React skips re-rendering the component and its children.
 
 ```javascript
 const [state, setState] = useState(() => computeExpensiveInitialValue());
@@ -237,9 +237,9 @@ useEffect(() => {
 
 When someone writes `useEffect(() => { fetch(url) }, [])` inside a component that receives changing URL props, the effect runs once on mount and never again. The URL changes, but the data stays stale. The component shows old data for the new URL until the user manually refreshes. Fix: include `url` in the dependency array.
 
-When someone writes `useEffect(() => { const timer = setInterval(() => { setCount(count + 1) }, 1000) }, [])`, the closure captures the initial `count` (0) and the interval callback always sees `count === 0` — a **stale closure**. The timer increments 0 to 1, then 0 to 1, then 0 to 1 — the UI shows 1 forever. Fix: use the functional updater `setCount(c => c + 1)` (which doesn't depend on the closure's count) or include `count` in the dependency array (which re-creates the interval on every tick — less efficient but correct).
+When someone writes `useEffect(() => { const timer = setInterval(() => { setCount(count + 1) }, 1000) }, [])`, the closure captures the initial `count` (0) and the interval callback always sees `count === 0` — a **stale closure**. [^25] The timer increments 0 to 1, then 0 to 1, then 0 to 1 — the UI shows 1 forever. Fix: use the functional updater `setCount(c => c + 1)` (which doesn't depend on the closure's count) or include `count` in the dependency array (which re-creates the interval on every tick — less efficient but correct).
 
-**`useEffectEvent` (React 19):** Extracts non-reactive logic from the effect body so it can change without triggering a re-run. Useful for reading the latest props/state inside an effect without listing them in deps.
+**`useEffectEvent` (React 19):** Extracts non-reactive logic from the effect body so it can change without triggering a re-run. [^27] Useful for reading the latest props/state inside an effect without listing them in deps.
 
 **If you're thinking about using useEffect for everything:** Not all code that runs after render needs to be in `useEffect`. Event handlers don't belong in effects — handle clicks in the `onClick` prop directly. Computations based on props/state don't belong in effects — compute them during render (with `useMemo` for expensive ones). Effects are for synchronization: keeping external systems (fetch, DOM, subscriptions) aligned with your React state.
 
@@ -247,7 +247,7 @@ When someone writes `useEffect(() => { const timer = setInterval(() => { setCoun
 
 Sometimes you need a mutable value that survives re-renders but *doesn't cause a re-render when it changes*. Storing a DOM node reference, a timer ID, the previous value of a prop, or an instance variable — `useState` is wrong for these because setting state always triggers a re-render.
 
-`useRef` returns a mutable object whose `.current` property persists across renders:
+`useRef` returns a mutable object whose `.current` property persists across renders [^11]:
 
 ```javascript
 function VideoPlayer({ src }) {
@@ -273,7 +273,7 @@ When someone stores a DOM ref and reads `videoRef.current.width` during the rend
 
 Prop drilling — passing `user` through 10 layers of components that don't use it just to reach the one that renders the avatar — creates tight coupling between distant parts of the tree. Every intermediate re-renders when the prop changes, even if its own output is identical.
 
-Context provides a way to broadcast a value to all descendants without passing it through every intermediate component:
+Context provides a way to broadcast a value to all descendants without passing it through every intermediate component [^12]:
 
 ```javascript
 const ThemeContext = createContext("light");
@@ -300,7 +300,7 @@ When someone wraps their entire app in a single context store (like Redux-in-Con
 
 Multiple state variables that change together, or transitions where the next state depends on the previous value in structured ways, lead to subtle bugs with `useState` — stale closures in effects, missed updates in intervals, inconsistent state when two fields must update atomically.
 
-`useReducer` centralizes all state transitions into a pure function — the reducer:
+`useReducer` centralizes all state transitions into a pure function — the reducer [^13]:
 
 ```javascript
 function reducer(state, action) {
@@ -337,7 +337,7 @@ const onSelect = useCallback((id) => {
 }, [selectItem]);
 ```
 
-When someone wraps every function and computed value in `useMemo` and `useCallback` "just in case," the memoization overhead (comparing deps on every render, allocating closures) exceeds the cost of the computation it avoids. A `useCallback` wrapping a simple `() => {}` — which is faster to create than to compare — slows down the render for zero benefit. The React docs: "You should only use `useMemo` as a performance optimization. Not as a semantic guarantee."
+When someone wraps every function and computed value in `useMemo` and `useCallback` "just in case," the memoization overhead (comparing deps on every render, allocating closures) exceeds the cost of the computation it avoids. A `useCallback` wrapping a simple `() => {}` — which is faster to create than to compare — slows down the render for zero benefit. [^26] The React docs: "You should only use `useMemo` as a performance optimization. Not as a semantic guarantee." [^14]
 
 **Under the hook:** `useCallback(fn, deps) === useMemo(() => fn, deps)` — they're the same primitive. Both compare deps with `Object.is` and return the previous value if deps haven't changed.
 
@@ -361,7 +361,7 @@ Without `useDebugValue`, React DevTools shows the internal state of all hooks in
 
 ## Hooks Rules
 
-React matches state to hooks by their **call order** across renders, not by name or identifier. The first `useState` call in a component always accesses the first hook node on the fiber's `memoizedState` linked list. If a hook is called conditionally, every subsequent hook's state misaligns — the count hook reads the toggle's state, the effect hook reads the count's value, the ref hook reads the effect's cleanup function.
+React matches state to hooks by their **call order** across renders, not by name or identifier. [^28] The first `useState` call in a component always accesses the first hook node on the fiber's `memoizedState` linked list. If a hook is called conditionally, every subsequent hook's state misaligns — the count hook reads the toggle's state, the effect hook reads the count's value, the ref hook reads the effect's cleanup function.
 
 ```javascript
 function MyComponent({ flag }) {
@@ -415,7 +415,7 @@ When someone uses JSX but doesn't import React in a file (pre-React 17), `React.
 
 Without error boundaries, an uncaught JavaScript error in a React component causes the entire tree to unmount. The user sees a blank white page. No fallback, no retry, no recovery — just `Uncaught TypeError: Cannot read properties of undefined` in the console and a silent whiteout.
 
-Error boundaries are class components that catch errors thrown during render, in lifecycle methods, and in constructors of the entire tree below them:
+Error boundaries are class components that catch errors thrown during render, in lifecycle methods, and in constructors of the entire tree below them [^16]:
 
 ```javascript
 class ErrorBoundary extends React.Component {
@@ -454,7 +454,7 @@ Error boundaries do **not** catch:
 
 Modals, tooltips, dropdowns, and toasts need to render outside their parent's CSS stacking context — `overflow: hidden` on a parent clips the modal; `z-index` stacking is unpredictable when the modal's parent is deep in the DOM; `transform` applies a new stacking context. But they should still behave as React children: context providers above the portal should be visible, events should bubble through the portal to ancestors in the React tree.
 
-`createPortal` renders children into a different DOM node while preserving React tree semantics:
+`createPortal` renders children into a different DOM node while preserving React tree semantics [^17]:
 
 ```javascript
 import { createPortal } from "react-dom";
@@ -478,11 +478,11 @@ When someone renders a modal as a direct child of the trigger button without a p
 
 Before React 18, every state update committed with equal urgency. A heavy render (filtering 10,000 items on every keystroke) blocked the main thread — the text input lagged, scroll position jumped, buttons became unresponsive. The user typed "hello" and saw "h" then after 400ms "hello" appeared. The intermediate keystrokes were queued but the render couldn't be interrupted to process them.
 
-React 18 introduced concurrent features that let you distinguish urgent updates (the input must feel instant) from non-urgent updates (the results list can arrive a frame later).
+React 18 introduced concurrent features that let you distinguish urgent updates (the input must feel instant) from non-urgent updates (the results list can arrive a frame later). [^5]
 
 #### Transitions — urgent input, non-urgent results
 
-`useTransition` marks a state update as interruptible. If a higher-priority update arrives (a keystroke), the in-progress transition is discarded and React processes the urgent update immediately:
+`useTransition` marks a state update as interruptible [^18]. If a higher-priority update arrives (a keystroke), the in-progress transition is discarded and React processes the urgent update immediately:
 
 ```javascript
 function SearchPage() {
@@ -512,7 +512,7 @@ When someone applies `useTransition` to an expensive filter operation, the input
 
 #### useDeferredValue — defer based on incoming value, not update origin
 
-When the value comes from outside (parent props, external store, URL params), you can't wrap the update in `startTransition`. `useDeferredValue` produces a "lagged" copy of the value that React can defer rendering:
+When the value comes from outside (parent props, external store, URL params), you can't wrap the update in `startTransition`. `useDeferredValue` produces a "lagged" copy of the value that React can defer rendering [^19]:
 
 ```javascript
 function SearchPage({ query }) {
@@ -532,7 +532,7 @@ function SearchPage({ query }) {
 
 Fetch-on-render (`useEffect` + fetch in every component) causes waterfall loading — component A fetches data, renders, then component B fetches data, renders. Each level of nesting adds a round-trip. The user sees spinners cascading down the page one at a time.
 
-Suspense lets each component declare its data dependency declaratively, and React coordinates the loading state at the nearest Suspense boundary:
+Suspense lets each component declare its data dependency declaratively, and React coordinates the loading state at the nearest Suspense boundary [^20]:
 
 ```javascript
 function ProfilePage() {
@@ -553,7 +553,7 @@ When someone nests Suspense boundaries inside each page section, a slow-loading 
 
 Traditional React apps ship all data-fetching logic to the browser. Database queries run through an API layer (Next.js API routes, Express endpoints, BFF), serialized as JSON, sent over the network, deserialized, and stored in state. Every page load requires at least one round-trip to the server just to get the data.
 
-Server Components run **on the server**, never on the client. They can directly access databases, filesystems, and internal APIs — no API route, no serialization layer, no network hop:
+Server Components run **on the server**, never on the client. [^21] They can directly access databases, filesystems, and internal APIs — no API route, no serialization layer, no network hop:
 
 ```javascript
 // NoteList.server.js — never shipped to the browser
@@ -598,7 +598,7 @@ const MemoizedChild = React.memo(function Child({ name }) {
 });
 ```
 
-To opt out of React 18's automatic batching: `flushSync(() => setState(...))`.
+To opt out of React 18's automatic batching: `flushSync(() => setState(...))`. [^24]
 
 ### State Management Patterns
 
@@ -631,11 +631,11 @@ function TodoProvider({ children }) {
 
 ### Performance
 
-**`React.memo`** — prevents re-renders when props haven't changed (shallow comparison). Defeated by inline function/object props (use `useCallback`/`useMemo` to stabilize references).
+**`React.memo`** — prevents re-renders when props haven't changed (shallow comparison). [^22] Defeated by inline function/object props (use `useCallback`/`useMemo` to stabilize references).
 
 **`useMemo`** — memoizes computed values: `const sorted = useMemo(() => sort(items), [items])`.
 
-**Code splitting** — `React.lazy` + `Suspense` loads components on demand. The initial bundle ships only what's needed for the first screen:
+**Code splitting** — `React.lazy` + `Suspense` loads components on demand [^23]. The initial bundle ships only what's needed for the first screen:
 
 ```javascript
 const HeavyComponent = lazy(() => import("./HeavyComponent"));
@@ -664,6 +664,37 @@ function VirtualList({ items }) {
 ```
 
 ---
+
+## References
+
+[^1]: React docs — "Describing the UI" — [react.dev](https://react.dev/learn/describing-the-ui)
+[^2]: React docs — "Render and Commit" — [react.dev](https://react.dev/learn/render-and-commit)
+[^3]: React docs — "Reconciliation" — [react.dev](https://react.dev/learn/preserving-and-resetting-state)
+[^4]: Acdlite — "React Fiber Architecture" (GitHub) — [github.com/acdlite/react-fiber-architecture](https://github.com/acdlite/react-fiber-architecture)
+[^5]: React 18 release notes — "Automatic Batching" — [react.dev](https://react.dev/blog/2022/03/29/react-v18#new-feature-automatic-batching)
+[^6]: React docs — `useEffect` — [react.dev](https://react.dev/reference/react/useEffect)
+[^7]: React docs — `useLayoutEffect` — [react.dev](https://react.dev/reference/react/useLayoutEffect)
+[^8]: React docs — `StrictMode` — [react.dev](https://react.dev/reference/react/StrictMode)
+[^9]: React docs — "Using Hooks" (intro) — [react.dev](https://react.dev/reference/react)
+[^10]: React docs — `useState` — [react.dev](https://react.dev/reference/react/useState)
+[^11]: React docs — `useRef` — [react.dev](https://react.dev/reference/react/useRef)
+[^12]: React docs — `useContext` — [react.dev](https://react.dev/reference/react/useContext)
+[^13]: React docs — `useReducer` — [react.dev](https://react.dev/reference/react/useReducer)
+[^14]: React docs — `useMemo` — [react.dev](https://react.dev/reference/react/useMemo)
+[^15]: React docs — `useCallback` — [react.dev](https://react.dev/reference/react/useCallback)
+[^16]: React docs — "Error Boundaries" — [react.dev](https://react.dev/reference/react/Component#catching-rendering-errors-with-an-error-boundary)
+[^17]: React docs — `createPortal` — [react.dev](https://react.dev/reference/react-dom/createPortal)
+[^18]: React docs — `useTransition` — [react.dev](https://react.dev/reference/react/useTransition)
+[^19]: React docs — `useDeferredValue` — [react.dev](https://react.dev/reference/react/useDeferredValue)
+[^20]: React docs — `<Suspense>` — [react.dev](https://react.dev/reference/react/Suspense)
+[^21]: React docs — "Server Components" — [react.dev](https://react.dev/reference/rsc/server-components)
+[^22]: React docs — `memo` — [react.dev](https://react.dev/reference/react/memo)
+[^23]: React docs — `lazy` — [react.dev](https://react.dev/reference/react/lazy)
+[^24]: React docs — `flushSync` — [react.dev](https://react.dev/reference/react-dom/flushSync)
+[^25]: Dan Abramov — "A Complete Guide to useEffect" — [overreacted.io](https://overreacted.io/a-complete-guide-to-use-effect/)
+[^26]: Dan Abramov — "Before You memo()" — [overreacted.io](https://overreacted.io/before-you-memo/)
+[^27]: React docs — `useEffectEvent` (experimental) — [react.dev](https://react.dev/reference/react/experimental_useEffectEvent)
+[^28]: React docs — "Rules of Hooks" — [react.dev](https://react.dev/reference/rules/rules-of-hooks)
 
 ## Key Takeaways
 
