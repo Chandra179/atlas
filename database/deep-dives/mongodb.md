@@ -132,7 +132,7 @@ hashed (even distribution, no range queries) vs ranged (range queries supported,
 ```mermaid
 flowchart LR
     C[Client] -->|"query"| M[mongos Router]
-    M -->|"where does this<br/>shard key live?"| CS[Config Servers<br/>(replica set)]
+    M -->|"where does this<br/>shard key live?"| CS[Config Servers<br/>#40;replica set#41;]
     CS -->|"chunk → shard map"| M
     M -->|"route to shard 2"| S1[Shard 1<br/>chunks a-h]
     M --> S2[Shard 2<br/>chunks i-p]
