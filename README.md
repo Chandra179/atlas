@@ -5,9 +5,7 @@
 ### BookCabin
 
 * Led a Rewrite Order Service from .NET to Go, establishing domain boundaries, reduced memory footprint and response latency.
-* Engineered a resilient event-driven, decouple core transactions from side effects, achieving 100% message reliability and at-least-once delivery
-* Engineered a unified state management system to standardize complex lifecycles (Refunds, Reschedules, Upgrades) across multiple products, improving cross-service consistency.
-* Standardized a modular HTML/i18n framework with independent component builds, enabling parallel processing, it reduces template compilation times.
+* Establish domain boundaries for order
 
 ### BFI finance
 

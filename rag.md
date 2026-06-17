@@ -7,21 +7,17 @@ created: "2026-06-13"
 
 # RAG
 
-End to end rag system from data ingestion -> chunking -> embed -> retrieval -> generation -> evaluation -> testing -> monitoring
+Documents flow through a RAG pipeline: ingest, chunk, embed, retrieve, generate, evaluate, test, monitor.
 
 ## Ingestion
 
-Markdown -> process using Docling -> final output mardkown
+Docling processes Markdown and produces clean Markdown output.
 
-* Deduplication: Hash Tracking to compare file SHAs, ensuring only new or modified files are processed.
-* Performs Targeted Deletions for modified files and uses Deterministic UUIDs to prevent duplicate entries during re-ingestion.
-* The system self-heals by auto-configuring Qdrant collections, distance metrics, and required indices (Full-Text & Keyword) on startup.
+* Hash Tracking compares file SHAs so only new or modified files are processed.
+* Modified files are deleted and re-ingested. Deterministic UUIDs prevent duplicate entries.
+* Qdrant collections, distance metrics, and indices (Full-Text & Keyword) are auto-configured on startup.
 
-`IngestService` runs the full loop: list → bulk SHA dedup → concurrent fetch+pipeline.
-
-* Calls `GetAllFileSHAs` once per run (single paginated Qdrant scroll) instead of N point lookups
-* 8 concurrent workers for fetch+pipeline
-* Returns `IngestResult{Processed, Skipped, Failed}` counters
+`IngestService` reads every file, checks its SHA against the Qdrant index in a single paginated scroll, then dispatches changed files to 8 concurrent workers for pipeline processing — fetch, chunk, embed, store.
 
 **Contextual Embedding:** Before embedding, each chunk is prefixed with `filePath > header\n` (Anthropic 2024). This anchors chunk semantics to document structure, improving dense retrieval accuracy without changing stored text.
 
@@ -29,18 +25,18 @@ Markdown -> process using Docling -> final output mardkown
 
 ## Chunking Strategies
 
-Abstraction for chunking so we can swap it depends on configuration:
+Two chunking strategies are available:
 
-1. **Recursive**, It first extracts sections by heading, then splits oversized sections by paragraph, then by sentence, preserving overlap between adjacent chunks.
-2. **Sentence Window**, indexes at sentence granularity but stores a surrounding window as retrieval context
+1. **Recursive** — extracts sections by heading, then splits oversized sections by paragraph, then by sentence, preserving overlap between adjacent chunks.
+2. **Sentence Window** — indexes at sentence granularity but stores a surrounding window as retrieval context
 
-**Chunk sizes** 128, 256, 512 tokens (configurable), **Chunk overlap:** configurable
+**Chunk sizes:** 128, 256, or 512 tokens (configurable). **Chunk overlap:** configurable.
 
 ***
 
 ## Embedding & Storage
 
-Needed both Sparse and Dense to be able to use RRF, configurable: dimensions.
+The system uses both sparse and dense vectors for RRF fusion. Dimensions are configurable.
 
 ```yaml
 embedder:
@@ -54,7 +50,7 @@ sparse_scorer:
   addr: "http://localhost:5001"
 ```
 
-Qdrant for storage. store Sparse and Dense vector, example payload to store:
+Qdrant stores sparse and dense vectors alongside payload metadata. A typical payload:
 
 ```json
 {
@@ -70,8 +66,8 @@ Qdrant for storage. store Sparse and Dense vector, example payload to store:
 
 **Indexing**
 
-* **Text indexing:** Ensure full-text index on `text` field for BM25 hybrid search
-* **Keyword indexing:** `file_path` payload field, eliminates full-collection scan
+* **Text indexing** — full-text index on the `text` field for BM25 hybrid search
+* **Keyword indexing** — `file_path` payload field eliminates full-collection scans
 
 ***
 
@@ -113,7 +109,7 @@ Caches search results keyed by query embedding similarity. A query hitting the c
 }
 ```
 
-Search and if result top-1 score ≥ threshold → return immediately, if not: run full pipeline, write result async (fire-and-forget)
+On a cache hit (top-1 score ≥ threshold), the cached result is returned immediately. On a miss, the full pipeline runs and the result is written to cache asynchronously.
 
 * Set TTL
 * Threshold:
@@ -123,42 +119,42 @@ Search and if result top-1 score ≥ threshold → return immediately, if not: r
 
 ### Query Transformation (HyDE)
 
-Produces a hypothetical document for a query. Generated text is embedded and used as search vector instead of raw query. Three variants: standard, Adaptive (confidence-gated), Multi (diverse prompts). Full details in HyDE Variants section below.
+Given a query like "How do I install Python?", HyDE asks an LLM to write a hypothetical document answering it, embeds that document, and uses the embedding for search — closer to the target than the raw query. Three variants exist:
 
 Ref: "Precise Zero-Shot Dense Retrieval without Relevance Labels" (Gao et al., ACL 2023).
 
-### **Hybrid Search**
+### Hybrid Search
 
-fetches dense + text-filtered candidates, reranks sparse leg client-side, fuses via RRF.
+Hybrid search fetches dense and text-filtered candidates, reranks the sparse leg client-side, then fuses via RRF.
 
 **Server-side**
 
-Offloading the heavy lifting to Qdrant, to reduce network latency and memory overhead. It utilizes a single round-trip to execute both dense and sparse queries.
+Server-side hybrid search offloads the heavy lifting to Qdrant, reducing network latency and memory. A single round-trip executes both dense and sparse queries.
 
-* It uses Qdrant native RRF (Native Qdrant implementation)
-* Dense search: Vector Similarity (Bi-Encoder)
-* Sparse Vector Index (Inverted Index)
-* Only final Top-K results sent to app
+* Qdrant native RRF
+* Dense search via vector similarity (Bi-Encoder)
+* Sparse vector index (Inverted Index)
+* Only final Top-K results sent to the app
 
 **Client-side**
 
-Use it when you need a level of customization that a standard database engine can't provide. For example using `BM25` search and `Splade` as scorer before fusing the results. While this introduces more "noise" and latency due to the extra data transfer and manual sorting loops, it is usable for fine-tuning relevance in niche domains.
+Client-side hybrid search gives full control over each stage — for instance, using BM25 search with a SPLADE scorer before fusing results. This adds latency and "noise" from extra data transfer and manual sorting, but allows fine-tuning relevance in niche domains.
 
-### **Payload Filtering**
+### Payload Filtering
 
-All search methods (Hybrid, Dense, and Keyword) support strict pre-filtering. This guarantees that similarity scores are only calculated against relevant documents, improving both speed and accuracy. You can filter by:
+All search methods (Hybrid, Dense, and Keyword) support strict pre-filtering, guaranteeing that similarity scores are calculated only against relevant documents. Filters:
 
-* `file_path`: Restrict searches to a specific file.
-* `header`: Restrict searches to a specific section or markdown header.
-* `source_sha`: Restrict searches to a specific version of a document.
+* `file_path` — restrict searches to a specific file
+* `header` — restrict searches to a specific section or markdown header
+* `source_sha` — restrict searches to a specific document version
 
 ### Reranking
 
-Use a high-precision model to verify the "rough" results from the vector search.
+A high-precision cross-encoder re-ranks the candidates from vector search.
 
-* **Oversampling**: The retrieval stage fetches a larger set of candidates (e.g., 10x the requested amount) to ensure the reranker has enough high-quality options to choose from.
-* **Contextual Scoring**: The system passes the Window Text (the chunk plus its surrounding context) to a Cross-Encoder.
-* **Final Sorting**: The candidates are re-scored based on deep semantic relevance and sorted, ensuring the absolute best matches are promoted to the top for the LLM.
+* **Oversampling** — the retrieval stage fetches 10x the requested candidates so the reranker has enough high-quality options
+* **Contextual Scoring** — the system passes the Window Text (chunk plus surrounding context) to a Cross-Encoder
+* **Final Sorting** — candidates are re-scored by deep semantic relevance and sorted, promoting the best matches to the top for the LLM
 
 ***
 
@@ -203,7 +199,7 @@ generator:
 
 ## HyDE Variants
 
-Three variants, all swappable via config and eval profiles:
+Three variants:
 
 **Standard HyDE** — generates N hypothetical documents in parallel, averages their L2-normalized embeddings, runs hybrid search with averaged vector.
 

@@ -9,11 +9,11 @@ created: "2026-06-13"
 
 Also known as: **thundering herd problem**, **dog-piling**, **cache miss storm**.
 
-## Problem
+## Cache Miss Storm
 
 When a hot cache key expires, all concurrent requests miss the cache simultaneously and flood the database. With 100k requests hitting at once, the DB experiences a sudden spike in load — causing contention, timeouts, and potentially cascading failure.
 
-## Solution
+## Mitigation Strategies
 
 ```mermaid
 sequenceDiagram
@@ -60,7 +60,7 @@ Place a fast in-process L1 cache (e.g., `sync.Map` with TTL) in front of the sha
 
 ### Request Coalescing (Locking)
 
-Only one request is allowed to recompute the cache value. All others wait on the result.
+Let only one request recompute the cache value. All others wait on the result.
 
 - A mutex (in-memory lock) guards cache recomputation for each key.
 - The first request acquires the lock, queries the DB, and writes the fresh value to cache.
@@ -100,7 +100,7 @@ func shouldRefresh(ttl, remaining time.Duration) bool {
 
 > **Reference**: [Vattani et al., *Techniques to Reduce Cache Stampedes*](https://couchbase.com/blog/cache-stampede-paper)
 
-### Pre-Warming
+### Pre-Warming Strategy
 
 For scheduled high-traffic events (flash sales, live streams), populate the cache *before* the expected rush.
 
@@ -120,5 +120,5 @@ timeline
 
 ### Resilience & Fail-Safe
 
-- **Lock timeouts**: If the lock holder crashes or the DB is slow, release the lock after a deadline so others can retry.
-- **Key-level capacity limit**: Limit waiters per key (e.g., 64). When the queue is full, return the stale cached value with an `Age` header rather than blocking. This prevents OOM and gives the consumer visibility into freshness.
+- **Lock timeouts**: If the lock holder crashes or the DB is slow, release the lock after a timeout (e.g., 500 ms) so others can retry.
+- **Key-level capacity limit**: Limit waiters per key (e.g., 64). When the queue is full, return the stale cached value with an `Age` header rather than blocking. This prevents OOM (out of memory) and gives the consumer visibility into freshness.

@@ -80,9 +80,9 @@ graph TD
 | **bbolt** | State: store key-values by revision | Consensus / ordering |
 | **MVCC store** | Multi-version: track revisions, buffer reads, notify watchers | Leadership |
 
-## Why Raft? Why not just "go through quorum" directly?
+## Why Not Just Quorum Directly?
 
-The naive idea: on every write, ask all nodes "do you agree?" and proceed if a majority says yes.
+On every write, ask all nodes "do you agree?" Proceed if a majority says yes. That is a quorum vote, and it sounds like consensus.
 
 This fails because **consensus requires ordering, not just agreement**. If two concurrent puts arrive:
 
@@ -165,7 +165,7 @@ etcdserver takes the `Ready` and does two things in parallel:
 
 ### Stage 3: Replication + Quorum
 
-Followers receive `MsgApp` and check for log consistency:
+Each follower receives `MsgApp` and checks whether the entry immediately before the new ones matches its own log at that position. A match means the follower accepts the new entries — no gaps, no conflicts. A mismatch means the log diverged at some earlier point, and the follower helps the leader find where:
 
 ```go
 func (r *raft) handleAppendEntries(m *pb.Message) {
@@ -275,6 +275,8 @@ The MVCC store:
 
 etcdserver sends the gRPC response back to the client with the revision at which the write took effect.
 
+That path assumes a leader. When the current leader fails, Raft elects a replacement — guaranteeing there is always at most one leader assigning log indices.
+
 ## Raft Leader Election
 
 ```mermaid
@@ -381,6 +383,8 @@ case quorum.VoteWon:
     }
 ```
 
+Elections decide who leads. The log is what they lead — the ordered sequence Raft must keep consistent across every node.
+
 ## The Raft Log
 
 The log is the heart of Raft. It's not stored by Raft — Raft keeps an in-memory reference to it via the `Storage` interface:
@@ -395,6 +399,8 @@ type Storage interface {
     Snapshot() (pb.Snapshot, error)
 }
 ```
+
+In plain terms: `InitialState` returns the node's persisted term and vote — who it is on restart. `Entries` fetches a range of log entries from durable storage. `Term` looks up the term of a single entry by index. `LastIndex` and `FirstIndex` report the log's boundaries. `Snapshot` returns the most recent snapshot. Raft calls these to decide what's safe, but never reads or writes the log itself.
 
 Raft's `raftLog` tracks four pointers:
 
@@ -414,6 +420,8 @@ Raft's `raftLog` tracks four pointers:
 - **applied**: applied to state machine (bbolt)
 - **committed**: safe (on majority), but maybe not applied yet
 - **unstable**: not yet written to WAL by the application
+
+Raft holds these pointers in memory. The WAL holds the entries on disk — the durable counterpart to the in-memory log, and the first thing Raft replays on restart.
 
 ## WAL (Write-Ahead Log)
 
@@ -488,7 +496,7 @@ Time 2 (after snapshot at index 10):
 
 ### Record Framing (On-Disk Format)
 
-Every WAL record is written to disk in this format:
+Every WAL record wraps a serialized Raft entry in a checksummed envelope with a fixed-size header that survives partial writes. On disk:
 
 ```
 ┌──────────────────────────────────────────────┐
@@ -877,7 +885,7 @@ Key MVCC properties:
 
 ## Key Learnings (Cross-System Patterns)
 
-What studying etcd & Raft at source-code depth teaches that generalizes to other systems:
+Eight design decisions in etcd and Raft that apply to any distributed system that uses consensus:
 
 | # | Learning | Why It Matters |
 |---|----------|----------------|

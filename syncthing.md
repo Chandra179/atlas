@@ -63,7 +63,7 @@ graph TD
 
 **User Interface**
 
-for user to add trusted devices, choose folders to sync, and monitor what's happening.
+Add trusted devices, choose folders to sync, and monitor sync status.
 
 **Configuration**
 
@@ -79,11 +79,11 @@ Establish and maintain secure, encrypted channels between devices. Find peers on
 
 **Scanner**
 
-Turn files on disk into a compact, hash-based index that can be compared efficiently with remote devices without sending the actual file contents.
+Turn files on disk into a compact, hash-based index that devices compare efficiently without sending actual file contents.
 
 **Database**
 
-Persist everything needed to survive crashes and restarts. Remember which files exist, their block hashes, and the state of in-progress transfers so nothing is lost or re-downloaded unnecessarily.
+Persist everything needed to survive crashes and restarts. Remember which files exist, their block hashes, and the state of in-progress transfers so the system never loses data or needlessly re-downloads it.
 
 **File System**
 
@@ -95,11 +95,11 @@ Define the language that **Syncthing** devices speak to each other, how to encod
 
 **Discovery Server**
 
-Help devices find each other's IP addresses on the internet without revealing anything about what files are being synced.
+Help devices find each other's IP addresses on the internet without revealing which files are being synced.
 
 **Relay Server**
 
-Forward encrypted traffic between devices that can't connect directly, without ever being able to read the data. Usually because devices is behind NAT
+Forward encrypted traffic between devices that can't connect directly, without ever being able to read the data. Usually because devices are behind a Network Address Translation (NAT)
 
 **Upgrade/Crash Reporting**
 
@@ -176,7 +176,7 @@ sequenceDiagram
     Model->>Model: Signal: connect to this Device ID
 ```
 
-#### PREREQUISITE: Out-of-Band Device ID Exchange
+#### Prerequisite: Out-of-Band Device ID Exchange
 
 Before any connection can happen, both users must exchange Device IDs through a trusted channel — scanning a QR code in person, sending via an encrypted messenger like Signal or WhatsApp, or reading it over a phone call. Email works but is less secure since it still requires a man-in-the-middle attack to exploit. A Device ID received through an untrusted channel should never be accepted.
 
@@ -214,7 +214,7 @@ sequenceDiagram
     Config->>Config: Write config.xml
     Model->>UserB: ClusterConfig: "Want to share 'Documents'?"
     UserB->>UserB: See folder suggestion
-    UserB->>Config: Accept → add folder to own confi
+    UserB->>Config: Accept → add folder to own config
 ```
 
 #### Folder Sharing (Optional but Typical)
@@ -257,7 +257,7 @@ flowchart TD
     J -->|No| E
 ```
 
-#### **Start Lisiteners**
+#### Start Listeners
 
 Syncthing reads the listen addresses from its configuration — by default `tcp://0.0.0.0:22000` and `quic://0.0.0.0:22000` — and binds to all network interfaces on port 22000. It starts a TCP listener that accepts incoming connections, wraps each one in TLS, and passes it to the connection handler. It also starts a QUIC listener over UDP on the same port, handling incoming sessions the same way. Both protocols run side by side, sharing the single port number.
 
@@ -312,7 +312,7 @@ sequenceDiagram
 
 ### Dial Attempt
 
-Once discovery produces an IP address, Syncthing dials it on port 22000 and wraps the raw connection in TLS. Certificate authority verification is disabled, and instead a custom callback verifies the peer by hashing its certificate and checking whether the resulting Device ID exists in the local trusted device list. No CA, no server name, just the raw certificate check.
+Once discovery produces an IP address, Syncthing dials it on port 22000 and wraps the raw connection in TLS. Syncthing disables certificate authority verification. A custom callback verifies the peer by hashing its certificate and checking whether the resulting Device ID exists in the local trusted device list. No CA, no server name, just the raw certificate check.
 
 Key things:
 
@@ -330,7 +330,7 @@ Device A and Device B each hold a self-signed certificate and a secret private k
 
 Then both sides perform the same verification. They extract the received certificate's public key, compute its SHA-256 hash, encode it as a Device ID, and check whether that Device ID appears in their local configuration's trusted device list. If the hash matches a known Device ID, the connection is allowed. If it does not match, the connection is rejected immediately.
 
-No certificate authority is involved. Trust comes entirely from the out-of-band Device ID exchange done earlier: "This certificate hashes to a Device ID I was explicitly told to trust." Once both sides accept, the TLS handshake completes and an encrypted channel is established.
+No certificate authority is involved. Trust comes entirely from the out-of-band Device ID exchange: "This certificate hashes to a Device ID I explicitly configured as trusted." Once both sides accept, the TLS handshake completes and an encrypted channel is established.
 
 Key things:
 
@@ -525,7 +525,7 @@ Key things:
 * Blocks written to correct offset regardless of arrival order
 * Atomic rename from temp file to final filename when complete
 
-### Continous Monitoring
+### Continuous Monitoring
 
 ```mermaid
 graph TD
@@ -577,7 +577,7 @@ Key things:
 
 Handle connection failures, network issues, restarts, and partial transfers without data loss.
 
-### Detection & Immediate reaction
+### Detection & Immediate Reaction
 
 ```mermaid
 flowchart TD
@@ -597,7 +597,7 @@ flowchart TD
 
 #### Connection Monitoring
 
-Syncthing monitors connection health using two layers of keepalive checks. At the OS level, TCP keepalives are enabled on all sockets — after 30 seconds of idle time, the kernel sends a probe every 10 seconds, and after 3 failed probes the connection is declared dead. This catches hardware-level failures like unplugged cables or router crashes.
+Syncthing monitors connection health using two layers of keepalive checks. At the OS level, Syncthing enables TCP keepalives on all sockets — after 30 seconds of idle time, the kernel sends a probe every 10 seconds, and after 3 failed probes the connection is declared dead. This catches hardware-level failures like unplugged cables or router crashes.
 
 At the application level, Syncthing sends an empty Ping message every 90 seconds and expects a Pong response within 30 seconds. If no Pong arrives, the connection is considered dead. This catches cases where the TCP connection appears open but the remote application is unresponsive.
 
@@ -653,7 +653,7 @@ Key things:
 
 #### State Preservation
 
-Syncthing is designed to survive being killed at any moment without data loss. Four things persist to disk:&#x20;
+Syncthing survives abrupt termination without data loss. Four things persist to disk:&#x20;
 
 * the configuration file with all device and folder settings
 * the device certificate and key
@@ -728,7 +728,7 @@ Key things:
 
 #### Versioning Strategies
 
-Syncthing offers four st rategies, all working by moving the old file into a `.stversions` folder before the new version is written.
+Syncthing offers four strategies, all working by moving the old file into a `.stversions` folder before the new version is written.
 
 * **Trash Can** simply moves the old file with a timestamp appended and keeps it forever until the user manually cleans it up.&#x20;
 * **Simple Versioning** does the same but only retains the last N versions, deleting the oldest when the limit is exceeded.&#x20;
@@ -747,7 +747,7 @@ Key things:
 
 #### Versioning Integration With Sync
 
-Versioning is integrated directly into the sync flow. When a remote device announces a new version of a file, Syncthing checks whether the local copy would be overwritten. If so, it archives the local file by moving it into `.stversions/` with a timestamp before pulling and writing the new version.
+Versioning integrates directly into the sync flow. When a remote device announces a new version of a file, Syncthing checks whether the local copy would be overwritten. If so, it archives the local file by moving it into `.stversions/` with a timestamp before pulling and writing the new version.
 
 If the user later realizes the new version is wrong, recovery is straightforward: open the `.stversions/` folder, find the timestamped copy, and copy it back to the original location.
 
@@ -795,7 +795,7 @@ sequenceDiagram
     Main->>Main: Resume interrupted transfers
 ```
 
-#### Shutdown Triggers
+### Shutdown Triggers
 
 Shutdown can be initiated three ways: the user sends SIGINT or SIGTERM via Ctrl+C or systemd, the user clicks the Shutdown button in the Web GUI, or a fatal error triggers an automatic restart through a service manager.
 
@@ -805,7 +805,7 @@ Key things:
 
 ***
 
-#### Graceful Shutdown Sequence
+### Graceful Shutdown Sequence
 
 Syncthing shuts down in a careful sequence designed to leave everything in a clean, recoverable state. First, it stops accepting new connections by closing both the TCP and QUIC listeners — any new connection attempts will be rejected. Then it notifies every connected remote device with a Close message so they know this is an intentional shutdown, not a crash.
 
@@ -820,7 +820,7 @@ Key things:
 
 ***
 
-#### Restart Sequence
+### Restart Sequence
 
 On restart, Syncthing picks up exactly where it left off. It loads its existing certificate so its Device ID is preserved, loads the configuration with all devices and folders remembered, and opens the index database with all file metadata intact.
 
