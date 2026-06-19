@@ -193,6 +193,44 @@ $$\begin{bmatrix} 2 & 3 \\ 5 & -1 \end{bmatrix} \begin{bmatrix} x \\ y \end{bmat
 
 ***
 
+### Matrix Inner Product
+
+is a way to take two matrices of the same size and produce a single scalar value. Any valid matrix inner product must satisfy four rules:
+
+* Symmetry: $\langle A, B \rangle = \langle B, A \rangle$
+* Linearity: $\langle cA, B \rangle = c \langle A, B \rangle$
+* Additivity: $\langle A + B, C \rangle = \langle A, C \rangle + \langle B, C \rangle$
+* Positivity: $\langle A, A \rangle \ge 0$, and it only equals 0 if $A$ is a zero matrix.
+
+**The Frobenius Inner Product**
+
+For two real-valued matrices $A$ and $B$ of size $m \times n$, the inner product (denoted as $\langle A, B \rangle_F$) is calculated by multiplying corresponding elements and summing them up.
+
+There are three ways to write the same operation:
+
+1. Element-wise Sum: $\langle A, B \rangle = \sum_{i,j} A_{ij} B_{ij}$
+2. Using Trace: $\langle A, B \rangle = \text{tr}(A^T B)$
+3. If you "flatten" both matrices into long vectors, their inner product is exactly the same as the standard vector dot product.
+
+Just like the vector dot product tells us about the "relationship" between two arrows in space, the matrix inner product tells us about the relationship between two data structure:
+
+* **Measuring Similarity**: It tells us how "aligned" two matrices are. If the inner product is high, the matrices are similar; if it's zero, the matrices are orthogonal.
+*   **Defining "Length" (Norm)**: The inner product of a matrix with itself gives the square of its "size," known as the Frobenius Norm:
+
+    $$\|A\|_F = \sqrt{\langle A, A \rangle}$$
+* **Projection**: In machine learning and signal processing, we use inner products to "project" a data matrix onto a set of basis matrices (like in SVD or JPEG compression).
+* **Optimization**: Many loss functions in deep learning (like the cost of weights) are calculated using these types of inner products.
+
+Suppose we have two $2 \times 2$ matrices:
+
+$$A = \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}, \quad B = \begin{bmatrix} 5 & 6 \\ 7 & 8 \end{bmatrix}$$
+
+The inner product is:
+
+$$\langle A, B \rangle = (1 \times 5) + (2 \times 6) + (3 \times 7) + (4 \times 8)$$
+
+$$\langle A, B \rangle = 5 + 12 + 21 + 32 = \mathbf{70}$$
+
 ### **Law Of Operations**
 
 | Operation | Law | Formula |
@@ -202,6 +240,96 @@ $$\begin{bmatrix} 2 & 3 \\ 5 & -1 \end{bmatrix} \begin{bmatrix} x \\ y \end{bmat
 | Transpose | Product Law | $(AB)^T = B^T A^T$ |
 | Inverse | Product Law | $(AB)^{-1} = B^{-1} A^{-1}$ |
 | Scalar | Distributive | $c(A + B) = cA + cB$ |
+
+***
+
+### Identity Matrix
+
+$$I = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix}$$
+
+### Permutation Matrix
+
+A permutation matrix $P$ of size $n \times n$ has exactly one entry of 1 in each row and each column, with all other entries being 0.
+
+For example, a $3 \times 3$ permutation matrix might look like this:
+
+$$P = \begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix}$$
+
+### Matrix Elimination
+
+simplifying a complex fraction. make the matrix clean
+
+#### Cost Of Elimination
+
+| Phase               | Operation Count (Approx) | Complexity |
+| ------------------- | ------------------------ | ---------- |
+| Forward Elimination | $\frac{2}{3}n^3$       | $O(n^3)$ |
+| Back-Substitution   | $n^2$                  | $O(n^2)$ |
+| Total Solve Cost    | $\frac{2}{3}n^3 + n^2$ | $O(n^3)$ |
+
+### **Augmented Matrix**
+
+Often, when solving these equations by hand (using a method like Gaussian Elimination), we use an Augmented Matrix.
+
+$$\left[ \begin{array}{cc|c} 2 & 3 & 8 \\ 5 & -1 & 1 \end{array} \right]$$
+
+To solve the equation we use
+
+### **Gaussian Elimination**
+
+This method uses "row operations" to simplify the matrix into a form where we can read the answers.
+
+We combine Matrix $A$ and Vector $b$ into one:
+
+$$\left[ \begin{array}{cc|c} 1 & 2 & 5 \\ 3 & 4 & 11 \end{array} \right]$$
+
+We want to eliminate the $3$ in the second row. We can do this by: Row 2 $\to$ Row 2 $- (3 \times$ Row 1).
+
+$$(3 - 3 \times 1) = 0$$
+
+$$(4 - 3 \times 2) = -2$$
+
+$$(11 - 3 \times 5) = -4$$
+
+New Matrix:
+
+$$\left[ \begin{array}{cc|c} 1 & 2 & 5 \\ 0 & -2 & -4 \end{array} \right]$$
+
+**Back-Substitution**
+
+Now we turn the rows back into equations
+
+1. Bottom row: $-2y = -4 \implies \mathbf{y = 2}$
+2. Top row: $x + 2y = 5$
+3. Substitute y: $x + 2(2) = 5 \implies x + 4 = 5 \implies \mathbf{x = 1}$
+
+Solution: $x = 1, y = 2$
+
+### **Matrix Inverse**
+
+inverse matrix is the mathematical "undo" button. Think of a matrix $A$ as a function that transforms data (moving a character in a game, encrypting a message, or blurring an image), the inverse $A^{-1}$ is the function that reverses that transformation exactly.
+
+($x = A^{-1}b$)
+
+When you multiply a matrix by its inverse, you get the Identity Matrix.
+
+$$A \cdot A^{-1} = I$$
+
+This method is like basic algebra. If $ax = b$, then $x = b/a$. In matrices, we multiply by the inverse instead of dividing.
+
+$$A = \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}, \quad x = \begin{bmatrix} x \\ y \end{bmatrix}, \quad b = \begin{bmatrix} 5 \\ 11 \end{bmatrix}$$
+
+For a $2 \times 2$ matrix $\begin{bmatrix} a & b \\ c & d \end{bmatrix}$, the inverse is $\frac{1}{ad-bc} \begin{bmatrix} d & -b \\ -c & a \end{bmatrix}$.
+
+Determinant: $(1 \times 4) - (2 \times 3) = 4 - 6 = \mathbf{-2}$
+
+Swap and Negate: Swap 1 and 4, make 2 and 3 negative $\to \begin{bmatrix} 4 & -2 \\ -3 & 1 \end{bmatrix}$
+
+Multiply by 1/Det: $A^{-1} = -\frac{1}{2} \begin{bmatrix} 4 & -2 \\ -3 & 1 \end{bmatrix} = \begin{bmatrix} -2 & 1 \\ 1.5 & -0.5 \end{bmatrix}$
+
+$$\begin{bmatrix} x \\ y \end{bmatrix} = \begin{bmatrix} -2 & 1 \\ 1.5 & -0.5 \end{bmatrix} \begin{bmatrix} 5 \\ 11 \end{bmatrix} = \begin{bmatrix} (-2 \times 5) + (1 \times 11) \\ (1.5 \times 5) + (-0.5 \times 11) \end{bmatrix} = \mathbf{\begin{bmatrix} 1 \\ 2 \end{bmatrix}}$$
+
+Solution: $x = 1, y = 2$
 
 ***
 
@@ -272,147 +400,9 @@ $$A = \begin{bmatrix} 1 & 1 \\ 1 & 0 \end{bmatrix}$$
 
 ***
 
-**Singular Value Decomposition (**$A = U\Sigma V^T$**)**
+### Rank, Nullspace, and Columnspace
 
-SVD is a way of breaking down a complex table of data (a matrix) into its most basic, essential building blocks.
-
-* $U$ (The "Who/What"): It identifies the categories or "latent features" in your data. (e.g., In a movie database, it might find categories like "Sci-Fi fans" or "Rom-Com fans").
-* $\Sigma$ (The "How Much"): It tells you the importance of each category. The first value is always the biggest "story" in your data; the last values are usually just random noise.
-* $V^T$ (The "Connection"): It shows how the original items in your data relate to those new categories. (e.g., Which specific movies belong to the "Sci-Fi" category).
-
-main purpose is to squint data, see hidden pattern, denoising
-
-***
-
-### **Augmented Matrix**
-
-Often, when solving these equations by hand (using a method like Gaussian Elimination), we use an Augmented Matrix.
-
-$$\left[ \begin{array}{cc|c} 2 & 3 & 8 \\ 5 & -1 & 1 \end{array} \right]$$
-
-To solve the equation we use
-
-### Identity Matrix
-
-$$I = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix}$$
-
-### Permutation Matrix
-
-A permutation matrix $P$ of size $n \times n$ has exactly one entry of 1 in each row and each column, with all other entries being 0.
-
-For example, a $3 \times 3$ permutation matrix might look like this:
-
-$$P = \begin{bmatrix} 0 & 1 & 0 \\ 1 & 0 & 0 \\ 0 & 0 & 1 \end{bmatrix}$$
-
-### Matrix Elimination
-
-simplifying a complex fraction. make the matrix clean
-
-#### Cost Of Elimination
-
-| Phase               | Operation Count (Approx) | Complexity |
-| ------------------- | ------------------------ | ---------- |
-| Forward Elimination | $\frac{2}{3}n^3$       | $O(n^3)$ |
-| Back-Substitution   | $n^2$                  | $O(n^2)$ |
-| Total Solve Cost    | $\frac{2}{3}n^3 + n^2$ | $O(n^3)$ |
-
-#### **Matrix Inverse**
-
-inverse matrix is the mathematical "undo" button. Think of a matrix $A$ as a function that transforms data (moving a character in a game, encrypting a message, or blurring an image), the inverse $A^{-1}$ is the function that reverses that transformation exactly.
-
-($x = A^{-1}b$)
-
-When you multiply a matrix by its inverse, you get the Identity Matrix.
-
-$$A \cdot A^{-1} = I$$
-
-This method is like basic algebra. If $ax = b$, then $x = b/a$. In matrices, we multiply by the inverse instead of dividing.
-
-$$A = \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}, \quad x = \begin{bmatrix} x \\ y \end{bmatrix}, \quad b = \begin{bmatrix} 5 \\ 11 \end{bmatrix}$$
-
-For a $2 \times 2$ matrix $\begin{bmatrix} a & b \\ c & d \end{bmatrix}$, the inverse is $\frac{1}{ad-bc} \begin{bmatrix} d & -b \\ -c & a \end{bmatrix}$.
-
-Determinant: $(1 \times 4) - (2 \times 3) = 4 - 6 = \mathbf{-2}$
-
-Swap and Negate: Swap 1 and 4, make 2 and 3 negative $\to \begin{bmatrix} 4 & -2 \\ -3 & 1 \end{bmatrix}$
-
-Multiply by 1/Det: $A^{-1} = -\frac{1}{2} \begin{bmatrix} 4 & -2 \\ -3 & 1 \end{bmatrix} = \begin{bmatrix} -2 & 1 \\ 1.5 & -0.5 \end{bmatrix}$
-
-$$\begin{bmatrix} x \\ y \end{bmatrix} = \begin{bmatrix} -2 & 1 \\ 1.5 & -0.5 \end{bmatrix} \begin{bmatrix} 5 \\ 11 \end{bmatrix} = \begin{bmatrix} (-2 \times 5) + (1 \times 11) \\ (1.5 \times 5) + (-0.5 \times 11) \end{bmatrix} = \mathbf{\begin{bmatrix} 1 \\ 2 \end{bmatrix}}$$
-
-Solution: $x = 1, y = 2$
-
-***
-
-#### **Gaussian Elimination**
-
-This method uses "row operations" to simplify the matrix into a form where we can read the answers.
-
-We combine Matrix $A$ and Vector $b$ into one:
-
-$$\left[ \begin{array}{cc|c} 1 & 2 & 5 \\ 3 & 4 & 11 \end{array} \right]$$
-
-We want to eliminate the $3$ in the second row. We can do this by: Row 2 $\to$ Row 2 $- (3 \times$ Row 1).
-
-$$(3 - 3 \times 1) = 0$$
-
-$$(4 - 3 \times 2) = -2$$
-
-$$(11 - 3 \times 5) = -4$$
-
-New Matrix:
-
-$$\left[ \begin{array}{cc|c} 1 & 2 & 5 \\ 0 & -2 & -4 \end{array} \right]$$
-
-**Back-Substitution**
-
-Now we turn the rows back into equations
-
-1. Bottom row: $-2y = -4 \implies \mathbf{y = 2}$
-2. Top row: $x + 2y = 5$
-3. Substitute y: $x + 2(2) = 5 \implies x + 4 = 5 \implies \mathbf{x = 1}$
-
-Solution: $x = 1, y = 2$
-
-### Matrix Inner Product
-
-is a way to take two matrices of the same size and produce a single scalar value. Any valid matrix inner product must satisfy four rules:
-
-* Symmetry: $\langle A, B \rangle = \langle B, A \rangle$
-* Linearity: $\langle cA, B \rangle = c \langle A, B \rangle$
-* Additivity: $\langle A + B, C \rangle = \langle A, C \rangle + \langle B, C \rangle$
-* Positivity: $\langle A, A \rangle \ge 0$, and it only equals 0 if $A$ is a zero matrix.
-
-**The Frobenius Inner Product**
-
-For two real-valued matrices $A$ and $B$ of size $m \times n$, the inner product (denoted as $\langle A, B \rangle_F$) is calculated by multiplying corresponding elements and summing them up.
-
-There are three ways to write the same operation:
-
-1. Element-wise Sum: $\langle A, B \rangle = \sum_{i,j} A_{ij} B_{ij}$
-2. Using Trace: $\langle A, B \rangle = \text{tr}(A^T B)$
-3. If you "flatten" both matrices into long vectors, their inner product is exactly the same as the standard vector dot product.
-
-Just like the vector dot product tells us about the "relationship" between two arrows in space, the matrix inner product tells us about the relationship between two data structure:
-
-* **Measuring Similarity**: It tells us how "aligned" two matrices are. If the inner product is high, the matrices are similar; if it's zero, the matrices are orthogonal.
-*   **Defining "Length" (Norm)**: The inner product of a matrix with itself gives the square of its "size," known as the Frobenius Norm:
-
-    $$\|A\|_F = \sqrt{\langle A, A \rangle}$$
-* **Projection**: In machine learning and signal processing, we use inner products to "project" a data matrix onto a set of basis matrices (like in SVD or JPEG compression).
-* **Optimization**: Many loss functions in deep learning (like the cost of weights) are calculated using these types of inner products.
-
-Suppose we have two $2 \times 2$ matrices:
-
-$$A = \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}, \quad B = \begin{bmatrix} 5 & 6 \\ 7 & 8 \end{bmatrix}$$
-
-The inner product is:
-
-$$\langle A, B \rangle = (1 \times 5) + (2 \times 6) + (3 \times 7) + (4 \times 8)$$
-
-$$\langle A, B \rangle = 5 + 12 + 21 + 32 = \mathbf{70}$$
-
-### Nullspace
+**Nullspace**
 
 The Nullspace is the "Garbage Can" of a matrix. It consists of all the input vectors that the matrix "squashes" into zero.
 
@@ -424,7 +414,8 @@ If the Nullspace is empty (only contains the zero vector): The matrix is "perfec
 
 If the Nullspace has "stuff" in it: You have a problem. Multiple different inputs can produce the same output.
 
-### Matrix Rank
+
+**Matrix Rank**
 
 rank of a matrix is a single number that tells you how much "real" information is inside that matrix.
 
@@ -440,7 +431,8 @@ $$A = \begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix}$$
 
 Notice that Row 2 is just $2 \times$ Row 1. It adds no new information to the system. Because there is only one unique row, the Rank = 1.
 
-### Span, Subspace, Nullspace, Columnspace, Rank
+
+**Span, Subspace, Columnspace — A Unified Example**
 
 We will use 3D vectors where the numbers represent the amount of Cyan, Magenta, and Yellow ($C, M, Y$).
 
@@ -493,3 +485,18 @@ This tells the printer: "Use 0 Cyan, 1 unit of Yellow A, and -1 unit of Yellow B
 $$1\begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix} - 1\begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}$$
 
 The ink cancels out! This vector $\begin{bmatrix} 0 \\ 1 \\ -1 \end{bmatrix}$ is in the Nullspace. It represents a redundant command.
+
+***
+
+### Singular Value Decomposition ($A = U\Sigma V^T$)
+
+SVD is a way of breaking down a complex table of data (a matrix) into its most basic, essential building blocks.
+
+* $U$ (The "Who/What"): It identifies the categories or "latent features" in your data. (e.g., In a movie database, it might find categories like "Sci-Fi fans" or "Rom-Com fans").
+* $\Sigma$ (The "How Much"): It tells you the importance of each category. The first value is always the biggest "story" in your data; the last values are usually just random noise.
+* $V^T$ (The "Connection"): It shows how the original items in your data relate to those new categories. (e.g., Which specific movies belong to the "Sci-Fi" category).
+
+main purpose is to squint data, see hidden pattern, denoising
+
+***
+

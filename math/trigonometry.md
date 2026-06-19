@@ -76,35 +76,6 @@ $$\theta = \arctan\left(\frac{\text{Opposite}}{\text{Adjacent}}\right)$$
   $$\tan(\theta) = \frac{2}{24} = 0.0833$$$$\theta = \arctan(0.0833)$$$$\theta \approx \mathbf{4.76^\circ}$$
 ***
 
-## Cosecant
-$$\csc(\theta) = \frac{\text{Hypotenuse}}{\text{Opposite}}$$ (The flip of Sine)
-
-* What it finds: The Diagonal length.
-* Use this when you know how high you need to go and want to find the diagonal path.
- * Real World Example: You want to build a zip-line. The platform is 20 feet high. You want the line at a $30^\circ$ angle. How much cable do you need to buy?$$\text{Cable} = 20 \times \csc(30^\circ)$$ (Note: $\csc$ is $1/0.5 = 2$)   $$20 \times 2 = \mathbf{40 \text{ feet of cable}}$$
-***
-
-## Secant
-
-$$\sec(\theta) = \frac{\text{Hypotenuse}}{\text{Adjacent}}$$ (The flip of Cosine)
-
-* What it finds: The Diagonal length.
-* Use this when you know the flat distance and need to find the diagonal.
-* Real World Example: An architect is designing a bridge. The gap to cross is 100 feet wide. The support beam must be at a $30^\circ$ angle. How long is the beam? 
-$$\text{Beam} = 100 \times \sec(30^\circ)$$$$100 \times 1.15 = \mathbf{115 \text{ feet long}}$$
-***
-
-## Cotangent
-
-$\cot(\theta) = \frac{\text{Adjacent}}{\text{Opposite}}$ (The flip of Tangent)
-
-* What it finds: The Flat distance.
-* Use this when you know the Height and want to find the ground distance.
- * Real World Example: A lighthouse is 100 feet tall. It spots a boat at a $10^\circ$ angle from the top. How far away is the boat on the water?
- $$\text{Distance} = 100 \times \cot(10^\circ)$$
- The Answer: $$100 \times 5.67 = \mathbf{567 \text{ feet away}}$$
-***
-
 ## **Unit circle**
 
 Because it is a circle with radius $r = 1$, its equation is derived from the Pythagorean theorem:
@@ -218,6 +189,103 @@ you cannot divide by zero. At this exact angle, the Tangent "breaks" and becomes
 
 [https://www.desmos.com/calculator/ajd5qthpcw](https://www.desmos.com/calculator/ajd5qthpcw)
 
+## Cosecant
+$$\csc(\theta) = \frac{\text{Hypotenuse}}{\text{Opposite}}$$ (The flip of Sine)
+
+* What it finds: The Diagonal length.
+* Use this when you know how high you need to go and want to find the diagonal path.
+ * Real World Example: You want to build a zip-line. The platform is 20 feet high. You want the line at a $30^\circ$ angle. How much cable do you need to buy?$$\text{Cable} = 20 \times \csc(30^\circ)$$ (Note: $\csc$ is $1/0.5 = 2$)   $$20 \times 2 = \mathbf{40 \text{ feet of cable}}$$
+***
+
+## Secant
+
+$$\sec(\theta) = \frac{\text{Hypotenuse}}{\text{Adjacent}}$$ (The flip of Cosine)
+
+* What it finds: The Diagonal length.
+* Use this when you know the flat distance and need to find the diagonal.
+* Real World Example: An architect is designing a bridge. The gap to cross is 100 feet wide. The support beam must be at a $30^\circ$ angle. How long is the beam? 
+$$\text{Beam} = 100 \times \sec(30^\circ)$$$$100 \times 1.15 = \mathbf{115 \text{ feet long}}$$
+***
+
+## Cotangent
+
+$\cot(\theta) = \frac{\text{Adjacent}}{\text{Opposite}}$ (The flip of Tangent)
+
+* What it finds: The Flat distance.
+* Use this when you know the Height and want to find the ground distance.
+ * Real World Example: A lighthouse is 100 feet tall. It spots a boat at a $10^\circ$ angle from the top. How far away is the boat on the water?
+ $$\text{Distance} = 100 \times \cot(10^\circ)$$
+ The Answer: $$100 \times 5.67 = \mathbf{567 \text{ feet away}}$$
+***
+
+## Transformation of Trigonometric Functions
+
+The standard sine wave $y = \sin(x)$ can be stretched, squished, and moved. The general formula is:
+
+$$y = A \sin(B(x - C)) + D$$
+
+#### Amplitude ($A$)
+
+* What it does: Vertical Stretch.
+* Visual: Controls the height of the wave peaks.
+* Physics: In sound, this is Volume (Loudness).
+ * Formula: $|A|$ is the distance from the center line to the peak.
+
+#### Period ($B$)
+
+* What it does: Horizontal Squish/Stretch.
+* Visual: How fast the wave repeats.
+ * Physics: In sound, this is Frequency (Pitch). High $B$ = High Pitch.
+ * Formula: The new Period is $\frac{2\pi}{B}$.
+
+#### Phase Shift ($C$)
+
+* What it does: Horizontal Shift.
+* Visual: Moving the start of the wave Left or Right.
+* Physics: This is Timing. (e.g., Does the sound start now, or 1 second later?)
+
+#### Vertical Shift ($D$)
+
+* What it does: Vertical Shift.
+* Visual: Moving the entire wave Up or Down.
+* Math: It changes the "center line" (midline) of the oscillation.
+
+Example:
+
+$$y = 3 \sin(2(x - \pi)) + 5$$
+
+* Amplitude: 3 (The wave goes 3 units up and down from the center).
+ * Period: $\frac{2\pi}{2} = \pi$ (It oscillates twice as fast as normal).
+ * Phase Shift: Right by $\pi$.
+ * Vertical Shift: Up 5 (The center line is now at $y=5$).
+## The Law of Sines and the Law of Cosines
+
+These two laws allow you to solve triangles that are not right-angled triangles (Oblique Triangles).
+
+#### The Law of Sines
+
+Use this when you know a "pair" (an angle and the side opposite to it) and one other piece of information.
+
+$$\frac{a}{\sin A} = \frac{b}{\sin B} = \frac{c}{\sin C}$$
+
+Two fire towers are 10 miles apart. Tower A spots a fire at a $40^\circ$ angle. Tower B spots the fire at a $60^\circ$ angle. How far is the fire from Tower A?
+
+1. Find the third angle: $180^\circ - 40^\circ - 60^\circ = 80^\circ$ (Angle C).
+2. Set up the ratio: $\frac{x}{\sin(60^\circ)} = \frac{10}{\sin(80^\circ)}$
+3. Solve: $x = \frac{10 \times 0.866}{0.985} \approx \mathbf{8.79 \text{ miles}}$.
+
+#### The Law of Cosines
+
+Use this when you don't have a matching pair. Usually when you have SSS (Side-Side-Side) or SAS (Side-Angle-Side). This is basically the Pythagorean Theorem adjusted for non-90-degree angles.
+
+$$c^2 = a^2 + b^2 - 2ab \cos(C)$$
+
+Real World Example: You walk 3 miles North, turn $120^\circ$, and walk 4 miles. How far are you from your starting point?
+
+ $$c^2 = 3^2 + 4^2 - 2(3)(4)\cos(120^\circ)$$
+ $$c^2 = 9 + 16 - 24(-0.5)$$
+ $$c^2 = 25 + 12 = 37$$
+ $$c = \sqrt{37} \approx \mathbf{6.08 \text{ miles}}$$
 ## **Identities**
 
 Use identities to rewrite complex expressions in a simpler form
@@ -289,34 +357,21 @@ What happens if you plug a negative number into the inverse?
  * $\arctan(-x) = -\arctan(x)$ (The negative moves outside)
  * $\arccos(-x) = \pi - \arccos(x)$ (Special Case: You must subtract from 180 degrees)
 
-## The Law of Sines and the Law of Cosines
+## Addition and Subtraction Formulas
 
-These two laws allow you to solve triangles that are not right-angled triangles (Oblique Triangles).
+These allow you to calculate the sine or cosine of a sum of two angles. This is useful for finding the exact value of angles like $75^\circ$ (which is just $45^\circ + 30^\circ$).
 
-#### The Law of Sines
+#### The Formulas
 
-Use this when you know a "pair" (an angle and the side opposite to it) and one other piece of information.
+* Sine:
+  $$\sin(A + B) = \sin A \cos B + \cos A \sin B$$
+  $$\sin(A - B) = \sin A \cos B - \cos A \sin B$$
+* Cosine: (Remember: signs flip!)
+  $$\cos(A + B) = \cos A \cos B - \sin A \sin B$$
+  $$\cos(A - B) = \cos A \cos B + \sin A \sin B$$
+* Tangent:
+  $$\tan(A + B) = \frac{\tan A + \tan B}{1 - \tan A \tan B}$$
 
-$$\frac{a}{\sin A} = \frac{b}{\sin B} = \frac{c}{\sin C}$$
-
-Two fire towers are 10 miles apart. Tower A spots a fire at a $40^\circ$ angle. Tower B spots the fire at a $60^\circ$ angle. How far is the fire from Tower A?
-
-1. Find the third angle: $180^\circ - 40^\circ - 60^\circ = 80^\circ$ (Angle C).
-2. Set up the ratio: $\frac{x}{\sin(60^\circ)} = \frac{10}{\sin(80^\circ)}$
-3. Solve: $x = \frac{10 \times 0.866}{0.985} \approx \mathbf{8.79 \text{ miles}}$.
-
-#### The Law of Cosines
-
-Use this when you don't have a matching pair. Usually when you have SSS (Side-Side-Side) or SAS (Side-Angle-Side). This is basically the Pythagorean Theorem adjusted for non-90-degree angles.
-
-$$c^2 = a^2 + b^2 - 2ab \cos(C)$$
-
-Real World Example: You walk 3 miles North, turn $120^\circ$, and walk 4 miles. How far are you from your starting point?
-
- $$c^2 = 3^2 + 4^2 - 2(3)(4)\cos(120^\circ)$$
- $$c^2 = 9 + 16 - 24(-0.5)$$
- $$c^2 = 25 + 12 = 37$$
- $$c = \sqrt{37} \approx \mathbf{6.08 \text{ miles}}$$
 ## Double-Angle and Half-Angle Formulas
 
 These are used to simplify calculus problems or calculate exact values for angles without a calculator.
@@ -339,58 +394,3 @@ Used to find the value of $\frac{\theta}{2}$ when you know $\theta$. The $\pm$ d
 * Cosine: $$\cos\left(\frac{\theta}{2}\right) = \pm\sqrt{\frac{1 + \cos\theta}{2}}$$
 * Tangent: $$\tan\left(\frac{\theta}{2}\right) = \frac{1 - \cos\theta}{\sin\theta}$$
 
-## Addition and Subtraction Formulas
-
-These allow you to calculate the sine or cosine of a sum of two angles. This is useful for finding the exact value of angles like $75^\circ$ (which is just $45^\circ + 30^\circ$).
-
-#### The Formulas
-
-* Sine:
-  $$\sin(A + B) = \sin A \cos B + \cos A \sin B$$
-  $$\sin(A - B) = \sin A \cos B - \cos A \sin B$$
-* Cosine: (Remember: signs flip!)
-  $$\cos(A + B) = \cos A \cos B - \sin A \sin B$$
-  $$\cos(A - B) = \cos A \cos B + \sin A \sin B$$
-* Tangent:
-  $$\tan(A + B) = \frac{\tan A + \tan B}{1 - \tan A \tan B}$$
-
-## Transformation of Trigonometric Functions
-
-The standard sine wave $y = \sin(x)$ can be stretched, squished, and moved. The general formula is:
-
-$$y = A \sin(B(x - C)) + D$$
-
-#### Amplitude ($A$)
-
-* What it does: Vertical Stretch.
-* Visual: Controls the height of the wave peaks.
-* Physics: In sound, this is Volume (Loudness).
- * Formula: $|A|$ is the distance from the center line to the peak.
-
-#### Period ($B$)
-
-* What it does: Horizontal Squish/Stretch.
-* Visual: How fast the wave repeats.
- * Physics: In sound, this is Frequency (Pitch). High $B$ = High Pitch.
- * Formula: The new Period is $\frac{2\pi}{B}$.
-
-#### Phase Shift ($C$)
-
-* What it does: Horizontal Shift.
-* Visual: Moving the start of the wave Left or Right.
-* Physics: This is Timing. (e.g., Does the sound start now, or 1 second later?)
-
-#### Vertical Shift ($D$)
-
-* What it does: Vertical Shift.
-* Visual: Moving the entire wave Up or Down.
-* Math: It changes the "center line" (midline) of the oscillation.
-
-Example:
-
-$$y = 3 \sin(2(x - \pi)) + 5$$
-
-* Amplitude: 3 (The wave goes 3 units up and down from the center).
- * Period: $\frac{2\pi}{2} = \pi$ (It oscillates twice as fast as normal).
- * Phase Shift: Right by $\pi$.
- * Vertical Shift: Up 5 (The center line is now at $y=5$).

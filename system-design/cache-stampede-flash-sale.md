@@ -9,11 +9,13 @@ created: "2026-06-13"
 
 Also known as: **thundering herd problem**, **dog-piling**, **cache miss storm**.
 
+This document explains how to prevent a cache stampede when a hot key expires under high concurrency. After reading, you should understand request coalescing, probabilistic early expiration, and pre-warming — and how to combine them for a flash-sale workload.
+
+**Audience:** Backend engineers building high-traffic systems. Familiarity with cache read/write patterns assumed.
+
 ## Cache Miss Storm
 
-When a hot cache key expires, all concurrent requests miss the cache simultaneously and flood the database. With 100k requests hitting at once, the DB experiences a sudden spike in load — causing contention, timeouts, and potentially cascading failure.
-
-## Mitigation Strategies
+When a hot cache key expires, all concurrent requests miss simultaneously and flood the database — causing contention, timeouts, and potentially cascading failure.
 
 ```mermaid
 sequenceDiagram
@@ -28,10 +30,14 @@ sequenceDiagram
     Cache-->>C2: MISS
     C1->>DB: SELECT...
     C2->>DB: SELECT...
-    Note over DB: 💥 100k concurrent queries<br/>contention, timeouts<br/>cascading failure
+    Note over DB: 100k concurrent queries<br/>contention, timeouts<br/>cascading failure
 ```
 
-Request coalescing solves this by serializing recomputation:
+## Mitigation Strategies
+
+### Request Coalescing (Locking)
+
+Request coalescing serializes recomputation so only one request hits the database:
 
 ```mermaid
 sequenceDiagram
@@ -53,12 +59,6 @@ sequenceDiagram
     Cache-->>C2: HIT
     Note over C2: Never hits DB
 ```
-
-### Multi-Tier Cache
-
-Place a fast in-process L1 cache (e.g., `sync.Map` with TTL) in front of the shared L2 cache (Redis). L1 absorbs the micro-burst of concurrent misses before they reach L2, reducing 100k concurrent L2 misses to a handful per process. Each process still deduplicates at the goroutine level with request coalescing, making the system resilient to both L1 evictions and L2 failures.
-
-### Request Coalescing (Locking)
 
 Let only one request recompute the cache value. All others wait on the result.
 
@@ -88,7 +88,7 @@ func fetch(key string) (Value, error) {
 
 Instead of reacting to expiry, refresh the cache *before* the TTL runs out.
 
-- As the TTL nears expiry, each request performs a random roll proportional to how stale the cached value is: `rand() < (TTL - remaining_ttl) / TTL`. Probability starts at 0 (just after refresh) and grows linearly to 1 (at expiry).
+- As the TTL nears expiry, each request performs a random roll proportional to staleness: `rand() < (TTL - remaining_ttl) / TTL`. Probability starts at 0 after refresh and grows linearly to 1 at expiry.
 - The "winner" refreshes the value early while the cache is still serving stale-but-valid data to everyone else.
 - This eliminates cache miss storms entirely and keeps latency flat.
 
@@ -98,7 +98,9 @@ func shouldRefresh(ttl, remaining time.Duration) bool {
 }
 ```
 
-> **Reference**: [Vattani et al., *Techniques to Reduce Cache Stampedes*](https://couchbase.com/blog/cache-stampede-paper)
+### Multi-Tier Cache
+
+Place a fast in-process L1 cache (e.g., `sync.Map` with TTL) ahead of shared L2 (Redis). L1 absorbs the micro-burst of concurrent misses before they reach L2, reducing 100k concurrent L2 misses to a handful per process. Each process still deduplicates at the goroutine level with request coalescing, making the system resilient to both L1 evictions and L2 failures.
 
 ### Pre-Warming Strategy
 
@@ -114,11 +116,15 @@ timeline
 ```
 
 - A background job warms the key 30–120 seconds early with a short TTL.
-- A second warm pass just before the event refreshes with the real TTL.
+- A second pass just before the event refreshes with the real TTL.
 - This turns the initial burst of cache misses into cache hits, buying time for the coalescing layer to stabilize.
-- Works especially well combined with probabilistic early expiry — even if the warm window is missed, the first real request refreshes early before expiry.
+- Works best combined with probabilistic early expiry — even if the warm window is missed, the first real request refreshes early before expiry.
 
 ### Resilience & Fail-Safe
 
 - **Lock timeouts**: If the lock holder crashes or the DB is slow, release the lock after a timeout (e.g., 500 ms) so others can retry.
 - **Key-level capacity limit**: Limit waiters per key (e.g., 64). When the queue is full, return the stale cached value with an `Age` header rather than blocking. This prevents OOM (out of memory) and gives the consumer visibility into freshness.
+
+## References
+
+> **Reference**: [Vattani et al., *Techniques to Reduce Cache Stampedes*](https://couchbase.com/blog/cache-stampede-paper)

@@ -93,35 +93,6 @@ Total Cost = $\$50 + \$30 + \$10 + \$6 = \mathbf{\$96}$
 
 ***
 
-#### **Greatest Common Factor (GCF)**
-
-* GCF of $10x^4 - 15x^3 + 5x^2$.
-* Coefficients (10, 15, 5): The largest number that divides all three is $\mathbf{5}$.
-* Variable ($x^4, x^3, x^2$): The lowest power is $\mathbf{x^2}$.
-* GCF: $5x^2$
-
-***
-
-### **Discriminant**
-
-$$\mathbf{D = b^2 - 4ac}$$
-
-$$3x^2 + 5x + 1 = 0$$
-
-* $a$: The number in front of $x^2$ (In this case, 3).
-* $b$: The number in front of $x$ (In this case, 5).
-* $c$: The "constant" number at the end (In this case, 1).
-
-$$25 - 12 = \mathbf{13}$$
-
-### **Intervals**
-
-![](../../assets/interval_notation.png)
-
-### **Absolute Value**
-
-![](../../assets/prop_absolute_value.png)
-
 ### **Integer Exponents**
 
 ![](../../assets/laws_of_exponent.png)
@@ -172,6 +143,12 @@ The key takeaway is that the absolute value signs are essential when simplifying
 
 ***
 
+#### Rational Exponent
+
+$$a^{\frac{m}{n}} = \sqrt[n]{a^m} = (\sqrt[n]{a})^m$$
+
+$8^{\frac{2}{3}} =(\sqrt[3]{8})^2$ = $2^2$ = $4$
+
 ### Product Formulas
 
 ![](../../assets/product_formulas.png)
@@ -200,6 +177,21 @@ $$(2m - 1)^3 = 8m^3 - 12m^2 + 6m - 1$$
 
 ***
 
+### Binomial Theorem
+
+Used to expand expressions that consist of two terms (a "binomial") raised to a high power. Instead of multiplying brackets manually for hours, this theorem provides a direct shortcut to the final answer.
+
+$$(x + y)^n = \sum_{k=0}^{n} \binom{n}{k} x^{n-k} y^k$$
+
+* $x$ and $y$: The two terms inside the parentheses.
+* $n$: The exponent (the power you are raising the expression to).
+* $k$: The term number you are currently calculating (it starts at 0 and goes up to $n$).
+* $\binom{n}{k}$: The Binomial Coefficient, read as "$n$ choose $k$":
+
+  $$\binom{n}{k} = \frac{n!}{k!(n-k)!}$$
+
+***
+
 ### Rational
 
 A rational expression is simply a fraction (a ratio) where both the numerator (top) and the denominator (bottom) are polynomials. It is also sometimes referred to as an algebraic fraction.
@@ -212,11 +204,65 @@ A rational expression can be written in the form $\frac{P(x)}{Q(x)}$, where $P(x
 
 denominator, $Q(x)$, cannot be equal to zero. Division by zero is undefined
 
-#### Rational Exponent
+#### **Greatest Common Factor (GCF)**
 
-$$a^{\frac{m}{n}} = \sqrt[n]{a^m} = (\sqrt[n]{a})^m$$
+* GCF of $10x^4 - 15x^3 + 5x^2$.
+* Coefficients (10, 15, 5): The largest number that divides all three is $\mathbf{5}$.
+* Variable ($x^4, x^3, x^2$): The lowest power is $\mathbf{x^2}$.
+* GCF: $5x^2$
 
-$8^{\frac{2}{3}} =(\sqrt[3]{8})^2$ = $2^2$ = $4$
+***
+
+### Factoring
+
+**Greatest Common Factor (GCF)**
+
+This is always the first step. You look for the largest number or variable that divides evenly into every single term.
+
+$$3x^2 + 6x = 3x(x + 2)$$
+
+***
+
+**Difference of Squares**
+
+Used for two terms that are both perfect squares being subtracted.
+
+* $a^2 - b^2 = (a - b)(a + b)$
+* The _sum_ of squares ($a^2 + b^2$) cannot be factored using real numbers.
+
+***
+
+**Factoring Trinomials**
+
+($x^2 + bx + c$)
+
+Used for three terms where the $x^2$ coefficient is 1. You look for two numbers that multiply to $c$ and add to $b$.
+
+$x^2 + 5x + 6 = (x + 2)(x + 3)$ (Because $2 \times 3 = 6$ and $2 + 3 = 5$)
+
+***
+
+**Factor by Grouping**
+
+Group the first two terms and the last two terms. Find the GCF for each pair.
+
+$$(2x^2 + 1x) + (6x + 3)$$
+
+* The GCF of $(2x^2 + 1x)$ is $x$. Result: $x(2x + 1)$
+* The GCF of $(6x + 3)$ is $3$. Result: $3(2x + 1)$
+
+Notice that $(2x + 1)$ is now common to both parts. "Pull it out" as one factor.
+
+$$(2x + 1)(x + 3)$$
+
+***
+
+**Sum or Difference of Cubes**
+
+Used for two terms that are perfect cubes.
+
+* Sum: $a^3 + b^3 = (a + b)(a^2 - ab + b^2)$
+* Difference: $a^3 - b^3 = (a - b)(a^2 + ab + b^2)$
 
 ### Equations
 
@@ -233,6 +279,18 @@ the exponent is greater than 1
 * $x^3 + y = 7$
 
 Quadratic equations are essential for modeling paths, areas, and optimization problems. They are defined by the standard form $ax^2 + bx + c = 0$, where $x$ is the unknown, and $a$, $b$, and $c$ are known coefficients.
+
+### **Discriminant**
+
+$$\mathbf{D = b^2 - 4ac}$$
+
+$$3x^2 + 5x + 1 = 0$$
+
+* $a$: The number in front of $x^2$ (In this case, 3).
+* $b$: The number in front of $x$ (In this case, 5).
+* $c$: The "constant" number at the end (In this case, 1).
+
+$$25 - 12 = \mathbf{13}$$
 
 ### Complex Number
 
@@ -294,57 +352,6 @@ Now, look at the math definition: $i \times i = -1$ This means that doing the "m
 
 If "multiplying by $-1$" is a 180-degree turn, then "multiplying by $i$" must be half of that turn to make the math work. Half of 180 degrees is 90 degrees.
 
-### Factoring
-
-**Greatest Common Factor (GCF)**
-
-This is always the first step. You look for the largest number or variable that divides evenly into every single term.
-
-$$3x^2 + 6x = 3x(x + 2)$$
-
-***
-
-**Difference of Squares**
-
-Used for two terms that are both perfect squares being subtracted.
-
-* $a^2 - b^2 = (a - b)(a + b)$
-* The _sum_ of squares ($a^2 + b^2$) cannot be factored using real numbers.
-
-***
-
-**Factoring Trinomials**
-
-($x^2 + bx + c$)
-
-Used for three terms where the $x^2$ coefficient is 1. You look for two numbers that multiply to $c$ and add to $b$.
-
-$x^2 + 5x + 6 = (x + 2)(x + 3)$ (Because $2 \times 3 = 6$ and $2 + 3 = 5$)
-
-***
-
-**Factor by Grouping**
-
-Group the first two terms and the last two terms. Find the GCF for each pair.
-
-$$(2x^2 + 1x) + (6x + 3)$$
-
-* The GCF of $(2x^2 + 1x)$ is $x$. Result: $x(2x + 1)$
-* The GCF of $(6x + 3)$ is $3$. Result: $3(2x + 1)$
-
-Notice that $(2x + 1)$ is now common to both parts. "Pull it out" as one factor.
-
-$$(2x + 1)(x + 3)$$
-
-***
-
-**Sum or Difference of Cubes**
-
-Used for two terms that are perfect cubes.
-
-* Sum: $a^3 + b^3 = (a + b)(a^2 - ab + b^2)$
-* Difference: $a^3 - b^3 = (a - b)(a^2 + ab + b^2)$
-
 ### Guidelines for Modeling with Equations
 
 1. Identify the Variable. **Identify the quantity** that the problem asks you to find. This quantity can usually be determined by a careful reading of the question that is posed at the end of the problem. Then introduce notation for the variable (call it x or some other letter).
@@ -386,6 +393,14 @@ Test the intervals:
 * If $x = 3$ (greater than 2): $3^2 - 4 > 0$ is True.
 * If $x = -3$ (less than -2): $(-3)^2 - 4 > 0$ is True.
 The solution is $x < -2$ or $x > 2$.
+### **Intervals**
+
+![](../../assets/interval_notation.png)
+
+### **Absolute Value**
+
+![](../../assets/prop_absolute_value.png)
+
 ### Coordinate Plane, Graphs of Equations, Line, Circles
 
 <img src="../../assets/coordinate_plane.png" alt="" width="563">
@@ -445,7 +460,7 @@ $$(x - h)^2 + (y - k)^2 = r^2$$
 
 slope is the measure of steepness
 
-$$slope = rise/sun$$
+$$slope = rise/run$$
 
 $$m = \frac{y_2 - y_1}{x_2 - x_1}$$
 
@@ -890,7 +905,7 @@ While a common logarithm (base 10) tells you how many times you multiply 10 to g
 
 $$\ln(x) = \log_e(x)$$
 
-Where $e$ (Euler's number) is approximately $2.71828.6$
+Where $e$ (Euler's number) is approximately $2.71828$
 
 Because it is the inverse of the exponential function $e^x$, the relationship is:
 

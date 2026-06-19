@@ -90,17 +90,22 @@ You drop a "Super-Ball" from a height of 10 feet ($a_1$). Each bounce reaches ha
 
 $$S_\infty = \frac{10}{1 - 0.5} = \frac{10}{0.5} = \mathbf{20 \text{ feet}}$$
 
-## Binomial Theorem&#x20;
+***
 
-Binomial Theorem used to expand expressions that consist of two terms (a "binomial") raised to a high power. Instead of multiplying brackets manually for hours, this theorem provides a direct shortcut to the final answer.
+## Limit
 
-$$(x + y)^n = \sum_{k=0}^{n} \binom{n}{k} x^{n-k} y^k$$
+A limit describes the value that a function or sequence approaches as the input gets arbitrarily close to some point. Not every expression has a finite value at a given point, but it may approach one.
 
-#### Breaking down the variables:
+$$\lim_{x \to a} f(x) = L$$
 
-* $x$ and $y$: The two terms inside the parentheses.
-* $n$: The exponent (the power you are raising the expression to).
-* $k$: The term number you are currently calculating (it starts at 0 and goes up to $n$).
-*   $\binom{n}{k}$: This is the Binomial Coefficient, often read as "$n$ choose $k$." It is calculated as:
+* $L$: The value $f(x)$ gets closer to as $x$ gets closer to $a$.
+* The arrow ($\to$) means "approaches"—$x$ gets arbitrarily close to $a$ without necessarily reaching it.
 
-    $$\binom{n}{k} = \frac{n!}{k!(n-k)!}$$
+**Connecting to Sequences**
+
+For sequences, the limit asks: as $n \to \infty$ (the term number goes to infinity), does $a_n$ approach a specific number?
+
+* If $a_n$ settles toward a single value, the sequence **converges** to that limit.
+* If $a_n$ grows without bound or oscillates forever, it **diverges**.
+
+The infinite geometric series from the previous section is a classic example. As $n \to \infty$, $r^n \to 0$ (when $|r| < 1$), so the sum approaches the fixed value $\frac{a_1}{1 - r}$.

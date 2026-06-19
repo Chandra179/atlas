@@ -10,6 +10,10 @@ created: "2026-06-13"
 {% embed url="https://github.com/etcd-io/etcd" %}
 {% embed url="https://github.com/etcd-io/raft" %}
 
+This document explains how etcd uses the Raft consensus algorithm to achieve linearizable writes across a cluster. After reading, you should understand the full write path, leader election mechanics, log structure, WAL durability guarantees, and how the MVCC store applies committed entries — and how each layer stays decoupled.
+
+**Reader:** This document assumes familiarity with distributed systems concepts (quorum, CAP, leader election). No prior Raft knowledge is needed.
+
 ## System Model
 
 | Attribute | Value |
@@ -97,7 +101,7 @@ Raft provides:
 
 1. **Total order** — a gapless, indexed log (`index 1, 2, 3...`) that every node agrees on
 2. **Leader election** — exactly one node assigns the index numbers
-3. **Safety** — once an entry is committed at index `N`, no future leader can overwrite it
+3. **Safety** — once Raft commits an entry at index `N`, no future leader can overwrite it
 4. **Replication** — followers accept the leader's log, filling gaps via consistency checks
 
 There is no way to "skip" Raft for a multi-node consistent KV store. Consensus *is* the protocol that makes it work.
@@ -347,10 +351,9 @@ Votes are tallied in `tracker.ProgressTracker.RecordVote()`. When `TallyVotes()`
 
 ### Pre-vote
 
-**The problem pre-vote solves:**
+Without pre-vote, a partitioned node whose election timeout fires repeatedly can disrupt a healthy cluster when the partition heals:
 
 ```
-Without pre-vote:
 1. Node A gets network-partitioned
 2. A's election timeout fires → becomes candidate
 3. A increments term to 20 (can't reach quorum, keeps timing out)
@@ -358,12 +361,12 @@ Without pre-vote:
 5. A broadcasts MsgVote{term=20} to the cluster
 6. Leader B receives request → "20 > my term 5 → I must step down"
 7. B becomes follower, new election starts
-8. Cluster was working fine, now disrupted unnecessarily
+8. Stable cluster disrupted unnecessarily
 ```
 
 The rejoining node's **high term forces the stable leader to abdicate**, even though the rejoining node has no chance of winning (it's behind on logs).
 
-**How pre-vote fixes it:** The candidate first asks "would you vote for me?" **without incrementing its term**:
+**Pre-vote fixes this** by having the candidate first ask "would you vote for me?" **without incrementing its term**:
 
 ```go
 func (r *raft) becomePreCandidate() {
@@ -372,7 +375,7 @@ func (r *raft) becomePreCandidate() {
 }
 ```
 
-The pre-vote is sent with `term = currentTerm + 1` as a hypothetical signal, but the sender's actual term stays unchanged. If the cluster responds "no, you're behind" (or ignores the request because the leader is active), the candidate backs off silently. No term increase, no disruption.
+The candidate sends the pre-vote with `term = currentTerm + 1` as a hypothetical signal, but its actual term stays unchanged. If the cluster responds "no, you're behind" (or ignores the request because the leader is active), the candidate backs off silently. No term increase, no disruption.
 
 When pre-vote wins a quorum, the candidate transitions to a real election:
 
@@ -387,7 +390,7 @@ Elections decide who leads. The log is what they lead — the ordered sequence R
 
 ## The Raft Log
 
-The log is the heart of Raft. It's not stored by Raft — Raft keeps an in-memory reference to it via the `Storage` interface:
+The log is Raft's heart, but Raft does not store it. Raft keeps an in-memory reference via the `Storage` interface:
 
 ```go
 type Storage interface {
@@ -421,11 +424,11 @@ Raft's `raftLog` tracks four pointers:
 - **committed**: safe (on majority), but maybe not applied yet
 - **unstable**: not yet written to WAL by the application
 
-Raft holds these pointers in memory. The WAL holds the entries on disk — the durable counterpart to the in-memory log, and the first thing Raft replays on restart.
+Raft holds these pointers in memory. The WAL holds entries on disk — the durable counterpart to the in-memory log and the first thing Raft replays on restart.
 
 ## WAL (Write-Ahead Log)
 
-The WAL is the source of truth for Raft state on disk. Every entry that Raft decides must be persisted goes here first. On restart, the WAL is replayed to rebuild the Raft log and state machine.
+The WAL is the source of truth for Raft state on disk. Every entry Raft decides to persist goes here first. On restart, Raft replays the WAL to rebuild its log and state machine.
 
 ### What the WAL Stores
 
@@ -848,11 +851,11 @@ for {
 }
 ```
 
-**Key insight**: The raft loop handles `Ready()` → WAL + transport + `Advance()`. The apply loop reads committed entries from `r.applyc` and applies them to the MVCC store. They run concurrently, decoupling durability/replication from state machine application.
+**Key insight**: The Raft loop handles `Ready()` → WAL + transport + `Advance()`. The apply loop reads committed entries from `r.applyc` and applies them to the MVCC store. They run concurrently, decoupling durability/replication from state machine application.
 
 ## The MVCC Store
 
-Each committed `Put` entry is applied through the MVCC store:
+The MVCC store applies each committed `Put` entry:
 
 ```mermaid
 flowchart LR
@@ -873,7 +876,7 @@ Key MVCC properties:
 | # | Principle | Implementation |
 |---|-----------|----------------|
 | 1 | **Separation of consensus and application** | Raft library knows nothing about KV; etcdserver knows nothing about consensus math |
-| 2 | **Raft is pure in-memory** | No disk I/O in the raft library — output is instructions: write these entries, send these messages |
+| 2 | **Raft is pure in-memory** | No disk I/O in the Raft library — output is instructions: write these entries, send these messages |
 | 3 | **Asynchronous persistence** | Raft returns `Ready`; app writes WAL, sends messages, then calls `Advance()` |
 | 4 | **Quorum-based safety** | No entry is committed until > N/2 peers confirm durable storage |
 | 5 | **Leader is sole orderer** | Only the leader assigns log indices; followers append, never initiate |
@@ -881,7 +884,7 @@ Key MVCC properties:
 | 7 | **Flow control via progress tracking** | Probe → Replicate → Snapshot state machine per follower, with inflight sliding window |
 | 8 | **Pre-vote prevents disruption** | Dry-run election before real election avoids term increases from partitioned nodes |
 | 9 | **MVCC enables consistent reads** | Reads see a point-in-time snapshot via revision tracking |
-| 10 | **WAL is the source of truth** | On restart, WAL is replayed; bbolt is rebuilt from it |
+| 10 | **WAL is the source of truth** | On restart, Raft replays the WAL; bbolt rebuilds from it |
 
 ## Key Learnings (Cross-System Patterns)
 
@@ -889,14 +892,14 @@ Eight design decisions in etcd and Raft that apply to any distributed system tha
 
 | # | Learning | Why It Matters |
 |---|----------|----------------|
-| 1 | **Separate consensus from application** | Raft is a pure in-memory state machine. It outputs `{Entries, Messages, CommittedEntries}` — the app decides what to persist, send, and apply. Most engineers conflate Raft with storage; the library is just a decision engine. This pattern repeats: a consensus library should never touch disk. |
+| 1 | **Separate consensus from application** | Raft is a pure in-memory state machine. It outputs `{Entries, Messages, CommittedEntries}` — the app decides what to persist, send, and apply. Most engineers conflate Raft with storage; it is just a decision engine. |
 | 2 | **Consensus is about ordering, not agreement** | A quorum vote on a value gives you agreement but no ordering. The log index is what makes consensus useful — it guarantees every node applies commands in the same sequence. Without ordering, concurrent writes produce divergent state even with quorum. |
-| 3 | **Decouple I/O from state machine application** | etcd runs two goroutines: the raft loop (Ready → WAL + transport) and the apply loop (committed entries → MVCC). A channel decouples them. This allows durability/replication to proceed independently from state machine application — generalizes to any system with a write-ahead log and a separate state machine. |
-| 4 | **Fatal on persistence failure — no retry** | `r.lg.Fatal()` → `os.Exit(1)` on any WAL write failure. Raft's safety depends on durable persistence. A node that can't persist cannot safely acknowledge entries. The only recovery is external (supervisor restart). This is uncomfortable but correct — graceful degradation is worse than death in consensus. |
+| 3 | **Decouple I/O from state machine application** | etcd runs two goroutines: the Raft loop (Ready → WAL + transport) and the apply loop (committed entries → MVCC). A channel decouples them. This pattern generalizes to any system with a write-ahead log and a separate state machine. |
+| 4 | **Fatal on persistence failure — no retry** | `r.lg.Fatal()` → `os.Exit(1)` on any WAL write failure. Raft's safety depends on durable persistence. A node that can't persist cannot safely acknowledge entries. The only recovery is external (supervisor restart). Graceful degradation is worse than death in consensus. |
 | 5 | **Defense in depth for data integrity** | etcd's WAL uses four independent mechanisms layered together: 8-byte alignment (atomic length fields), 4096-byte page alignment (no cross-page records), CRC-32 chain (bit-rot detection within pages), zero-sector scan (partial write detection). No single mechanism covers all failure modes — the layering is the design. |
 | 6 | **Progress state machine for flow control** | The leader tracks each follower through three states: Probe (one-at-a-time, cautious), Replicate (pipelined, fast), Snapshot (far behind, full state transfer). This state machine prevents a slow follower from degrading the fast path. The backtrack uses two linear scans (leader + follower), not binary search — the follower's hint skips the entire divergent section in one response. |
-| 7 | **Pre-vote prevents a real ops problem** | A partitioned node keeps incrementing its term. When the partition heals, its high term forces the stable leader to abdicate — unnecessary disruption. Pre-vote fixes this by asking hypothetically without incrementing the term. The lesson: protocol features that seem like academic edge cases exist because they cause real outages. |
-| 8 | **The log is the source of truth, not the state machine** | etcd replays the WAL on restart and rebuilds bbolt from it. The state machine (bbolt) is derived data; the log (WAL) is ground truth. This is the fundamental insight of state machine replication — the log is the system, the state machine is just a cache of the latest snapshot of the log. |
+| 7 | **Pre-vote prevents a real ops problem** | A partitioned node keeps incrementing its term. When the partition heals, its high term forces the stable leader to abdicate — unnecessary disruption. Pre-vote fixes this by asking hypothetically without incrementing the term. Protocol features that seem academic exist because they cause real outages. |
+| 8 | **The log is the source of truth, not the state machine** | etcd replays the WAL on restart and rebuilds bbolt from it. The state machine (bbolt) is derived data; the log (WAL) is ground truth. The fundamental insight of state machine replication: the log is the system; the state machine is a cache of the latest snapshot. |
 
 ## Source Citations
 
@@ -917,6 +920,6 @@ Eight design decisions in etcd and Raft that apply to any distributed system tha
 | Lease system | `go.etcd.io/etcd/server/v3` | `server/lease/lessor.go` | `Grant()`, `Revoke()`, `Promote()`, expiry check |
 | WAL persistence | `go.etcd.io/etcd/server/v3` | `server/storage/wal/wal.go` | `Save()`, `ReadAll()`, entry serialization |
 
-**Two separate repositories.** The raft consensus library (`go.etcd.io/raft/v3`) is a standalone Go module. Historically it was part of etcd but was extracted into its own repo at `github.com/etcd-io/raft`. etcd imports it as a Go module dependency — there is no `raft/` directory inside the etcd repository.
+**Two separate repositories.** The Raft consensus library (`go.etcd.io/raft/v3`) is a standalone Go module. Historically it was part of etcd but was extracted into its own repo at `github.com/etcd-io/raft`. etcd imports it as a Go module dependency — there is no `raft/` directory inside the etcd repository.
 
 ---

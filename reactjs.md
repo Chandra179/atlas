@@ -196,6 +196,8 @@ Two rules enforced by `eslint-plugin-react-hooks`:
 1. **Only call hooks at the top level** — not inside conditions, loops, or nested functions.
 2. **Only call hooks from React function components or custom hooks.**
 
+For custom hooks, `useDebugValue` labels them in React DevTools: `useDebugValue(isOnline ? "Online" : "Offline")` makes the hook appear as `useFriendStatus: "Online"` instead of an anonymous "Custom Hook" node.
+
 ### useState
 
 A component needs to remember values between renders — form input text, toggle state, API response data. Local variables reset on every render. Module-level globals are shared across all component instances.
@@ -258,20 +260,6 @@ function VideoPlayer({ src }) {
 Reading `videoRef.current.width` during the render phase returns stale values — the DOM hasn't been committed yet, so `current` still points to the previous render's DOM node. Measure in `useLayoutEffect` or `useEffect`, never during render.
 
 **Only reach for `useRef` when you'd never want a re-render on change.** If the UI should reflect the value, use `useState`.
-
-### useDebugValue
-
-Labels custom hooks in React DevTools with a readable value:
-
-```javascript
-function useFriendStatus(friendID) {
-  const [isOnline, setIsOnline] = useState(null);
-  useDebugValue(isOnline ? "Online" : "Offline");
-  return isOnline;
-}
-```
-
-Without `useDebugValue`, React DevTools shows the internal state of all hooks inside the custom hook — but the hook appears as an anonymous "Custom Hook" node. `useDebugValue` gives it a human-readable label.
 
 ---
 
@@ -342,46 +330,9 @@ function DevCounter() {
 }
 ```
 
-### Error Boundaries
-
-Without error boundaries, an uncaught JavaScript error in a React component causes the entire tree to unmount. The user sees a blank white page. No fallback, no retry, no recovery.
-
-Error boundaries are class components that catch errors thrown during render, in lifecycle methods, and in constructors of the entire tree below them: [^17]
-
-```javascript
-class ErrorBoundary extends React.Component {
-  state = { hasError: null };
-
-  static getDerivedStateFromError(error) {
-    return { hasError: error };
-  }
-
-  componentDidCatch(error, info) {
-    logErrorToService(error, info.componentStack);
-  }
-
-  render() {
-    if (this.state.hasError) {
-      return this.props.fallback || <h1>Something went wrong</h1>;
-    }
-    return this.props.children;
-  }
-}
-```
-
-A single error boundary wrapping the entire app collapses everything on any runtime error. An error in the sidebar's user avatar brings down the header, main content, footer, and navigation alongside the sidebar. Wrap each major section (sidebar, main content, header) in its own error boundary so a crash in one doesn't take down the others.
-
-Error boundaries do **not** catch:
-- Event handler errors (use `try/catch` inside handlers)
-- Async errors (use `try/catch` in effects)
-- Server-side rendering errors
-- Errors in the error boundary itself
-
-**Error boundaries are a production reliability feature, not a dev convenience.** In development, the React error overlay is more useful. Include a "try again" button that remounts the subtree — `key={Date.now()}` on the children forces React to unmount and remount, giving the component a fresh start.
-
 ---
 
-## Dependency Injection & Shared State
+## Context & Shared State
 
 ### Context
 
@@ -445,7 +396,9 @@ function TodoProvider({ children }) {
 
 "Profile before optimizing" is the first performance rule. Measure the render cost of a subtree. If re-rendering it is cheap (<1ms), memoization adds complexity for no gain. Only memoize when you've measured a measurable improvement.
 
-### React.memo
+### Memoization
+
+#### React.memo
 
 `React.memo` prevents re-renders when props haven't changed (shallow comparison): [^19]
 
@@ -457,7 +410,7 @@ const MemoizedChild = React.memo(function Child({ name }) {
 
 Defeated by inline function/object props — use `useCallback`/`useMemo` to stabilize references.
 
-### useMemo
+#### useMemo
 
 Memoizes computed values so expensive recomputation only runs when dependencies change: [^20]
 
@@ -467,7 +420,7 @@ const sortedItems = useMemo(() => {
 }, [items]);
 ```
 
-### useCallback
+#### useCallback
 
 Stabilizes function references across renders so memoized children don't re-render: [^21]
 
@@ -481,7 +434,9 @@ const onSelect = useCallback((id) => {
 
 Wrapping every function and computed value in `useMemo` and `useCallback` "just in case" backfires — the memoization overhead (comparing deps on every render, allocating closures) exceeds the cost of the computation it avoids. A `useCallback` wrapping a simple `() => {}` — which is faster to create than to compare — slows down the render for zero benefit. [^22]
 
-### Code Splitting
+### Loading & Rendering Efficiency
+
+#### Code Splitting
 
 `React.lazy` + `Suspense` loads components on demand: [^23]
 
@@ -499,7 +454,7 @@ function App() {
 
 The initial bundle ships only what's needed for the first screen.
 
-### Virtualization
+#### Virtualization
 
 Render only visible rows for long lists:
 
@@ -592,7 +547,9 @@ function ProfilePage() {
 
 Nesting Suspense boundaries inside each page section enables partial loading — a slow-loading comments section shows a spinner while the rest of the page (profile info, posts) is already interactive.
 
-### React Server Components
+---
+
+## React Server Components
 
 Traditional React apps ship all data-fetching logic to the browser. Database queries run through an API layer, serialized as JSON, sent over the network, deserialized, and stored in state. Every page load requires at least one round-trip to the server just to get the data.
 
@@ -618,8 +575,6 @@ function LikeButton({ noteId }) {
 ```
 
 **Server Components are fundamentally different from server-side rendering.** SSR renders HTML on the server for the initial page load, then ships JavaScript for interactivity — every subsequent navigation runs on the client. Server Components can run on every request (or be cached) and their output is serialized as a stream of React elements, not HTML. SSR and Server Components are complementary, not competing.
-
----
 
 ## Escape Hatches
 
@@ -652,6 +607,43 @@ Rendering a modal as a direct child of the trigger button — `<button onClick={
 ### useEffectEvent
 
 `useEffectEvent` (React 19) lets you read the latest props or state inside an effect without listing them as dependencies. [^14] When you need to log or send analytics on an interval and the log function changes based on current state, `useEffectEvent` avoids the stale closure problem without re-creating the interval on every change.
+
+### Error Boundaries
+
+Without error boundaries, an uncaught JavaScript error in a React component causes the entire tree to unmount. The user sees a blank white page. No fallback, no retry, no recovery.
+
+Error boundaries are class components that catch errors thrown during render, in lifecycle methods, and in constructors of the entire tree below them: [^17]
+
+```javascript
+class ErrorBoundary extends React.Component {
+  state = { hasError: null };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: error };
+  }
+
+  componentDidCatch(error, info) {
+    logErrorToService(error, info.componentStack);
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || <h1>Something went wrong</h1>;
+    }
+    return this.props.children;
+  }
+}
+```
+
+A single error boundary wrapping the entire app collapses everything on any runtime error. An error in the sidebar's user avatar brings down the header, main content, footer, and navigation alongside the sidebar. Wrap each major section (sidebar, main content, header) in its own error boundary so a crash in one doesn't take down the others.
+
+Error boundaries do **not** catch:
+- Event handler errors (use `try/catch` inside handlers)
+- Async errors (use `try/catch` in effects)
+- Server-side rendering errors
+- Errors in the error boundary itself
+
+**Error boundaries are a production reliability feature, not a dev convenience.** In development, the React error overlay is more useful. Include a "try again" button that remounts the subtree — `key={Date.now()}` on the children forces React to unmount and remount, giving the component a fresh start.
 
 ---
 
