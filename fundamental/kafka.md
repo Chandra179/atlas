@@ -9,7 +9,7 @@ created: "2026-06-13"
 
 ## Why Kafka Exists
 
-You have 50 microservices. Orders need to reach inventory, billing, shipping, and analytics. With point-to-point HTTP, each service needs its own connection to every other service — 200 connections, cascading failures when one service is slow, no ability to replay messages after a crash. The more services you add, the more tangled the graph becomes.
+You have 50 microservices. Orders need to reach inventory, billing, shipping, and analytics. With point-to-point HTTP, each service needs its own connection to every other service — 200 connections. When one service is slow, failures cascade. You cannot replay messages after a crash. The more services you add, the more tangled the graph becomes.
 
 Kafka decouples everything through a **distributed commit log**. Producers write messages to a topic. Consumers read from the topic independently, at their own pace. A consumer crash doesn't block the producer. Adding a new consumer doesn't require changing any existing service. The message is the contract, not the service.
 
@@ -17,7 +17,7 @@ Built for high throughput at scale: LinkedIn processes 7 trillion messages per d
 
 ## Cluster & Broker
 
-A Kafka cluster is a group of **brokers** — physical servers or containers — working together to provide high availability and scalability. A cluster has 1 or more brokers.
+A Kafka cluster is a group of **brokers** — physical servers or containers — providing high availability and scalability. A cluster has 1 or more brokers.
 
 For every partition, one broker is elected as the **Partition Leader**. It handles all read and write requests for that partition. Other brokers act as **Partition Followers**, replicating the leader's data. If the leader fails, a follower automatically steps up to become the new leader.
 
@@ -41,7 +41,7 @@ Segments are:
 - **Active segment** — the one currently being written to
 - **Older segments** — immutable, read-only, candidates for compaction/deletion
 
-> Sequential I/O on the `.log` file is why Kafka is fast — writes are pure appends.
+> Sequential I/O on the `.log` file makes Kafka fast — writes are pure appends.
 
 ## Replication
 
@@ -77,12 +77,6 @@ Kafka uses a metadata store to track cluster state:
 
 - **ZooKeeper** (legacy): Stores broker membership, topic configs, ACLs, quotas, and Controller election. Kafka ≤ 2.8 required ZK. Deprecated as of KIP-833, targeted for removal in Kafka 4.0.
 - **KRaft** (Kafka Raft): Self-managed metadata quorum introduced in 2.8 (GA in 3.3+). No external dependency — Kafka runs as a single binary with internal Raft-based consensus for metadata. Replaces ZK entirely. The Raft consensus mechanism is covered in detail in [etcd-raft.md](../etcd-raft.md).
-
-> **Key things about replication:**
-> 1. ISR is the active set of caught-up replicas. Lagging followers are removed.
-> 2. High Watermark marks the safe point — consumers can't read beyond it.
-> 3. Controller is a single process managing leadership; its failure triggers automatic election.
-> 4. KRaft eliminates the ZooKeeper dependency using Raft consensus internally.
 
 ## Producer
 
@@ -143,16 +137,11 @@ client, _ = kgo.NewClient(
 )
 ```
 
-> **Key things about producing:**
-> 1. Key-based routing keeps related messages in the same partition → ordered delivery.
-> 2. acks=0 is fast but can lose data silently. acks=all is safe but expensive.
-> 3. Idempotent producer prevents duplicates from retries — use it unless throughput is critical.
-
 ## Message Ordering
 
-Within a partition, messages are strictly ordered by offset (FIFO). Across partitions, no ordering guarantee.
+Within a partition, Kafka orders messages strictly by offset (FIFO). Across partitions, no ordering guarantee.
 
-Key insight: ordering requires a single partition, which limits parallelism. If you need per-key ordering (e.g., user events), use key-based routing to land all messages for the same key in the same partition.
+Ordering requires a single partition, which limits parallelism. If you need per-key ordering (e.g., user events), use key-based routing to land all messages for the same key in the same partition.
 
 ## Consumer
 
@@ -259,17 +248,11 @@ When a consumer joins or leaves a group, Kafka redistributes partitions across t
 
 > Process → commit = at-least-once. Commit → process = at-most-once (messages lost on crash).
 
-> **Key things about consuming:**
-> 1. Consumer groups distribute partitions, not messages. One partition → one consumer max.
-> 2. Commit strategy determines delivery semantics: commit after processing = at-least-once, commit before = at-most-once.
-> 3. Cooperative rebalancing is smoother than eager — use it on Kafka ≥ 2.4.
-> 4. Lag is normal; alert on sustained growth, not on lag existing.
-
 ## Performance
 
 ### Throughput
 
-How to increase it: add more partitions and use larger batches. Measured in MB/s or msg/s.
+Add more partitions and use larger batches. Measured in MB/s or msg/s.
 
 On a 3-broker cluster with 1 KB messages:
 - `acks=0`: ~1.5M msg/s
@@ -280,7 +263,7 @@ LinkedIn processes 7 trillion messages per day through Kafka. At this scale, par
 
 ### Latency
 
-The sum of (Producer Batching Time) + (Network Trip) + (Broker Disk Write) + (Consumer Processing Time).
+Latency = (Producer Batching Time) + (Network Trip) + (Broker Disk Write) + (Consumer Processing Time).
 
 The trade-off: reducing latency (making it "real-time") often requires lowering batch sizes, which reduces overall maximum throughput. At low throughput (<10K msg/s), end-to-end latency can be <10ms. At peak throughput, latency rises to 50–200ms depending on batch configuration.
 
@@ -301,7 +284,7 @@ Adding partitions increases throughput but carries tradeoffs:
 - Higher end-to-end latency (producer connections distribute across more leaders)
 - More memory for replica fetchers
 
-The rule of thumb: keep partition count to ~100 per broker unless you have a specific throughput requirement that justifies more.
+Keep partition count to ~100 per broker unless you have a specific throughput requirement that justifies more.
 
 ## Retention & Compression
 

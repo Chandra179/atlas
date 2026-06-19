@@ -7,9 +7,9 @@ created: "2026-06-13"
 
 # Computing
 
-![](../assets/cpu.png)
+*Purpose: For software engineers who need a mental model of how CPU, memory, and addressing work — from physical hardware through OS abstractions to the bit level.*
 
-### Physical Hardware
+## Physical Hardware
 
 To interact with RAM, the CPU uses a specific set of hardware components to locate and move data.
 
@@ -17,7 +17,7 @@ To interact with RAM, the CPU uses a specific set of hardware components to loca
 2. **Data Bus (The "What"):** The highway that carries the actual bits. Its width determines how much data can be moved in a single "trip," regardless of how big the address was.
 3. **Memory Controller (The "Gatekeeper"):** The intermediate manager. It takes the CPU's request, finds the physical electrical row in the RAM, and handles the timing of the data transfer.
 
-### Physical Memory Layout
+## Physical Memory Layout
 
 Physical RAM is organized into a hierarchy of structures that determine how addresses map to actual hardware cells.
 
@@ -26,15 +26,15 @@ Physical RAM is organized into a hierarchy of structures that determine how addr
 * **Row, Column, and CAS Latency:** Physically, each bank is a 2D grid of rows and columns. The memory controller first activates a row (RAS – Row Address Strobe), then reads a column (CAS – Column Address Strobe). The time between these steps is the CAS latency.
 * **Physical Address Range:** The number of physical address lines defines the **theoretical maximum** RAM the CPU can address, but actual limits depend on motherboard chipset, BIOS-reserved addresses (PCIe, MMIO), and memory interleaving configuration
 
-### On-Chip Memory
+## On-Chip Memory
 
-Before reaching out to the relatively "slow" RAM, the CPU utilizes memory located directly on its own chip.
+Before reaching out to main memory (RAM), the CPU first checks memory located directly on its own die.
 
-**CPU Cache (L1, L2, L3)**
+### CPU Cache (L1, L2, L3)
 
 High-speed buffers that store copies of frequently accessed data from RAM. The CPU checks these first to avoid the time-consuming trip across the Address Bus.
 
-**Registers**
+### Registers
 
 The fastest memory locations in existence, located inside the CPU core.
 
@@ -42,7 +42,7 @@ The fastest memory locations in existence, located inside the CPU core.
 * **Program Counter (PC):** Holds the address of the _next_ instruction to be executed.
 * **Stack Pointer (SP):** Holds the memory address of the "top" of the stack to manage function calls.
 
-### The Execution Cycle (Fetch-Execute)
+## The Execution Cycle (Fetch-Execute)
 
 This is the continuous loop the CPU performs to run a program.
 
@@ -51,7 +51,9 @@ This is the continuous loop the CPU performs to run a program.
 3. **Execute:** The ALU (Arithmetic Logic Unit) performs the operation, or data is moved between registers.
 4. **Store (Write-Back):** The result is written back to a register or a specific memory address via the Data Bus.
 
-### Virtual Memory and Addressing
+So far we've looked at physical memory. Now we'll see how the OS abstracts it so every program gets its own clean view.
+
+## Virtual Memory and Addressing
 
 The Operating System and CPU work together to provide a simplified view of memory to programs.
 
@@ -62,9 +64,7 @@ The Operating System and CPU work together to provide a simplified view of memor
 
 ### Virtual Memory Layout (OS Dependent)
 
-The way the OS organizes the virtual address space varies significantly between operating systems. Each process sees its own private layout, but the structure is defined by the OS kernel.
-
-**Common Segments (present on all OSes)**
+The OS divides a program's virtual address space into specific segments. Each process sees its own private layout, but the structure is defined by the OS kernel.
 
 | Segment   | Contents                                            | Growth                                  |
 | --------- | --------------------------------------------------- | --------------------------------------- |
@@ -75,18 +75,14 @@ The way the OS organizes the virtual address space varies significantly between 
 | **Stack** | Local variables, call frames                        | Grows downward (toward lower addresses) |
 | **MMIO**  | Memory‑mapped I/O regions                           | Fixed                                   |
 
-### Memory Regions
-
-The OS divides a program's virtual memory into specific "territories" to prevent data corruption.
+The heap and stack are managed differently and positioned at opposite ends of the address space to maximize room before collision.
 
 | Feature        | The Stack                                    | The Heap                                  |
 | -------------- | -------------------------------------------- | ----------------------------------------- |
 | **Purpose**    | Short-term local variables & function calls. | Long-term data & large objects.           |
 | **Management** | Automatic (LIFO - Last In, First Out).       | Manual (Programmer) or Garbage Collector. |
 
-> **Note on "Collision Prevention":** By having the Stack grow down and the Heap grow up from opposite ends of the memory space, the system ensures they have the maximum possible room to expand before crashing into each other.
-
-### VRAM vs Physical RAM
+## VRAM vs Physical RAM
 
 **VRAM** (Video RAM) is memory physically located on a graphics card (GPU). **Physical RAM** (system RAM) is attached to the CPU. They serve different purposes and have distinct characteristics.
 
@@ -112,7 +108,9 @@ The OS divides a program's virtual memory into specific "territories" to prevent
 * **Machine learning (training):** Large models (e.g., LLaMA 70B) require VRAM to hold weights and activations. If VRAM overflows, data spills to system RAM (very slow).
 * **Compute (CUDA / OpenCL):** Data resides in VRAM while GPU kernels run. Moving data back and forth should be minimised.
 
-### Bits & Bytes
+## Bits & Bytes
+
+This section explains the relationship between bits, bytes, and common encoding schemes.
 
 A **bit** is the smallest unit of information in computer — **0 or 1**.
 
@@ -121,7 +119,7 @@ A **bit** is the smallest unit of information in computer — **0 or 1**.
 * 3 bits → 2³ = 8 possibilities
 * 8 bits → 2⁸ = 256 possibilities → **1 byte**
 
-if you have **n bits**, you can represent **2ⁿ unique values**.
+If you have **n bits**, you can represent **2ⁿ unique values**.
 
 | Encoding         | Bits per symbol      | Example characters  |
 | ---------------- | -------------------- | ------------------- |
@@ -132,6 +130,6 @@ if you have **n bits**, you can represent **2ⁿ unique values**.
 | **Base62**       | \~5.95 bits per char | 0–9, A–Z, a–z       |
 | **Base64**       | 6 bits per char      | A–Z, a–z, 0–9, +, / |
 
-**Example**:
+**Example**
 
-generate unique code 10.000/day using base64 with max length code 8.
+If you need to generate 10,000 unique codes per day using Base64 and codes can be at most 8 characters long, each code represents 48 bits, giving 2^48 ≈ 2.8 × 10^14 possible values — more than enough for 10,000 per day.

@@ -7,6 +7,8 @@ created: "2026-06-13"
 
 # Networking
 
+For software engineers who want to understand what happens between keystroke and response. Assumes basic programming knowledge but no prior networking experience.
+
 Every web request is a journey through multiple layers of the network stack. Let's follow one: you type `https://api.example.com/users` and press Enter. What actually happens between that keystroke and the JSON response appearing on your screen?
 
 ## DNS: Finding the Address
@@ -119,9 +121,17 @@ Some HTTP methods are safe to retry, others aren't:
 
 This is why browsers warn "are you sure you want to resubmit?" on POST forms, but not on GET links.
 
+## CORS: The Browser's Security Guard
+
+By default, a script on `app.example.com` cannot read the response from `api.other-domain.com` — even if the request succeeds. This is the Same-Origin Policy: scripts can only read responses from their own origin (same protocol + domain + port).
+
+CORS (Cross-Origin Resource Sharing) is how servers opt in to cross-origin access. When `api.other-domain.com` responds with `Access-Control-Allow-Origin: https://app.example.com`, the browser allows the script to read the response. Without this header, the browser blocks the read even though the server sent the data.
+
+Preflight requests (`OPTIONS`) add an extra round trip: before a cross-origin request with non-simple headers or methods, the browser asks "would you allow this?" and only proceeds if the server says yes.
+
 ## The Return Path
 
-The request reached the server, but the response's journey back is shaped by infrastructure:
+The request reached the server, but infrastructure shapes the response's journey back:
 
 **CDNs (Content Delivery Networks)** — Static assets (images, JS bundles, CSS) are cached at edge locations worldwide. A user in Tokyo doesn't fetch an image from Virginia — the CDN edge node in Tokyo serves it in milliseconds.
 
@@ -129,11 +139,11 @@ The request reached the server, but the response's journey back is shaped by inf
 
 ## NAT: How Your Private IP Reaches the Internet
 
-At this point our request has traversed public infrastructure. But your laptop has a `192.168.1.50` address — a **private** IP that can't be routed on the public internet. How does it communicate at all?
+So far we've followed the request from your laptop to the server and back. But the journey starts in your living room — and your laptop has a `192.168.1.50` address, a **private** IP the public internet can't route. How does it communicate at all?
 
 ### Why NAT Exists
 
-NAT (Network Address Translation) was created as a stopgap for **IPv4 exhaustion**. The IPv4 address space has ~4.3 billion addresses. There are more devices than that. NAT lets thousands of devices share one public IP. It's the reason your home Wi-Fi works without your ISP assigning every phone, laptop, and smart TV its own public address.
+NAT (Network Address Translation) solved a crisis: **IPv4 exhaustion**. The IPv4 address space has ~4.3 billion addresses. There are more devices than that. NAT lets thousands of devices share one public IP. It's the reason your home Wi-Fi works without your ISP assigning every phone, laptop, and smart TV its own public address.
 
 ### NAT Types
 
@@ -152,7 +162,8 @@ When your laptop (`192.168.1.50:5000`) sends a request to `142.250.185.14:443`:
 
 The NAT table is the critical piece. Without an active mapping, an incoming packet has nowhere to go — the router drops it. This is why NAT acts as a de facto firewall, but also why peer-to-peer connections are hard.
 
-### NAT Mapping & Filtering (P2P Mechanics)
+<details>
+<summary><strong>P2P Mechanics and NAT Traversal</strong></summary>
 
 How "friendly" a NAT is to peer-to-peer connections depends on its behavior:
 
@@ -174,8 +185,6 @@ How "friendly" a NAT is to peer-to-peer connections depends on its behavior:
 
 Symmetric NAT + Port-Restricted filtering is the worst case for P2P. This is what most mobile carriers and many home ISPs use.
 
-### NAT Traversal: Hole Punching & Relays
-
 When two devices behind NATs want to connect directly:
 
 **STUN** (Session Traversal Utilities for NAT) — A "what's my IP?" service. Both devices ask a STUN server: "What public IP:Port do you see me as?" They exchange these addresses and try to connect directly. Works for EIM/EIF. Fails on Symmetric NAT because the port used for the STUN query differs from the port that would be used for the peer connection.
@@ -184,21 +193,15 @@ When two devices behind NATs want to connect directly:
 
 **ICE** (Interactive Connectivity Establishment) — The manager. ICE collects candidates (local IPs, STUN-derived public IPs, TURN relay addresses), tests connectivity between all pairs, and picks the best working path. Tries direct first, falls back to relay only if necessary.
 
+</details>
+
 ### Advanced NAT
 
-**Hairpinning (NAT Loopback)** — Accessing an internal device using the public IP from inside the same network. Without hairpinning, `https://myhome server.com` works from a coffee shop but not from your living room. The router must recognize that the destination public IP is itself and loop the traffic back internally.
+**Hairpinning (NAT Loopback)** — Accessing an internal device using the public IP from inside the same network. Without hairpinning, `https://myhome.server.com` works from a coffee shop but not from your living room. The router must recognize that the destination public IP is itself and loop the traffic back internally.
 
-**CGNAT (Carrier-Grade NAT)** — Used by mobile ISPs and many home ISPs. Your router's "public IP" is actually another private IP (usually in `100.64.x.x` range). This is double NAT — your home router translates private → carrier-private, and the carrier translates carrier-private → public. Makes port forwarding nearly impossible without a VPN or tunnel (Tailscale, Cloudflare Tunnel).
+**CGNAT (Carrier-Grade NAT)** — Used by mobile ISPs and many home ISPs. Your router's "public IP" is actually another private IP (usually in the `100.64.x.x` range). This is double NAT — your home router translates private → carrier-private, and the carrier translates carrier-private → public. The extra layer makes port forwarding nearly impossible without a VPN or tunnel (Tailscale, Cloudflare Tunnel).
 
 **UPnP / NAT-PMP** — Protocols that let applications (gaming consoles, torrent clients) automatically request the router to open and forward a port. Convenient but a security concern — any malware on your network can open ports too.
-
-## CORS: The Browser's Security Guard
-
-By default, a script on `app.example.com` cannot read the response from `api.other-domain.com` — even if the request succeeds. This is the Same-Origin Policy: scripts can only read responses from their own origin (same protocol + domain + port).
-
-CORS (Cross-Origin Resource Sharing) is how servers opt in to cross-origin access. When `api.other-domain.com` responds with `Access-Control-Allow-Origin: https://app.example.com`, the browser allows the script to read the response. Without this header, the browser blocks the read even though the server sent the data.
-
-Preflight requests (`OPTIONS`) add an extra round trip: before a cross-origin request with non-simple headers or methods, the browser asks "would you allow this?" and only proceeds if the server says yes.
 
 ## References
 
