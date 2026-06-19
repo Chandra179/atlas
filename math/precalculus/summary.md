@@ -163,7 +163,10 @@ _These are the universal lenses used to analyze any graph. While every function 
   * $\sin(2\theta) = 2\sin\theta\cos\theta$
   * $\cos(2\theta) = \cos^2\theta - \sin^2\theta = 2\cos^2\theta - 1 = 1 - 2\sin^2\theta$
   * ...
-* Half-Angle Formulas
+* Half-Angle Formulas (the $\pm$ depends on the quadrant of $\frac{\theta}{2}$):
+  * $\sin\left(\frac{\theta}{2}\right) = \pm\sqrt{\frac{1 - \cos\theta}{2}}$
+  * $\cos\left(\frac{\theta}{2}\right) = \pm\sqrt{\frac{1 + \cos\theta}{2}}$
+  * $\tan\left(\frac{\theta}{2}\right) = \frac{1 - \cos\theta}{\sin\theta}$
 * Law of Sines: $\frac{a}{\sin A} = \frac{b}{\sin B} = \frac{c}{\sin C}$ for solving oblique triangles when you know angle-side pairs.
 * Law of Cosines: $c^2 = a^2 + b^2 - 2ab\cos(C)$ for solving triangles when you know SSS or SAS.
 * Inverse Identities:
@@ -191,3 +194,30 @@ _These are the universal lenses used to analyze any graph. While every function 
 * Operations: Add/subtract by combining like terms; multiply using distributive property and $i^2 = -1$.
 * Complex Conjugate: $a - bi$ is the conjugate of $a + bi$; used for division.
 * Geometric Interpretation: Multiplying by $i$ represents a 90° rotation in the complex plane.
+
+***
+
+### **Sequences and Series**
+
+* Arithmetic Sequence: $a_n = a_1 + (n - 1)d$ where $d$ is the common difference.
+* Arithmetic Series: $S_n = \frac{n(a_1 + a_n)}{2}$; sums a fixed number of terms.
+* Geometric Sequence: $a_n = a_1 \cdot r^{n-1}$ where $r$ is the common ratio.
+* Geometric Series: $S_n = a_1\left(\frac{1 - r^n}{1 - r}\right)$; sums $n$ terms.
+* Infinite Geometric Series: $S_\infty = \frac{a_1}{1 - r}$ when $|r| < 1$; the sum converges to a finite value.
+
+***
+
+### **Binomial Theorem**
+
+* Expansion: $(x + y)^n = \sum_{k=0}^{n} \binom{n}{k} x^{n-k} y^k$ for any positive integer $n$.
+* Binomial Coefficient: $\binom{n}{k} = \frac{n!}{k!(n-k)!}$; read as "$n$ choose $k$."
+* Generalizes the product formulas $(a + b)^2$ and $(a + b)^3$ to any power.
+
+***
+
+### **Limits**
+
+* Definition: $\lim_{x \to a} f(x) = L$ means $f(x)$ gets arbitrarily close to $L$ as $x$ gets arbitrarily close to $a$.
+* Convergence: A sequence or function settles toward a single finite value.
+* Divergence: Grows without bound or oscillates without settling.
+* Connection: The infinite geometric series $S_\infty$ is the limit of the partial sums as $n \to \infty$.

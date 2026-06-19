@@ -52,6 +52,7 @@ Since there is no way to multiply a real number by itself and get a negative res
 
 ***
 
+
 #### **Distributive Property**
 
 * $a(b + c) = ab + ac$
@@ -80,6 +81,7 @@ Total Cost = $\$50 + \$30 + \$10 + \$6 = \mathbf{\$96}$
 
 ***
 
+
 #### **Associative Property**
 
 * $(a + b) + c = a + (b + c)$
@@ -87,11 +89,13 @@ Total Cost = $\$50 + \$30 + \$10 + \$6 = \mathbf{\$96}$
 
 ***
 
+
 #### Fractions
 
 ![](../../assets/prop_of_fractions.png)
 
 ***
+
 
 ### **Integer Exponents**
 
@@ -108,6 +112,7 @@ A product of identical numbers is usually written in exponential notation
 * $(x^a)^b = x^{ab}$
 
 ***
+
 
 ### **Radicals**
 
@@ -143,12 +148,12 @@ The key takeaway is that the absolute value signs are essential when simplifying
 
 ***
 
+
 #### Rational Exponent
 
 $$a^{\frac{m}{n}} = \sqrt[n]{a^m} = (\sqrt[n]{a})^m$$
 
-$8^{\frac{2}{3}} =(\sqrt[3]{8})^2$ = $2^2$ = $4$
-
+$8^{\frac{2}{3}} =(\sqrt[3]{8})^2$ = $2^2$ = $4$ 
 ### Product Formulas
 
 ![](../../assets/product_formulas.png)
@@ -177,6 +182,7 @@ $$(2m - 1)^3 = 8m^3 - 12m^2 + 6m - 1$$
 
 ***
 
+
 ### Binomial Theorem
 
 Used to expand expressions that consist of two terms (a "binomial") raised to a high power. Instead of multiplying brackets manually for hours, this theorem provides a direct shortcut to the final answer.
@@ -192,6 +198,7 @@ $$(x + y)^n = \sum_{k=0}^{n} \binom{n}{k} x^{n-k} y^k$$
 
 ***
 
+
 ### Rational
 
 A rational expression is simply a fraction (a ratio) where both the numerator (top) and the denominator (bottom) are polynomials. It is also sometimes referred to as an algebraic fraction.
@@ -202,7 +209,7 @@ $$\frac{\cancel{(x + 2)}(x + 3)}{(x - 2)\cancel{(x + 2)}} = \frac{x + 3}{x - 2}$
 
 A rational expression can be written in the form $\frac{P(x)}{Q(x)}$, where $P(x)$ and $Q(x)$ are polynomials.
 
-denominator, $Q(x)$, cannot be equal to zero. Division by zero is undefined
+The denominator, $Q(x)$, cannot be equal to zero. Division by zero is undefined.
 
 #### **Greatest Common Factor (GCF)**
 
@@ -212,6 +219,7 @@ denominator, $Q(x)$, cannot be equal to zero. Division by zero is undefined
 * GCF: $5x^2$
 
 ***
+
 
 ### Factoring
 
@@ -262,13 +270,12 @@ $$(2x + 1)(x + 3)$$
 Used for two terms that are perfect cubes.
 
 * Sum: $a^3 + b^3 = (a + b)(a^2 - ab + b^2)$
-* Difference: $a^3 - b^3 = (a - b)(a^2 + ab + b^2)$
-
+* Difference: $a^3 - b^3 = (a - b)(a^2 + ab + b^2)$ 
 ### Equations
 
 ![](../../assets/prop_equality.png)
 
-its always a straight line, so the of degree power (exponent) is 1
+A linear equation has degree 1 — its graph is always a straight line.
 
 * $y = mx + b$
 * $ax + by = c$
@@ -278,8 +285,7 @@ the exponent is greater than 1
 * $y = 3x^2 - 4x + 1$
 * $x^3 + y = 7$
 
-Quadratic equations are essential for modeling paths, areas, and optimization problems. They are defined by the standard form $ax^2 + bx + c = 0$, where $x$ is the unknown, and $a$, $b$, and $c$ are known coefficients.
-
+Quadratic equations are essential for modeling paths, areas, and optimization problems. They are defined by the standard form $ax^2 + bx + c = 0$, where $x$ is the unknown, and $a$, $b$, and $c$ are known coefficients. 
 ### **Discriminant**
 
 $$\mathbf{D = b^2 - 4ac}$$
@@ -352,6 +358,7 @@ Now, look at the math definition: $i \times i = -1$ This means that doing the "m
 
 If "multiplying by $-1$" is a 180-degree turn, then "multiplying by $i$" must be half of that turn to make the math work. Half of 180 degrees is 90 degrees.
 
+
 ### Guidelines for Modeling with Equations
 
 1. Identify the Variable. **Identify the quantity** that the problem asks you to find. This quantity can usually be determined by a careful reading of the question that is posed at the end of the problem. Then introduce notation for the variable (call it x or some other letter).
@@ -367,8 +374,7 @@ a car for two days, and the bill comes to $108. How many miles was the car drive
 * Mileage cost: The company charges $15¢$ (or $\$0.15$) per mile. For $x$ miles, the cost is $0.15x$.
 * Total Bill: The problem states the final bill comes to $\$108$.
 * $\text{Daily Cost} + \text{Mileage Cost} = \text{Total Bill}$
-* $60 + 0.15x = 108$
-
+* $60 + 0.15x = 108$ 
 ### Inequalities
 
 ![](../../assets/inequalities_rules.png)
@@ -393,14 +399,13 @@ Test the intervals:
 * If $x = 3$ (greater than 2): $3^2 - 4 > 0$ is True.
 * If $x = -3$ (less than -2): $(-3)^2 - 4 > 0$ is True.
 The solution is $x < -2$ or $x > 2$.
+
 ### **Intervals**
 
-![](../../assets/interval_notation.png)
-
+![](../../assets/interval_notation.png) 
 ### **Absolute Value**
 
-![](../../assets/prop_absolute_value.png)
-
+![](../../assets/prop_absolute_value.png) 
 ### Coordinate Plane, Graphs of Equations, Line, Circles
 
 <img src="../../assets/coordinate_plane.png" alt="" width="563">
@@ -480,6 +485,7 @@ point-slope equation: $y - y_1 = m(x - x_1)$
 **Perpendicular line** is a line that intersects another line at a perfect 90° angle (also known as a right angle). Two lines with slopes m1 and m2 are perpendicular if and only if m1m2 = -1,\
 that is, their slopes are negative reciprocals: $m_2 = -\frac{1}{m_1}$
 
+
 ## Functions
 
 General properties for functions
@@ -516,8 +522,7 @@ In simple terms:
 
 $$\frac{\text{Change in Output}}{\text{Change in Input}} = \frac{\Delta y}{\Delta x}$$
 
-$$\text{AROC} = \frac{\text{Change in Distance}}{\text{Change in Time}} = \text{Average Speed}$$
-
+$$\text{AROC} = \frac{\text{Change in Distance}}{\text{Change in Time}} = \text{Average Speed}$$ 
 ### Transformation of Functions
 
 **Transformation of functions** is a set of mathematical operations that change the position, size, or orientation of a graph without losing its fundamental "family" shape.
@@ -539,8 +544,7 @@ Vertical/Horizontal Shifting: $f(x) \pm c$ or $f(x \pm c)$
 
 Reflecting: $-f(x)$ (over x-axis) or $f(-x)$ (over y-axis)
 
-Stretching/Shrinking: $cf(x)$ or $f(cx)$
-
+Stretching/Shrinking: $cf(x)$ or $f(cx)$ 
 ### Combining Functions
 
 $$f(g(x))$$
@@ -551,8 +555,7 @@ If I ask for $(f \circ g)(3)$:
 
 1. Start with the inside: $g(3) = 2 \cdot 3 = \mathbf{6}$
 2. Move to the outside: Put that 6 into $f$
-3. $f(6) = 6 + 5 = \mathbf{11}$
-
+3. $f(6) = 6 + 5 = \mathbf{11}$ 
 ### One to One function & Inverse
 
 A function $f$ is one-to-one (or injective) if it never takes the same value twice:
@@ -592,6 +595,7 @@ Example: Find the inverse of $f(x) = 2x + 3$.
 notice from + to minus 3 and from multiplication of 2x become x/2
 
 ***
+
 
 #### Bird Flight
 
@@ -676,9 +680,10 @@ The Minus Sign ($-h$): This is the "Pusher." Because it is _inside_ the parenthe
 
 The square is what creates that "U" shape. Because any number squared (positive or negative) becomes positive, the graph mirrors itself on both sides, creating a valley or a hill.
 
+
 ## Polynomial and Rational functions
 
-polynomial can have up to $n-1$ turning points, it have local and globlal minima and maxima
+A polynomial of degree $n$ can have up to $n-1$ turning points and can have local and global minima and maxima.
 
 **Polynomial**
 
@@ -766,6 +771,7 @@ The intervals where the expression is less than or equal to zero are:
 
 $$(-\infty, -1] \cup [1, 4]$$
 
+
 ## Rational Function
 
 $$f(x) = \frac{P(x)}{Q(x)}$$
@@ -785,8 +791,7 @@ $$A(x) = \frac{5000 + 30x}{x}$$
 ![](../../assets/vertical_horizontal_asymptote.png)
 
 * Vertical Asymptote ($x=0$): You can't calculate the average cost for 0 sneakers (division by zero). As production gets closer to zero, the average cost per unit skyrockets.
-* Horizontal Asymptote ($y=30$): As production increases to very large numbers, the $5,000 fixed cost is spread so thin that it becomes negligible. The average cost "levels off" toward the variable cost of $30.
-
+* Horizontal Asymptote ($y=30$): As production increases to very large numbers, the $5,000 fixed cost is spread so thin that it becomes negligible. The average cost "levels off" toward the variable cost of $30. 
 #### **Factor Theorem for Rational Functions**
 
 In a rational function, we are usually looking for zeros (where the graph hits the x-axis).
@@ -851,6 +856,7 @@ We want the intervals where the result is $\geq 0$ (Positive).
 
 Solution: $(-\infty, -1) \cup [5, \infty)$
 
+
 ## Exponential & Logarithmic Functions
 
 ### Exponential
@@ -877,6 +883,7 @@ $$f(x) = e^x$$
 $$e \approx 2.71828$$
 
 It was discovered by studying compound interest. If you had $1 and a bank gave you 100% interest, but they compounded it every single tiny fraction of a second (continuously), you wouldn't get infinite money—you would end up with exactly $2.718... ($e$) at the end of the year
+
 
 ### Logarithmic
 
@@ -910,3 +917,4 @@ Where $e$ (Euler's number) is approximately $2.71828$
 Because it is the inverse of the exponential function $e^x$, the relationship is:
 
 $$e^y = x \iff \ln(x) = y$$
+

@@ -7,34 +7,33 @@ created: "2026-06-13"
 
 # Strings
 
-Using `+=` for string concatenation is **inefficient approach** especially when working with large or numerous strings. Here’s why:
+A string in Go is an immutable sequence of bytes, typically used for text. This guide covers how to build strings efficiently, how to slice and search them, and how to navigate Go's UTF-8 model.
 
-1. **String Immutability**: Strings in Go are immutable, they can’t be modified after creation. Every time you use `+=` to append to a string, Go creates a new string that combines the original with the new part. The previous strings are discarded, and the program needs to reallocate memory for each new string. This causes unnecessary memory allocation and copying.
-2. **Performance Bottleneck**: With each new allocation, the previous memory allocation becomes unused, leading to **more garbage collection work**. As the number of concatenations grows, this approach can significantly impact performance, causing a slowdown that increases with the number of concatenated parts.
+## Concatenation — The Wrong Way
+
+Using `+=` for string concatenation is an **inefficient approach** especially with large or numerous strings. Every `+=` copies the entire growing string, like rewriting a book from scratch each time you add a sentence.
 
 ```go
-func concat(values []string) string { // ["hello", "world", "!"]
+func concat(values []string) string {
     s := ""
     for _, value := range values {
-        s += value // Each iteration creates a new string in memory
+        s += value // Each iteration allocates and copies
     }
     return s
 }
-
-// 0xx1 hello
-// 0xx2 hello world
-// 0xx3 hello world !
 ```
 
-### The Solution: Using `strings.Builder` <a href="#id-9498" id="id-9498"></a>
+Each loop iteration:
 
-`strings.Builder` manages an **internal byte slice (buffer)** where it accumulates the strings you append, without creating a new string every time. This approach is both faster and more memory-efficient because it minimizes the number of allocations.
+1. **Allocates** a new backing array big enough for both the old content and the new part.
+2. **Copies** every byte from the old string into the new array.
+3. **Discards** the old array, leaving it for the garbage collector.
 
-Here’s how `strings.Builder` works:
+With 10,000 strings, that's 10,000 allocations and roughly 50 million bytes copied — most of it work already done and thrown away.
 
-* The `Builder` starts with an **empty internal buffer**.
-* Each time you call `WriteString`, it appends the new string’s bytes to this buffer.
-* Once you’ve added all the parts, calling `String()` on the `Builder` reads the buffer’s contents as a single string.
+## `strings.Builder` — The Right Way
+
+`strings.Builder` manages an internal byte slice that grows on demand. Instead of creating a new string per `+=`, it appends bytes to the same buffer.
 
 ```go
 import "strings"
@@ -42,21 +41,17 @@ import "strings"
 func concat(values []string) string {
     var sb strings.Builder
     for _, value := range values {
-        sb.WriteString(value) // Appends each string to the internal buffer
+        sb.WriteString(value)
     }
-    return sb.String() // Converts the entire buffer to a single string
+    return sb.String()
 }
 ```
 
-#### Why This is Better <a href="#id-346d" id="id-346d"></a>
+`WriteString` appends to the buffer. `String()` reads the final buffer as a string — no intermediate copies.
 
-1. **Reduced Allocations**: `strings.Builder` minimizes the number of memory allocations by maintaining a single buffer, which grows only as needed.
-2. **Memory Efficiency**: Since it uses a single internal buffer for all the strings, there is less memory copying, resulting in better overall memory use.
-3. **Improved Performance**: By avoiding frequent reallocations, `strings.Builder` performs faster when working with a large number of strings.
+### Pre-allocating with `Grow`
 
-### Enhancing Efficiency Further with `Grow` <a href="#id-1b3d" id="id-1b3d"></a>
-
-If you know the total size of the final concatenated string in advance, you can use `Builder`'s `Grow` method to pre-allocate the required memory. This avoids the cost of dynamically resizing the buffer as you add strings, making it even more efficient.
+If you know the total size ahead of time, call `Grow` to allocate the buffer once:
 
 ```go
 func concat(values []string) string {
@@ -64,9 +59,9 @@ func concat(values []string) string {
     for _, value := range values {
         total += len(value)
     }
-    
+
     var sb strings.Builder
-    sb.Grow(total) // Pre-allocate space for total bytes
+    sb.Grow(total)
 
     for _, value := range values {
         sb.WriteString(value)
@@ -74,3 +69,95 @@ func concat(values []string) string {
     return sb.String()
 }
 ```
+
+This eliminates resizing overhead. One allocation, one final string — the optimal path.
+
+## `strings.Join` — The Simplest Way for Slices
+
+If you already have a `[]string`, `Join` is even simpler than Builder:
+
+```go
+result := strings.Join(values, "")
+```
+
+It pre-calculates the total length, allocates once, and fills the buffer — all in a single function call. Use this unless you need incremental building (e.g., streaming data).
+
+## Substrings and Slicing
+
+Strings support slicing with the same `s[i:j]` syntax as slices:
+
+```go
+s := "hello world"
+greeting := s[:5]   // "hello"
+world   := s[6:]    // "world"
+mid     := s[1:4]   // "ell"
+```
+
+Slicing a string does **not** allocate — it creates a new header pointing into the same backing array. This is O(1) and cheap.
+
+## `string` vs `[]byte`
+
+| Type | Mutable? | Use case |
+|------|----------|----------|
+| `string` | No | Text you read or pass around |
+| `[]byte` | Yes | Buffers you build or modify |
+
+Convert between them:
+
+```go
+b := []byte("hello")   // string → []byte  (allocates)
+s := string(b)         // []byte → string  (allocates)
+```
+
+Both conversions allocate because `[]byte` is mutable and `string` must remain immutable — Go copies the data to break the reference.
+
+## Essential `strings` Package
+
+| Function | What it does |
+|----------|-------------|
+| `Contains(s, sub)` | Reports whether `sub` is in `s` |
+| `Count(s, sub)` | Counts non-overlapping instances |
+| `HasPrefix(s, pre)` | Reports whether `s` starts with `pre` |
+| `HasSuffix(s, suf)` | Reports whether `s` ends with `suf` |
+| `Index(s, sub)` | Returns the first index of `sub`, or -1 |
+| `Replace(s, old, new, n)` | Replaces `n` occurrences (`-1` = all) |
+| `Split(s, sep)` | Splits into a `[]string` |
+| `Trim(s, cutset)` | Removes leading/trailing characters in `cutset` |
+| `Fields(s)` | Splits on whitespace |
+
+```go
+s := "  hello, world!  "
+strings.Contains(s, "world")  // true
+strings.Replace(s, "hello", "hi", 1) // "  hi, world!  "
+strings.Trim(s, " ")          // "hello, world!"
+strings.Fields(s)             // ["hello,", "world!"]
+```
+
+## Runes and UTF-8
+
+A Go string is a byte sequence, not a character sequence. One Unicode character (a *rune*) can span multiple bytes.
+
+```go
+s := "hello"
+len(s)        // 5 — count of bytes
+utf8.RuneCountInString(s) // 5 — count of runes (same here, ASCII)
+
+emoji := "🚀"
+len(emoji)    // 4 — four bytes
+utf8.RuneCountInString(emoji) // 1 — one rune
+```
+
+Range over a string yields runes automatically:
+
+```go
+for i, r := range "hello 🚀" {
+    fmt.Printf("%d: %c\n", i, r)
+}
+// 0: h
+// 1: e
+// 4: l
+// ...
+// 6: 🚀
+```
+
+If you need individual runes, use `[]rune(s)` to decode — but this allocates.

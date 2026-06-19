@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://blog.chan179.workers.dev/</loc>
-    <changefreq>weekly</changefreq>
-    <priority>1.0</priority>
-  </url>
-  <url>
     <loc>https://blog.chan179.workers.dev/reactjs</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
     <loc>https://blog.chan179.workers.dev/etcd-raft</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://blog.chan179.workers.dev/introduction</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
@@ -81,16 +81,6 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/system-design/consistent-hashing-distributed-cache</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/system-design/distributed-cache-live-streaming-chat</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
     <loc>https://blog.chan179.workers.dev/system-design/distributed-task-scheduler-batch-job-processing</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
@@ -101,17 +91,7 @@
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/system-design/id-generator</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/system-design/order-notification-system</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/system-design/public-api-rate-limiter</loc>
+    <loc>https://blog.chan179.workers.dev/system-design/introduction</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>

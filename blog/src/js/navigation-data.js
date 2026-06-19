@@ -2,11 +2,6 @@
 // Run `node scripts/gen-nav.js` (or `./build.sh`) to regenerate.
 const navigationData = [
     {
-        name: "Introduction",
-        slug: "README",
-        standalone: true,
-    },
-    {
         name: "ReactJS",
         slug: "reactjs",
         standalone: true,
@@ -14,6 +9,11 @@ const navigationData = [
     {
         name: "etcd & Raft",
         slug: "etcd-raft",
+        standalone: true,
+    },
+    {
+        name: "Introduction",
+        slug: "introduction",
         standalone: true,
     },
     {
@@ -53,13 +53,9 @@ const navigationData = [
         slug: "system-design",
         pages: [
             { name: "Cache Stampede Flash Sale", slug: "cache-stampede-flash-sale" },
-            { name: "Consistent Hashing Distributed Cache", slug: "consistent-hashing-distributed-cache" },
-            { name: "Distributed Cache Live Streaming Chat", slug: "distributed-cache-live-streaming-chat" },
             { name: "Distributed Task Scheduler Batch Job Processing", slug: "distributed-task-scheduler-batch-job-processing" },
             { name: "Event Processing Order Notifications", slug: "event-processing-order-notifications" },
-            { name: "ID Generator", slug: "id-generator" },
-            { name: "Order Notification System", slug: "order-notification-system" },
-            { name: "Public Api Rate Limiter", slug: "public-api-rate-limiter" },
+            { name: "Introduction", slug: "introduction" },
             { name: "RabbitMQ", slug: "rabbitmq" },
         ],
     },
