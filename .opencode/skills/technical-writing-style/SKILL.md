@@ -5,72 +5,28 @@ description: Apply Gerald J. Alred's technical writing conventions from the Hand
 
 # Technical Writing Style (Alred)
 
-## Quick Start
+## Process
 
-When asked to apply technical writing style, analyze the text against the rules below. For each change, briefly state which rule it violates (e.g., "Rule 3: Eliminate wordiness").
+### 1. Establish Your Purpose
 
-## Principles
+Be highly precise. Define exactly what you want readers to know, believe, or do after reading. Avoid vague goals. Instead of "to report on new locations," aim for a targeted statement like "to compare the advantages of Paris, Singapore, and San Francisco so management can choose a site." Don't forget to identify secondary purposes, like highlighting future staffing needs.
 
-### 1. Know Your Audience and Purpose
+### 2. Assess Audience & Context
 
-Determine who will read the text and what they need. Match vocabulary, detail level, and tone to the reader's expertise. A subject-matter expert gets different language than a general audience.
+Know your readers. Ask crucial questions before typing: Who exactly is reading? What do they already know? Are they supportive, anxious, or skeptical? Adjust your depth and terminology to fit their expertise and cultural backgrounds so you don't bore them or over-complicate things.
 
-### 2. Use Active Voice Preferentially
+### 3. Determine the Scope
 
-Make the subject act: _"The team completed the analysis"_ not _"The analysis was completed by the team."_ Reserve passive for when the actor is unknown or irrelevant.
+Set your boundaries. Use your purpose and audience profile to draw a line around what stays in and what stays out. For a facility report, include land costs and labor availability; leave out the city's early history or unrelated geological features. This prevents hours of wasted research.
 
-### 3. Eliminate Wordiness
+### 4. Gather Info & Choose a Method
 
-Cut filler phrases:
+Organize your approach. Pull from internal knowledge, interviews, internet archives, or workplace correspondence. As you analyze data, pick a development method that matches your goal:
 
-| Wordy | Concise |
-|---|---|
-| at this point in time | now |
-| due to the fact that | because |
-| in the event that | if |
-| in order to | to |
-| regardless of the fact that | although |
+- **Sequential:** For step-by-step instructions.
+- **Chronological:** For historical timelines.
+- **Specific-to-General:** For leading with individual case studies to prove a broader point (great for persuasive writing).
 
-### 4. Use Parallel Structure
+### 5. Outline & Plan the Layout
 
-Items in a list, series, or heading set must follow the same grammatical form. If one heading starts with a gerund, all should: _"Creating accounts"_, _"Managing users"_, not _"User management"_.
-
-### 5. Use Positive Phrasing
-
-State what is, not what isn't. _"Keep the door closed"_ not _"Do not leave the door open."_ Positive phrasing reduces cognitive load.
-
-### 6. Place Subject and Verb Close Together
-
-Long interruptions between subject and verb confuse readers. Move intervening clauses to the beginning or end of the sentence.
-
-### 7. Write Clear Headings
-
-Every heading must predict what follows. Use descriptive headings: _"Configuring the Build Pipeline"_ not _"Configuration"_. Use a consistent hierarchy (H1 → H2 → H3, never skip levels).
-
-### 8. Format Lists Properly
-
-Use vertical lists for sequences, steps, or parallel items. Use numbered lists for ordered steps, bullet lists for unordered items. Introduce lists with a complete sentence ending in a colon.
-
-### 9. Write Step-by-Step Instructions
-
-Each step must be a single action. Start with an imperative verb. Number each step. Provide warnings before the hazard, not after. Include expected outcomes where helpful.
-
-### 10. Define Technical Terms
-
-First use of an acronym: spell it out. Define jargon on first appearance. Consider a glossary for documents with many specialized terms.
-
-### 11. Be Precise
-
-Prefer concrete numbers over vague quantifiers. _"12 MB"_ not _"a lot of data"_. _"4:30 PM UTC"_ not _"end of day"_. Avoid weasel words: _"probably"_, _"might"_, _"seems like"_.
-
-### 12. Calibrate Tone
-
-Professional does not mean stiff. Use contractions where natural. Prefer _"we recommend"_ over _"it is recommended"_. Omit false formality: _"use"_ not _"utilize"_, _"help"_ not _"facilitate"_.
-
-### 13. Design for Scanning
-
-Use white space, headings, bold key terms, and visual cues. Readers scan before they read. Place the main point at the start of each section (inverted pyramid).
-
-### 14. Cite Sources Properly
-
-Give credit for data, quotes, and borrowed ideas. Follow a consistent citation style. Distinguish your analysis from sourced material clearly.
+Structure before drafting. Break complex subjects into manageable sections and place key points in positions of high importance. Use this stage to map out where headings, lists, and visuals (like tables or photos) will live so you can focus entirely on the writing flow during your first draft.
