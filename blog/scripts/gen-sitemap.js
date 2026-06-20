@@ -5,7 +5,7 @@ const path = require('path');
 const { SRC } = require('./lib/paths');
 const { loadNavData } = require('./lib/nav-loader');
 
-const DOMAIN = 'https://blog.chan179.workers.dev';
+const DOMAIN = 'https://chan179.com';
 const OUTPUT = path.join(SRC, 'sitemap.xml');
 
 function url(loc, changefreq = 'monthly', priority = '0.7') {

@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://blog.chan179.workers.dev/sitemap.xml
+Sitemap: https://chan179.com/sitemap.xml

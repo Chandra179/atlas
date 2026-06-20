@@ -1,462 +1,462 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://blog.chan179.workers.dev/reactjs</loc>
+    <loc>https://chan179.com/reactjs</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/etcd-raft</loc>
+    <loc>https://chan179.com/etcd-raft</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/introduction</loc>
+    <loc>https://chan179.com/introduction</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/psyhco</loc>
+    <loc>https://chan179.com/psyhco</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/rag</loc>
+    <loc>https://chan179.com/rag</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/saas-template</loc>
+    <loc>https://chan179.com/saas-template</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/syncthing</loc>
+    <loc>https://chan179.com/syncthing</loc>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/fundamental</loc>
+    <loc>https://chan179.com/fundamental</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/fundamental/api-design-guidelines</loc>
+    <loc>https://chan179.com/fundamental/api-design-guidelines</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/fundamental/computing</loc>
+    <loc>https://chan179.com/fundamental/computing</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/fundamental/kafka</loc>
+    <loc>https://chan179.com/fundamental/kafka</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/fundamental/networking</loc>
+    <loc>https://chan179.com/fundamental/networking</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/fundamental/oauth2-and-oidc</loc>
+    <loc>https://chan179.com/fundamental/oauth2-and-oidc</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/fundamental/software-architecture</loc>
+    <loc>https://chan179.com/fundamental/software-architecture</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/system-design</loc>
+    <loc>https://chan179.com/system-design</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/system-design/cache-stampede-flash-sale</loc>
+    <loc>https://chan179.com/system-design/cache-stampede-flash-sale</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/system-design/distributed-task-scheduler-batch-job-processing</loc>
+    <loc>https://chan179.com/system-design/distributed-task-scheduler-batch-job-processing</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/system-design/event-processing-order-notifications</loc>
+    <loc>https://chan179.com/system-design/event-processing-order-notifications</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/system-design/introduction</loc>
+    <loc>https://chan179.com/system-design/introduction</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/system-design/rabbitmq</loc>
+    <loc>https://chan179.com/system-design/rabbitmq</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/golang</loc>
+    <loc>https://chan179.com/golang</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/golang/goroutine</loc>
+    <loc>https://chan179.com/golang/goroutine</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/golang/strings</loc>
+    <loc>https://chan179.com/golang/strings</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/math</loc>
+    <loc>https://chan179.com/math</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/math/calculus</loc>
+    <loc>https://chan179.com/math/calculus</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/math/linear-algebra</loc>
+    <loc>https://chan179.com/math/linear-algebra</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/math/sequence-series-limit</loc>
+    <loc>https://chan179.com/math/sequence-series-limit</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/math/summary</loc>
+    <loc>https://chan179.com/math/summary</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/math/trigonometry</loc>
+    <loc>https://chan179.com/math/trigonometry</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/math/precalculus</loc>
+    <loc>https://chan179.com/math/precalculus</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/math/precalculus/summary</loc>
+    <loc>https://chan179.com/math/precalculus/summary</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/ai</loc>
-    <changefreq>weekly</changefreq>
-    <priority>0.8</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/ai/ai-infra</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/ai/embeddings</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/ai/evaluation</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/ai/fine-tuning</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/ai/inference-engines</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/ai/ml</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/ai/quantization</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/ai/tool-use-agents</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.7</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/database</loc>
+    <loc>https://chan179.com/ai</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/database/algorithms</loc>
+    <loc>https://chan179.com/ai/ai-infra</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/database/concurrency-and-scaling</loc>
+    <loc>https://chan179.com/ai/embeddings</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/database/indexing</loc>
+    <loc>https://chan179.com/ai/evaluation</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/database/query-and-optimization</loc>
+    <loc>https://chan179.com/ai/fine-tuning</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/database/specialized-databases</loc>
+    <loc>https://chan179.com/ai/inference-engines</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/database/storage-engines</loc>
+    <loc>https://chan179.com/ai/ml</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/database/taxonomy</loc>
+    <loc>https://chan179.com/ai/quantization</loc>
     <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/database/deep-dives</loc>
-    <changefreq>weekly</changefreq>
+    <loc>https://chan179.com/ai/tool-use-agents</loc>
+    <changefreq>monthly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/database/deep-dives/cassandra</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/database/deep-dives/mongodb</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/database/deep-dives/mysql-innodb</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/database/deep-dives/postgresql</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/database/deep-dives/redis</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/database/deep-dives/spanner</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/database/deep-dives/sql-server</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/database/deep-dives/sqlite</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/economy</loc>
+    <loc>https://chan179.com/database</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/behavioral</loc>
+    <loc>https://chan179.com/database/algorithms</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/database/concurrency-and-scaling</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/database/indexing</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/database/query-and-optimization</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/database/specialized-databases</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/database/storage-engines</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/database/taxonomy</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/database/deep-dives</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/behavioral/behavioral-economics</loc>
+    <loc>https://chan179.com/database/deep-dives/cassandra</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/global</loc>
+    <loc>https://chan179.com/database/deep-dives/mongodb</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/database/deep-dives/mysql-innodb</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/database/deep-dives/postgresql</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/database/deep-dives/redis</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/database/deep-dives/spanner</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/database/deep-dives/sql-server</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/database/deep-dives/sqlite</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/economy</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/economy/behavioral</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/global/capital-flows</loc>
+    <loc>https://chan179.com/economy/behavioral/behavioral-economics</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/global/climate-finance</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/economy/global/digital-currency</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/economy/global/dollar-system</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/economy/global/energy-geopolitics</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/economy/global/exchange-rates</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/economy/global/export-controls</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/economy/global/financial-crises</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/economy/global/shadow-banking</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/economy/global/sovereign-debt</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/economy/global/supply-chain</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/economy/global/trade</loc>
-    <changefreq>monthly</changefreq>
-    <priority>0.6</priority>
-  </url>
-  <url>
-    <loc>https://blog.chan179.workers.dev/economy/macro</loc>
+    <loc>https://chan179.com/economy/global</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/macro/ad-as</loc>
+    <loc>https://chan179.com/economy/global/capital-flows</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/macro/gdp-cpi</loc>
+    <loc>https://chan179.com/economy/global/climate-finance</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/macro/growth-finance</loc>
+    <loc>https://chan179.com/economy/global/digital-currency</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/macro/monetary</loc>
+    <loc>https://chan179.com/economy/global/dollar-system</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/macro/open-economy</loc>
+    <loc>https://chan179.com/economy/global/energy-geopolitics</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/macro/phillips-curve</loc>
+    <loc>https://chan179.com/economy/global/exchange-rates</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/macro/solow-growth</loc>
+    <loc>https://chan179.com/economy/global/export-controls</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/macro/unemployment</loc>
+    <loc>https://chan179.com/economy/global/financial-crises</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/micro</loc>
+    <loc>https://chan179.com/economy/global/shadow-banking</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/economy/global/sovereign-debt</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/economy/global/supply-chain</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/economy/global/trade</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/economy/macro</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/micro/externalities</loc>
+    <loc>https://chan179.com/economy/macro/ad-as</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/micro/frontiers</loc>
+    <loc>https://chan179.com/economy/macro/gdp-cpi</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/micro/game-theory</loc>
+    <loc>https://chan179.com/economy/macro/growth-finance</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/micro/labor-markets</loc>
+    <loc>https://chan179.com/economy/macro/monetary</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/micro/market-intervention</loc>
+    <loc>https://chan179.com/economy/macro/open-economy</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/micro/market-structures</loc>
+    <loc>https://chan179.com/economy/macro/phillips-curve</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/micro/production</loc>
+    <loc>https://chan179.com/economy/macro/solow-growth</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/micro/supply-demand</loc>
+    <loc>https://chan179.com/economy/macro/unemployment</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://blog.chan179.workers.dev/economy/micro/welfare-efficiency</loc>
+    <loc>https://chan179.com/economy/micro</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/economy/micro/externalities</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/economy/micro/frontiers</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/economy/micro/game-theory</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/economy/micro/labor-markets</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/economy/micro/market-intervention</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/economy/micro/market-structures</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/economy/micro/production</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/economy/micro/supply-demand</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  <url>
+    <loc>https://chan179.com/economy/micro/welfare-efficiency</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
