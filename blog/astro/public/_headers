@@ -1,17 +1,10 @@
 # Cloudflare Pages cache headers
-# Port of blog/src/worker.js cache TTLs
 
 # HTML: 1 hour, stale-while-revalidate 1 day
 /*.html
   Cache-Control: public, max-age=3600, stale-while-revalidate=86400
 
-# JSON/XML: 1 day, SWR 1 week
-/search-index.json
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
-/landing-index.json
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
-/sitemap.xml
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+# Sitemap: 1 day, SWR 1 week
 /sitemap-index.xml
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 

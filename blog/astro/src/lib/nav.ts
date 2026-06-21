@@ -216,13 +216,6 @@ function buildPages(
 }
 
 /**
- * Find a nav section by slug.
- */
-export function findSection(nav: NavSection[], slug: string): NavSection | undefined {
-  return nav.find((s) => s.slug === slug);
-}
-
-/**
  * Build a breadcrumb string for a given URL path.
  * e.g. "/math/precalculus/summary" -> "Math / Precalculus / Summary"
  */
@@ -254,48 +247,4 @@ export function buildBreadcrumb(nav: NavSection[], url: string): string {
   }
 
   return crumbs.join(' / ');
-}
-
-/**
- * Find the collection entry for a given URL path.
- */
-export function findEntryByPath(
-  entries: CollectionEntry<'docs'>[],
-  url: string,
-): CollectionEntry<'docs'> | undefined {
-  const path = url.replace(/^\//, '').replace(/\/$/, '');
-  if (!path) return undefined; // homepage is not in the collection
-
-  // Try exact match: path -> "path" (id has no extension)
-  const direct = entries.find((e) => e.id === path);
-  if (direct) return direct;
-
-  // Try readme: path -> "path/readme"
-  const readme = entries.find((e) => e.id === `${path}/readme`);
-  if (readme) return readme;
-
-  return undefined;
-}
-
-/**
- * Get all URL paths that should be generated as static pages.
- */
-export function getAllUrls(nav: NavSection[]): string[] {
-  const urls: string[] = [];
-
-  for (const section of nav) {
-    urls.push(section.url);
-    if (section.pages) {
-      for (const page of section.pages) {
-        urls.push(page.url);
-        if (page.isFolder && page.pages) {
-          for (const subpage of page.pages) {
-            urls.push(subpage.url);
-          }
-        }
-      }
-    }
-  }
-
-  return urls;
 }
