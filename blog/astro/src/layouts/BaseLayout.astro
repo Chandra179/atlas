@@ -20,6 +20,10 @@ const fullTitle = title === siteName ? title : `${title} — ${siteName}`;
 const canonicalUrl = new URL(canonical, Astro.site).href;
 
 import '../styles/global.css';
+
+import interLatinWoff2 from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2';
+import jetbrainsLatin400 from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2';
+import jetbrainsLatin600 from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-600-normal.woff2';
 ---
 
 <!DOCTYPE html>
@@ -30,6 +34,9 @@ import '../styles/global.css';
   <title>{fullTitle}</title>
   <meta name="description" content={description} />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preload" as="font" href={interLatinWoff2} type="font/woff2" crossorigin />
+  <link rel="preload" as="font" href={jetbrainsLatin400} type="font/woff2" crossorigin />
+  <link rel="preload" as="font" href={jetbrainsLatin600} type="font/woff2" crossorigin />
   <link rel="canonical" href={canonicalUrl} />
 
   <!-- Open Graph -->

@@ -1,14 +1,14 @@
 # Cloudflare Pages cache headers
 
-# HTML: 1 hour, stale-while-revalidate 1 day
+# HTML: 6 hours, stale-while-revalidate 1 day
 /*.html
-  Cache-Control: public, max-age=3600, stale-while-revalidate=86400
+  Cache-Control: public, max-age=21600, stale-while-revalidate=86400
 
 # Sitemap: 1 day, SWR 1 week
 /sitemap-index.xml
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 
-# JS/CSS with hash: 1 year (immutable)
+# JS/CSS/WebFont with hash: 1 year (immutable)
 /_astro/*
   Cache-Control: public, max-age=31536000, immutable
 
