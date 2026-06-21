@@ -102,8 +102,8 @@ const siteName = 'Chan179';
 const baseDescription = 'Technical notes and learning resources on Math, Golang, System Design, ML, and more.';
 ---
 
-<BaseLayout title={siteName} description={baseDescription} canonical="/">
-  <main class="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden pt-8">
+<BaseLayout title={siteName} description={baseDescription} canonical="/" minimal>
+  <main class="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden pt-20">
     <div class="mx-auto px-4 sm:px-6 py-8 lg:py-12 max-w-6xl">
       <!-- Filter Bar -->
       <div class="flex flex-wrap items-center gap-2 mb-8" id="filter-bar">
@@ -129,18 +129,6 @@ const baseDescription = 'Technical notes and learning resources on Math, Golang,
       </div>
     </div>
   </main>
-
-  <!-- Floating Dark Mode Toggle -->
-  <button @click="isDark = !isDark; document.documentElement.classList.toggle('dark', isDark); localStorage.setItem('darkMode', isDark)"
-    class="fixed bottom-6 right-6 z-50 p-3 rounded-full shadow-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:shadow-xl transition-all duration-200"
-    aria-label="Toggle dark mode">
-    <svg x-show="isDark" class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
-    </svg>
-    <svg x-show="!isDark" class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
-    </svg>
-  </button>
 </BaseLayout>
 
 <script>
