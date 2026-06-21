@@ -1,4 +1,0 @@
-dist
-.wrangler/tmp
-venv
-node_modules
