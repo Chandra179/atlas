@@ -29,7 +29,7 @@ const hasToc = tocTree.length > 0;
 
 <aside id="toc" class="hidden xl:block fixed top-16 right-0 bottom-0 w-64 overflow-y-auto bg-white dark:bg-gray-900 pt-6 pb-6" style={hasToc ? '' : 'display:none'}>
   {hasToc && (
-    <ul class="toc-list" style="padding-left: 1rem">
+    <ul class="toc-list">
       {tocTree.map((h2) => (
         <li class="toc-list-item">
           <a href={`#${h2.slug}`} class="toc-link">{h2.text}</a>
@@ -83,13 +83,45 @@ const hasToc = tocTree.length > 0;
       if (link) link.classList.add(activeClass);
     }
 
+    // Initial active — pick the first heading above or at the top of viewport
+    function updateInitialActive() {
+      var scrollY = window.scrollY;
+      for (var i = headings.length - 1; i >= 0; i--) {
+        var rect = headings[i].getBoundingClientRect();
+        var top = rect.top + window.scrollY;
+        if (top <= scrollY + 100) {
+          var link = toc.querySelector('a[href="#' + headings[i].id + '"]');
+          if (link) setActive(link);
+          return;
+        }
+      }
+    }
+    updateInitialActive();
+
+    // Auto-scroll TOC so active link stays visible
+    function scrollTocToLink(link) {
+      var tocRect = toc.getBoundingClientRect();
+      var linkRect = link.getBoundingClientRect();
+      if (linkRect.top < tocRect.top + 24 || linkRect.bottom > tocRect.bottom - 24) {
+        link.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+      }
+    }
+
     var observer = new IntersectionObserver(function (entries) {
+      var activeFound = false;
       entries.forEach(function (entry) {
         var link = toc.querySelector('a[href="#' + entry.target.id + '"]');
         if (!link) return;
-        if (entry.isIntersecting) setActive(link);
+        if (entry.isIntersecting) {
+          setActive(link);
+          scrollTocToLink(link);
+          activeFound = true;
+        }
       });
-    }, { rootMargin: '-80px 0px -80% 0px', threshold: 0 });
+      // If nothing is intersecting and we're scrolled past the last heading,
+      // keep showing whatever was active — don't clear.
+      if (!activeFound) return;
+    }, { rootMargin: '-80px 0px -60% 0px', threshold: 0 });
 
     headings.forEach(function (h) { observer.observe(h); });
   })();

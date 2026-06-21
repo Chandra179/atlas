@@ -28,9 +28,11 @@ export function remarkMermaidPreserve() {
       if (!parent || typeof index !== 'number') return;
       if (node.lang !== 'mermaid') return;
 
+      const cleaned = (node.value || '').replace(/<[^>]+>/g, '');
+
       parent.children[index] = {
         type: 'html',
-        value: `<pre class="mermaid">${escapeHtml(node.value || '')}</pre>`,
+        value: `<pre class="mermaid">${escapeHtml(cleaned)}</pre>`,
       };
     });
   };

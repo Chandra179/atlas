@@ -182,35 +182,5 @@ import '../styles/global.css';
     });
   </script>
 
-  <!-- Mermaid: client-side diagram rendering -->
-  <script type="module">
-    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
-
-    mermaid.initialize({
-      startOnLoad: false,
-      theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
-    });
-
-    const observer = new MutationObserver(() => {
-      const isDark = document.documentElement.classList.contains('dark');
-      mermaid.initialize({ theme: isDark ? 'dark' : 'default' });
-    });
-    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
-
-    async function renderMermaid() {
-      document.querySelectorAll('.mermaid-diagram').forEach(el => el.remove());
-      await mermaid.run({
-        querySelector: '.mermaid',
-        suppressErrors: true,
-      });
-    }
-
-    if (document.readyState === 'loading') {
-      document.addEventListener('DOMContentLoaded', renderMermaid);
-    } else {
-      renderMermaid();
-    }
-  </script>
-
 </body>
 </html>
