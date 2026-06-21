@@ -17,7 +17,12 @@ export function rehypeRewriteAssets(options) {
       const src = node.properties?.src;
       if (!src || typeof src !== 'string') return;
       if (/^(https?:|data:)/.test(src)) return;
-      if (src.startsWith('/')) return; // already absolute
+
+      if (node.properties.loading === undefined) {
+        node.properties.loading = 'lazy';
+      }
+
+      if (src.startsWith('/')) return;
 
       const resolved = resolveRelative(src, fileDir);
       node.properties.src = resolved.replace(/^.*\/assets\//, '/assets/');

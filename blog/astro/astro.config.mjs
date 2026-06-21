@@ -1,6 +1,5 @@
 import { defineConfig } from 'astro/config';
 import alpinejs from '@astrojs/alpinejs';
-import sitemap from '@astrojs/sitemap';
 import mdx from '@astrojs/mdx';
 import astroExpressiveCode from 'astro-expressive-code';
 import tailwindcss from '@tailwindcss/vite';
@@ -26,9 +25,6 @@ export default defineConfig({
       },
     }),
     alpinejs(),
-    sitemap({
-      lastmod: new Date(),
-    }),
     mdx(),
   ],
   markdown: {

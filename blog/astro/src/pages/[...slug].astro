@@ -64,6 +64,7 @@ let title = indexTitle;
 let description: string | undefined;
 let body = '';
 let created: Date | undefined;
+let modified: Date | undefined;
 
 if (!isIndex && entryId) {
   const entry = entryMap[entryId];
@@ -78,6 +79,7 @@ if (!isIndex && entryId) {
   description = entry.data.description;
   body = entry.body;
   created = entry.data.created;
+  modified = entry.data.modified;
 }
 ---
 
@@ -89,6 +91,7 @@ if (!isIndex && entryId) {
   url={currentUrl}
   nav={nav}
   created={created}
+  modified={modified}
 >
   {isIndex ? (
     <>

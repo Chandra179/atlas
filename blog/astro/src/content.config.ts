@@ -12,6 +12,7 @@ const docs = defineCollection({
     aliases: z.array(z.string()).default([]),
     tags: z.array(z.string()).default([]),
     created: z.coerce.date().optional(),
+    modified: z.coerce.date().optional(),
     audience: z.string().optional(),
     style: z.string().optional(),
     prerequisites: z.array(z.string()).default([]),

@@ -4,6 +4,7 @@ interface Props {
   description: string;
   canonical: string;
   ogType?: string;
+  ogImage?: string;
   jsonLd?: object;
   minimal?: boolean;
 }
@@ -13,6 +14,7 @@ const {
   description,
   canonical,
   ogType = 'website',
+  ogImage = '/og-image.png',
   jsonLd,
   minimal = false,
 } = Astro.props;
@@ -36,10 +38,13 @@ import jetbrainsLatin600 from '@fontsource/jetbrains-mono/files/jetbrains-mono-l
   <title>{fullTitle}</title>
   <meta name="description" content={description} />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="apple-touch-icon" href="/favicon.png" />
   <link rel="preload" as="font" href={interLatinWoff2} type="font/woff2" crossorigin />
   <link rel="preload" as="font" href={jetbrainsLatin400} type="font/woff2" crossorigin />
   <link rel="preload" as="font" href={jetbrainsLatin600} type="font/woff2" crossorigin />
   <link rel="canonical" href={canonicalUrl} />
+  <link rel="alternate" type="application/rss+xml" title="Chan179" href="/rss.xml" />
 
   <!-- Open Graph -->
   <meta property="og:type" content={ogType} />
@@ -47,11 +52,16 @@ import jetbrainsLatin600 from '@fontsource/jetbrains-mono/files/jetbrains-mono-l
   <meta property="og:title" content={fullTitle} />
   <meta property="og:description" content={description} />
   <meta property="og:url" content={canonicalUrl} />
+  <meta property="og:image" content={new URL(ogImage, Astro.site).href} />
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+  <meta property="og:locale" content="en_US" />
 
   <!-- Twitter Card -->
-  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content={fullTitle} />
   <meta name="twitter:description" content={description} />
+  <meta name="twitter:image" content={new URL(ogImage, Astro.site).href} />
 
   {jsonLd && (
     <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />

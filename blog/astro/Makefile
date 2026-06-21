@@ -1,6 +1,6 @@
-.PHONY: build deploy dev
+.PHONY: build deploy dev og-image
 
-build:
+build: og-image
 	npx astro build && npx pagefind --site dist
 
 dev:
@@ -8,3 +8,6 @@ dev:
 
 deploy: build
 	npx wrangler deploy
+
+og-image:
+	node scripts/generate-og-image.mjs

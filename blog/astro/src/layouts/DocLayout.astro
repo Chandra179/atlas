@@ -20,6 +20,7 @@ interface Props {
   url: string;
   nav: NavSection[];
   created?: Date;
+  modified?: Date;
 }
 
 const {
@@ -30,6 +31,7 @@ const {
   url,
   nav,
   created,
+  modified,
 } = Astro.props;
 
 const siteName = 'Chan179';
@@ -50,20 +52,32 @@ const jsonLd = {
     '@id': new URL(url, Astro.site).href,
   },
   ...(created && { datePublished: created.toISOString() }),
-  author: { '@type': 'Person', name: 'Chandra' },
-  publisher: { '@type': 'Organization', name: siteName },
+  ...((modified || created) && { dateModified: (modified || created)!.toISOString() }),
+  author: { '@type': 'Person', name: 'Chandra', '@id': new URL('/', Astro.site).href + '#author' },
+  publisher: { '@type': 'Organization', name: siteName, '@id': new URL('/', Astro.site).href + '#publisher' },
 };
 
 // BreadcrumbList JSON-LD
 const crumbs = breadcrumb.split(' / ');
+const pathParts = url.replace(/^\//, '').replace(/\/$/, '').split('/');
+const crumbNames = ['Home', ...crumbs];
+const crumbUrls: string[] = ['/'];
+let accum = '';
+for (let i = 0; i < crumbs.length; i++) {
+  accum += (i === 0 ? '' : '/') + (pathParts[i] || crumbs[i].toLowerCase());
+  crumbUrls.push('/' + accum);
+}
+
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
-  itemListElement: crumbs.map((name, i) => ({
+  itemListElement: crumbNames.map((name, i) => ({
     '@type': 'ListItem',
     position: i + 1,
     name,
-    item: i === 0 ? new URL('/', Astro.site).href : undefined,
+    item: i < crumbNames.length - 1
+      ? new URL(crumbUrls[i], Astro.site).href
+      : undefined,
   })),
 };
 ---
