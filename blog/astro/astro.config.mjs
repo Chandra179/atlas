@@ -11,7 +11,6 @@ import { rehypeRewriteAssets } from './src/lib/rehype-rewrite-assets.js';
 import remarkMath from 'remark-math';
 import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
-import rehypeMermaid from 'rehype-mermaid';
 
 export default defineConfig({
   site: 'https://chan179.com',
@@ -41,7 +40,6 @@ export default defineConfig({
     ],
     rehypePlugins: [
       rehypeRaw,
-      [rehypeMermaid, { strategy: 'pre-mermaid' }],
       [rehypeKatex, { throwOnError: false, strict: false }],
       rehypeRewriteAssets,
     ],

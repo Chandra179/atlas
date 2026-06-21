@@ -2,7 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import DocLayout from '../layouts/DocLayout.astro';
 import { buildNav, deriveTitle, type NavSection, type NavPage } from '../lib/nav';
-import { IGNORE_FILES, IGNORE_IDS, toName } from '../lib/ordering';
+import { IGNORE_FILES, IGNORE_IDS } from '../lib/ordering';
 
 export async function getStaticPaths() {
   const allEntries = await getCollection('docs');
@@ -10,6 +10,11 @@ export async function getStaticPaths() {
     const filename = e.id.split('/').pop() || '';
     return !IGNORE_FILES.has(filename) && !IGNORE_FILES.has(filename.toLowerCase()) && !IGNORE_IDS.has(e.id);
   });
+
+  const entryMap: Record<string, typeof validEntries[number]> = {};
+  for (const entry of validEntries) {
+    entryMap[entry.id] = entry;
+  }
 
   const nav = buildNav(validEntries);
   const paths = [];
@@ -21,7 +26,7 @@ export async function getStaticPaths() {
     if (url.toLowerCase() === 'readme') continue;
     paths.push({
       params: { slug: url },
-      props: { entryId: entry.id, nav, isIndex: false, indexTitle: '', indexPages: [] as NavPage[] },
+      props: { entryId: entry.id, nav, entryMap, isIndex: false, indexTitle: '', indexPages: [] as NavPage[] },
     });
   }
 
@@ -31,7 +36,7 @@ export async function getStaticPaths() {
     if (!section.entryId) {
       paths.push({
         params: { slug: section.url.replace(/^\//, '') },
-        props: { entryId: null, nav, isIndex: true, indexTitle: section.name, indexPages: section.pages || [] },
+        props: { entryId: null, nav, entryMap, isIndex: true, indexTitle: section.name, indexPages: section.pages || [] },
       });
     }
     if (section.pages) {
@@ -39,7 +44,7 @@ export async function getStaticPaths() {
         if (page.isFolder && !page.entryId) {
           paths.push({
             params: { slug: page.url.replace(/^\//, '') },
-            props: { entryId: null, nav, isIndex: true, indexTitle: page.name, indexPages: page.pages || [] },
+            props: { entryId: null, nav, entryMap, isIndex: true, indexTitle: page.name, indexPages: page.pages || [] },
           });
         }
       }
@@ -49,7 +54,7 @@ export async function getStaticPaths() {
   return paths;
 }
 
-const { entryId, nav, isIndex, indexTitle, indexPages } = Astro.props;
+const { entryId, nav, entryMap, isIndex, indexTitle, indexPages } = Astro.props;
 const currentUrl = '/' + (Astro.params.slug || '');
 
 // For content pages, fetch and render the entry
@@ -61,12 +66,7 @@ let body = '';
 let created: Date | undefined;
 
 if (!isIndex && entryId) {
-  const allEntries = await getCollection('docs');
-  const validEntries = allEntries.filter((e) => {
-    const filename = e.id.split('/').pop() || '';
-    return !IGNORE_FILES.has(filename) && !IGNORE_FILES.has(filename.toLowerCase()) && !IGNORE_IDS.has(e.id);
-  });
-  const entry = validEntries.find((e) => e.id === entryId);
+  const entry = entryMap[entryId];
   if (!entry) {
     return Astro.redirect('/404');
   }

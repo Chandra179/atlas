@@ -79,16 +79,6 @@ const breadcrumbJsonLd = {
 
   <main class="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden transition-all duration-300 pt-16 lg:ml-64 xl:mr-64">
     <div class="mx-auto px-4 sm:px-6 py-8 lg:py-12 max-w-3xl">
-      <!-- Breadcrumb -->
-      <div class="mb-6 text-sm text-gray-500 dark:text-gray-400">
-        {crumbs.map((crumb, i) => (
-          <span>
-            {i > 0 && <span class="mx-2">/</span>}
-            <span class={i === crumbs.length - 1 ? 'text-gray-900 dark:text-white font-medium' : ''}>{crumb}</span>
-          </span>
-        ))}
-      </div>
-
       <article id="content" class="prose prose-lg prose-blue max-w-none">
         <slot />
       </article>

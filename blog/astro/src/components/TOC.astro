@@ -11,42 +11,86 @@ interface Props {
 
 const { headings } = Astro.props;
 const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
-const hasToc = tocHeadings.length > 0;
+
+// Group h3 under preceding h2 for nesting
+const tocTree: Array<{ slug: string; text: string; children: { slug: string; text: string }[] }> = [];
+let currentH2: (typeof tocTree)[number] | null = null;
+for (const h of tocHeadings) {
+  if (h.depth === 2) {
+    currentH2 = { slug: h.slug, text: h.text, children: [] };
+    tocTree.push(currentH2);
+  } else if (h.depth === 3 && currentH2) {
+    currentH2.children.push({ slug: h.slug, text: h.text });
+  }
+}
+
+const hasToc = tocTree.length > 0;
 ---
 
 <aside id="toc" class="hidden xl:block fixed top-16 right-0 bottom-0 w-64 overflow-y-auto bg-white dark:bg-gray-900 pt-6 pb-6" style={hasToc ? '' : 'display:none'}>
+  {hasToc && (
+    <ul class="toc-list" style="padding-left: 1rem">
+      {tocTree.map((h2) => (
+        <li class="toc-list-item">
+          <a href={`#${h2.slug}`} class="toc-link">{h2.text}</a>
+          {h2.children.length > 0 && (
+            <ul class="toc-list">
+              {h2.children.map((h3) => (
+                <li class="toc-list-item">
+                  <a href={`#${h3.slug}`} class="toc-link">{h3.text}</a>
+                </li>
+              ))}
+            </ul>
+          )}
+        </li>
+      ))}
+    </ul>
+  )}
 </aside>
 
-<script>
-  import tocbot from 'tocbot';
+<script is:inline>
+  (function () {
+    var toc = document.getElementById('toc');
+    if (!toc) return;
 
-  function initToc() {
-    const tocEl = document.getElementById('toc');
-    if (!tocEl) return;
-
-    tocbot.init({
-      tocSelector: '#toc',
-      contentSelector: '#content',
-      headingSelector: 'h2, h3',
-      ignoreSelector: '.no-toc',
-      hasInnerContainers: false,
-      linkClass: 'toc-link',
-      listItemClass: 'toc-list-item',
-      listClass: 'toc-list',
-      activeLinkClass: 'is-active-link',
-      activeListItemClass: 'is-active-li',
-      scrollSmooth: true,
-      scrollSmoothDuration: 300,
-      scrollSmoothOffset: -80,
-      headingsOffset: 80,
-      disableTocScrollSync: false,
-      tocScrollOffset: 24,
-      bottomModeThreshold: 40,
-      collapseDepth: 0,
+    // Smooth scroll on click
+    toc.addEventListener('click', function (e) {
+      var a = e.target.closest('a[href^="#"]');
+      if (!a) return;
+      e.preventDefault();
+      var el = document.querySelector(a.getAttribute('href'));
+      if (el) {
+        var top = el.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({ top: top, behavior: 'smooth' });
+      }
     });
-  }
 
-  initToc();
-  document.addEventListener('astro:after-swap', initToc);
-  document.addEventListener('astro:page-load', initToc);
+    // Active heading tracking via IntersectionObserver
+    var links = toc.querySelectorAll('.toc-link');
+    var headings = [];
+    links.forEach(function (l) {
+      var h = document.querySelector(l.getAttribute('href'));
+      if (h) headings.push(h);
+    });
+    if (!headings.length) return;
+
+    var activeClass = 'is-active-link';
+    function clearActive() {
+      toc.querySelectorAll('.' + activeClass).forEach(function (l) { l.classList.remove(activeClass); });
+    }
+    function setActive(link) {
+      clearActive();
+      if (link) link.classList.add(activeClass);
+    }
+
+    var observer = new IntersectionObserver(function (entries) {
+      entries.forEach(function (entry) {
+        var link = toc.querySelector('a[href="#' + entry.target.id + '"]');
+        if (!link) return;
+        if (entry.isIntersecting) setActive(link);
+      });
+    }, { rootMargin: '-80px 0px -80% 0px', threshold: 0 });
+
+    headings.forEach(function (h) { observer.observe(h); });
+  })();
 </script>
