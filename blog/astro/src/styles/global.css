@@ -1,5 +1,10 @@
 @import "tailwindcss";
 
+@theme {
+  --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+}
+
 /* Custom styles ported from the original blog */
 @import "./base.css";
 @import "./prose.css";
@@ -10,3 +15,7 @@
 
 /* KaTeX styles (self-hosted, no CDN) */
 @import "katex/dist/katex.min.css";
+
+/* Fonts (self-hosted via @fontsource, no Google Fonts) */
+@import "@fontsource-variable/inter";
+@import "@fontsource/jetbrains-mono";
