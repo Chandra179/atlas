@@ -1,0 +1,164 @@
+---
+import { getCollection } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+import { buildNav } from '../lib/nav';
+import { IGNORE_FILES, IGNORE_IDS } from '../lib/ordering';
+import { extractDescription } from '../lib/description';
+
+const allEntries = await getCollection('docs');
+const validEntries = allEntries.filter((e) => {
+  const filename = e.id.split('/').pop() || '';
+  return !IGNORE_FILES.has(filename) && !IGNORE_FILES.has(filename.toLowerCase()) && !IGNORE_IDS.has(e.id);
+});
+
+const nav = buildNav(validEntries);
+
+// Build landing cards from nav sections (mirrors gen-landing-index.js).
+const cards: Array<{
+  title: string;
+  path: string;
+  category: string | null;
+  categorySlug: string | null;
+  description: string;
+}> = [];
+
+for (const section of nav) {
+  if (section.standalone) {
+    const entry = validEntries.find((e) => e.id === section.entryId);
+    cards.push({
+      title: section.name,
+      path: section.url.replace(/^\//, ''),
+      category: null,
+      categorySlug: null,
+      description: entry ? extractDescription(entry.body) : '',
+    });
+  } else {
+    if (section.entryId) {
+      const entry = validEntries.find((e) => e.id === section.entryId);
+      cards.push({
+        title: section.name,
+        path: section.url.replace(/^\//, ''),
+        category: section.name,
+        categorySlug: section.slug,
+        description: entry ? extractDescription(entry.body) : '',
+      });
+    }
+
+    if (section.pages) {
+      for (const page of section.pages) {
+        if (page.isFolder && page.pages) {
+          if (page.entryId) {
+            const entry = validEntries.find((e) => e.id === page.entryId);
+            cards.push({
+              title: page.name,
+              path: page.url.replace(/^\//, ''),
+              category: section.name,
+              categorySlug: section.slug,
+              description: entry ? extractDescription(entry.body) : '',
+            });
+          }
+          for (const subpage of page.pages) {
+            const entry = validEntries.find((e) => e.id === subpage.entryId);
+            cards.push({
+              title: subpage.name,
+              path: subpage.url.replace(/^\//, ''),
+              category: section.name,
+              categorySlug: section.slug,
+              description: entry ? extractDescription(entry.body) : '',
+            });
+          }
+        } else {
+          const entry = validEntries.find((e) => e.id === page.entryId);
+          cards.push({
+            title: page.name,
+            path: page.url.replace(/^\//, ''),
+            category: section.name,
+            categorySlug: section.slug,
+            description: entry ? extractDescription(entry.body) : '',
+          });
+        }
+      }
+    }
+  }
+}
+
+const CATEGORY_BADGES: Record<string, string> = {
+  'fundamental':   'badge-fundamental',
+  'system-design': 'badge-system-design',
+  'golang':        'badge-golang',
+  'math':          'badge-math',
+  'ml':            'badge-ml',
+  'quant':         'badge-quant',
+};
+
+const categories = [...new Set(cards.map((c) => c.categorySlug).filter(Boolean))] as string[];
+const categoryLabels: Record<string, string> = {};
+for (const catSlug of categories) {
+  const cat = nav.find((s) => s.slug === catSlug);
+  categoryLabels[catSlug] = cat?.name || catSlug;
+}
+
+const siteName = 'Chan179';
+const baseDescription = 'Technical notes and learning resources on Math, Golang, System Design, ML, and more.';
+---
+
+<BaseLayout title={siteName} description={baseDescription} canonical="/">
+  <main class="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden pt-8">
+    <div class="mx-auto px-4 sm:px-6 py-8 lg:py-12 max-w-6xl">
+      <!-- Filter Bar -->
+      <div class="flex flex-wrap items-center gap-2 mb-8" id="filter-bar">
+        <button data-filter="all" class="filter-pill filter-pill-active">All</button>
+        {categories.map((catSlug) => (
+          <button data-filter={catSlug} class="filter-pill">{categoryLabels[catSlug]}</button>
+        ))}
+      </div>
+
+      <!-- Card grid (server-rendered for SEO) -->
+      <div class="landing-grid" style="--landing-cols: 2;">
+        {cards.map((card) => (
+          <a href={'/' + card.path} class="landing-card" data-category={card.categorySlug || ''}>
+            <div class="card-badge-wrapper">
+              {card.category && (
+                <span class={'card-badge ' + (CATEGORY_BADGES[card.categorySlug || ''] || 'badge-default')}>{card.category}</span>
+              )}
+            </div>
+            <h3 class="card-title">{card.title}</h3>
+            <p class="card-desc">{card.description || 'No description available.'}</p>
+          </a>
+        ))}
+      </div>
+    </div>
+  </main>
+
+  <!-- Floating Dark Mode Toggle -->
+  <button @click="isDark = !isDark; document.documentElement.classList.toggle('dark', isDark); localStorage.setItem('darkMode', isDark)"
+    class="fixed bottom-6 right-6 z-50 p-3 rounded-full shadow-lg border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 hover:shadow-xl transition-all duration-200"
+    aria-label="Toggle dark mode">
+    <svg x-show="isDark" class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+    </svg>
+    <svg x-show="!isDark" class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+    </svg>
+  </button>
+</BaseLayout>
+
+<script>
+  // Client-side filter for landing cards
+  const filterBar = document.getElementById('filter-bar');
+  if (filterBar) {
+    const buttons = filterBar.querySelectorAll('.filter-pill');
+    const cards = document.querySelectorAll('.landing-card[data-category]');
+    buttons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const filter = btn.getAttribute('data-filter') || 'all';
+        buttons.forEach((b) => b.classList.remove('filter-pill-active'));
+        btn.classList.add('filter-pill-active');
+        cards.forEach((card) => {
+          const cat = card.getAttribute('data-category');
+          (card as HTMLElement).style.display = (filter === 'all' || cat === filter) ? '' : 'none';
+        });
+      });
+    });
+  }
+</script>

@@ -1,0 +1,229 @@
+---
+interface Props {
+  title: string;
+  description: string;
+  canonical: string;
+  ogType?: string;
+  jsonLd?: object;
+}
+
+const {
+  title,
+  description,
+  canonical,
+  ogType = 'website',
+  jsonLd,
+} = Astro.props;
+
+const siteName = 'Chan179';
+const fullTitle = title === siteName ? title : `${title} — ${siteName}`;
+const canonicalUrl = new URL(canonical, Astro.site).href;
+
+import '../styles/global.css';
+---
+
+<!DOCTYPE html>
+<html lang="en" class="overflow-x-hidden">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{fullTitle}</title>
+  <meta name="description" content={description} />
+  <link rel="icon" type="image/png" href="/favicon.png" />
+  <link rel="canonical" href={canonicalUrl} />
+
+  <!-- Open Graph -->
+  <meta property="og:type" content={ogType} />
+  <meta property="og:site_name" content={siteName} />
+  <meta property="og:title" content={fullTitle} />
+  <meta property="og:description" content={description} />
+  <meta property="og:url" content={canonicalUrl} />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary" />
+  <meta name="twitter:title" content={fullTitle} />
+  <meta name="twitter:description" content={description} />
+
+  <!-- Cloudflare Web Analytics -->
+  <script defer src="https://static.cloudflareinsights.com/beacon.min.js"
+    data-cf-beacon='{"token": "dc2db16f28b54096b53f7a070b0f56d3"}'></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap"
+    rel="stylesheet" />
+
+  {jsonLd && (
+    <script type="application/ld+json" set:html={JSON.stringify(jsonLd)} />
+  )}
+
+  <!-- Dark mode init: apply before paint to prevent flash -->
+  <script is:inline>
+    (function () {
+      const stored = localStorage.getItem('darkMode');
+      const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+      if (stored === 'true' || (stored === null && prefersDark)) {
+        document.documentElement.classList.add('dark');
+      }
+    })();
+  </script>
+</head>
+
+<body class="bg-gray-50 font-sans overflow-x-hidden" x-data="{ mobileMenuOpen: false, isDark: document.documentElement.classList.contains('dark') }">
+  <!-- Mobile Header -->
+  <div x-show="!mobileMenuOpen"
+    class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 z-50 flex items-center px-4 gap-4">
+    <button @click="mobileMenuOpen = true" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg flex-shrink-0">
+      <svg class="w-6 h-6 text-gray-700 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+      </svg>
+    </button>
+    <a href="/" class="font-bold text-lg text-gray-900 dark:text-white flex-1">Chandra</a>
+    <button @click="isDark = !isDark; document.documentElement.classList.toggle('dark', isDark); localStorage.setItem('darkMode', isDark)"
+      class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg flex-shrink-0" aria-label="Toggle dark mode">
+      <svg x-show="isDark" class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+      </svg>
+      <svg x-show="!isDark" class="w-5 h-5 text-gray-500 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+      </svg>
+    </button>
+  </div>
+
+  <!-- Desktop Header -->
+  <header class="hidden lg:flex fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 z-50 items-center justify-between">
+    <div class="flex items-center w-64 pl-6">
+      <a href="/" class="font-bold text-xl text-gray-900 dark:text-white">Chandra</a>
+    </div>
+    <div class="flex-1 min-w-0">
+      <div class="max-w-3xl mx-auto px-6 w-full">
+        <div id="search" class="relative w-full"></div>
+      </div>
+    </div>
+    <div class="flex items-center justify-end w-64 pr-6">
+      <button @click="isDark = !isDark; document.documentElement.classList.toggle('dark', isDark); localStorage.setItem('darkMode', isDark)"
+        class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" aria-label="Toggle dark mode">
+        <svg x-show="isDark" class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+        </svg>
+        <svg x-show="!isDark" class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Mobile menu overlay -->
+  <div x-show="mobileMenuOpen" @click="mobileMenuOpen = false"
+    class="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+    x-transition:enter="transition-opacity ease-linear duration-300" x-transition:enter-start="opacity-0"
+    x-transition:enter-end="opacity-100" x-transition:leave="transition-opacity ease-linear duration-300"
+    x-transition:leave-start="opacity-100" x-transition:leave-end="opacity-0"></div>
+
+  <slot />
+
+  <!-- Pagefind search UI -->
+  <script is:inline>
+    window.addEventListener('load', function () {
+      if (window.pagefind) {
+        const searchEl = document.getElementById('search');
+        if (searchEl) {
+          const ui = new window.pagefind.ui({
+            element: '#search',
+            showImages: false,
+            pageSize: 5,
+          });
+        }
+      }
+    });
+  </script>
+  <script src="/pagefind/pagefind-ui.js" defer></script>
+  <link rel="stylesheet" href="/pagefind/pagefind-ui.css" />
+
+  <!-- Render GitBook embed cards -->
+  <script type="module">
+    function renderEmbedCard(url) {
+      let icon = '<svg class="embed-card-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
+      let label = url;
+      let sublabel = '';
+      const ghMatch = url.match(/^https?:\/\/github\.com\/([^/]+)\/([^/\s#?]+)/);
+      if (ghMatch) {
+        const owner = ghMatch[1];
+        const repo = ghMatch[2].replace(/\.git$/, '');
+        icon = '<svg class="embed-card-icon-svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>';
+        label = owner + '/' + repo;
+        sublabel = 'github.com/' + owner + '/' + repo;
+      } else {
+        try {
+          const u = new URL(url);
+          sublabel = u.hostname;
+        } catch (_) {}
+      }
+      const safeLabel = label.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      const safeUrl = url.replace(/&/g, '&amp;').replace(/"/g, '&quot;');
+      const safeSub = sublabel.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+      return `<a href="${safeUrl}" target="_blank" rel="noopener noreferrer" class="embed-card">`
+        + `<span class="embed-card-icon">${icon}</span>`
+        + `<span class="embed-card-body"><span class="embed-card-label">${safeLabel}</span>`
+        + (safeSub ? `<span class="embed-card-sublabel">${safeSub}</span>` : '')
+        + `</span>`
+        + `<svg class="embed-card-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>`
+        + `</a>`;
+    }
+
+    document.querySelectorAll('.embed-card-wrapper[data-embed-url]').forEach((el) => {
+      const url = el.getAttribute('data-embed-url');
+      if (url) el.innerHTML = renderEmbedCard(url);
+    });
+  </script>
+
+  <!-- Render Mermaid diagrams (client-side, Phase 2 will SSR to SVG) -->
+  <script type="module">
+    async function renderMermaid() {
+      const blocks = document.querySelectorAll('pre.mermaid');
+      if (blocks.length === 0) return;
+      const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.esm.min.mjs');
+      mermaid.initialize({ startOnLoad: false, theme: 'default' });
+      for (const block of blocks) {
+        try {
+          const id = 'mermaid-' + Math.random().toString(36).substring(2, 11);
+          const { svg } = await mermaid.render(id, block.textContent || '');
+          block.innerHTML = svg;
+        } catch (e) {
+          console.warn('Mermaid render failed:', e);
+        }
+      }
+    }
+    if (document.readyState === 'complete') renderMermaid();
+    else window.addEventListener('load', renderMermaid);
+  </script>
+
+  <!-- Code block copy buttons -->
+  <script type="module">
+    document.querySelectorAll('pre.astro-code > code, pre code:not(.mermaid)').forEach((code) => {
+      const pre = code.parentElement;
+      if (!pre || pre.dataset.copyBtnAdded) return;
+      if (pre.classList.contains('mermaid')) return;
+      pre.dataset.copyBtnAdded = '1';
+
+      const btn = document.createElement('button');
+      btn.className = 'code-copy-btn';
+      btn.textContent = 'Copy';
+      btn.addEventListener('click', () => {
+        navigator.clipboard.writeText(code.textContent || '').then(() => {
+          btn.textContent = 'Copied!';
+          btn.classList.add('copied');
+          setTimeout(() => {
+            btn.textContent = 'Copy';
+            btn.classList.remove('copied');
+          }, 2000);
+        });
+      });
+      pre.style.position = 'relative';
+      pre.appendChild(btn);
+    });
+  </script>
+</body>
+</html>

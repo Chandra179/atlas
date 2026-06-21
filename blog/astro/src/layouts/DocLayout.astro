@@ -1,0 +1,99 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Sidebar from '../components/Sidebar.astro';
+import TOC from '../components/TOC.astro';
+import type { NavSection } from '../lib/nav';
+import { buildBreadcrumb } from '../lib/nav';
+import { extractDescription } from '../lib/description';
+
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  title: string;
+  description?: string;
+  body: string;
+  headings: Heading[];
+  url: string;
+  nav: NavSection[];
+  created?: Date;
+}
+
+const {
+  title,
+  description,
+  body,
+  headings,
+  url,
+  nav,
+  created,
+} = Astro.props;
+
+const siteName = 'Chan179';
+const breadcrumb = buildBreadcrumb(nav, url);
+const pageTitle = title || breadcrumb;
+const pageDescription = description || extractDescription(body);
+const baseDescription = 'Technical notes and learning resources on Math, Golang, System Design, ML, and more.';
+const metaDescription = pageDescription || `Notes on ${breadcrumb}. ${baseDescription}`;
+
+// JSON-LD structured data
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Article',
+  headline: pageTitle,
+  description: metaDescription,
+  mainEntityOfPage: {
+    '@type': 'WebPage',
+    '@id': new URL(url, Astro.site).href,
+  },
+  ...(created && { datePublished: created.toISOString() }),
+  author: { '@type': 'Person', name: 'Chandra' },
+  publisher: { '@type': 'Organization', name: siteName },
+};
+
+// BreadcrumbList JSON-LD
+const crumbs = breadcrumb.split(' / ');
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: crumbs.map((name, i) => ({
+    '@type': 'ListItem',
+    position: i + 1,
+    name,
+    item: i === 0 ? new URL('/', Astro.site).href : undefined,
+  })),
+};
+---
+
+<BaseLayout
+  title={pageTitle}
+  description={metaDescription}
+  canonical={url}
+  ogType="article"
+  jsonLd={[jsonLd, breadcrumbJsonLd]}
+>
+  <Sidebar nav={nav} currentPath={url} />
+
+  <main class="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden transition-all duration-300 pt-16 lg:ml-64 xl:mr-64">
+    <div class="mx-auto px-4 sm:px-6 py-8 lg:py-12 max-w-3xl">
+      <!-- Breadcrumb -->
+      <div class="mb-6 text-sm text-gray-500 dark:text-gray-400">
+        {crumbs.map((crumb, i) => (
+          <span>
+            {i > 0 && <span class="mx-2">/</span>}
+            <span class={i === crumbs.length - 1 ? 'text-gray-900 dark:text-white font-medium' : ''}>{crumb}</span>
+          </span>
+        ))}
+      </div>
+
+      <article id="content" class="prose prose-lg prose-blue max-w-none">
+        <slot />
+      </article>
+    </div>
+  </main>
+
+  <TOC headings={headings} />
+</BaseLayout>

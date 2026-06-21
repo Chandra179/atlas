@@ -1,0 +1,39 @@
+---
+interface Heading {
+  depth: number;
+  slug: string;
+  text: string;
+}
+
+interface Props {
+  headings: Heading[];
+}
+
+const { headings } = Astro.props;
+const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
+---
+
+<aside class="hidden xl:block fixed top-16 right-0 bottom-0 w-64 overflow-y-auto bg-white dark:bg-gray-900"
+  x-data="{ activeId: '' }"
+  x-init="
+    const headings = document.querySelectorAll('#content h2, #content h3');
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          activeId = entry.target.id;
+        }
+      });
+    }, { rootMargin: '-100px 0px -66%' });
+    headings.forEach((h) => observer.observe(h));
+  ">
+  <div class="p-6"></div>
+  <nav class="px-4 pb-6 space-y-2 text-sm" x-show={tocHeadings.length > 0}>
+    {tocHeadings.map((h) => (
+      <a href={`#${h.slug}`}
+        class={`toc-link block py-1 text-sm text-gray-600 hover:text-gray-900 border-l-2 border-transparent hover:border-gray-300 pl-3 ${h.depth === 2 ? 'ml-0' : 'ml-4'}`}
+        :class={`activeId === '${h.slug}' ? 'border-blue-500 text-blue-600' : ''`}>
+        {h.text}
+      </a>
+    ))}
+  </nav>
+</aside>

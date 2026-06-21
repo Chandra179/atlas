@@ -1,0 +1,279 @@
+/* Dark Mode Overrides */
+
+/* ========== Base ========== */
+.dark body {
+    background-color: #0f172a;
+    color: #cbd5e1;
+}
+
+/* ========== Header ========== */
+.dark header,
+.dark .lg\:hidden.fixed.top-0 {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+
+/* ========== Sidebars ========== */
+.dark aside {
+    background-color: #1e293b;
+    border-color: #334155;
+}
+
+/* ========== Main Content ========== */
+.dark main {
+    background-color: #0f172a;
+}
+
+/* ========== Nav Links ========== */
+.dark .nav-link {
+    color: #94a3b8;
+}
+
+.dark .nav-link:hover {
+    background-color: #1e293b;
+    color: #e2e8f0;
+}
+
+.dark .nav-link.active {
+    background-color: #1e3a5f;
+    color: #60a5fa;
+}
+
+/* ========== Section Headers ========== */
+.dark .text-gray-500 {
+    color: #64748b;
+}
+
+.dark .text-gray-900 {
+    color: #f1f5f9;
+}
+
+.dark .hover\:text-gray-900:hover {
+    color: #f1f5f9 !important;
+}
+
+/* ========== TOC ========== */
+.dark .toc-link {
+    color: #64748b;
+}
+
+.dark .toc-link:hover {
+    color: #94a3b8;
+}
+
+.dark .toc-link.active {
+    color: #60a5fa;
+    border-left-color: #3b82f6;
+}
+
+/* ========== Search Input ========== */
+.dark input[type="text"] {
+    background-color: #1e293b;
+    border-color: #334155;
+    color: #e2e8f0;
+}
+
+.dark input[type="text"]::placeholder {
+    color: #475569;
+}
+
+.dark input[type="text"]:focus {
+    background-color: #1e293b;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 1px #3b82f6;
+}
+
+/* ========== Search Dropdown ========== */
+.dark .bg-white {
+    background-color: #1e293b !important;
+}
+
+.dark .border-gray-200 {
+    border-color: #334155 !important;
+}
+
+.dark .border-gray-100 {
+    border-color: #1e293b !important;
+}
+
+.dark .hover\:bg-gray-50:hover {
+    background-color: #0f172a !important;
+}
+
+.dark .text-gray-400 {
+    color: #475569 !important;
+}
+
+/* ========== Prose / Markdown ========== */
+.dark .prose {
+    color: #cbd5e1;
+}
+
+.dark .prose h1,
+.dark .prose h2,
+.dark .prose h3,
+.dark .prose h4 {
+    color: #f1f5f9;
+}
+
+.dark .prose strong {
+    color: #f1f5f9;
+}
+
+.dark .prose a {
+    color: #60a5fa;
+}
+
+.dark .prose a:hover {
+    color: #93c5fd;
+}
+
+.dark .prose code {
+    color: #e2e8f0;
+    background-color: #1e293b;
+}
+
+.dark .prose blockquote {
+    color: #94a3b8;
+    border-left-color: #334155;
+}
+
+.dark .prose thead {
+    border-bottom-color: #334155;
+}
+
+.dark .prose thead th {
+    color: #f1f5f9;
+}
+
+.dark .prose tbody tr {
+    border-bottom-color: #1e293b;
+}
+
+.dark .prose hr {
+    border-color: #334155;
+}
+
+/* ========== Tabs ========== */
+.dark .gitbook-tabs {
+    border-color: #334155;
+}
+
+.dark .tab-headers {
+    background-color: #1e293b;
+    border-bottom-color: #334155;
+}
+
+.dark .tab-header {
+    color: #64748b;
+}
+
+.dark .tab-header:hover {
+    background-color: #0f172a;
+    color: #94a3b8;
+}
+
+.dark .tab-header.active {
+    background-color: #0f172a;
+    color: #60a5fa;
+    border-bottom-color: #3b82f6;
+}
+
+.dark .tab-contents {
+    background-color: #0f172a;
+}
+
+/* ========== Mermaid Diagrams ========== */
+.dark .mermaid-diagram {
+    border-color: #334155;
+    background: #0f172a;
+}
+
+.dark .mermaid-diagram svg {
+    filter: invert(0.85) hue-rotate(180deg);
+}
+
+.dark .mermaid-zoom-btn {
+    background: rgba(30, 41, 59, 0.9);
+    border-color: #475569;
+    color: #cbd5e1;
+}
+
+.dark .mermaid-zoom-btn:hover {
+    background: #334155;
+    color: #f1f5f9;
+}
+
+/* ========== Embed Cards ========== */
+.dark .embed-card {
+    border-color: #334155;
+    background: #1e293b;
+    color: #cbd5e1;
+}
+
+.dark .embed-card:hover {
+    border-color: #3b82f6;
+    background: #1e3a5f;
+    box-shadow: 0 1px 3px rgba(59, 130, 246, 0.2);
+}
+
+.dark .embed-card-icon {
+    background: #0f172a;
+    color: #94a3b8;
+}
+
+.dark .embed-card-label {
+    color: #f1f5f9;
+}
+
+.dark .embed-card:hover .embed-card-label {
+    color: #60a5fa;
+}
+
+.dark .embed-card-sublabel {
+    color: #64748b;
+}
+
+.dark .embed-card-arrow {
+    color: #475569;
+}
+
+.dark .embed-card:hover .embed-card-arrow {
+    color: #60a5fa;
+}
+
+/* ========== Mobile menu button ========== */
+.dark button.hover\:bg-gray-100:hover {
+    background-color: #1e293b !important;
+}
+
+/* ========== Mobile overlay ========== */
+.dark .bg-white.border-b {
+    background-color: #1e293b !important;
+    border-color: #334155 !important;
+}
+
+/* ========== Footnotes ========== */
+.dark .footnotes {
+    color: #94a3b8;
+}
+
+.dark .footnotes-list li:target {
+    background: #1e3a5f;
+}
+
+.dark .footnote-ref a {
+    color: #60a5fa;
+}
+
+.dark .footnote-ref a:hover {
+    color: #93c5fd;
+}
+
+.dark .footnote-backref {
+    color: #475569;
+}
+
+.dark .footnote-backref:hover {
+    color: #60a5fa;
+}

@@ -1,0 +1,49 @@
+/* KaTeX Math Display and Styling */
+
+/* Display Math (Block) */
+.katex-display {
+    box-sizing: border-box; /* Ensures padding doesn't add to width */
+    margin: 1em 0;
+    overflow-x: auto;
+    overflow-y: hidden;
+    text-align: left; /* Acts like paragraph */
+    display: block;
+    max-width: 100%;
+}
+
+/* Wrap display math so it scrolls on narrow screens */
+.katex-display > .katex {
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 0.25em; /* space for scrollbar */
+}
+
+/* Inline Math */
+.katex {
+    font-size: 1.1em;
+    text-align: left;
+}
+
+/* Inline math layout */
+.katex-html {
+    display: inline-block;
+    max-width: 100%;
+}
+
+/* Explicit .math class elements */
+.math {
+    font-family: 'KaTeX_Main', 'Times New Roman', serif;
+    font-size: 1.1em;
+}
+
+/* Mobile math overflow containment */
+@media (max-width: 640px) {
+    .katex-display {
+        font-size: 0.95em;
+    }
+
+    .katex {
+        font-size: 1em;
+    }
+}
