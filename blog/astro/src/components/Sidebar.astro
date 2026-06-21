@@ -16,12 +16,32 @@ function isActive(url: string, current: string): boolean {
 function isCategoryActive(slug: string, current: string): boolean {
   return current.replace(/^\//, '').startsWith(slug + '/') || current === '/' + slug;
 }
+
+// Compute initial expanded state so the active section/folder is open on load.
+const initialSections: Record<string, boolean> = {};
+const initialFolders: Record<string, boolean> = {};
+for (const section of nav) {
+  if (section.standalone || !section.pages) continue;
+  if (isCategoryActive(section.slug, currentPath)) {
+    initialSections[section.slug] = true;
+    for (const page of section.pages) {
+      if (page.isFolder && page.pages) {
+        const key = `${section.slug}/${page.slug}`;
+        if (isActive(page.url, currentPath) ||
+            page.pages.some((p) => isActive(p.url, currentPath))) {
+          initialFolders[key] = true;
+        }
+      }
+    }
+  }
+}
+const initialState = JSON.stringify({ expandedSections: initialSections, expandedFolders: initialFolders });
 ---
 
 <aside
   class="fixed top-16 left-0 bottom-0 w-64 bg-white dark:bg-gray-900 overflow-y-auto z-40 transition-transform duration-300 -translate-x-full lg:translate-x-0"
   :class="mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
-  x-data="{ expandedSections: {} as Record<string, boolean>, expandedFolders: {} as Record<string, boolean> }"
+  x-data={initialState}
 >
   <div class="p-6"></div>
   <nav class="px-4 pb-6">

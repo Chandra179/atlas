@@ -1,26 +1,26 @@
 # Table of Contents
 
 ## Overview
-```dataview
+```txt
 LIST FROM #economy WHERE file.folder = "economy" SORT file.path ASC
 ```
 
 ## Microeconomics
-```dataview
+```txt
 LIST FROM #economy/micro SORT file.path ASC
 ```
 
 ## Macroeconomics
-```dataview
+```txt
 LIST FROM #economy/macro SORT file.path ASC
 ```
 
 ## Global Finance
-```dataview
+```txt
 LIST FROM #economy/global SORT file.path ASC
 ```
 
 ## Behavioral Economics
-```dataview
+```txt
 LIST FROM #economy/behavioral SORT file.path ASC
 ```

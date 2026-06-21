@@ -12,11 +12,43 @@ body {
     font-weight: 500;
 }
 
-/* ========== TOC Active State ========== */
-.toc-link.active {
+/* ========== TOC (tocbot-generated markup) ========== */
+.toc-list {
+    list-style: none;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    margin: 0;
+}
+
+.toc-list-item {
+    margin: 0;
+}
+
+.toc-link {
+    display: block;
+    padding: 0.25rem 0;
+    font-size: 0.875rem;
+    color: #4b5563;
+    text-decoration: none;
+    border-left: 2px solid transparent;
+    padding-left: 0.75rem;
+    transition: color 0.15s, border-color 0.15s;
+}
+
+.toc-link:hover {
+    color: #111827;
+    border-left-color: #d1d5db;
+}
+
+.toc-link.is-active-link {
     color: #2563eb;
     border-left-color: #3b82f6;
     font-weight: 500;
+}
+
+/* Indent h3 entries under h2 */
+.toc-list .toc-list-item .toc-list {
+    padding-left: 1rem;
 }
 
 /* ========== Search Result Highlighting ========== */

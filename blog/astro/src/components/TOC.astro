@@ -11,29 +11,42 @@ interface Props {
 
 const { headings } = Astro.props;
 const tocHeadings = headings.filter((h) => h.depth === 2 || h.depth === 3);
+const hasToc = tocHeadings.length > 0;
 ---
 
-<aside class="hidden xl:block fixed top-16 right-0 bottom-0 w-64 overflow-y-auto bg-white dark:bg-gray-900"
-  x-data="{ activeId: '' }"
-  x-init="
-    const headings = document.querySelectorAll('#content h2, #content h3');
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          activeId = entry.target.id;
-        }
-      });
-    }, { rootMargin: '-100px 0px -66%' });
-    headings.forEach((h) => observer.observe(h));
-  ">
-  <div class="p-6"></div>
-  <nav class="px-4 pb-6 space-y-2 text-sm" x-show={tocHeadings.length > 0}>
-    {tocHeadings.map((h) => (
-      <a href={`#${h.slug}`}
-        class={`toc-link block py-1 text-sm text-gray-600 hover:text-gray-900 border-l-2 border-transparent hover:border-gray-300 pl-3 ${h.depth === 2 ? 'ml-0' : 'ml-4'}`}
-        :class={`activeId === '${h.slug}' ? 'border-blue-500 text-blue-600' : ''`}>
-        {h.text}
-      </a>
-    ))}
-  </nav>
+<aside id="toc" class="hidden xl:block fixed top-16 right-0 bottom-0 w-64 overflow-y-auto bg-white dark:bg-gray-900 pt-6 pb-6" style={hasToc ? '' : 'display:none'}>
 </aside>
+
+<script>
+  import tocbot from 'tocbot';
+
+  function initToc() {
+    const tocEl = document.getElementById('toc');
+    if (!tocEl) return;
+
+    tocbot.init({
+      tocSelector: '#toc',
+      contentSelector: '#content',
+      headingSelector: 'h2, h3',
+      ignoreSelector: '.no-toc',
+      hasInnerContainers: false,
+      linkClass: 'toc-link',
+      listItemClass: 'toc-list-item',
+      listClass: 'toc-list',
+      activeLinkClass: 'is-active-link',
+      activeListItemClass: 'is-active-li',
+      scrollSmooth: true,
+      scrollSmoothDuration: 300,
+      scrollSmoothOffset: -80,
+      headingsOffset: 80,
+      disableTocScrollSync: false,
+      tocScrollOffset: 24,
+      bottomModeThreshold: 40,
+      collapseDepth: 0,
+    });
+  }
+
+  initToc();
+  document.addEventListener('astro:after-swap', initToc);
+  document.addEventListener('astro:page-load', initToc);
+</script>

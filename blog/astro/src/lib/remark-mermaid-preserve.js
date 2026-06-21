@@ -6,6 +6,9 @@
 //   { type: 'code', lang: 'mermaid', value: 'graph TD\n...' }
 // We replace it with:
 //   { type: 'html', value: '<pre class="mermaid">graph TD\n...</pre>' }
+//
+// A <pre class="mermaid"> is used so rehype-mermaid can match it at the
+// hast level and render it to an inline <svg> at build time.
 import { visit } from 'unist-util-visit';
 
 /** Escape HTML special characters in text. */

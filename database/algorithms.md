@@ -61,7 +61,7 @@ A `COMMIT` is not durable until the WAL flush completes. On crash recovery, the 
 2. Replays all committed transactions from the WAL since that checkpoint.
 3. Rolls back uncommitted transactions using undo logs.
 
-```pseudocode
+```txt
 function RecoverFromCrash()
     checkpoint ← ReadLastCheckpoint()
     committed ← ReadCommittedTransactions()             // from transaction log

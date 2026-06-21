@@ -7,18 +7,18 @@ created: "2026-06-13"
 
 # RAG
 
-Documents flow through a RAG pipeline in eight stages. Five are implemented (ingest, chunk, embed, retrieve, generate); three are scaffolded or unbuilt (evaluate, test, monitor). This note documents the `nadir` implementation as of `main` — config defaults, exact mechanics, and where the code has gaps.
+Documents flow through a RAG pipeline in eight stages. Six are implemented (ingest, chunk, embed, retrieve, generate, evaluate); test coverage is minimal (unit tests only); monitor is scaffolded but broken on `main`. This note documents the `nadir` implementation as of `main` — config defaults, exact mechanics, and where the code has gaps.
 
 > **Before reading:** `nadir` is a separate Go repo (github.com/Chandra179/nadir); this vault note documents it. Retrieval-quality concepts (recall@k, MRR, NDCG, faithfulness, LLM-as-judge) live in `ai/evaluation.md`.
 
 ## Ingestion
 
-`IngestService.Run` lists markdown files, diffs their SHAs against the store in a single paginated scroll (`GetAllFileSHAs`, page size 1000), and dispatches changed files to 8 concurrent workers (`const ingestWorkers = 8`). Unchanged files are skipped; changed files are upserted in place by deterministic point ID.
+`IngestService.Run` lists markdown files across one or more roots (`knowledge_base.path` plus `knowledge_base.paths`, merged and deduped via `AllPaths()`), filters out paths matching `pkb.ignore_patterns` (glob, with `dir/**` prefix matching), diffs each file's SHA-256 against the store in a single paginated scroll (`GetAllFileSHAs`, page size 1000), and dispatches changed files to 8 concurrent workers (`const ingestWorkers = 8`). Unchanged files are skipped; changed files are upserted in place by deterministic point ID.
 
 Docling converts PDF to Markdown (`pdfs/raw` → `pdfs/converted`); the recursive chunker separately strips Docling's HTML-comment artifacts.
 
 * **Deterministic IDs** — `chunkID(filePath, lineStart, chunkIndex)` = UUIDv5 (`uuid.NewSHA1` over a private namespace). Same input always maps to the same point, so upserts replace rather than duplicate.
-* **Contextual embedding** — before embedding, each chunk is prefixed with `filePath > header\n` (Anthropic 2024). This anchors chunk semantics to document structure without altering stored text.
+* **Contextual embedding** — before embedding, each chunk is prefixed with `filePath > header\n` (or just `filePath\n` when the chunk has no heading) (Anthropic 2024). This anchors chunk semantics to document structure without altering stored text. Embedding is batched: `OllamaEmbedder.EmbedBatch` sends every chunk in a file to Ollama `/api/embed` in one round-trip (`Pipeline` uses the `BatchEmbedder` fast-path).
 * **Qdrant collections** — auto-configured on startup: dense vectors with Cosine distance, a named sparse vector with IDF modifier, a full-text index on `text`, and a keyword index on `file_path`.
 
 ***
@@ -100,7 +100,7 @@ Results: []{ file_path, header, line_start, score, text }
 
 ### Semantic Cache
 
-A dedicated Qdrant collection (`pkb_cache`) caches results keyed by query-embedding similarity. On a hit (top-1 cosine ≥ threshold) the cached result returns immediately, skipping embedder, store, and reranker. The cache hit path runs **only when `generate=false`** — generation requests always run the full pipeline. On a miss, the pipeline runs and the result is written to cache asynchronously.
+A dedicated Qdrant collection (`pkb_cache`) caches results keyed by query-embedding similarity. On a hit (top-1 cosine ≥ threshold) the cached result returns immediately, skipping the retrieval pipeline — store search, reranker, chunk filter, and generator (the cache still embeds the query to perform the lookup). The cache hit path runs **only when `generate=false`** and `query` is non-empty — generation and keyword-only requests always run the full pipeline. On a miss, the pipeline runs and the result is written to cache asynchronously (`go semanticCache.Set(...)`); generate requests also populate the cache even though they never read from it.
 
 ```json
 {
@@ -124,6 +124,8 @@ Given a query like "How do I install Python?", HyDE asks an LLM to write a hypot
 
 Hybrid search fuses a dense leg and a sparse (BM25) leg. The client-side path fetches `topK × prefetch_mul` (default ×5) candidates per leg, rescores the sparse leg with the configured sparse scorer, then fuses via RRF (k=60). The server-side path (see Embedding & Storage) does the same in one Qdrant round-trip but is not currently wired.
 
+> **Multi-fragment queries (non-HyDE path).** When HyDE is off, `SearchService.multiSearch` splits the query on `[.?;]+\s*`, runs `HybridSearch` per fragment, dedups by chunk key (keeping the best score), and re-sorts. With HyDE on, the averaged hypothetical-doc vector is searched in a single `HybridSearch` call (no fragment splitting). The `topK` passed into the store is already `topK × candidate_mul` when a reranker is wired, so total candidates per leg scale as `topK × candidate_mul × prefetch_mul`.
+
 ### Payload Filtering
 
 `HybridSearch` and `KeywordSearch` accept a `*SearchFilter` whose non-empty fields are ANDed:
@@ -146,10 +148,10 @@ A cross-encoder re-ranks candidates from vector search using the chunk's Window 
 
 After reranking, an optional LLM chunk filter drops irrelevant results before generation. Ref: arxiv 2410.19572 (+10pp PopQA accuracy).
 
-* Batches all retrieved chunks into one prompt; the model scores each 0–1.
-* Drops chunks below the configurable threshold (default 0.5).
-* Order of surviving chunks is preserved.
-* On LLM error, falls through and returns all chunks rather than drop everything.
+* Calls the OpenAI-compatible `/v1/chat/completions` endpoint (constructed as `ollama_addr + "/v1"`, i.e. Ollama's compatibility shim — distinct from the generator, which uses native `/api/chat`).
+* Batches all retrieved chunks (Window Text, falling back to chunk Text) into one prompt; the model returns a JSON array of scores 0–1, one per passage.
+* Drops chunks below the configurable threshold (default 0.5); order of survivors is preserved.
+* **Never returns zero chunks.** `SearchService.postProcess` only swaps in the filtered list when `err == nil && len(filtered) > 0`, so an LLM error, a malformed/score-count-mismatch response, or an all-dropped result all fall through to the original (reranked) chunks.
 
 ```yaml
 chunk_filter:
@@ -204,26 +206,60 @@ hyde:
 
 ## Evaluate
 
-> **Status: not implemented.**
+> **Status: implemented (`internal/eval/` + `cmd/eval/`).**
 
-No evaluation package exists in `nadir`. There is no retrieval-quality harness (recall@k, MRR, NDCG), no faithfulness/groundedness judge, no eval dataset loader, and no eval CLI. `.env.example` contains orphaned `EVAL_*` variables that `config.go` never reads, and `AGENTS.md`'s claim that "eval tests pull qdrant/qdrant:latest" is stale (no testcontainers dependency, no eval tests).
+Two eval modes, both driven by a golden set (`eval/golden.yaml`) and run through the `cmd/eval` CLI:
 
-For the conceptual basis an evaluator would need — perplexity, BLEU/ROUGE/METEOR/BERTScore, LLM-as-judge, benchmarks — see `ai/evaluation.md`.
+**Retrieval eval** (`-mode retrieval`) — `eval.Runner` runs each golden query through a `SearchService` (rebuilt with the same HyDE/reranker/chunk-filter wiring as the server, minus semantic cache and generator) and `eval.Aggregate` scores the ranked list:
+
+| Metric | Notes |
+|---|---|
+| Recall@5, Recall@10 | unique-relevant / total-relevant (dedup at chunk granularity) |
+| Precision@5 | hits / k (denominator is k) |
+| MRR (ReciprocalRank) | 1/rank of first relevant |
+| Success@5 | 1 if any relevant in top-5 |
+| MAP (AveragePrecision) | area under P-R curve |
+| NDCG@10 | linear-gain (Järvelin & Kekäläinen 2002) |
+| NDCG@10 (exp) | exponential-gain `(2^rel − 1)/log2(i+1)` — BEIR-style |
+
+Graded relevance: `relevance: {file: grade}` with 0=irrelevant, 1=marginal, 2=relevant, 3=highly; `expected_files` is the binary special case (grade=1). Path matching is suffix-based (`MatchFile`), so `math/trigonometry.md` matches `gitbook/math/trigonometry.md`. **Bootstrap 95% CIs** are printed for Recall@5, Recall@10, NDCG@10, and MAP (1000 resamples, fixed seed). `-granularity chunk` scores at passage level (paper-comparable); default is `file` (deduped).
+
+**RAG eval** (`-mode rag`) — `eval.RAGASEvaluator` runs the full RAG loop per query (retrieve → `GeneratorAdapter` generates → `OllamaJudge` scores) and reports four RAGAS metrics (Es et al. 2023, arxiv 2309.15217):
+
+| Metric | Method |
+|---|---|
+| Faithfulness | decompose answer → statements; verify each against context; ratio supported |
+| Answer Relevance | LLM rates answer-vs-query 0–1 |
+| Context Precision | LLM rates each chunk 0–1, weighted by `1/log2(k+1)` |
+| Context Recall | decompose `expected_answer` → statements; check attributability to context (requires `expected_answer`; otherwise `N/A`) |
+
+The judge calls Ollama's OpenAI-compatible `/v1/chat/completions`; the judge model defaults to `generator.model` (override with `-judge-model`). `-mode both` runs retrieval then RAGAS in one pass.
+
+**CLI:** `go run ./cmd/eval -golden eval/golden.yaml -fetch-k 10 -mode retrieval` (Make targets: `eval`, `eval-rag`, `eval-both`, `eval-chunk`). Flags: `-config` (default `config/config.yaml`), `-golden`, `-fetch-k` (default 10), `-mode` (retrieval|rag|both), `-granularity` (file|chunk), `-judge-model`. A warning is printed when `n < 50` (the golden set ships with 5 queries — directional only; BEIR min ~1k).
+
+**Tests:** `internal/eval/{metrics,ragas,runner}_test.go` — metric math, RAGAS scoring with a stub judge, and runner aggregation. No integration tests against live Qdrant/Ollama.
+
+> The `EVAL_LLM_BASE_URL` / `EVAL_LLM_MODEL` / `EVAL_HISTORY_PATH` entries in `.env.example` are **not read** by anything — `cmd/eval` takes CLI flags and reads `config.yaml` (judge/generator borrow `generator.ollama_addr` + `generator.model`). They are aspirational/dead.
+
+For the conceptual basis — perplexity, BLEU/ROUGE/METEOR/BERTScore, LLM-as-judge, benchmarks — see `ai/evaluation.md`.
 
 ***
 
 ## Test
 
-> **Status: minimal (unit tests only).**
+> **Status: minimal (unit tests only, no Docker/Qdrant required).**
 
 * `make test` — `go test -short -count=1 ./...`
-* `make test-all` — `go test -count=1 ./...`
+* `make test-all` — `go test -count=1 ./...` (no `testcontainers` dependency exists; `AGENTS.md`'s "requires Qdrant via testcontainers" line is stale.)
 
-Two test files cover two units:
+Five test files cover five units:
 * `internal/pkb/file_lister_local_test.go` — glob ignore-pattern matching.
 * `internal/pkb/hyde_test.go` — HyDE vector ops (`averageVectors`, `l2Normalize`).
+* `internal/eval/metrics_test.go` — retrieval metric math (Recall/Precision/MRR/MAP/NDCG/Bootstrap CI).
+* `internal/eval/ragas_test.go` — RAGAS scoring with a stub `LLMJudge`.
+* `internal/eval/runner_test.go` — runner aggregation + granularity.
 
-No chunker tests, no integration tests, no k6 load scripts (the `k6` repo topic is aspirational).
+No chunker tests, no integration tests against live Qdrant/Ollama, no k6 load scripts (the `k6` repo topic is aspirational).
 
 ***
 
@@ -238,59 +274,14 @@ No chunker tests, no integration tests, no k6 load scripts (the `k6` repo topic 
 
 ***
 
-## Config Reference
-
-Defaults from `config/config.yaml`; env overrides from `config/config.go:applyEnv`.
-
-| Section | Field | Default | Env override |
-|---|---|---|---|
-| `http` | `addr` | `:8080` | — |
-| `knowledge_base` | `path` | `gitbook` | `NOTES_PATH` |
-| `qdrant` | `addr` | `localhost:6334` | `QDRANT_ADDR` |
-| `qdrant` | `collection` | `pkb_chunks` | `QDRANT_COLLECTION` |
-| `qdrant` | `top_k` | `5` | — |
-| `qdrant` | `prefetch_mul` | `5` | — |
-| `embedder` | `model` | `nomic-embed-text` | — |
-| `embedder` | `ollama_addr` | `http://localhost:11434` | `OLLAMA_ADDR` |
-| `embedder` | `dimensions` | `768` | — |
-| `embedder` | `api_key` | — | `EMBEDDER_API_KEY` |
-| `chunker` | `provider` | `recursive` | — |
-| `chunker` | `chunk_size` | `512` (runes) | — |
-| `chunker` | `chunk_overlap` | `64` | — |
-| `chunker` | `window_size` | `3` | — |
-| `sparse_scorer` | `provider` | `splade` | — |
-| `sparse_scorer` | `addr` | `http://localhost:5001` | `SPLADE_ADDR` |
-| `reranker` | `enabled` | `true` | `RERANKER_ENABLED` |
-| `reranker` | `addr` | `http://localhost:5002` | `RERANKER_ADDR` |
-| `reranker` | `candidate_mul` | `2` | — |
-| `hyde` | `enabled` | `false` | `HYDE_ENABLED` |
-| `hyde` | `adaptive` | `true` | — |
-| `hyde` | `adaptive_thresh` | `0.50` | — |
-| `hyde` | `multi_hyde` | `false` | — |
-| `hyde` | `model` | `gemma3:1b` | `HYDE_MODEL` |
-| `hyde` | `num_docs` | `1` | — |
-| `semantic_cache` | `enabled` | `true` | — |
-| `semantic_cache` | `collection` | `pkb_cache` | — |
-| `semantic_cache` | `threshold` | `0.90` | `SEMANTIC_CACHE_THRESHOLD` |
-| `semantic_cache` | `ttl` | `24h` | — |
-| `generator` | `enabled` | `true` | — |
-| `generator` | `model` | `gemma3:1b` | — |
-| `generator` | `max_context_tokens` | `2800` | — |
-| `chunk_filter` | `enabled` | `false` | — |
-| `chunk_filter` | `model` | `gemma3:1b` | — |
-| `chunk_filter` | `threshold` | `0.5` | — |
-| `middleware.logger` | `level` | `dev` | `LOGGER_LEVEL` |
-
-`.env.example` also lists `EVAL_*` and `GRAFANA_*` variables that `config.go` does not read — dead entries.
-
-***
-
 ## Known Gaps & Drift
 
-1. **Server-side hybrid search is not wired.** `server.go` calls `store.WithSparseScorer(...)` (client-side SPLADE rescore) but never `store.WithSparseEmbedder(...)`. Sparse vectors are not stored at ingest, so `hybridSearchServer` (the `QueryPoints` + native RRF path) is unreachable in the current build. Only client-side hybrid is active.
-2. **Modified files leave orphan chunks.** `IngestService.Run` upserts changed files by deterministic ID but never calls `DeleteByFile`. Because `chunkID` is derived from `filePath:lineStart:chunkIndex`, an edit that shifts a chunk's `line_start` produces a new point while the old point remains — stale chunks are not garbage-collected.
-3. **`nadir`'s own agent docs are stale.** `AGENTS.md` and `CLAUDE.md` claim chunk IDs are "FNV hash of filePath+lineStart" (they are UUIDv5 including `chunk_index`) and that "prefetch topK×3" (it is ×5). `AGENTS.md`'s "eval tests pull qdrant/qdrant:latest" is also stale.
+1. **Server-side hybrid search is not wired.** `server.go` calls `store.WithSparseScorer(...)` (client-side SPLADE rescore) but never `store.WithSparseEmbedder(...)`. Sparse vectors are not stored at ingest, so `hybridSearchServer` (the `QueryPoints` + native RRF path) is unreachable in the current build. Only client-side hybrid is active. (`cmd/eval`'s `buildSearcher` mirrors this — same gap.)
+2. **Modified files leave orphan chunks.** `IngestService.Run` upserts changed files by deterministic ID but never calls `DeleteByFile` (the method exists on the store and `Pipeline.Delete` wraps it, but neither is invoked on the change path). Because `chunkID` is derived from `filePath:lineStart:chunkIndex`, an edit that shifts a chunk's `line_start` produces a new point while the old point remains — stale chunks are not garbage-collected.
+3. **`nadir`'s own agent docs are stale.** `AGENTS.md` and `CLAUDE.md` claim chunk IDs are "FNV hash of `filePath:lineStart`" (they are UUIDv5 over `filePath:lineStart:chunkIndex`); `CLAUDE.md` even lists "fix: UUIDv5" as a TODO for something already done. `CLAUDE.md` says prefetch is `topK*3` (it is ×5). `AGENTS.md` says `make test-all` "requires Qdrant via testcontainers" — there is no `testcontainers` dependency; `make test-all` is plain `go test -count=1 ./...`.
 4. **Monitor infra is half-built.** See §Monitor — missing Prometheus config files, undefined Grafana service, no app metrics endpoint.
+5. **`embedder.api_key` / `EMBEDDER_API_KEY` is a dead config field.** It is parsed into `config.Embedder.APIKey` and surfaced in `.env.example`, but `OllamaEmbedder` is constructed with only `(addr, model, dimensions)` and sends no `Authorization` header, so the key is never used. (The RAGAS judge and chunk filter accept an API key, but both are constructed with `""`.)
+6. **Dead env entries.** `EVAL_*` and `GRAFANA_*` in `.env.example` are read by nothing — see §Evaluate and the Config Reference footnote.
 
 ***
 
@@ -302,3 +293,8 @@ Defaults from `config/config.yaml`; env overrides from `config/config.go:applyEn
 * arxiv 2410.19572 — LLM chunk filter (+10pp PopQA).
 * Liu et al., 2023 — "Lost in the Middle: How Language Models Use Long Contexts."
 * Anthropic, 2024 — contextual embedding (`filePath > header` prefix).
+* Järvelin & Kekäläinen, 2002 — NDCG (ACM TOIS 20(4):422–446).
+* Manning, Raghavan & Schütze, 2008 — *Introduction to Information Retrieval* (MAP).
+* Es et al., 2023 — RAGAS (arxiv 2309.15217).
+* Thakur et al., 2021 — BEIR (NeurIPS, arxiv 2104.08663).
+* Formal et al., 2021 — SPLADE (arxiv 2107.05720).

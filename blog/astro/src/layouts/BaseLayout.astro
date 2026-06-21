@@ -179,51 +179,139 @@ import '../styles/global.css';
     });
   </script>
 
-  <!-- Render Mermaid diagrams (client-side, Phase 2 will SSR to SVG) -->
+  <!-- Mermaid: client-side diagram rendering -->
   <script type="module">
-    async function renderMermaid() {
-      const blocks = document.querySelectorAll('pre.mermaid');
-      if (blocks.length === 0) return;
-      const { default: mermaid } = await import('https://cdn.jsdelivr.net/npm/mermaid@10.9.1/dist/mermaid.esm.min.mjs');
-      mermaid.initialize({ startOnLoad: false, theme: 'default' });
-      for (const block of blocks) {
-        try {
-          const id = 'mermaid-' + Math.random().toString(36).substring(2, 11);
-          const { svg } = await mermaid.render(id, block.textContent || '');
-          block.innerHTML = svg;
-        } catch (e) {
-          console.warn('Mermaid render failed:', e);
-        }
-      }
-    }
-    if (document.readyState === 'complete') renderMermaid();
-    else window.addEventListener('load', renderMermaid);
-  </script>
+    import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.esm.min.mjs';
 
-  <!-- Code block copy buttons -->
-  <script type="module">
-    document.querySelectorAll('pre.astro-code > code, pre code:not(.mermaid)').forEach((code) => {
-      const pre = code.parentElement;
-      if (!pre || pre.dataset.copyBtnAdded) return;
-      if (pre.classList.contains('mermaid')) return;
-      pre.dataset.copyBtnAdded = '1';
-
-      const btn = document.createElement('button');
-      btn.className = 'code-copy-btn';
-      btn.textContent = 'Copy';
-      btn.addEventListener('click', () => {
-        navigator.clipboard.writeText(code.textContent || '').then(() => {
-          btn.textContent = 'Copied!';
-          btn.classList.add('copied');
-          setTimeout(() => {
-            btn.textContent = 'Copy';
-            btn.classList.remove('copied');
-          }, 2000);
-        });
-      });
-      pre.style.position = 'relative';
-      pre.appendChild(btn);
+    mermaid.initialize({
+      startOnLoad: false,
+      theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default',
     });
+
+    // Re-run when dark mode toggles
+    document.addEventListener('astro:after-swap', () => {
+      mermaid.initialize({ theme: document.documentElement.classList.contains('dark') ? 'dark' : 'default' });
+    });
+
+    // Observe dark mode toggle on the Alpine-controlled button
+    const observer = new MutationObserver(() => {
+      const isDark = document.documentElement.classList.contains('dark');
+      mermaid.initialize({ theme: isDark ? 'dark' : 'default' });
+    });
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+
+    async function renderMermaid() {
+      // Remove previously rendered SVGs to avoid duplicates
+      document.querySelectorAll('.mermaid-diagram').forEach(el => el.remove());
+
+      await mermaid.run({
+        querySelector: '.mermaid',
+        suppressErrors: true,
+      });
+
+      // Attach zoom/pan controls to rendered SVGs
+      enhanceMermaidSvgs();
+    }
+
+    function enhanceMermaidSvgs() {
+      const MIN = 0.5, MAX = 3, STEP = 0.2;
+      const clamp = (s) => Math.max(MIN, Math.min(MAX, s));
+      const makeBtn = (label) => {
+        const b = document.createElement('button');
+        b.className = 'mermaid-zoom-btn';
+        b.type = 'button';
+        b.textContent = label;
+        return b;
+      };
+
+      document.querySelectorAll('.mermaid svg').forEach(svgEl => {
+        // Skip if already enhanced
+        if (svgEl.closest('.mermaid-diagram')) return;
+
+        const diagram = document.createElement('div');
+        diagram.className = 'mermaid-diagram';
+
+        const container = document.createElement('div');
+        container.className = 'mermaid-svg-container';
+        svgEl.style.display = 'block';
+        container.appendChild(svgEl);
+        diagram.appendChild(container);
+
+        const controls = document.createElement('div');
+        controls.className = 'mermaid-controls';
+        controls.append(makeBtn('+'), makeBtn('\u2212'), makeBtn('Reset'));
+        diagram.appendChild(controls);
+
+        svgEl.closest('.mermaid').replaceWith(diagram);
+
+        let baseW = 0, baseH = 0;
+        const measure = () => {
+          const rect = svgEl.getBoundingClientRect();
+          if (rect.width > 0 && rect.height > 0) { baseW = rect.width; baseH = rect.height; }
+        };
+        measure();
+
+        let scale = 1;
+        const applyZoom = () => {
+          if (baseW > 0) svgEl.style.width = (baseW * scale) + 'px';
+          if (baseH > 0) svgEl.style.height = (baseH * scale) + 'px';
+        };
+
+        const [zoomIn, zoomOut, reset] = controls.children;
+        zoomIn.addEventListener('click', () => { scale = clamp(scale + STEP); applyZoom(); });
+        zoomOut.addEventListener('click', () => { scale = clamp(scale - STEP); applyZoom(); });
+        reset.addEventListener('click', () => {
+          scale = 1;
+          if (baseW === 0) measure();
+          applyZoom();
+          container.scrollLeft = 0; container.scrollTop = 0;
+        });
+
+        container.addEventListener('wheel', (e) => {
+          e.preventDefault();
+          if (baseW === 0) measure();
+          const prev = scale;
+          const next = clamp(scale + (e.deltaY < 0 ? STEP : -STEP));
+          if (next === prev) return;
+          const rect = container.getBoundingClientRect();
+          const cx = e.clientX - rect.left + container.scrollLeft;
+          const cy = e.clientY - rect.top + container.scrollTop;
+          scale = next;
+          applyZoom();
+          container.scrollLeft += (cx / prev) * next - cx;
+          container.scrollTop += (cy / prev) * next - cy;
+        }, { passive: false });
+
+        let dragging = false, startX = 0, startY = 0, sl = 0, st = 0;
+        container.addEventListener('pointerdown', (e) => {
+          dragging = true;
+          startX = e.clientX; startY = e.clientY;
+          sl = container.scrollLeft; st = container.scrollTop;
+          container.style.cursor = 'grabbing';
+          container.setPointerCapture(e.pointerId);
+        });
+        container.addEventListener('pointermove', (e) => {
+          if (!dragging) return;
+          container.scrollLeft = sl - (e.clientX - startX);
+          container.scrollTop = st - (e.clientY - startY);
+        });
+        const endDrag = (e) => {
+          if (!dragging) return;
+          dragging = false;
+          container.style.cursor = '';
+          try { container.releasePointerCapture(e.pointerId); } catch (_) {}
+        };
+        container.addEventListener('pointerup', endDrag);
+        container.addEventListener('pointercancel', endDrag);
+      });
+    }
+
+    // Run on initial load
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', renderMermaid);
+    } else {
+      renderMermaid();
+    }
   </script>
 </body>
 </html>

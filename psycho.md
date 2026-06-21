@@ -1,5 +1,5 @@
 ---
-title: "Psyhco"
+title: "Psycho"
 aliases: []
 tags: [psychology]
 created: "2026-06-13"

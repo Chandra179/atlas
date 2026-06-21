@@ -61,7 +61,7 @@
     color: #94a3b8;
 }
 
-.dark .toc-link.active {
+.dark .toc-link.is-active-link {
     color: #60a5fa;
     border-left-color: #3b82f6;
 }
@@ -133,6 +133,8 @@
     background-color: #1e293b;
 }
 
+/* Code block dark theme is handled by astro-expressive-code via .dark CSS variables */
+
 .dark .prose blockquote {
     color: #94a3b8;
     border-left-color: #334155;
@@ -184,6 +186,10 @@
 }
 
 /* ========== Mermaid Diagrams ========== */
+.dark svg[id^="mmd-"] {
+    filter: invert(0.85) hue-rotate(180deg);
+}
+
 .dark .mermaid-diagram {
     border-color: #334155;
     background: #0f172a;
