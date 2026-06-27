@@ -51,15 +51,6 @@ export function deriveTitle(slug: string, frontmatterTitle?: string): string {
 }
 
 /**
- * Extract the slug from a URL path segment or entry id.
- * "ai/ml" -> "ml", "fundamental" -> "fundamental"
- */
-function slugFromLastSegment(path: string): string {
-  const parts = path.split('/');
-  return parts[parts.length - 1] || path;
-}
-
-/**
  * Build the full navigation tree from collection entries.
  * Mirrors the structure of the old scripts/gen-nav.js output.
  */

@@ -21,6 +21,8 @@ interface Props {
   nav: NavSection[];
   created?: Date;
   modified?: Date;
+  tags?: string[];
+  author?: string;
 }
 
 const {
@@ -32,6 +34,8 @@ const {
   nav,
   created,
   modified,
+  tags = [],
+  author = 'Chandra179',
 } = Astro.props;
 
 const siteName = 'Chan179';
@@ -53,7 +57,7 @@ const jsonLd = {
   },
   ...(created && { datePublished: created.toISOString() }),
   ...((modified || created) && { dateModified: (modified || created)!.toISOString() }),
-  author: { '@type': 'Person', name: 'Chandra', '@id': new URL('/', Astro.site).href + '#author' },
+  author: { '@type': 'Person', name: author, '@id': new URL('/', Astro.site).href + '#author' },
   publisher: { '@type': 'Organization', name: siteName, '@id': new URL('/', Astro.site).href + '#publisher' },
 };
 
@@ -88,6 +92,10 @@ const breadcrumbJsonLd = {
   canonical={url}
   ogType="article"
   jsonLd={[jsonLd, breadcrumbJsonLd]}
+  created={created}
+  modified={modified}
+  tags={tags}
+  author={author}
 >
   <Sidebar nav={nav} currentPath={url} />
 

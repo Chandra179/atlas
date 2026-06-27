@@ -13,7 +13,7 @@ created: "2026-06-13"
 
 **Real number**
 
-![](../../assets/linear_number_line.png)
+![Real number line with integers and fractions marked at regular intervals](../../assets/linear_number_line.png)
 
 there is no real number that, when multiplied by itself, results in a negative number. The expression $\sqrt{-9}$ asks the question: What real number, when multiplied by itself (squared), equals $-9$?
 
@@ -92,14 +92,14 @@ Total Cost = $\$50 + \$30 + \$10 + \$6 = \mathbf{\$96}$
 
 #### Fractions
 
-![](../../assets/prop_of_fractions.png)
+![Properties of fractions: addition, subtraction, multiplication, and division rules](../../assets/prop_of_fractions.png)
 
 ***
 
 
 ### **Integer Exponents**
 
-![](../../assets/laws_of_exponent.png)
+![Laws of exponents: product, quotient, power, and zero exponent rules](../../assets/laws_of_exponent.png)
 
 A product of identical numbers is usually written in exponential notation
 
@@ -118,7 +118,7 @@ A product of identical numbers is usually written in exponential notation
 
 The number inside the root _must_ be a result of something being raised to the power of $n$
 
-![](../../assets/prop_of_roots.png)
+![Properties of nth roots: product, quotient, and power rules for radicals](../../assets/prop_of_roots.png)
 
 The expression to simplify is $\sqrt[4]{81x^8y^4}$.
 
@@ -156,7 +156,7 @@ $$a^{\frac{m}{n}} = \sqrt[n]{a^m} = (\sqrt[n]{a})^m$$
 $8^{\frac{2}{3}} =(\sqrt[3]{8})^2$ = $2^2$ = $4$ 
 ### Product Formulas
 
-![](../../assets/product_formulas.png)
+![Special product formulas: difference of squares, perfect square trinomials, cube of binomials](../../assets/product_formulas.png)
 
 $$(3x + 4)(3x - 4) = (3x)^2 - (4)^2$$
 
@@ -273,7 +273,7 @@ Used for two terms that are perfect cubes.
 * Difference: $a^3 - b^3 = (a - b)(a^2 + ab + b^2)$ 
 ### Equations
 
-![](../../assets/prop_equality.png)
+![Properties of equality: additive, multiplicative, reflexive, symmetric, and transitive](../../assets/prop_equality.png)
 
 A linear equation has degree 1 — its graph is always a straight line.
 
@@ -308,7 +308,7 @@ The Real Part ($a$): These are normal numbers like $5$, $-3$
 
 The Imaginary Part ($bi$): This is a real number multiplied by $i$
 
-![](../../assets/complex_number_table.png)
+![Complex number representation in standard form a+bi with real and imaginary parts](../../assets/complex_number_table.png)
 
 Imagine you are controlling a drone.
 
@@ -337,7 +337,7 @@ If you want to tell that drone to "turn 90 degrees," you don't need a complicate
 * Rotate 90°: $(3 + 4i) \times i = 3i + 4i^2$
 * Since $i^2 = -1$, this becomes $-4 + 3i$.
 
-<img src="../../assets/flip_imaginary.png" alt="" width="375">
+<img src="../../assets/flip_imaginary.png" alt="90-degree rotation of a complex number on the complex plane after multiplying by i" width="375">
 
 | Power | Simplified | Rule |
 | --- | --- | --- |
@@ -377,7 +377,7 @@ a car for two days, and the bill comes to $108. How many miles was the car drive
 * $60 + 0.15x = 108$ 
 ### Inequalities
 
-![](../../assets/inequalities_rules.png)
+![Rules for solving inequalities: multiplying by a negative flips the inequality sign](../../assets/inequalities_rules.png)
 
 A linear inequality is one where the variable has a power of 1. When you graph these, they always form a straight line that divides the plane into two regions.
 
@@ -402,13 +402,13 @@ The solution is $x < -2$ or $x > 2$.
 
 ### **Intervals**
 
-![](../../assets/interval_notation.png) 
+![Interval notation: open, closed, and half-open intervals with bracket and parenthesis notation](../../assets/interval_notation.png) 
 ### **Absolute Value**
 
-![](../../assets/prop_absolute_value.png) 
+![Properties of absolute value: definition, distance interpretation, and inequality rules](../../assets/prop_absolute_value.png)
 ### Coordinate Plane, Graphs of Equations, Line, Circles
 
-<img src="../../assets/coordinate_plane.png" alt="" width="563">
+<img src="../../assets/coordinate_plane.png" alt="Coordinate plane with x-axis, y-axis, quadrants I through IV, and origin" width="563">
 
 **Distance formula** $d = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$
 
@@ -419,7 +419,7 @@ The solution is $x < -2$ or $x > 2$.
 
 **Example**
 
-<img src="../../assets/coorplane_example.png" alt="" width="375">
+<img src="../../assets/coorplane_example.png" alt="Coordinate plane with points A(5,3), P(1,-2), and Q(8,9) to compare distances" width="375">
 
 The goal is to find which point is closer to $A(5, 3)$. To do that, we find the distance to $P(1, -2)$ and the distance to $Q(8, 9)$.
 
@@ -441,7 +441,7 @@ Since $\sqrt{41}$ is a smaller number than $\sqrt{45}$, Point $P$ is closer to $
 
 ***
 
-<img src="../../assets/midpoint_distance.png" alt="" width="563">
+<img src="../../assets/midpoint_distance.png" alt="Line segment with midpoint labeled between two points on a coordinate plane" width="563">
 
 **Midpoint formula** finds the coordinates of the point that lies exactly halfway between two endpoints.
 
@@ -459,7 +459,7 @@ $$(x - h)^2 + (y - k)^2 = r^2$$
 
 #### **Intercept**
 
-![](../../assets/intercept.png)
+![X-intercept and y-intercept of a line crossing the axes on a graph](../../assets/intercept.png)
 
 #### Lines
 
@@ -472,11 +472,11 @@ $$m = \frac{y_2 - y_1}{x_2 - x_1}$$
 * Numerator ($y_2 - y_1$): This is the Rise. It tells you how much the line goes up or down.
 * Denominator ($x_2 - x_1$): This is the Run. It tells you how much the line goes left or right.
 
-![](../../assets/slope_of_line.png)
+![Slope of a line as rise over run with positive, negative, zero, and undefined slopes](../../assets/slope_of_line.png)
 
 #### Circle Equation
 
-![](../../assets/circle_eq.png)
+![Equation of a circle in standard form with center (h,k) and radius r graphed on axes](../../assets/circle_eq.png)
 
 point-slope equation: $y - y_1 = m(x - x_1)$
 
@@ -512,7 +512,7 @@ $$f(x) = \frac{5}{x-3}$$
 
 If $f$ is a function with domain $A$, then the graph of $f$ is the set of ordered pairs: $\{(x, f(x)) \mid x \in A\}$ plotted in a coordinate plane. In other words, the graph of $f$ is the set of all points $(x, y)$ such that $y = f(x)$
 
-<img src="../../assets/domain_and_range_of_graph.png" alt="" width="563">
+<img src="../../assets/domain_and_range_of_graph.png" alt="Graph of a function with domain and range labeled on x and y axes" width="563">
 
 ### Average Rate of Change of a Function
 
@@ -606,7 +606,7 @@ energy to fly over land and 14 kcal/mi to fly over water.
 
 energy used = energy per mile x miles flown
 
-<img src="../../assets/bird_problem.png" alt="" width="375">
+<img src="../../assets/bird_problem.png" alt="Geometry diagram of a bird flying from an island to a point on the shoreline and then along the coast" width="375">
 
 The bird's journey consists of two segments: flying over water (from A to C) and flying over land (from C to D).
 
@@ -717,11 +717,11 @@ $$R_{max} = 25 \times 50 = \$1,250$$
 
 #### Long Division Polynomial
 
-<img src="../../assets/long_div_polynomial.png" alt="" width="563">
+<img src="../../assets/long_div_polynomial.png" alt="Step-by-step long division of polynomials with quotient and remainder" width="563">
 
 #### Synthetic Division
 
-<img src="../../assets/sythetic_division.png" alt="" width="375">
+<img src="../../assets/sythetic_division.png" alt="Synthetic division of a polynomial by a linear factor (x - c)" width="375">
 
 #### Factor Theorem
 
@@ -788,7 +788,7 @@ The Average Cost per pair ($A(x)$) is a rational function:
 
 $$A(x) = \frac{5000 + 30x}{x}$$
 
-![](../../assets/vertical_horizontal_asymptote.png)
+![Graph of a rational function with vertical and horizontal asymptotes marked](../../assets/vertical_horizontal_asymptote.png)
 
 * Vertical Asymptote ($x=0$): You can't calculate the average cost for 0 sneakers (division by zero). As production gets closer to zero, the average cost per unit skyrockets.
 * Horizontal Asymptote ($y=30$): As production increases to very large numbers, the $5,000 fixed cost is spread so thin that it becomes negligible. The average cost "levels off" toward the variable cost of $30. 

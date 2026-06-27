@@ -47,6 +47,7 @@ export async function GET(context) {
         description: desc.substring(0, 300),
         link: url,
         pubDate: e.data.created!,
+        author: 'Chandra179',
         customData: e.data.tags?.length ? e.data.tags.map((t) => `<category>${t}</category>`).join('') : '',
       };
     });

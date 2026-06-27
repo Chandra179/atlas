@@ -100,9 +100,33 @@ for (const catSlug of categories) {
 
 const siteName = 'Chan179';
 const baseDescription = 'Technical notes and learning resources on Math, Golang, System Design, ML, and more.';
+
+const homepageJsonLd = [
+  {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: siteName,
+    url: 'https://chan179.com',
+    logo: 'https://chan179.com/og-image.png',
+  },
+  {
+    '@context': 'https://schema.org',
+    '@type': 'WebSite',
+    name: siteName,
+    url: 'https://chan179.com',
+    potentialAction: {
+      '@type': 'SearchAction',
+      target: {
+        '@type': 'EntryPoint',
+        urlTemplate: 'https://chan179.com/?q={search_term_string}',
+      },
+      'query-input': 'required name=search_term_string',
+    },
+  },
+];
 ---
 
-<BaseLayout title={siteName} description={baseDescription} canonical="/" minimal>
+<BaseLayout title={siteName} description={baseDescription} canonical="/" minimal jsonLd={homepageJsonLd}>
   <main class="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden pt-20">
     <div class="mx-auto px-4 sm:px-6 py-8 lg:py-12 max-w-6xl">
       <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Technical Notes</h1>

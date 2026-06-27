@@ -30,7 +30,7 @@
   "devDependencies": {
     "@types/alpinejs": "^3.13.11",
     "pagefind": "^1.5.2",
-    "playwright": "^1.61.0",
+    "playwright": "^1.61.1",
     "rehype-mermaid": "^3.0.0",
     "rehype-raw": "^7.0.0",
     "sharp": "^0.35.2",

@@ -7,7 +7,7 @@ created: "2026-06-13"
 
   # Syncthing
 
-{% embed url="https://github.com/syncthing/syncthing" %}
+[syncthing/syncthing](https://github.com/syncthing/syncthing)
 
 ## Architecture
 

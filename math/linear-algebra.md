@@ -25,7 +25,7 @@ The Right Hand Side ($\mathbf{b}$) represents the target. It is a fixed vector o
 
 ### Linear Combination
 
-![](/assets/vector_addition.png)
+![Vector addition: combining two vectors geometrically](/assets/vector_addition.png)
 
 Scalar Multiplication
 
@@ -108,7 +108,7 @@ This "normalizes" data so you can compare different vectors fairly, regardless o
 
 **Triangle Inequality**
 
-![](/assets/triangle_inequality.png)
+![Triangle inequality: the shortest path between two points is a straight line](/assets/triangle_inequality.png)
 
 It states that the shortest distance between two points is a straight line.
 

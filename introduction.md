@@ -1,3 +1,7 @@
+---
+created: 2026-06-21
+---
+
 # Experience
 
 4 years experience in Fintech, distributed system, workflow automation

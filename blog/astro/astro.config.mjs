@@ -56,5 +56,10 @@ export default defineConfig({
   },
   vite: {
     plugins: [tailwindcss()],
+    server: {
+      watch: {
+        ignored: ['**/dist/**', '**/.astro/**', '**/public/assets/**'],
+      },
+    },
   },
 });

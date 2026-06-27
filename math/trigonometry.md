@@ -7,7 +7,7 @@ created: "2026-06-13"
 
 # Trigonometry
 
-![](../assets/trigonometry.png)
+![Right triangle with opposite, adjacent, and hypotenuse sides relative to angle theta](../assets/trigonometry.png)
 
 Opposite = height
 Hypotenuse = diagonal
@@ -88,7 +88,7 @@ $$\text{Opposite} = H \times \sin(\theta) = 1 \times \sin(\theta) = \mathbf{\sin
 
 $$\text{Adjacent} = H \times \cos(\theta) = 1 \times \cos(\theta) = \mathbf{\cos(\theta)}$$
 
-![](../assets/circle_degrees.png)
+![Unit circle with key angles labeled in degrees: 0°, 90°, 180°, 270°](../assets/circle_degrees.png)
 
 The radius ending at (0, 1) on the positive vertical axis has a **90 degrees** angle with the positive horizontal axis.
 
@@ -119,7 +119,7 @@ How far is the angle from the x-axis?
 
 ***
 
-<img src="../assets/circle_sine_cosine_example.png" alt="" width="375">
+<img src="../assets/circle_sine_cosine_example.png" alt="Unit circle showing sine and cosine values for an angle in Quadrant II" width="375">
 
 The "Height": $\sin \theta = 0.6$. This tells us that the point on the unit circle is exactly $0.6$ units above the center line.
 
@@ -156,9 +156,9 @@ These functions are the "flipped" versions of the primary ones:
  * Secant: $\sec(\theta) = \frac{1}{x}$ (where $x \neq 0$)
  * Cotangent: $\cot(\theta) = \frac{x}{y}$ (where $y \neq 0$)
 
-![](../assets/degrees_and_radian.png)
+![Conversion table between degrees and radians for common angles](../assets/degrees_and_radian.png)
 
-![](../assets/special_value_trigonometric_func.png)
+![Table of special angle values for sine, cosine, and tangent functions](../assets/special_value_trigonometric_func.png)
 
 ## **Domain of trigonometric function**
 
@@ -183,7 +183,7 @@ At $90^\circ$ (The top edge): Your point is at $(0, 1)$. The horizontal width ($
 
 The Math: $\tan(90^\circ) = \frac{1}{0}$.
 
-<img src="../assets/unit_circle_wave.png" alt="" width="563">
+<img src="../assets/unit_circle_wave.png" alt="Unit circle mapped to a sine wave, showing the relationship between angle and function value" width="563">
 
 you cannot divide by zero. At this exact angle, the Tangent "breaks" and becomes undefined.
 

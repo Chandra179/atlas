@@ -37,20 +37,37 @@ export async function GET({ site }) {
     }
   }
 
-  const urls: Array<{ loc: string; lastmod: string }> = [];
+  const urls: Array<{ loc: string; lastmod?: string }> = [];
   for (const url of navUrls) {
     const date = urlDates.get(url);
-    urls.push({
+    const entry: { loc: string; lastmod?: string } = {
       loc: new URL(url, site).href,
-      lastmod: date ? date.toISOString() : new Date().toISOString(),
-    });
+    };
+    if (date) entry.lastmod = date.toISOString();
+    urls.push(entry);
+  }
+
+  function getPriority(path: string): string {
+    const depth = path.split('/').filter(Boolean).length;
+    if (depth === 0) return '1.0';
+    if (depth === 1) return '0.8';
+    if (depth === 2) return '0.7';
+    return '0.6';
+  }
+
+  function getChangefreq(path: string): string {
+    const depth = path.split('/').filter(Boolean).length;
+    if (depth === 0) return 'daily';
+    if (depth <= 2) return 'weekly';
+    return 'monthly';
   }
 
   const xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 ${urls.map((u) => `  <url>
-    <loc>${u.loc}</loc>
-    <lastmod>${u.lastmod}</lastmod>
+    <loc>${u.loc}</loc>${u.lastmod ? `\n    <lastmod>${u.lastmod}</lastmod>` : ''}
+    <changefreq>${getChangefreq(new URL(u.loc).pathname)}</changefreq>
+    <priority>${getPriority(new URL(u.loc).pathname)}</priority>
   </url>`).join('\n')}
 </urlset>`;
 

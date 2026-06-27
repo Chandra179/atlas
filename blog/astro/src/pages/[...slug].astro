@@ -65,6 +65,7 @@ let description: string | undefined;
 let body = '';
 let created: Date | undefined;
 let modified: Date | undefined;
+let tags: string[] = [];
 
 if (!isIndex && entryId) {
   const entry = entryMap[entryId];
@@ -80,6 +81,11 @@ if (!isIndex && entryId) {
   body = entry.body;
   created = entry.data.created;
   modified = entry.data.modified;
+  tags = entry.data.tags || [];
+}
+
+if (isIndex) {
+  description = `Browse articles about ${indexTitle}. Technical notes on Math, Golang, System Design, ML, and more.`;
 }
 ---
 
@@ -92,6 +98,7 @@ if (!isIndex && entryId) {
   nav={nav}
   created={created}
   modified={modified}
+  tags={tags}
 >
   {isIndex ? (
     <>

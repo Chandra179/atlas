@@ -7,8 +7,8 @@ created: "2026-06-13"
 
 # etcd & Raft
 
-{% embed url="https://github.com/etcd-io/etcd" %}
-{% embed url="https://github.com/etcd-io/raft" %}
+[etcd-io/etcd](https://github.com/etcd-io/etcd)
+[etcd-io/raft](https://github.com/etcd-io/raft)
 
 This document explains how etcd uses the Raft consensus algorithm to achieve linearizable writes across a cluster. After reading, you should understand the full write path, leader election mechanics, log structure, WAL durability guarantees, and how the MVCC store applies committed entries — and how each layer stays decoupled.
 

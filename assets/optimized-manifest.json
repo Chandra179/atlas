@@ -1,0 +1,1065 @@
+{
+  "images": {
+    "9basisfunc.png": {
+      "width": 978,
+      "height": 1155,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 472,
+          "path": "/assets/optimized/9basisfunc-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 945,
+          "path": "/assets/optimized/9basisfunc-800.webp"
+        }
+      }
+    },
+    "bird_problem.png": {
+      "width": 1894,
+      "height": 1426,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 301,
+          "path": "/assets/optimized/bird_problem-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 602,
+          "path": "/assets/optimized/bird_problem-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 903,
+          "path": "/assets/optimized/bird_problem-1200.webp"
+        }
+      }
+    },
+    "blog-architecture.png": {
+      "width": 2073,
+      "height": 1058,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 204,
+          "path": "/assets/optimized/blog-architecture-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 408,
+          "path": "/assets/optimized/blog-architecture-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 612,
+          "path": "/assets/optimized/blog-architecture-1200.webp"
+        }
+      }
+    },
+    "cdc_messagerelay.png": {
+      "width": 5025,
+      "height": 946,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 75,
+          "path": "/assets/optimized/cdc_messagerelay-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 151,
+          "path": "/assets/optimized/cdc_messagerelay-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 226,
+          "path": "/assets/optimized/cdc_messagerelay-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 452,
+          "path": "/assets/optimized/cdc_messagerelay-2400.webp"
+        }
+      }
+    },
+    "chunk_overlap.png": {
+      "width": 3079,
+      "height": 1153,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 150,
+          "path": "/assets/optimized/chunk_overlap-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 300,
+          "path": "/assets/optimized/chunk_overlap-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 449,
+          "path": "/assets/optimized/chunk_overlap-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 899,
+          "path": "/assets/optimized/chunk_overlap-2400.webp"
+        }
+      }
+    },
+    "circle_degrees.png": {
+      "width": 2878,
+      "height": 1065,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 148,
+          "path": "/assets/optimized/circle_degrees-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 296,
+          "path": "/assets/optimized/circle_degrees-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 444,
+          "path": "/assets/optimized/circle_degrees-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 888,
+          "path": "/assets/optimized/circle_degrees-2400.webp"
+        }
+      }
+    },
+    "circle_eq.png": {
+      "width": 3095,
+      "height": 975,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 126,
+          "path": "/assets/optimized/circle_eq-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 252,
+          "path": "/assets/optimized/circle_eq-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 378,
+          "path": "/assets/optimized/circle_eq-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 756,
+          "path": "/assets/optimized/circle_eq-2400.webp"
+        }
+      }
+    },
+    "circle_reference_number.png": {
+      "width": 3520,
+      "height": 756,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 86,
+          "path": "/assets/optimized/circle_reference_number-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 172,
+          "path": "/assets/optimized/circle_reference_number-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 258,
+          "path": "/assets/optimized/circle_reference_number-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 515,
+          "path": "/assets/optimized/circle_reference_number-2400.webp"
+        }
+      }
+    },
+    "circle_sine_cosine_example.png": {
+      "width": 1177,
+      "height": 1125,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 382,
+          "path": "/assets/optimized/circle_sine_cosine_example-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 765,
+          "path": "/assets/optimized/circle_sine_cosine_example-800.webp"
+        }
+      }
+    },
+    "circle_terminal_point.png": {
+      "width": 3393,
+      "height": 703,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 83,
+          "path": "/assets/optimized/circle_terminal_point-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 166,
+          "path": "/assets/optimized/circle_terminal_point-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 249,
+          "path": "/assets/optimized/circle_terminal_point-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 497,
+          "path": "/assets/optimized/circle_terminal_point-2400.webp"
+        }
+      }
+    },
+    "complex_number_table.png": {
+      "width": 3303,
+      "height": 1128,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 137,
+          "path": "/assets/optimized/complex_number_table-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 273,
+          "path": "/assets/optimized/complex_number_table-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 410,
+          "path": "/assets/optimized/complex_number_table-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 820,
+          "path": "/assets/optimized/complex_number_table-2400.webp"
+        }
+      }
+    },
+    "coordinate_plane.png": {
+      "width": 1718,
+      "height": 1115,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 260,
+          "path": "/assets/optimized/coordinate_plane-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 519,
+          "path": "/assets/optimized/coordinate_plane-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 779,
+          "path": "/assets/optimized/coordinate_plane-1200.webp"
+        }
+      }
+    },
+    "coorplane_example.png": {
+      "width": 1177,
+      "height": 1241,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 422,
+          "path": "/assets/optimized/coorplane_example-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 844,
+          "path": "/assets/optimized/coorplane_example-800.webp"
+        }
+      }
+    },
+    "definition_trigonometric_function.png": {
+      "width": 2828,
+      "height": 918,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 130,
+          "path": "/assets/optimized/definition_trigonometric_function-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 260,
+          "path": "/assets/optimized/definition_trigonometric_function-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 390,
+          "path": "/assets/optimized/definition_trigonometric_function-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 779,
+          "path": "/assets/optimized/definition_trigonometric_function-2400.webp"
+        }
+      }
+    },
+    "degrees_and_radian.png": {
+      "width": 3234,
+      "height": 573,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 71,
+          "path": "/assets/optimized/degrees_and_radian-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 142,
+          "path": "/assets/optimized/degrees_and_radian-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 213,
+          "path": "/assets/optimized/degrees_and_radian-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 425,
+          "path": "/assets/optimized/degrees_and_radian-2400.webp"
+        }
+      }
+    },
+    "distance_example.png": {
+      "width": 1206,
+      "height": 1238,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 411,
+          "path": "/assets/optimized/distance_example-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 821,
+          "path": "/assets/optimized/distance_example-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 1232,
+          "path": "/assets/optimized/distance_example-1200.webp"
+        }
+      }
+    },
+    "domain_and_range_of_graph.png": {
+      "width": 2570,
+      "height": 1029,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 160,
+          "path": "/assets/optimized/domain_and_range_of_graph-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 320,
+          "path": "/assets/optimized/domain_and_range_of_graph-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 480,
+          "path": "/assets/optimized/domain_and_range_of_graph-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 961,
+          "path": "/assets/optimized/domain_and_range_of_graph-2400.webp"
+        }
+      }
+    },
+    "equilateral_triangle.png": {
+      "width": 1024,
+      "height": 559,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 218,
+          "path": "/assets/optimized/equilateral_triangle-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 437,
+          "path": "/assets/optimized/equilateral_triangle-800.webp"
+        }
+      }
+    },
+    "flip_imaginary.png": {
+      "width": 1209,
+      "height": 1189,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 393,
+          "path": "/assets/optimized/flip_imaginary-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 787,
+          "path": "/assets/optimized/flip_imaginary-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 1180,
+          "path": "/assets/optimized/flip_imaginary-1200.webp"
+        }
+      }
+    },
+    "inequalities_rules.png": {
+      "width": 3031,
+      "height": 1423,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 188,
+          "path": "/assets/optimized/inequalities_rules-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 376,
+          "path": "/assets/optimized/inequalities_rules-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 563,
+          "path": "/assets/optimized/inequalities_rules-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 1127,
+          "path": "/assets/optimized/inequalities_rules-2400.webp"
+        }
+      }
+    },
+    "intercept.png": {
+      "width": 3483,
+      "height": 1376,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 158,
+          "path": "/assets/optimized/intercept-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 316,
+          "path": "/assets/optimized/intercept-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 474,
+          "path": "/assets/optimized/intercept-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 948,
+          "path": "/assets/optimized/intercept-2400.webp"
+        }
+      }
+    },
+    "interval_notation.png": {
+      "width": 2306,
+      "height": 1345,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 233,
+          "path": "/assets/optimized/interval_notation-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 467,
+          "path": "/assets/optimized/interval_notation-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 700,
+          "path": "/assets/optimized/interval_notation-1200.webp"
+        }
+      }
+    },
+    "laws_of_exponent.png": {
+      "width": 2644,
+      "height": 1209,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 183,
+          "path": "/assets/optimized/laws_of_exponent-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 366,
+          "path": "/assets/optimized/laws_of_exponent-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 549,
+          "path": "/assets/optimized/laws_of_exponent-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 1097,
+          "path": "/assets/optimized/laws_of_exponent-2400.webp"
+        }
+      }
+    },
+    "linear_number_line.png": {
+      "width": 2240,
+      "height": 327,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 58,
+          "path": "/assets/optimized/linear_number_line-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 117,
+          "path": "/assets/optimized/linear_number_line-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 175,
+          "path": "/assets/optimized/linear_number_line-1200.webp"
+        }
+      }
+    },
+    "long_div_polynomial.png": {
+      "width": 2596,
+      "height": 898,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 138,
+          "path": "/assets/optimized/long_div_polynomial-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 277,
+          "path": "/assets/optimized/long_div_polynomial-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 415,
+          "path": "/assets/optimized/long_div_polynomial-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 830,
+          "path": "/assets/optimized/long_div_polynomial-2400.webp"
+        }
+      }
+    },
+    "midpoint_distance.png": {
+      "width": 1855,
+      "height": 1233,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 266,
+          "path": "/assets/optimized/midpoint_distance-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 532,
+          "path": "/assets/optimized/midpoint_distance-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 798,
+          "path": "/assets/optimized/midpoint_distance-1200.webp"
+        }
+      }
+    },
+    "nat.png": {
+      "width": 1408,
+      "height": 768,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 218,
+          "path": "/assets/optimized/nat-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 436,
+          "path": "/assets/optimized/nat-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 655,
+          "path": "/assets/optimized/nat-1200.webp"
+        }
+      }
+    },
+    "nat_filter.png": {
+      "width": 1408,
+      "height": 768,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 218,
+          "path": "/assets/optimized/nat_filter-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 436,
+          "path": "/assets/optimized/nat_filter-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 655,
+          "path": "/assets/optimized/nat_filter-1200.webp"
+        }
+      }
+    },
+    "p2pdiagram.png": {
+      "width": 1651,
+      "height": 758,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 184,
+          "path": "/assets/optimized/p2pdiagram-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 367,
+          "path": "/assets/optimized/p2pdiagram-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 551,
+          "path": "/assets/optimized/p2pdiagram-1200.webp"
+        }
+      }
+    },
+    "product_formulas.png": {
+      "width": 1786,
+      "height": 719,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 161,
+          "path": "/assets/optimized/product_formulas-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 322,
+          "path": "/assets/optimized/product_formulas-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 483,
+          "path": "/assets/optimized/product_formulas-1200.webp"
+        }
+      }
+    },
+    "prop_absolute_value.png": {
+      "width": 2555,
+      "height": 951,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 149,
+          "path": "/assets/optimized/prop_absolute_value-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 298,
+          "path": "/assets/optimized/prop_absolute_value-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 447,
+          "path": "/assets/optimized/prop_absolute_value-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 893,
+          "path": "/assets/optimized/prop_absolute_value-2400.webp"
+        }
+      }
+    },
+    "prop_equality.png": {
+      "width": 2508,
+      "height": 831,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 133,
+          "path": "/assets/optimized/prop_equality-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 265,
+          "path": "/assets/optimized/prop_equality-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 398,
+          "path": "/assets/optimized/prop_equality-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 795,
+          "path": "/assets/optimized/prop_equality-2400.webp"
+        }
+      }
+    },
+    "prop_of_fractions.png": {
+      "width": 2551,
+      "height": 1225,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 192,
+          "path": "/assets/optimized/prop_of_fractions-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 384,
+          "path": "/assets/optimized/prop_of_fractions-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 576,
+          "path": "/assets/optimized/prop_of_fractions-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 1152,
+          "path": "/assets/optimized/prop_of_fractions-2400.webp"
+        }
+      }
+    },
+    "prop_of_roots.png": {
+      "width": 2138,
+      "height": 968,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 181,
+          "path": "/assets/optimized/prop_of_roots-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 362,
+          "path": "/assets/optimized/prop_of_roots-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 543,
+          "path": "/assets/optimized/prop_of_roots-1200.webp"
+        }
+      }
+    },
+    "properties_real_number.png": {
+      "width": 2993,
+      "height": 1508,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 202,
+          "path": "/assets/optimized/properties_real_number-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 403,
+          "path": "/assets/optimized/properties_real_number-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 605,
+          "path": "/assets/optimized/properties_real_number-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 1209,
+          "path": "/assets/optimized/properties_real_number-2400.webp"
+        }
+      }
+    },
+    "quadrant_axis.png": {
+      "width": 1259,
+      "height": 1157,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 368,
+          "path": "/assets/optimized/quadrant_axis-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 735,
+          "path": "/assets/optimized/quadrant_axis-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 1103,
+          "path": "/assets/optimized/quadrant_axis-1200.webp"
+        }
+      }
+    },
+    "rate_limit_high_level.png": {
+      "width": 673,
+      "height": 723,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 430,
+          "path": "/assets/optimized/rate_limit_high_level-400.webp"
+        }
+      }
+    },
+    "reference_number.png": {
+      "width": 2987,
+      "height": 683,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 91,
+          "path": "/assets/optimized/reference_number-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 183,
+          "path": "/assets/optimized/reference_number-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 274,
+          "path": "/assets/optimized/reference_number-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 549,
+          "path": "/assets/optimized/reference_number-2400.webp"
+        }
+      }
+    },
+    "right_triangle_angles.png": {
+      "width": 374,
+      "height": 488,
+      "variants": {}
+    },
+    "slope_of_line.png": {
+      "width": 3749,
+      "height": 1081,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 115,
+          "path": "/assets/optimized/slope_of_line-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 231,
+          "path": "/assets/optimized/slope_of_line-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 346,
+          "path": "/assets/optimized/slope_of_line-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 692,
+          "path": "/assets/optimized/slope_of_line-2400.webp"
+        }
+      }
+    },
+    "special_value_trigonometric_func.png": {
+      "width": 2883,
+      "height": 1080,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 150,
+          "path": "/assets/optimized/special_value_trigonometric_func-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 300,
+          "path": "/assets/optimized/special_value_trigonometric_func-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 450,
+          "path": "/assets/optimized/special_value_trigonometric_func-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 899,
+          "path": "/assets/optimized/special_value_trigonometric_func-2400.webp"
+        }
+      }
+    },
+    "sythetic_division.png": {
+      "width": 1646,
+      "height": 1252,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 304,
+          "path": "/assets/optimized/sythetic_division-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 609,
+          "path": "/assets/optimized/sythetic_division-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 913,
+          "path": "/assets/optimized/sythetic_division-1200.webp"
+        }
+      }
+    },
+    "triangle_inequality.png": {
+      "width": 2724,
+      "height": 760,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 112,
+          "path": "/assets/optimized/triangle_inequality-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 223,
+          "path": "/assets/optimized/triangle_inequality-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 335,
+          "path": "/assets/optimized/triangle_inequality-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 670,
+          "path": "/assets/optimized/triangle_inequality-2400.webp"
+        }
+      }
+    },
+    "trigonometry.png": {
+      "width": 369,
+      "height": 205,
+      "variants": {}
+    },
+    "unit_circle_wave.png": {
+      "width": 1024,
+      "height": 1024,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 400,
+          "path": "/assets/optimized/unit_circle_wave-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 800,
+          "path": "/assets/optimized/unit_circle_wave-800.webp"
+        }
+      }
+    },
+    "vector_addition.png": {
+      "width": 3155,
+      "height": 1181,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 150,
+          "path": "/assets/optimized/vector_addition-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 299,
+          "path": "/assets/optimized/vector_addition-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 449,
+          "path": "/assets/optimized/vector_addition-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 898,
+          "path": "/assets/optimized/vector_addition-2400.webp"
+        }
+      }
+    },
+    "vector_dense_sparse.png": {
+      "width": 1408,
+      "height": 768,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 218,
+          "path": "/assets/optimized/vector_dense_sparse-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 436,
+          "path": "/assets/optimized/vector_dense_sparse-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 655,
+          "path": "/assets/optimized/vector_dense_sparse-1200.webp"
+        }
+      }
+    },
+    "vertical_horizontal_asymptote.png": {
+      "width": 2682,
+      "height": 1447,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 216,
+          "path": "/assets/optimized/vertical_horizontal_asymptote-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 432,
+          "path": "/assets/optimized/vertical_horizontal_asymptote-800.webp"
+        },
+        "1200": {
+          "width": 1200,
+          "height": 647,
+          "path": "/assets/optimized/vertical_horizontal_asymptote-1200.webp"
+        },
+        "2400": {
+          "width": 2400,
+          "height": 1295,
+          "path": "/assets/optimized/vertical_horizontal_asymptote-2400.webp"
+        }
+      }
+    }
+  }
+}
