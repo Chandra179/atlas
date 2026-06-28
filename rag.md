@@ -119,8 +119,6 @@ Hybrid search fuses a dense leg and a sparse (BM25) leg. The client-side path fe
 * `header` — restrict to a specific section
 * `source_sha` — restrict to a specific document version
 
-<!-- dense-only Search was removed; HybridSearch applies the filter to its dense leg internally -->
-
 ### Reranking
 
 A cross-encoder re-ranks candidates from vector search using the chunk's Window Text.
