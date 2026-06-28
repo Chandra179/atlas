@@ -5,10 +5,9 @@
 import { visit } from 'unist-util-visit';
 
 /**
- * @param {unknown} options
  * @returns {import('unified').Transformer<import('mdast').Root, import('mdast').Root>}
  */
-export function rewriteLinks(options) {
+export function rewriteLinks() {
   return (tree, vfile) => {
     const path = vfile?.path || vfile?.history?.[0] || '';
     visit(tree, 'link', (node) => {

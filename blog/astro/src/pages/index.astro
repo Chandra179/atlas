@@ -1,15 +1,10 @@
 ---
-import { getCollection } from 'astro:content';
 import BaseLayout from '../layouts/BaseLayout.astro';
 import { buildNav } from '../lib/nav';
-import { IGNORE_FILES, IGNORE_IDS } from '../lib/ordering';
 import { extractDescription } from '../lib/description';
+import { getValidEntries } from '../lib/entries';
 
-const allEntries = await getCollection('docs');
-const validEntries = allEntries.filter((e) => {
-  const filename = e.id.split('/').pop() || '';
-  return !IGNORE_FILES.has(filename) && !IGNORE_FILES.has(filename.toLowerCase()) && !IGNORE_IDS.has(e.id);
-});
+const validEntries = await getValidEntries();
 
 const nav = buildNav(validEntries);
 
@@ -82,21 +77,29 @@ for (const section of nav) {
   }
 }
 
-const CATEGORY_BADGES: Record<string, string> = {
-  'fundamental':   'badge-fundamental',
-  'system-design': 'badge-system-design',
-  'golang':        'badge-golang',
-  'math':          'badge-math',
-  'ml':            'badge-ml',
-  'quant':         'badge-quant',
-};
-
 const categories = [...new Set(cards.map((c) => c.categorySlug).filter(Boolean))] as string[];
+
 const categoryLabels: Record<string, string> = {};
+const navMap = new Map<string, (typeof nav)[number]>();
+for (const section of nav) navMap.set(section.slug, section);
 for (const catSlug of categories) {
-  const cat = nav.find((s) => s.slug === catSlug);
-  categoryLabels[catSlug] = cat?.name || catSlug;
+  categoryLabels[catSlug] = navMap.get(catSlug)?.name || catSlug;
 }
+
+const CATEGORY_COLORS = [
+  'badge-fundamental',
+  'badge-system-design',
+  'badge-golang',
+  'badge-math',
+  'badge-ml',
+  'badge-quant',
+  'badge-economy',
+];
+
+const CATEGORY_BADGES: Record<string, string> = {};
+categories.forEach((slug, i) => {
+  CATEGORY_BADGES[slug] = CATEGORY_COLORS[i % CATEGORY_COLORS.length] || 'badge-default';
+});
 
 const siteName = 'Chan179';
 const baseDescription = 'Technical notes and learning resources on Math, Golang, System Design, ML, and more.';

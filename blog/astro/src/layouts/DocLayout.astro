@@ -3,7 +3,7 @@ import BaseLayout from './BaseLayout.astro';
 import Sidebar from '../components/Sidebar.astro';
 import TOC from '../components/TOC.astro';
 import type { NavSection } from '../lib/nav';
-import { buildBreadcrumb } from '../lib/nav';
+import { buildBreadcrumb, flattenNav, getPrevNext } from '../lib/nav';
 import { extractDescription } from '../lib/description';
 
 interface Heading {
@@ -15,6 +15,7 @@ interface Heading {
 interface Props {
   title: string;
   description?: string;
+  ogImage?: string;
   body: string;
   headings: Heading[];
   url: string;
@@ -28,6 +29,7 @@ interface Props {
 const {
   title,
   description,
+  ogImage,
   body,
   headings,
   url,
@@ -45,12 +47,18 @@ const pageDescription = description || extractDescription(body);
 const baseDescription = 'Technical notes and learning resources on Math, Golang, System Design, ML, and more.';
 const metaDescription = pageDescription || `Notes on ${breadcrumb}. ${baseDescription}`;
 
-// JSON-LD structured data
+const wordCount = body ? body.split(/\s+/).filter(Boolean).length : 0;
+
+const resolvedOgImage = ogImage
+  ? new URL(ogImage, Astro.site).href
+  : new URL('/og-image.png', Astro.site).href;
+
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'Article',
   headline: pageTitle,
   description: metaDescription,
+  wordCount,
   mainEntityOfPage: {
     '@type': 'WebPage',
     '@id': new URL(url, Astro.site).href,
@@ -59,9 +67,9 @@ const jsonLd = {
   ...((modified || created) && { dateModified: (modified || created)!.toISOString() }),
   author: { '@type': 'Person', name: author, '@id': new URL('/', Astro.site).href + '#author' },
   publisher: { '@type': 'Organization', name: siteName, '@id': new URL('/', Astro.site).href + '#publisher' },
+  ...(ogImage && { image: resolvedOgImage }),
 };
 
-// BreadcrumbList JSON-LD
 const crumbs = breadcrumb.split(' / ');
 const pathParts = url.replace(/^\//, '').replace(/\/$/, '').split('/');
 const crumbNames = ['Home', ...crumbs];
@@ -84,6 +92,9 @@ const breadcrumbJsonLd = {
       : undefined,
   })),
 };
+
+const flat = flattenNav(nav);
+const { prev, next } = getPrevNext(flat, url);
 ---
 
 <BaseLayout
@@ -91,6 +102,7 @@ const breadcrumbJsonLd = {
   description={metaDescription}
   canonical={url}
   ogType="article"
+  ogImage={resolvedOgImage}
   jsonLd={[jsonLd, breadcrumbJsonLd]}
   created={created}
   modified={modified}
@@ -101,9 +113,47 @@ const breadcrumbJsonLd = {
 
   <main class="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden transition-all duration-300 pt-16 lg:ml-64 xl:mr-64">
     <div class="mx-auto px-4 sm:px-6 py-8 lg:py-12 max-w-3xl">
+      <nav aria-label="Breadcrumb" class="mb-6 text-sm">
+        <ol class="flex flex-wrap items-center gap-1 text-gray-400 dark:text-gray-500">
+          {crumbNames.map((name, i) => (
+            <li class="flex items-center gap-1">
+              {i < crumbNames.length - 1 ? (
+                <a href={crumbUrls[i]} class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">{name}</a>
+              ) : (
+                <span class="text-gray-700 dark:text-gray-300 font-medium">{name}</span>
+              )}
+              {i < crumbNames.length - 1 && (
+                <svg class="w-3 h-3 mx-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                </svg>
+              )}
+            </li>
+          ))}
+        </ol>
+      </nav>
+
       <article id="content" class="prose prose-lg prose-blue max-w-none">
         <slot />
       </article>
+
+      {(prev || next) && (
+        <nav aria-label="Previous and next articles" class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+          <div class="grid grid-cols-2 gap-4">
+            {prev ? (
+              <a href={prev.url} class="group p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
+                <span class="text-xs text-gray-400 dark:text-gray-500">Previous</span>
+                <span class="block mt-1 text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{prev.name}</span>
+              </a>
+            ) : <div></div>}
+            {next ? (
+              <a href={next.url} class="group p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors text-right">
+                <span class="text-xs text-gray-400 dark:text-gray-500">Next</span>
+                <span class="block mt-1 text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{next.name}</span>
+              </a>
+            ) : <div></div>}
+          </div>
+        </nav>
+      )}
     </div>
   </main>
 

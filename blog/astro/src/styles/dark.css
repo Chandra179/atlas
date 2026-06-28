@@ -156,35 +156,6 @@
     border-color: #334155;
 }
 
-/* ========== Tabs ========== */
-.dark .gitbook-tabs {
-    border-color: #334155;
-}
-
-.dark .tab-headers {
-    background-color: #1e293b;
-    border-bottom-color: #334155;
-}
-
-.dark .tab-header {
-    color: #64748b;
-}
-
-.dark .tab-header:hover {
-    background-color: #0f172a;
-    color: #94a3b8;
-}
-
-.dark .tab-header.active {
-    background-color: #0f172a;
-    color: #60a5fa;
-    border-bottom-color: #3b82f6;
-}
-
-.dark .tab-contents {
-    background-color: #0f172a;
-}
-
 /* ========== Embed Cards ========== */
 .dark .embed-card {
     border-color: #334155;

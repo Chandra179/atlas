@@ -32,10 +32,10 @@ export const NAME_OVERRIDES: Record<string, string> = {
 };
 
 // Display order for root-level standalone pages (slugs).
-export const ROOT_PAGE_ORDER = ['README', 'p2p-chat', 'reactjs', 'etcd-raft'];
+export const ROOT_PAGE_ORDER = ['README', 'introduction', 'rag', 'psycho', 'ai', 'reactjs', 'etcd-raft', 'syncthing'];
 
 // Display order for category directories (slugs).
-export const CATEGORY_ORDER = ['fundamental', 'system-design', 'golang', 'math'];
+export const CATEGORY_ORDER = ['fundamental', 'system-design', 'golang', 'math', 'ai', 'database', 'economy'];
 
 // Files to exclude from the collection (not content pages).
 // The glob loader lowercases filenames, so we include both cases.

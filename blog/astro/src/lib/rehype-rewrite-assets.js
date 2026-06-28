@@ -58,13 +58,14 @@ function applyOptimizedSrc(img) {
 }
 
 /**
- * @param {unknown} options
  * @returns {import('unified').Transformer<import('hast').Root, import('hast').Root>}
  */
-export function rehypeRewriteAssets(options) {
+export function rehypeRewriteAssets() {
   return (tree, vfile) => {
     const path = vfile?.path || vfile?.history?.[0] || '';
     const fileDir = path ? path.replace(/[/\\][^/\\]+$/, '') : '';
+
+    let isFirstImage = true;
 
     visit(tree, 'element', (node) => {
       if (node.tagName !== 'img') return;
@@ -73,17 +74,26 @@ export function rehypeRewriteAssets(options) {
 
       if (src.startsWith('/') || /^(https?:|data:)/.test(src)) {
         applyOptimizedSrc(node);
+        applyLoading(node);
         return;
       }
 
       const resolved = resolveRelative(src, fileDir);
       node.properties.src = resolved.replace(/^.*\/assets\//, '/assets/');
       applyOptimizedSrc(node);
-
-      if (node.properties.loading === undefined) {
-        node.properties.loading = 'lazy';
-      }
+      applyLoading(node);
     });
+
+    function applyLoading(img) {
+      if (img.properties.loading !== undefined) return;
+      if (isFirstImage) {
+        img.properties.loading = 'eager';
+        img.properties.fetchpriority = 'high';
+        isFirstImage = false;
+      } else {
+        img.properties.loading = 'lazy';
+      }
+    }
   };
 }
 

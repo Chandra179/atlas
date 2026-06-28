@@ -9,13 +9,10 @@ const docs = defineCollection({
   schema: z.object({
     title: z.string().optional(),
     description: z.string().optional(),
-    aliases: z.array(z.string()).default([]),
+    ogImage: z.string().optional(),
     tags: z.array(z.string()).default([]),
     created: z.coerce.date().optional(),
     modified: z.coerce.date().optional(),
-    audience: z.string().optional(),
-    style: z.string().optional(),
-    prerequisites: z.array(z.string()).default([]),
   }),
 });
 

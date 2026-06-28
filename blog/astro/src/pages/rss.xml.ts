@@ -1,16 +1,10 @@
 import rss from '@astrojs/rss';
-import { getCollection } from 'astro:content';
 import { buildNav, deriveTitle, entryIdToUrl } from '../lib/nav';
 import { extractDescription } from '../lib/description';
-import { IGNORE_FILES, IGNORE_IDS } from '../lib/ordering';
+import { getValidEntries } from '../lib/entries';
 
 export async function GET(context) {
-  const allEntries = await getCollection('docs');
-  const validEntries = allEntries.filter((e) => {
-    const filename = e.id.split('/').pop() || '';
-    const fnLower = filename.toLowerCase();
-    return !IGNORE_FILES.has(filename) && !IGNORE_FILES.has(fnLower) && !IGNORE_IDS.has(e.id);
-  });
+  const validEntries = await getValidEntries();
 
   const nav = buildNav(validEntries);
   const navUrls = new Set<string>();

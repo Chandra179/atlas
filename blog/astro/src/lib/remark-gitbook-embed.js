@@ -11,10 +11,9 @@ import { visit } from 'unist-util-visit';
 const EMBED_RE = /^\s*\{%\s*embed\s+url="([^"]+)"\s*%\}\s*$/;
 
 /**
- * @param {unknown} options
  * @returns {import('unified').Transformer<import('mdast').Root, import('mdast').Root>}
  */
-export function gitbookEmbed(options) {
+export function gitbookEmbed() {
   return (tree) => {
     visit(tree, 'paragraph', (node, index, parent) => {
       if (!parent || typeof index !== 'number') return;

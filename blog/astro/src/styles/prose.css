@@ -395,8 +395,7 @@
     max-width: 100%;
     height: auto;
     overflow: visible;
-}
-
-.dark .prose svg[id^="mermaid-"] {
-    filter: brightness(0.9) contrast(1.1);
+    background: #ffffff;
+    border-radius: 0.5rem;
+    padding: 0.5rem;
 }

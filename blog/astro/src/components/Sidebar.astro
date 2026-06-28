@@ -39,9 +39,11 @@ const initialState = JSON.stringify({ expandedSections: initialSections, expande
 ---
 
 <aside
+  id="sidebar"
   class="fixed top-16 left-0 bottom-0 w-64 bg-white dark:bg-gray-900 overflow-y-auto z-40 transition-transform duration-300 -translate-x-full lg:translate-x-0"
   :class="mobileMenuOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'"
   x-data={initialState}
+  x-init="setTimeout(() => { const active = $el.querySelector('[aria-current=page]'); if (active) active.scrollIntoView({ block: 'center' }); }, 100)"
 >
   <div class="p-6"></div>
   <nav class="px-4 pb-6">
@@ -51,7 +53,8 @@ const initialState = JSON.stringify({ expandedSections: initialSections, expande
           <!-- Standalone page (no dropdown) -->
           <div class="mb-6">
             <a href={section.url}
-              class={`block px-3 mb-2 text-xs font-semibold uppercase tracking-wider hover:text-gray-900 ${isActive(section.url, currentPath) ? 'text-blue-600' : 'text-gray-500'}`}>
+              class={`block px-3 mb-2 text-xs font-semibold uppercase tracking-wider hover:text-gray-900 ${isActive(section.url, currentPath) ? 'text-blue-600' : 'text-gray-500'}`}
+              aria-current={isActive(section.url, currentPath) ? 'page' : undefined}>
               {section.name}
             </a>
           </div>
@@ -86,7 +89,8 @@ const initialState = JSON.stringify({ expandedSections: initialSections, expande
                     {!page.isFolder ? (
                       <!-- Regular page -->
                       <a href={page.url}
-                        class={`nav-link block px-6 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 mb-1 ${isActive(page.url, currentPath) ? 'active' : ''}`}>
+                        class={`nav-link block px-6 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 mb-1 ${isActive(page.url, currentPath) ? 'active' : ''}`}
+                        aria-current={isActive(page.url, currentPath) ? 'page' : undefined}>
                         {page.name}
                       </a>
                     ) : (
@@ -94,7 +98,8 @@ const initialState = JSON.stringify({ expandedSections: initialSections, expande
                       <div class="mb-1">
                         <div class="flex items-center justify-between px-6 py-2 rounded-lg hover:bg-gray-50">
                           <a href={page.url}
-                            class={`flex-1 text-sm font-medium cursor-pointer ${isActive(page.url, currentPath) ? 'text-blue-600' : 'text-gray-700'}`}>
+                            class={`flex-1 text-sm font-medium cursor-pointer ${isActive(page.url, currentPath) ? 'text-blue-600' : 'text-gray-700'}`}
+                            aria-current={isActive(page.url, currentPath) ? 'page' : undefined}>
                             {page.name}
                           </a>
                           <svg @click={`expandedFolders['${section.slug}/${page.slug}'] = !expandedFolders['${section.slug}/${page.slug}']`}
@@ -115,7 +120,8 @@ const initialState = JSON.stringify({ expandedSections: initialSections, expande
                             class="ml-4">
                             {page.pages.map((subpage: NavPage) => (
                               <a href={subpage.url}
-                                class={`nav-link block px-6 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 mb-1 ${isActive(subpage.url, currentPath) ? 'active' : ''}`}>
+                                class={`nav-link block px-6 py-2 rounded-lg text-sm text-gray-600 hover:bg-gray-50 mb-1 ${isActive(subpage.url, currentPath) ? 'active' : ''}`}
+                                aria-current={isActive(subpage.url, currentPath) ? 'page' : undefined}>
                                 {subpage.name}
                               </a>
                             ))}

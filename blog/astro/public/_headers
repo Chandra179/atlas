@@ -1,5 +1,11 @@
 # Cloudflare Pages cache headers
 
+# Security headers (applied to all responses)
+/*
+  X-Content-Type-Options: nosniff
+  X-Frame-Options: DENY
+  Referrer-Policy: strict-origin-when-cross-origin
+
 # HTML: 6 hours, stale-while-revalidate 1 day
 /*.html
   Cache-Control: public, max-age=21600, stale-while-revalidate=86400

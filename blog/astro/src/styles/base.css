@@ -3,7 +3,7 @@ body {
     position: relative;
     width: 100%;
 }
-/* UI Components - Navigation, TOC, Search, Tabs */
+/* UI Components - Navigation, TOC */
 
 /* ========== Navigation Active States ========== */
 .nav-link.active {
@@ -51,57 +51,3 @@ body {
     padding-left: 1rem;
 }
 
-/* ========== Search Result Highlighting ========== */
-.search-highlight {
-    background-color: #fef08a; /* yellow-200 */
-    color: #854d0e; /* yellow-800 */
-    padding: 0 2px;
-    border-radius: 2px;
-    font-weight: 500;
-}
-
-/* ========== GitBook-style Tabs ========== */
-.gitbook-tabs {
-    margin: 1.5em 0;
-    border: 1px solid #e5e7eb;
-    border-radius: 0.5rem;
-    overflow: hidden;
-}
-
-.tab-headers {
-    display: flex;
-    background-color: #f9fafb;
-    border-bottom: 1px solid #e5e7eb;
-}
-
-.tab-header {
-    flex: 1;
-    padding: 0.75rem 1rem;
-    background: none;
-    border: none;
-    border-bottom: 2px solid transparent;
-    cursor: pointer;
-    font-weight: 500;
-    color: #6b7280;
-    transition: all 0.2s;
-    font-size: 0.875rem;
-}
-
-.tab-header:hover {
-    background-color: #f3f4f6;
-    color: #374151;
-}
-
-.tab-header.active {
-    color: #3b82f6;
-    border-bottom-color: #3b82f6;
-    background-color: white;
-}
-
-.tab-contents {
-    background-color: white;
-}
-
-.tab-content {
-    padding: 1.5rem;
-}

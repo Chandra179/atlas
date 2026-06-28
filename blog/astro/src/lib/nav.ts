@@ -1,5 +1,5 @@
 import type { CollectionEntry } from 'astro:content';
-import { NAME_OVERRIDES, ROOT_PAGE_ORDER, CATEGORY_ORDER, IGNORE_FILES, IGNORE_IDS, toName } from './ordering';
+import { NAME_OVERRIDES, ROOT_PAGE_ORDER, CATEGORY_ORDER, IGNORE_FILES, toName } from './ordering';
 
 export interface NavPage {
   name: string;
@@ -55,18 +55,11 @@ export function deriveTitle(slug: string, frontmatterTitle?: string): string {
  * Mirrors the structure of the old scripts/gen-nav.js output.
  */
 export function buildNav(entries: CollectionEntry<'docs'>[]): NavSection[] {
-  // Filter out ignored files (case-insensitive check on filename) and specific ids
-  const valid = entries.filter((e) => {
-    const filename = e.id.split('/').pop() || '';
-    const filenameLower = filename.toLowerCase();
-    return !IGNORE_FILES.has(filename) && !IGNORE_FILES.has(filenameLower) && !IGNORE_IDS.has(e.id);
-  });
-
   // Partition into root-level files (standalone) and directory entries.
   const rootFiles: CollectionEntry<'docs'>[] = [];
   const dirEntries: CollectionEntry<'docs'>[] = [];
 
-  for (const entry of valid) {
+  for (const entry of entries) {
     const parts = entry.id.split('/');
     if (parts.length === 1) {
       // Root-level .md file (e.g. "reactjs.md")
@@ -238,4 +231,49 @@ export function buildBreadcrumb(nav: NavSection[], url: string): string {
   }
 
   return crumbs.join(' / ');
+}
+
+export interface FlatPage {
+  name: string;
+  url: string;
+  isFolder?: boolean;
+}
+
+/**
+ * Flatten the nav tree into a list of all pages (standalone + category pages + subpages).
+ * Used for prev/next navigation.
+ */
+export function flattenNav(nav: NavSection[]): FlatPage[] {
+  const flat: FlatPage[] = [];
+  for (const section of nav) {
+    if (section.standalone) {
+      flat.push({ name: section.name, url: section.url });
+    } else {
+      flat.push({ name: section.name, url: section.url, isFolder: true });
+      if (section.pages) {
+        for (const page of section.pages) {
+          if (page.isFolder && page.pages) {
+            flat.push({ name: page.name, url: page.url, isFolder: true });
+            for (const sub of page.pages) {
+              flat.push({ name: sub.name, url: sub.url });
+            }
+          } else {
+            flat.push({ name: page.name, url: page.url });
+          }
+        }
+      }
+    }
+  }
+  return flat;
+}
+
+/**
+ * Get prev/next pages for a given URL in the flattened nav.
+ */
+export function getPrevNext(flat: FlatPage[], currentUrl: string) {
+  const index = flat.findIndex((p) => p.url === currentUrl);
+  return {
+    prev: index > 0 ? flat[index - 1] : null,
+    next: index < flat.length - 1 ? flat[index + 1] : null,
+  };
 }

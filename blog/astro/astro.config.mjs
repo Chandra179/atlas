@@ -21,7 +21,7 @@ export default defineConfig({
       useDarkModeMediaQuery: false,
       themeCssSelector: (theme) => (theme.name === 'github-dark' ? '.dark' : false),
       defaultProps: {
-        wrap: true,
+        wrap: false,
       },
     }),
     alpinejs(),
