@@ -25,8 +25,6 @@ A **cold start** is what happens when Modal boots a container from scratch for t
 
 ## Modal — Serverless GPU
 
-### Why This Matters
-
 When you deploy a Modal app, here is what happens step by step:
 
 1. Modal builds a container image with your code, dependencies, and config files.
@@ -40,7 +38,7 @@ Each step has costs, tradeoffs, and pitfalls. The sections below walk through th
 
 ### Step 1: Image Building
 
-**Why this matters**: Everything your app needs — Python packages, environment variables, config files — must be baked into the container image before it starts. If you miss a dependency, the container fails at runtime, not at build time.
+Everything your app needs — Python packages, environment variables, config files — must be baked into the container image before it starts. If you miss a dependency, the container fails at runtime, not at build time.
 
 - **Dependencies**: use `.uv_pip_install("package==version")` on the image chain. Prefer this over raw `pip_install` for consistency with the project's `uv` tooling.
 - **Build/Runtime env vars**: use `.env_var("KEY", "value")` on the image chain. Observed in practice: `HF_XET_HIGH_PERFORMANCE=1` (speeds up HuggingFace Xet-backed downloads) and `VLLM_LOG_STATS_INTERVAL=1` (enables periodic vLLM throughput logging).
@@ -51,7 +49,7 @@ Each step has costs, tradeoffs, and pitfalls. The sections below walk through th
 
 ### Step 2: Path Resolution
 
-**Why this matters**: File paths that work on your laptop break inside the container because Modal copies your script to a flat directory structure. Hard-coded relative paths (`../../config.yaml`) will not find the file.
+File paths that work on your laptop break inside the container because Modal copies your script to a flat directory structure. Hard-coded relative paths (`../../config.yaml`) will not find the file.
 
 Inside a Modal container, `__file__` resolves to `/root/modal_serve.py` (the script is copied flattened into the root). `Path(__file__).parent.parent.parent` does NOT point to your project root. For runtime config files, bundle them into the image and reference the bundled path:
 
@@ -67,7 +65,7 @@ for path in (Path("/opt/config.yaml"), Path(__file__).resolve().parent.parent.pa
 
 ### Step 3: Deploying to Modal
 
-**Why this matters**: Understanding the deploy lifecycle prevents confusion when your code changes do not take effect — running containers keep using the old deployment.
+Understanding the deploy lifecycle prevents confusion when your code changes do not take effect — running containers keep using the old deployment.
 
 - **`modal deploy`** pushes a new immutable deployment with the current code + image. Existing live containers continue running the OLD deployment.
 - **Killing a container** (`modal app stop`) restarts it from the same old deployment. Code/image changes require `modal deploy` to take effect.
@@ -79,7 +77,7 @@ for path in (Path("/opt/config.yaml"), Path(__file__).resolve().parent.parent.pa
 
 ### Step 4: Container Startup — Cold Start Anatomy
 
-**Why this matters and what is it**: When Modal boots a container for the first time (a cold start), it goes through several phases: pulling the image, loading 58+ GiB of model weights into GPU memory, compiling GPU kernels, and initializing the inference engine. Each phase has a cost. The table below measures them on an H200 GPU for Gemma 4 31B.
+When Modal boots a container for the first time (a cold start), it goes through several phases: pulling the image, loading 58+ GiB of model weights into GPU memory, compiling GPU kernels, and initializing the inference engine. Each phase has a cost. The table below measures them on an H200 GPU for Gemma 4 31B.
 
 Phases explained in plain language:
 
@@ -112,7 +110,7 @@ Phases explained in plain language:
 
 ### Step 5: Volumes (Persistent Storage)
 
-**Why this matters**: Without volumes, every cold start pays the full weight download and kernel compilation penalty. Volumes cache these across deploys.
+Without volumes, every cold start pays the full weight download and kernel compilation penalty. Volumes cache these across deploys.
 
 Modal [Volumes](https://modal.com/docs/guide/volumes) [^4] are network-attached persistent storage mounted into containers at runtime. Two are critical:
 
@@ -125,7 +123,7 @@ Volumes persist across deploys; they are NOT wiped when a container scales down.
 
 ### Step 6: vLLM Startup
 
-**Why this matters**: vLLM is the engine that loads the model and serves requests. Its startup flags control GPU memory allocation, model-specific behavior, and performance. These are the flags that matter for Gemma 4 on a single H200.
+vLLM is the engine that loads the model and serves requests. Its startup flags control GPU memory allocation, model-specific behavior, and performance. These are the flags that matter for Gemma 4 on a single H200.
 
 #### Relevant Startup Flags
 
@@ -180,7 +178,7 @@ vLLM auto-detects the chat template format as `openai`. You can override with `-
 
 ### Step 7: Warm-Up
 
-**Why this matters**: GPU kernels are compiled the first time they are used (JIT compilation). If the first real request triggers compilation, that user pays a 2-3s latency spike. A warm-up query absorbs this cost before traffic arrives.
+GPU kernels are compiled the first time they are used (JIT compilation). If the first real request triggers compilation, that user pays a 2-3s latency spike. A warm-up query absorbs this cost before traffic arrives.
 
 Sending a trivial chat completion query (`[{"role":"user","content":"Hi"}]`) during startup triggers JIT kernel compilation (Triton^[A GPU programming language by OpenAI — vLLM uses it to write custom attention kernels.] ) for the first-inference shapes. Without this, the first real user request pays a 2-3s latency spike from JIT compilation. Warm-up absorbs this cost before traffic arrives.
 
@@ -223,7 +221,7 @@ Timings below are from a separate measurement run. Differences vs. the [Cold Sta
 
 ### Step 8: Idle Management
 
-**Why this matters**: You pay per second the container is alive ($4.54/hr for an H200). If the container stays alive after requests stop, you burn money on idle GPU time.
+You pay per second the container is alive ($4.54/hr for an H200). If the container stays alive after requests stop, you burn money on idle GPU time.
 
 Two competing knobs:
 
@@ -245,7 +243,7 @@ For limited budgets (e.g., $240 hackathon credit), **15-minute `scaledown_window
 
 ### Step 9: GPU Memory Snapshots (Alpha) [^2] — Optional Optimization
 
-**Why this matters**: Cold starts take 3+ minutes. GPU snapshots cut that to 10-30 seconds by saving and restoring the entire GPU memory state (including compiled kernels and CUDA graphs).
+Cold starts take 3+ minutes. GPU snapshots cut that to 10-30 seconds by saving and restoring the entire GPU memory state (including compiled kernels and CUDA graphs).
 
 **How it works:**
 
@@ -287,7 +285,7 @@ For limited budgets (e.g., $240 hackathon credit), **15-minute `scaledown_window
 
 ## Cost Model (H200, ~$0.001261/sec → $4.54/hr) [^3]
 
-**Why this matters**: Every cold start, idle minute, and inference has a dollar cost. Understanding these numbers helps you choose between `keep_warm` and `scaledown_window`, and whether GPU snapshots are worth the engineering effort.
+Every cold start, idle minute, and inference has a dollar cost. Understanding these numbers helps you choose between `keep_warm` and `scaledown_window`, and whether GPU snapshots are worth the engineering effort.
 
 | Event | Cost |
 |-------|------|
@@ -337,7 +335,7 @@ Weight loading from `huggingface-cache` volume takes ~27.65s for a 58.25 GiB mod
 
 ### Continuous Batching
 
-**Why this matters**: Static batching waits for all requests in a batch to finish before processing the next batch. One request generating 500 tokens holds up 7 other requests that finished at 10 tokens. Continuous batching solves this by swapping completed requests out and new requests in at every iteration.
+Static batching waits for all requests in a batch to finish before processing the next batch. One request generating 500 tokens holds up 7 other requests that finished at 10 tokens. Continuous batching solves this by swapping completed requests out and new requests in at every iteration.
 
 vLLM uses **iteration-level scheduling**: at each forward pass, it fills the batch up to `max-num-batched-tokens` with tokens from the active request pool. When a request finishes generating (EOS token or `max_tokens`), its slot is freed immediately — not at batch boundary.
 
@@ -358,7 +356,7 @@ Continuous batching reduces the "straggler effect" — one long generation no lo
 
 ### Observability & Metrics
 
-**Why this matters**: Without metrics, you don't know if your model is performing well, if it's close to OOM, or if a deployment change made things worse. vLLM exposes a Prometheus endpoint and logs key statistics.
+Without metrics, you don't know if your model is performing well, if it's close to OOM, or if a deployment change made things worse. vLLM exposes a Prometheus endpoint and logs key statistics.
 
 vLLM serves metrics at `/metrics` in Prometheus format. Enable periodic stats logging with `VLLM_LOG_STATS_INTERVAL=N` (seconds between reports to stdout).
 
@@ -382,7 +380,7 @@ vLLM serves metrics at `/metrics` in Prometheus format. Enable periodic stats lo
 
 ### Prefix Caching
 
-**Why this matters**: Many workloads share a common prefix — a system prompt, few-shot examples, or shared conversation history. Without prefix caching, the model recomputes the KV cache for this prefix on every request, wasting GPU compute and delaying responses.
+Many workloads share a common prefix — a system prompt, few-shot examples, or shared conversation history. Without prefix caching, the model recomputes the KV cache for this prefix on every request, wasting GPU compute and delaying responses.
 
 vLLM implements **Automatic Prefix Caching (APC)** [^8]: it hashes KV cache blocks by their token sequence and checks whether a block already exists before computing it. If a prefix of the new request matches a cached prefix, those blocks are reused — only the divergent suffix is computed fresh.
 
@@ -407,7 +405,7 @@ Enable with: `--enable-prefix-caching`
 
 ### Speculative Decoding
 
-**Why this matters**: Autoregressive decoding generates one token per forward pass. Each forward pass reads all model weights from GPU memory — weight bandwidth, not compute, is the bottleneck. Speculative decoding produces multiple tokens per forward pass by using a small draft model to guess ahead, then verifying with a single target model pass.
+Autoregressive decoding generates one token per forward pass. Each forward pass reads all model weights from GPU memory — weight bandwidth, not compute, is the bottleneck. Speculative decoding produces multiple tokens per forward pass by using a small draft model to guess ahead, then verifying with a single target model pass.
 
 **How it works [^9]:**
 1. A small **draft model** (e.g., 0.5B params) generates K candidate tokens cheaply.
@@ -433,7 +431,7 @@ Enable with: `--enable-prefix-caching`
 
 ## Scaling Beyond a Single GPU
 
-**Why this matters**: Single GPUs have hard limits. Gemma 4 31B fits on an H200 — but a 70B dense or 405B sparse model won't. Higher throughput demands also require more GPUs.
+Single GPUs have hard limits. Gemma 4 31B fits on an H200 — but a 70B dense or 405B sparse model won't. Higher throughput demands also require more GPUs.
 
 ### Tensor Parallelism (TP)
 
@@ -480,7 +478,7 @@ For MoE models: each GPU holds a subset of experts. Tokens routed to the GPU hos
 
 ## Serving Embedding Models
 
-**Why this matters**: Embedding model serving is fundamentally different from generative model serving — and simpler. No KV cache, no CUDA graphs, no speculative decoding. But different optimizations apply.
+Embedding model serving is fundamentally different from generative model serving — and simpler. No KV cache, no CUDA graphs, no speculative decoding. But different optimizations apply.
 
 **Differences from generative serving:**
 - **No autoregressive decoding**: embeddings are a single forward pass. No KV cache needed.
@@ -503,7 +501,7 @@ For production embedding serving, a single L4 GPU ($0.000222/sec on Modal) handl
 
 ## HuggingFace Hub
 
-**Why this matters**: Model weights must be downloaded before vLLM can serve them. HuggingFace Hub is the distribution point, and its access controls and download mechanics affect deployment reliability.
+Model weights must be downloaded before vLLM can serve them. HuggingFace Hub is the distribution point, and its access controls and download mechanics affect deployment reliability.
 
 ### Gated Models
 
@@ -525,7 +523,7 @@ Models like `google/gemma-4-31b-it` require an **accepted license agreement** on
 
 ## Security & API Management
 
-**Why this matters**: Modal endpoints are public URLs with no built-in auth. Anyone who discovers the URL can send requests and burn your budget. Production deployments need auth, rate limiting, and content controls.
+Modal endpoints are public URLs with no built-in auth. Anyone who discovers the URL can send requests and burn your budget. Production deployments need auth, rate limiting, and content controls.
 
 ### API Authentication
 

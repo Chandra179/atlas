@@ -9,7 +9,7 @@ prerequisites:
 
 # LLM Inference Engines
 
-**Why this matters**: The inference engine you pick determines your throughput, latency, hardware compatibility, and operational complexity. vLLM is the default for a reason — but it's not always the best choice. This file compares the six major engines and when to pick each.
+The inference engine you pick determines your throughput, latency, hardware compatibility, and operational complexity. vLLM is the default for a reason — but it's not always the best choice. This file compares the six major engines and when to pick each.
 
 > **Prerequisites**: [`ai-infra.md`](ai-infra.md) — vLLM startup, cold start anatomy, continuous batching, prefix caching. [`ml.md`](ml.md) — model architectures, Transformer attention.
 

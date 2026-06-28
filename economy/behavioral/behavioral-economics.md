@@ -126,8 +126,6 @@ Same trade-off (wait 1 week for \$10 extra), different time horizon. The discoun
 
 **Standard economics**: discount rate should be constant. Real people have a **present bias** — today is special.
 
-### Why this matters
-
 | Situation | What happens |
 |---|---|
 | **Credit cards** | Spend now, "I'll pay it off next month" → next month same bias → debt snowballs |
