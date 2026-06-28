@@ -130,8 +130,6 @@ A cross-encoder re-ranks candidates from vector search using the chunk's Window 
 
 ***
 
-***
-
 ## Generator
 
 `OllamaGenerator` streams an answer grounded in retrieved chunks via Ollama `/api/chat`.
@@ -209,20 +207,6 @@ Five test files cover five units:
 * `internal/eval/runner_test.go` — runner aggregation + granularity.
 
 No chunker tests, no integration tests against live Qdrant/Ollama, no k6 load scripts (the `k6` repo topic is aspirational).
-
-***
-
-## Monitor
-
-> **Status: removed.** Prometheus, Grafana, and node-exporter were removed from `docker-compose.yml` and `scripts/dev-local.sh`. The Go app exposes only `POST /search`, `POST /ingest`, `GET /healthz` — no `/metrics` endpoint.
-
-***
-
-## Known Gaps & Drift
-
-1. **Server-side hybrid search is not wired.** `server.go` calls `store.WithSparseScorer(...)` (client-side SPLADE rescore) but never `store.WithSparseEmbedder(...)`. Sparse vectors are not stored at ingest, so `hybridSearchServer` (the `QueryPoints` + native RRF path) is unreachable in the current build. Only client-side hybrid is active. (`cmd/eval`'s `buildSearcher` mirrors this — same gap.)
-2. **Modified files leave orphan chunks.** `IngestService.Run` upserts changed files by deterministic ID but never calls `DeleteByFile` (the method exists on the store, but is never invoked on the change path). Because `chunkID` is derived from `filePath:lineStart:chunkIndex`, an edit that shifts a chunk's `line_start` produces a new point while the old point remains — stale chunks are not garbage-collected.
-3. **`embedder.api_key` / `EMBEDDER_API_KEY` is a dead config field.** It is parsed into `config.Embedder.APIKey` and surfaced in `.env.example`, but `OllamaEmbedder` is constructed with only `(addr, model, dimensions)` and sends no `Authorization` header, so the key is never used. (The RAGAS judge and chunk filter accept an API key, but both are constructed with `""`.)
 
 ***
 
