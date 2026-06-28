@@ -13,10 +13,10 @@ Documents flow through a RAG pipeline in eight stages. Six are implemented (inge
 
 ## Ingestion
 
-`IngestService.Run` lists files across one or more roots (`source.path` plus `source.paths`, merged and deduped via `AllPaths()`), filters out paths matching `ingest.ignore_patterns` (glob, with `dir/**` prefix matching), diffs each file's SHA-256 against the store in a single paginated scroll (`GetAllFileSHAs`, page size 1000), and dispatches changed files to 8 concurrent workers (`const ingestWorkers = 8`). Unchanged files are skipped; changed files are upserted in place by deterministic point ID.
+`IngestService.Run` lists files across one or more roots (`source.paths`), filters out paths matching `ingest.ignore_patterns` (glob, with `dir/**` prefix matching), diffs each file's SHA-256 against the store in a single paginated scroll (`GetAllFileSHAs`, page size 1000), and dispatches changed files to 8 concurrent workers (`const ingestWorkers = 8`). Unchanged files are skipped; changed files are upserted in place by deterministic point ID.
 
 * **Deterministic IDs** — `chunkID(filePath, lineStart, chunkIndex)` = UUIDv5 (`uuid.NewSHA1` over a private namespace). Same input always maps to the same point, so upserts replace rather than duplicate.
-* **Contextual embedding** — before embedding, each chunk is prefixed with `filePath > header\n` (or just `filePath\n` when the chunk has no heading) (Anthropic 2024). This anchors chunk semantics to document structure without altering stored text. Embedding is batched: `OllamaEmbedder.EmbedBatch` sends every chunk in a file to Ollama `/api/embed` in one round-trip (`Pipeline` uses the `BatchEmbedder` fast-path).
+* **Contextual embedding** — before embedding, each chunk is prefixed with `filePath > header\n` (or just `filePath\n` when the chunk has no heading) (`chunker.ContextualText`). This anchors chunk semantics to document structure without altering stored text. Embedding is batched: `OllamaEmbedder.EmbedBatch` sends every chunk in a file to Ollama `/api/embed` in one round-trip (`Pipeline` uses the `BatchEmbedder` fast-path).
 * **Qdrant collections** — auto-configured on startup: dense vectors with Cosine distance, a named sparse vector with IDF modifier, a full-text index on `text`, and a keyword index on `file_path`.
 
 ***
@@ -34,7 +34,7 @@ Two chunkers, selected by `chunker.provider`:
 
 ## Embedding & Storage
 
-`OllamaEmbedder` calls Ollama `/api/embed` with `nomic-embed-text` (768 dimensions). Sparse scoring has two providers: `tf` (zero-dependency fallback) and `splade` (calls the SPLADE sidecar, model `prithivida/Splade_PP_en_v1`).
+`OllamaEmbedder` calls Ollama `/api/embed` with `nomic-embed-text` (768 dimensions).
 
 ```yaml
 embedder:
@@ -42,13 +42,9 @@ embedder:
   model: "nomic-embed-text"
   ollama_addr: "http://localhost:11434"
   dimensions: 768
-
-sparse_scorer:
-  provider: "splade"   # "tf" (zero deps) | "splade" (requires sidecar)
-  addr: "http://localhost:5001"
 ```
 
-Qdrant stores dense (and, when a sparse embedder is wired, sparse) vectors alongside payload metadata:
+Qdrant stores dense vectors alongside payload metadata:
 
 ```json
 {
@@ -65,7 +61,7 @@ Qdrant stores dense (and, when a sparse embedder is wired, sparse) vectors along
 **Distance metric:** Cosine, exclusively (dense collection and semantic cache).
 
 **Server-side vs client-side hybrid.** The store supports both, selected at query time:
-* **Client-side (active)** — dense `Search` + BM25 `Scroll` + client SPLADE rescore + manual RRF. This is the only path wired in `server.go` today.
+* **Client-side (active)** — dense `searchWithFilter` + BM25 `Scroll` + client SPLADE rescore + manual RRF. This is the only path wired in `server.go` today.
 * **Server-side (exists, not wired)** — `QueryPoints` with dense+sparse prefetch legs and Qdrant-native `Fusion_RRF` in a single round-trip. Gated on `store.WithSparseEmbedder(...)`, which `server.go` never calls, so sparse vectors are never stored at ingest and this branch is unreachable in the current build.
 
 ***
@@ -112,7 +108,7 @@ A dedicated Qdrant collection (`search_cache`) caches results keyed by query-emb
 
 ### Hybrid Search
 
-Hybrid search fuses a dense leg and a sparse (BM25) leg. The client-side path fetches `topK × prefetch_mul` (default ×5) candidates per leg, rescores the sparse leg with the configured sparse scorer, then fuses via RRF (k=60). The server-side path (see Embedding & Storage) does the same in one Qdrant round-trip but is not currently wired.
+Hybrid search fuses a dense leg and a sparse (BM25) leg. The client-side path fetches `topK × prefetch_mul` (default ×5) candidates per leg, then fuses via RRF (k=60).
 
 > **Multi-fragment queries.** `SearchService.multiSearch` splits the query on `[.?;]+\s*`, runs `HybridSearch` per fragment, dedups by chunk key (keeping the best score), and re-sorts. The `topK` passed into the store is already `topK × candidate_mul` when a reranker is wired, so total candidates per leg scale as `topK × candidate_mul × prefetch_mul`.
 
@@ -123,7 +119,7 @@ Hybrid search fuses a dense leg and a sparse (BM25) leg. The client-side path fe
 * `header` — restrict to a specific section
 * `source_sha` — restrict to a specific document version
 
-Standalone dense `Search(ctx, vector, topK)` takes **no filter** — only the hybrid and keyword paths pre-filter. (The dense leg *inside* hybrid does apply the filter.)
+<!-- dense-only Search was removed; HybridSearch applies the filter to its dense leg internally -->
 
 ### Reranking
 
@@ -133,22 +129,6 @@ A cross-encoder re-ranks candidates from vector search using the chunk's Window 
 * **Final sorting** — candidates are re-scored by deep semantic relevance and sorted, promoting the best matches to the top for the LLM.
 
 ***
-
-## Post-Retrieval Filtering
-
-After reranking, an optional LLM chunk filter drops irrelevant results before generation. Ref: arxiv 2410.19572 (+10pp PopQA accuracy).
-
-* Calls the OpenAI-compatible `/v1/chat/completions` endpoint (constructed as `ollama_addr + "/v1"`, i.e. Ollama's compatibility shim — distinct from the generator, which uses native `/api/chat`).
-* Batches all retrieved chunks (Window Text, falling back to chunk Text) into one prompt; the model returns a JSON array of scores 0–1, one per passage.
-* Drops chunks below the configurable threshold (default 0.5); order of survivors is preserved.
-* **Never returns zero chunks.** `SearchService.postProcess` only swaps in the filtered list when `err == nil && len(filtered) > 0`, so an LLM error, a malformed/score-count-mismatch response, or an all-dropped result all fall through to the original (reranked) chunks.
-
-```yaml
-chunk_filter:
-  enabled: false
-  model: "gemma3:1b"
-  threshold: 0.5
-```
 
 ***
 
@@ -176,7 +156,7 @@ generator:
 
 > **Status: implemented (`internal/eval/` + `cmd/eval/`).**
 
-Two eval modes, both driven by a golden set (`eval/golden.yaml`) and run through the `cmd/eval` CLI:
+Two eval modes, both driven by a golden set YAML and run through the `cmd/eval` CLI. Place ground truth files in `golden/`; a reusable template with field docs is at `golden/template.yaml`. Sample golden set at `golden/samples.yaml` matches the `samples/` data.
 
 **Retrieval eval** (`-mode retrieval`) — `eval.Runner` runs each golden query through a `SearchService` (rebuilt with the same reranker/chunk-filter wiring as the server, minus semantic cache and generator) and `eval.Aggregate` scores the ranked list:
 
@@ -203,7 +183,9 @@ Graded relevance: `relevance: {file: grade}` with 0=irrelevant, 1=marginal, 2=re
 
 The judge calls Ollama's OpenAI-compatible `/v1/chat/completions`; the judge model defaults to `generator.model` (override with `-judge-model`). `-mode both` runs retrieval then RAGAS in one pass.
 
-**CLI:** `go run ./cmd/eval -golden eval/golden.yaml -fetch-k 10 -mode retrieval` (Make targets: `eval`, `eval-rag`, `eval-both`, `eval-chunk`). Flags: `-config` (default `config/config.yaml`), `-golden`, `-fetch-k` (default 10), `-mode` (retrieval|rag|both), `-granularity` (file|chunk), `-judge-model`. A warning is printed when `n < 50` (the golden set ships with 5 queries — directional only; BEIR min ~1k).
+**CLI:** `go run ./cmd/eval -golden my-golden.yaml -fetch-k 10 -mode retrieval` (Make targets: `eval`, `eval-rag`, `eval-both`, `eval-chunk`, each requiring `golden=my-golden.yaml`). Flags: `-config` (default `config/config.yaml`), `-golden` (required), `-fetch-k` (default 10), `-mode` (retrieval|rag|both), `-granularity` (file|chunk), `-judge-model`. A warning is printed when `n < 50` (BEIR min ~1k).
+
+**Results persistence:** every run saves a timestamped JSON file to `results/` with meta (timestamp, golden path, mode, config), aggregate metrics, and per-query breakdowns including latency, retrieved files with scores, and generated answer (RAG mode). Results dir is gitignored.
 
 **Tests:** `internal/eval/{metrics,ragas,runner}_test.go` — metric math, RAGAS scoring with a stub judge, and runner aggregation. No integration tests against live Qdrant/Ollama.
 
@@ -232,12 +214,7 @@ No chunker tests, no integration tests against live Qdrant/Ollama, no k6 load sc
 
 ## Monitor
 
-> **Status: scaffolded, broken on `main`.**
-
-* `docker-compose.yml` defines `prometheus` and `node-exporter` but **not** `grafana` or `k6`.
-* `scripts/dev-local.sh` runs `docker compose up ... grafana` — referencing a service the compose file does not define, so `make dev` errors on that line.
-* The compose file mounts `./config/prometheus.yml` and `./config/recording_rules.yml`, but neither file exists in `config/` (only `config.go` and `config.yaml`); Prometheus would fail to start as committed.
-* The Go app exposes **no `/metrics` endpoint** — only `POST /search`, `POST /ingest`, `GET /healthz`. OpenTelemetry metric SDK packages are indirect dependencies (via the logger) and unused for app metrics.
+> **Status: removed.** Prometheus, Grafana, and node-exporter were removed from `docker-compose.yml` and `scripts/dev-local.sh`. The Go app exposes only `POST /search`, `POST /ingest`, `GET /healthz` — no `/metrics` endpoint.
 
 ***
 
@@ -245,8 +222,7 @@ No chunker tests, no integration tests against live Qdrant/Ollama, no k6 load sc
 
 1. **Server-side hybrid search is not wired.** `server.go` calls `store.WithSparseScorer(...)` (client-side SPLADE rescore) but never `store.WithSparseEmbedder(...)`. Sparse vectors are not stored at ingest, so `hybridSearchServer` (the `QueryPoints` + native RRF path) is unreachable in the current build. Only client-side hybrid is active. (`cmd/eval`'s `buildSearcher` mirrors this — same gap.)
 2. **Modified files leave orphan chunks.** `IngestService.Run` upserts changed files by deterministic ID but never calls `DeleteByFile` (the method exists on the store, but is never invoked on the change path). Because `chunkID` is derived from `filePath:lineStart:chunkIndex`, an edit that shifts a chunk's `line_start` produces a new point while the old point remains — stale chunks are not garbage-collected.
-3. **Monitor infra is half-built.** See §Monitor — missing Prometheus config files, undefined Grafana service, no app metrics endpoint.
-4. **`embedder.api_key` / `EMBEDDER_API_KEY` is a dead config field.** It is parsed into `config.Embedder.APIKey` and surfaced in `.env.example`, but `OllamaEmbedder` is constructed with only `(addr, model, dimensions)` and sends no `Authorization` header, so the key is never used. (The RAGAS judge and chunk filter accept an API key, but both are constructed with `""`.)
+3. **`embedder.api_key` / `EMBEDDER_API_KEY` is a dead config field.** It is parsed into `config.Embedder.APIKey` and surfaced in `.env.example`, but `OllamaEmbedder` is constructed with only `(addr, model, dimensions)` and sends no `Authorization` header, so the key is never used. (The RAGAS judge and chunk filter accept an API key, but both are constructed with `""`.)
 
 ***
 
