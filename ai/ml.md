@@ -359,7 +359,7 @@ This survey covered the ML fundamentals: from a single neuron up to deploying LL
 
 | Path | Start With |
 |------|-----------|
-| **ML infrastructure** | [AI infra](ai-infra.md) vLLM, HuggingFace, scaling. [Use case: Gemma 4 on Modal](../usecase/modal-gemma4-h200.md) GPU pricing, cold starts, storage |
+| **ML infrastructure** | [AI infra](ai-infra.md) vLLM, HuggingFace, scaling. [Use case: Gemma 4 on Modal](modal-gemma4-h200.md) GPU pricing, cold starts, storage |
 | **Reinforcement Learning** | Sutton & Barto the canonical textbook |
 | **Computer Vision** | CNNs → ResNets → ViTs |
 | **NLP / LLMs** | Transformer paper → BERT → GPT → LLaMA [^8][^18] |

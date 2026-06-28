@@ -10,13 +10,6 @@ created: "2026-06-13"
 > For the underlying mechanics of database algorithms,
 > see [Storage Engines](../storage-engines.md) and [Database Algorithms](../algorithms.md).
 
-## Why This Exists
-
-Google Spanner is the globally distributed SQL database with external consistency built for applications that need ACID transactions across continents, at planetary scale, with no downtime. It's the first database to solve "consistent reads and writes across the entire planet" by combining atomic clocks + GPS (TrueTime) for global timestamp ordering with Paxos for replication.
-
-**What it's for:** Global-scale applications requiring strong ACID banking systems that span regions, global booking platforms, multi-region user databases that need serializable transactions, any system where "eventual consistency" means lost revenue or data corruption.
-
----
 
 ### TrueTime + Paxos for global consistency
 

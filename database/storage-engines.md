@@ -26,15 +26,15 @@ A database stores data in **pages** (aka blocks), typically 8KB–16KB. Every pa
 
 ```
 ┌──────────────────────────────┐
-│ Page Header │ type, checksum, LSN, free-space pointers
+│ Page Header                  │ type, checksum, LSN, free-space pointers
 ├──────────────────────────────┤
-│ Cell Pointer Array │ grows downward; each entry points to a cell
+│ Cell Pointer Array           │ grows downward; each entry points to a cell
 ├──────────────────────────────┤
-│ Free Space │
+│ Free Space                   │
 ├──────────────────────────────┤
-│ Cell Data │ grows upward; keys + values or child refs
+│ Cell Data                    │ grows upward; keys + values or child refs
 ├──────────────────────────────┤
-│ Special Area (8–20 bytes) │ rightmost child (internal) or next-leaf ptr
+│ Special Area (8–20 bytes)    │ rightmost child (internal) or next-leaf ptr
 └──────────────────────────────┘
 ```
 
@@ -179,13 +179,13 @@ An SSTable (Sorted String Table) is an immutable, sorted file on disk. Once writ
 ┌──────────────────────────────┐
 │ Data Blocks (key-value data) │ ← compressed variable-size blocks
 ├──────────────────────────────┤
-│ Meta Block (Bloom filter) │ ← optional, one per file
+│ Meta Block (Bloom filter)    │ ← optional, one per file
 ├──────────────────────────────┤
-│ Index Block │ ← (last_key, offset) per data block
+│ Index Block                  │ ← (last_key, offset) per data block
 ├──────────────────────────────┤
-│ Metaindex Block │ ← offset + size of each meta block
+│ Metaindex Block              │ ← offset + size of each meta block
 ├──────────────────────────────┤
-│ Footer │ ← pointer to index + metaindex blocks
+│ Footer                       │ ← pointer to index + metaindex blocks
 └──────────────────────────────┘
 ```
 

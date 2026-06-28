@@ -10,13 +10,6 @@ created: "2026-06-13"
 > For the underlying mechanics of B-Trees, heap storage, WAL, and related algorithms,
 > see [Storage Engines](../storage-engines.md) and [Database Algorithms](../algorithms.md).
 
-## Why This Exists
-
-SQL Server is the enterprise RDBMS from Microsoft built for organizations that need deep integration with the Microsoft ecosystem (Active Directory, .NET, Azure, Power BI, SSIS, SSRS), enterprise support, and mature tooling for high-availability and disaster recovery.
-
-**What it's for:** Enterprise OLTP and data warehousing, .NET applications, Windows-centric organisations, financial systems needing Always On Availability Groups, ETL pipelines with SSIS, reporting with SSRS.
-
----
 
 ### Dual storage models clustered index or heap
 

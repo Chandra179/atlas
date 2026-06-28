@@ -12,12 +12,12 @@ This document covers general concepts for deploying large language models (LLMs)
 
 The overall system has three pieces:
 
-- **Modal** the serverless GPU platform that provisions hardware and manages containers. See [`modal-gemma4-h200.md`](../usecase/modal-gemma4-h200.md) for a full deployment case study.
+- **Modal** the serverless GPU platform that provisions hardware and manages containers. See [`modal-gemma4-h200.md`](modal-gemma4-h200.md) for a full deployment case study.
 - **vLLM** an open-source library that serves LLMs. It loads model weights into GPU memory, manages the key-value cache, handles request batching, and generates text.
 - **HuggingFace Hub** a model repository where pre-trained weights are stored and downloaded.
 
 > **Who this is for** Engineers deploying LLMs on serverless GPUs. Familiarity with Python assumed; no prior vLLM or GPU serving experience needed.
-> **Prerequisites** Python basics. Start with the [`modal-gemma4-h200.md`](../usecase/modal-gemma4-h200.md) case study for a concrete deployment walkthrough, then return here for deeper concepts.
+> **Prerequisites** Python basics. Start with the [`modal-gemma4-h200.md`](modal-gemma4-h200.md) case study for a concrete deployment walkthrough, then return here for deeper concepts.
 
 ---
 
@@ -243,7 +243,7 @@ For MoE models: each GPU holds a subset of experts. Tokens routed to the GPU hos
 [^5]: Narayanan et al., "Efficient Large-Scale Language Model Training on GPU Clusters Using Megatron-LM," SC 2021. [arXiv:2104.04473](https://arxiv.org/abs/2104.04473).
 
 ### Further Reading
-- [`modal-gemma4-h200.md`](../usecase/modal-gemma4-h200.md) concrete deployment: Gemma 4 31B on H200 via Modal.
+- [`modal-gemma4-h200.md`](modal-gemma4-h200.md) concrete deployment: Gemma 4 31B on H200 via Modal.
 - [`ml.md`](ml.md) ML concepts and training infrastructure referenced by this file.
 - [vLLM documentation](https://docs.vllm.ai) startup flags, CUDA graph profiling, model architecture.
 - [HuggingFace Hub docs](https://huggingface.co/docs/hub/) token auth, gated models, model identity.

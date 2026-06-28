@@ -10,13 +10,6 @@ created: "2026-06-13"
 > For the underlying mechanics of B-Trees, heap storage, WAL, MVCC, and related algorithms,
 > see [Storage Engines](../storage-engines.md) and [Database Algorithms](../algorithms.md).
 
-## Why This Exists
-
-PostgreSQL is the extensible, standards-compliant relational database built for applications that need strong ACID guarantees, complex queries, and advanced data types without vendor lock-in. It filled the gap between simple open-source RDBMS (MySQL) and proprietary enterprise databases (Oracle, DB2): full ACID, triggers, views, stored procedures, custom functions, and extensibility all in open source.
-
-**What it's for:** General-purpose OLTP with analytics, geospatial (PostGIS), custom data types (JSONB, arrays, hstore, range types), regulatory environments demanding data integrity, and workloads that benefit from advanced SQL (CTEs, window functions, recursive queries).
-
----
 
 ### PK is a B-Tree index pointing to heap
 

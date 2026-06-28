@@ -10,13 +10,6 @@ created: "2026-06-13"
 > For the underlying mechanics of B-Trees, LSM-Trees, and WAL,
 > see [Storage Engines](../storage-engines.md) and [Database Algorithms](../algorithms.md).
 
-## Why This Exists
-
-Redis is the in-memory data structure store built for operations that need single-digit-millisecond latency by keeping all data in RAM and exposing rich data structures (strings, lists, hashes, sets, sorted sets, streams) as first-class operations. It exists because traditional databases read from disk and incur 10-100ms of latency too slow for caching, session stores, real-time leaderboards, and pub/sub.
-
-**What it's for:** Caching (hot data in front of a slower DB), session storage, real-time leaderboards, rate limiting, message queues (pub/sub, streams), distributed locks (Redlock), real-time analytics (counters, hyperloglog, bloom filters via modules).
-
----
 
 ### Single-threaded event loop
 

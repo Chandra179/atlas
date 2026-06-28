@@ -10,13 +10,6 @@ created: "2026-06-13"
 > For the underlying mechanics of B-Trees, WAL, MVCC, and related algorithms,
 > see [Storage Engines](../storage-engines.md) and [Database Algorithms](../algorithms.md).
 
-## Why This Exists
-
-MySQL with InnoDB is the read-heavy OLTP workhorse built for simplicity and performance over extensibility and standards pedantry. It became the default database for the LAMP stack (Linux, Apache, MySQL, PHP/Python/Perl) in the 2000s because it was fast, easy to set up, and "just worked" for web applications.
-
-**What it's for:** High-read-volume web applications, e-commerce catalogs, CMS platforms, WordPress, any OLTP workload where PK lookups and simple queries dominate over complex joins and analytics.
-
----
 
 ### PK is a clustered B+Tree
 

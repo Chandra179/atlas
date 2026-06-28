@@ -10,13 +10,6 @@ created: "2026-06-13"
 > For the underlying mechanics of B-Trees, WAL, and related algorithms,
 > see [Storage Engines](../storage-engines.md) and [Database Algorithms](../algorithms.md).
 
-## Why This Exists
-
-MongoDB is the document database for flexible schemas and horizontal scale built for applications that need to iterate quickly, store nested JSON-like documents, and scale out across many machines without manual sharding. It emerged because relational databases forced rigid schemas and painful migrations onto developers building web applications with rapidly changing data models.
-
-**What it's for:** Rapid prototyping, content management systems, catalogs with variable product attributes, gaming (player profiles with dynamic fields), IoT event ingestion, real-time analytics aggregations anything where the schema changes frequently or documents have deeply nested structure.
-
----
 
 ### BSON documents no schema, no migrations
 

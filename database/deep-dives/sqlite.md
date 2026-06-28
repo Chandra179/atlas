@@ -10,13 +10,6 @@ created: "2026-06-13"
 > For the underlying mechanics of B-Trees, WAL, and related algorithms,
 > see [Storage Engines](../storage-engines.md) and [Database Algorithms](../algorithms.md).
 
-## Why This Exists
-
-SQLite is the zero-configuration embedded database no server process, no setup, no configuration. The entire database is a single file that any application can read and write with a library call. It exists because most software needs persistent structured storage but doesn't need (or want) a separate database server to manage.
-
-**What it's for:** Mobile apps (iOS, Android ship with SQLite), desktop applications (browsers, editors), embedded systems (IoT, appliances), prototyping and testing, read-heavy workloads with modest write volume.
-
----
 
 ### Single-file B-Tree no server, no config
 

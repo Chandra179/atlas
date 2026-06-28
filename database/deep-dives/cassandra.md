@@ -10,13 +10,6 @@ created: "2026-06-13"
 > For the underlying mechanics of LSM-Trees, Merkle Trees, and Bloom Filters,
 > see [Storage Engines](../storage-engines.md) and [Database Algorithms](../algorithms.md).
 
-## Why This Exists
-
-Cassandra is the AP wide-column store for write-heavy workloads at planetary scale built for applications that must accept writes at any time on any node and cannot tolerate downtime, even during network partitions. It emerged from Amazon's Dynamo paper (eventually consistent, always-writable key-value store) combined with Google's Bigtable (column-family data model), designed by Facebook for inbox search and later released as open-source.
-
-**What it's for:** Time-series metrics ingestion (millions of writes/second), IoT sensor data, messaging systems, recommendation engines, shopping carts, leaderboards any workload that is write-heavy, needs to scale horizontally across many nodes, and can tolerate eventual consistency.
-
----
 
 ### AP in CAP always-writable, eventual consistency
 
