@@ -16,7 +16,7 @@ This occurs when one person in a transaction knows more than the other. This lea
 
 #### Political Economy
 
-This field applies the tools of economics to study how government works. It suggests that politicians and voters don't always act for the "common good"—they often act in their own self-interest.
+This field applies the tools of economics to study how government works. It suggests that politicians and voters don't always act for the "common good"they often act in their own self-interest.
 
 * **Condorcet Paradox**: It shows that democratic voting can sometimes fail to produce a clear winner if people's preferences are "circular" (A beats B, B beats C, but C beats A).
 * **Arrow's Impossibility Theorem**: A mathematical proof showing that no perfect voting system exists that can satisfy all fair criteria.

@@ -13,39 +13,39 @@ This document describes the core building blocks of our RabbitMQ / AMQP 0-9-1 cl
 
 ```mermaid
 graph TD
-    TM[Topology Manager]
-    TM --> Qdecl[Queue Declaration]
-    TM --> Edecl[Exchange Declaration]
-    TM --> Bind[Binding]
-    
-    Qdecl --> DlxCfg[Configure DLX/Retry/Parking Lot]
-    
-    DlxCfg --> Q[Primary Queue]
-    DlxCfg --> DLX[Dead-Letter Exchange]
-    DlxCfg --> RQ[Retry Queue<br/>x-message-ttl<br/>x-dead-letter-exchange → EX]
-    DlxCfg --> PL[Parking Lot Queue]
-    
-    TM --> Cache[(In-Memory Cache)]
-    Cache --> Reconnect[Re-declare on Reconnection]
-    Reconnect --> Q
-    Reconnect --> DLX
-    Reconnect --> RQ
-    Reconnect --> PL
+ TM[Topology Manager]
+ TM --> Qdecl[Queue Declaration]
+ TM --> Edecl[Exchange Declaration]
+ TM --> Bind[Binding]
 
-    P[Producer] --> CP[Channel Pool]
-    CP --> P
-    CP --> Ch[AMQP Channel]
-    P --> EX[Exchange<br/>type: direct/topic/fanout]
-    EX --> Q
-    
-    C[Consumer] --> Q
-    C --> Acknowledge[Ack/Nack/Reject]
-    Acknowledge --> Q
-    Acknowledge --> DLX
-    
-    DLX --> RQ
-    DLX --> PL
-    RQ --> EX
+ Qdecl --> DlxCfg[Configure DLX/Retry/Parking Lot]
+
+ DlxCfg --> Q[Primary Queue]
+ DlxCfg --> DLX[Dead-Letter Exchange]
+ DlxCfg --> RQ[Retry Queue<br/>x-message-ttl<br/>x-dead-letter-exchange → EX]
+ DlxCfg --> PL[Parking Lot Queue]
+
+ TM --> Cache[(In-Memory Cache)]
+ Cache --> Reconnect[Re-declare on Reconnection]
+ Reconnect --> Q
+ Reconnect --> DLX
+ Reconnect --> RQ
+ Reconnect --> PL
+
+ P[Producer] --> CP[Channel Pool]
+ CP --> P
+ CP --> Ch[AMQP Channel]
+ P --> EX[Exchange<br/>type: direct/topic/fanout]
+ EX --> Q
+
+ C[Consumer] --> Q
+ C --> Acknowledge[Ack/Nack/Reject]
+ Acknowledge --> Q
+ Acknowledge --> DLX
+
+ DLX --> RQ
+ DLX --> PL
+ RQ --> EX
 ```
 
 ## Topology Manager
@@ -55,23 +55,23 @@ The topology manager is responsible for declaring and caching the broker-side ob
 #### Queue Declaration (`queue.declare`)
 
 * **Parameters**
-  * `queue` – name of the queue (empty string lets the broker generate a unique name).
-  * `durable` – `true` to survive broker restarts.
-  * `exclusive` – `true` to restrict the queue to the declaring connection.
-  * `auto-delete` – `true` to delete the queue when its last consumer cancels.
-  * `arguments` – optional map (e.g., `x-message-ttl`, `x-dead-letter-exchange`).
+ * `queue` – name of the queue (empty string lets the broker generate a unique name).
+ * `durable` – `true` to survive broker restarts.
+ * `exclusive` – `true` to restrict the queue to the declaring connection.
+ * `auto-delete` – `true` to delete the queue when its last consumer cancels.
+ * `arguments` – optional map (e.g., `x-message-ttl`, `x-dead-letter-exchange`).
 * **Behaviour**\
-  The manager always calls `queue.declare` idempotently. If the queue already exists with matching parameters the broker returns the current message count and consumer count; otherwise it creates the queue.
+ The manager always calls `queue.declare` idempotently. If the queue already exists with matching parameters the broker returns the current message count and consumer count; otherwise it creates the queue.
 
 #### Exchange Declaration (`exchange.declare`)
 
 * **Parameters**
-  * `exchange` – exchange name.
-  * `type` – `direct`, `topic`, `fanout`, `headers` or a custom type.
-  * `durable` – survive broker restarts.
-  * `auto-delete` – delete when all queues have unbound.
-  * `internal` – `true` if the exchange cannot be published to by clients.
-  * `arguments` – optional map (e.g., alternate exchange).
+ * `exchange` – exchange name.
+ * `type` – `direct`, `topic`, `fanout`, `headers` or a custom type.
+ * `durable` – survive broker restarts.
+ * `auto-delete` – delete when all queues have unbound.
+ * `internal` – `true` if the exchange cannot be published to by clients.
+ * `arguments` – optional map (e.g., alternate exchange).
 
 #### Binding (`queue.bind` / `exchange.bind`)
 
@@ -110,13 +110,13 @@ The consumer module handles message delivery from a queue, with support for ackn
 #### Acknowledgement Modes
 
 * **Auto acknowledgement (`autoAck: true`)**\
-  The broker considers a message delivered as soon as it sends it over the socket.
-  * Fastest, no risk of forgetting to ack.
-  * Messages can be lost if the consumer crashes before processing.
+ The broker considers a message delivered as soon as it sends it over the socket.
+ * Fastest, no risk of forgetting to ack.
+ * Messages can be lost if the consumer crashes before processing.
 * **Manual acknowledgement (`autoAck: false`)**\
-  The application must explicitly call `channel.ack(deliveryTag)` after successful processing.
-  * `nack` (or `reject`) can be used with `requeue=true` to return the message to the queue, or `requeue=false` to dead-letter it (if DLX is configured).
-  * Gives full control over at-least-once delivery semantics.
+ The application must explicitly call `channel.ack(deliveryTag)` after successful processing.
+ * `nack` (or `reject`) can be used with `requeue=true` to return the message to the queue, or `requeue=false` to dead-letter it (if DLX is configured).
+ * Gives full control over at-least-once delivery semantics.
 
 #### Batch Consume
 
@@ -135,11 +135,11 @@ Producers are responsible for publishing messages to an exchange. The library pr
 #### Publish & Publish Batch
 
 * **`publish(exchange, routingKey, content, properties)`**\
-  Synchronous wrapper around `basic.publish`. The caller can set mandatory/immediate flags and custom headers.
+ Synchronous wrapper around `basic.publish`. The caller can set mandatory/immediate flags and custom headers.
 * **`publishBatch(messages)`**\
-  Publishes a list of messages on the same channel.
-  * Uses a single AMQP channel to avoid per-message overhead.
-  * When combined with publisher confirms (see below), the batch can be acknowledged after all messages have been confirmed.
+ Publishes a list of messages on the same channel.
+ * Uses a single AMQP channel to avoid per-message overhead.
+ * When combined with publisher confirms (see below), the batch can be acknowledged after all messages have been confirmed.
 
 #### Publisher Confirms
 
@@ -147,17 +147,17 @@ Publisher confirms provide an **acknowledgement from the broker** that a message
 
 * **Enabling** – `channel.confirmSelect()` puts the channel into confirm mode.
 * **Process**
-  1. After `basic.publish`, the broker sends an asynchronous `basic.ack` (or `basic.nack`) with the message’s delivery tag.
-  2. The producer waits for the ack/nack (e.g., via a `CompletableFuture` or callback map).
-  3. On `nack` the message can be republished or logged.
+ 1. After `basic.publish`, the broker sends an asynchronous `basic.ack` (or `basic.nack`) with the message’s delivery tag.
+ 2. The producer waits for the ack/nack (e.g., via a `CompletableFuture` or callback map).
+ 3. On `nack` the message can be republished or logged.
 
 **Without Publisher Confirms**
 
 * `basic.publish` returns as soon as the TCP stack accepts the data. The broker may later fail to route the message (e.g., exchange does not exist, queue is full, disk write error after memory alarm).
 * **Loss scenarios include:**
-  * Target exchange missing → message silently dropped unless `mandatory` flag is used.
-  * Queue overflow with `x-max-length` → message dead-lettered or dropped.
-  * Broker crash before fsync → durable messages may be lost.
+ * Target exchange missing → message silently dropped unless `mandatory` flag is used.
+ * Queue overflow with `x-max-length` → message dead-lettered or dropped.
+ * Broker crash before fsync → durable messages may be lost.
 
 With confirms, the producer knows exactly when the broker has accepted responsibility for the message.
 
@@ -171,11 +171,11 @@ RabbitMQ connections have a **finite number of channels** (protocol limit \~65,5
 
 * **Pool size (`N`)** – configurable. Channels are created when the pool is initialised and placed in an idle queue.
 * **Borrow / Return**
-  * A producer borrows a channel, uses it for one or more publish operations, and returns it to the pool.
-  * The pool tracks which channels are in use to prevent concurrent access (an AMQP channel is not thread-safe).
+ * A producer borrows a channel, uses it for one or more publish operations, and returns it to the pool.
+ * The pool tracks which channels are in use to prevent concurrent access (an AMQP channel is not thread-safe).
 * **Channel lifecycle**
-  * If a channel encounters an error (e.g., `channel.close` from broker), it is discarded and a new channel is created transparently.
-  * After connection loss, the pool re-creates all channels on the new connection, resetting any confirm mode state.
+ * If a channel encounters an error (e.g., `channel.close` from broker), it is discarded and a new channel is created transparently.
+ * After connection loss, the pool re-creates all channels on the new connection, resetting any confirm mode state.
 
 #### Interaction with Publisher Confirms
 
@@ -194,11 +194,11 @@ When publisher confirms are enabled, each channel in the pool is put into confir
 
 #### Why a Pool is Necessary
 
-| Approach                | Risk                                                                      |
+| Approach | Risk |
 | ----------------------- | ------------------------------------------------------------------------- |
-| New channel per publish | Channel count exhaustion; excessive TCP teardown/setup overhead.          |
-| Single shared channel   | Not thread-safe; requires external synchronization, limiting concurrency. |
-| **Pool of N channels**  | Bounded parallelism, safe concurrency, resource efficient.                |
+| New channel per publish | Channel count exhaustion; excessive TCP teardown/setup overhead. |
+| Single shared channel | Not thread-safe; requires external synchronization, limiting concurrency. |
+| **Pool of N channels** | Bounded parallelism, safe concurrency, resource efficient. |
 
 The pool ensures that the number of open channels never exceeds the configured `maxChannels`, regardless of the number of concurrent producers.
 

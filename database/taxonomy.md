@@ -11,7 +11,7 @@ created: "2026-06-13"
 
 **Model**: Tables with rows and columns, strict schema, relationships via foreign keys. Data is normalized to reduce redundancy.
 
-**Query Language**: SQL (Structured Query Language) — `SELECT`, `JOIN`, `GROUP BY`, transactions.
+**Query Language**: SQL (Structured Query Language) `SELECT`, `JOIN`, `GROUP BY`, transactions.
 
 **Consistency**: ACID transactions, strong consistency by default. Isolation levels can be relaxed for performance.
 
@@ -30,11 +30,11 @@ created: "2026-06-13"
 
 ## Document
 
-**Model**: Semi-structured JSON/BSON documents with nested objects and arrays. Schema is flexible — different documents in the same collection can have different fields.
+**Model**: Semi-structured JSON/BSON documents with nested objects and arrays. Schema is flexible different documents in the same collection can have different fields.
 
 **Query Language**: JSON-based queries, optional SQL-like (MongoDB Aggregation, Couchbase N1QL).
 
-**Consistency**: Tunable — MongoDB defaults to strong consistency per document (primary reads), Couchbase offers eventual consistency.
+**Consistency**: Tunable MongoDB defaults to strong consistency per document (primary reads), Couchbase offers eventual consistency.
 
 **Use Case**: Content management, catalogs, gaming, rapid prototyping.
 
@@ -46,9 +46,9 @@ created: "2026-06-13"
 
 **Model**: Opaque blob stored by a unique key. No schema, no relationships. The simplest data model possible.
 
-**Query Language**: `GET`, `SET`, `DEL` — often via simple binary protocol or REST.
+**Query Language**: `GET`, `SET`, `DEL` often via simple binary protocol or REST.
 
-**Consistency**: Varies — Redis is strongly consistent (single-threaded), DynamoDB is eventually consistent by default with optional strong consistency.
+**Consistency**: Varies Redis is strongly consistent (single-threaded), DynamoDB is eventually consistent by default with optional strong consistency.
 
 **Use Case**: Caching, session store, real-time leaderboards, shopping carts.
 
@@ -60,20 +60,20 @@ created: "2026-06-13"
 
 **Model**: Rows with a dynamic set of columns grouped into column families. Schema is flexible within a family. Each row can have millions of columns.
 
-**Query Language**: CQL (Cassandra Query Language) — SQL-like but limited to partition-key-based queries.
+**Query Language**: CQL (Cassandra Query Language) SQL-like but limited to partition-key-based queries.
 
-**Consistency**: Tunable — Cassandra defaults to eventual consistency with configurable consistency levels (`ONE`, `QUORUM`, `ALL`).
+**Consistency**: Tunable Cassandra defaults to eventual consistency with configurable consistency levels (`ONE`, `QUORUM`, `ALL`).
 
 **Use Case**: Time-series data, IoT, recommendation engines, messaging systems.
 
 **Example**:
 ```mermaid
 flowchart LR
-    subgraph "Column Family: UserData"
-        R1["Row: user_1<br/>name: Alice | age: 30 | city: NYC"]
-        R2["Row: user_2<br/>name: Bob | email: bob@x.com"]
-        R3["Row: user_3<br/>name: Carol | city: LA | phone: 555-0100"]
-    end
+ subgraph "Column Family: UserData"
+ R1["Row: user_1<br/>name: Alice | age: 30 | city: NYC"]
+ R2["Row: user_2<br/>name: Bob | email: bob@x.com"]
+ R3["Row: user_3<br/>name: Carol | city: LA | phone: 555-0100"]
+ end
 ```
 
 > **Deep Dive**: [Cassandra Internals](./deep-dives/cassandra.md)
@@ -93,10 +93,10 @@ flowchart LR
 **Example**:
 ```mermaid
 graph LR
-    Alice["Alice<br/>age: 30"] -- FRIENDS_WITH --> Bob["Bob<br/>age: 25"]
-    Alice -- LIKES --> Post["Post: 'Hello!'"]
-    Bob -- LIKES --> Post
-    Alice -- WORKS_AT --> Acme["Acme Corp<br/>industry: Tech"]
+ Alice["Alice<br/>age: 30"] -- FRIENDS_WITH --> Bob["Bob<br/>age: 25"]
+ Alice -- LIKES --> Post["Post: 'Hello!'"]
+ Bob -- LIKES --> Post
+ Alice -- WORKS_AT --> Acme["Acme Corp<br/>industry: Tech"]
 ```
 
 ---
@@ -105,29 +105,29 @@ graph LR
 
 **Model**: Objects stored and retrieved directly, closely mapping to programming language constructs. Supports inheritance, polymorphism, and complex object graphs.
 
-**Query Language**: Object-oriented query APIs — often language-native (e.g., Java `Query` API for db4o, C# LINQ for Versant).
+**Query Language**: Object-oriented query APIs often language-native (e.g., Java `Query` API for db4o, C# LINQ for Versant).
 
 **Consistency**: ACID per database. Often used in embedded mode.
 
-**Use Case**: CAD/CAM systems, telecommunications, embedded systems — niche usage.
+**Use Case**: CAD/CAM systems, telecommunications, embedded systems niche usage.
 
 **Example**:
 ```mermaid
 classDiagram
-    class Vehicle {
-        +String make
-        +String model
-        +start()
-    }
-    class Car {
-        +int doors
-        +honk()
-    }
-    class Motorcycle {
-        +bool hasSidecar
-    }
-    Vehicle <|-- Car
-    Vehicle <|-- Motorcycle
+ class Vehicle {
+ +String make
+ +String model
+ +start()
+ }
+ class Car {
+ +int doors
+ +honk()
+ }
+ class Motorcycle {
+ +bool hasSidecar
+ }
+ Vehicle <|-- Car
+ Vehicle <|-- Motorcycle
 ```
 
 ---
@@ -138,7 +138,7 @@ classDiagram
 
 **Query Language**: Custom query languages (InfluxQL, Flux) or SQL with time functions (TimescaleDB).
 
-**Consistency**: Varies — InfluxDB is eventually consistent in clustered mode; TimescaleDB inherits PostgreSQL's ACID guarantees.
+**Consistency**: Varies InfluxDB is eventually consistent in clustered mode; TimescaleDB inherits PostgreSQL's ACID guarantees.
 
 **Use Case**: Monitoring, observability, IoT sensor data, financial tick data.
 
@@ -147,11 +147,11 @@ classDiagram
 Measurement: cpu_usage
 Tags: host=server01, region=us-east
 ┌─────────────────────┬───────┐
-│ Timestamp           │ Value │
+│ Timestamp │ Value │
 ├─────────────────────┼───────┤
-│ 2024-01-01T00:00:00 │ 45.2  │
-│ 2024-01-01T00:01:00 │ 47.8  │
-│ 2024-01-01T00:02:00 │ 52.1  │
+│ 2024-01-01T00:00:00 │ 45.2 │
+│ 2024-01-01T00:01:00 │ 47.8 │
+│ 2024-01-01T00:02:00 │ 52.1 │
 └─────────────────────┴───────┘
 ```
 
@@ -161,7 +161,7 @@ Tags: host=server01, region=us-east
 
 **Model**: SQL interface with ACID transactions distributed across multiple nodes. Combines the horizontal scalability of NoSQL with the consistency of relational databases.
 
-**Query Language**: SQL — standard SQL with distributed execution.
+**Query Language**: SQL standard SQL with distributed execution.
 
 **Consistency**: ACID with strong consistency (Serializable or external consistency).
 
@@ -170,17 +170,17 @@ Tags: host=server01, region=us-east
 **Example**:
 ```mermaid
 graph TD
-    Client --> GW[SQL Gateway]
-    GW --> C[Coordinator]
-    C --> R1[Range 1<br/>Raft: A-leader, B]
-    C --> R2[Range 2<br/>Raft: B-leader, C]
-    C --> R3[Range 3<br/>Raft: C-leader, A]
-    R1 --> A[Node A]
-    R1 --> B[Node B]
-    R2 --> B
-    R2 --> C[Node C]
-    R3 --> C
-    R3 --> A
+ Client --> GW[SQL Gateway]
+ GW --> C[Coordinator]
+ C --> R1[Range 1<br/>Raft: A-leader, B]
+ C --> R2[Range 2<br/>Raft: B-leader, C]
+ C --> R3[Range 3<br/>Raft: C-leader, A]
+ R1 --> A[Node A]
+ R1 --> B[Node B]
+ R2 --> B
+ R2 --> C[Node C]
+ R3 --> C
+ R3 --> A
 ```
 
 | Database | Consensus | Sharding | Clock |

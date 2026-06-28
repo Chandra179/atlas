@@ -35,11 +35,11 @@ Higher output increases money demand, pushing up the interest rate. This makes t
 
 ```mermaid
 xychart-beta
-    title "IS-LM Equilibrium"
-    x-axis "Output (Y)" 0 --> 100
-    y-axis "Interest Rate (r)" 0 --> 100
-    line "IS" [80, 60, 40, 20, 0]
-    line "LM" [0, 25, 50, 75, 100]
+ title "IS-LM Equilibrium"
+ x-axis "Output (Y)" 0 --> 100
+ y-axis "Interest Rate (r)" 0 --> 100
+ line "IS" [80, 60, 40, 20, 0]
+ line "LM" [0, 25, 50, 75, 100]
 ```
 
 The intersection of IS and LM gives the short-run equilibrium (Y*, r*) for a given price level. Fiscal policy shifts IS; monetary policy shifts LM.
@@ -87,7 +87,7 @@ When the actual price level exceeds the expected price level, output rises above
 
 ### Supply Shocks
 
-A negative supply shock (e.g., oil price spike, pandemic) shifts SRAS left: output falls and the price level rises — **stagflation**. A positive supply shock (e.g., technological breakthrough) shifts SRAS right: output rises and prices fall.
+A negative supply shock (e.g., oil price spike, pandemic) shifts SRAS left: output falls and the price level rises **stagflation**. A positive supply shock (e.g., technological breakthrough) shifts SRAS right: output rises and prices fall.
 
 ### Demand Shocks
 
@@ -99,15 +99,15 @@ A negative demand shock (e.g., drop in consumer confidence) shifts AD left, crea
 
 An increase in government spending has two competing effects on AD:
 
-- **Multiplier effect**: each dollar of government spending raises income, which raises consumption, further raising income — amplifying the initial impact
-- **Crowding-out effect**: higher government spending raises money demand and interest rates, reducing private investment — dampening the initial impact
+- **Multiplier effect**: each dollar of government spending raises income, which raises consumption, further raising income amplifying the initial impact
+- **Crowding-out effect**: higher government spending raises money demand and interest rates, reducing private investment dampening the initial impact
 
 The net effect depends on the slope of the LM curve and the sensitivity of investment to interest rates.
 
 ### Automatic Stabilizers vs. Discretionary Policy
 
-- **Automatic stabilizers**: tax and transfer systems that automatically smooth the business cycle (progressive income tax, unemployment insurance) — no legislative delay
-- **Discretionary policy**: deliberate changes in spending or taxes — subject to recognition, implementation, and impact lags
+- **Automatic stabilizers**: tax and transfer systems that automatically smooth the business cycle (progressive income tax, unemployment insurance) no legislative delay
+- **Discretionary policy**: deliberate changes in spending or taxes subject to recognition, implementation, and impact lags
 
 ### Supply-Side Economics
 

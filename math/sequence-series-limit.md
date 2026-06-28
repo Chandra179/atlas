@@ -54,8 +54,8 @@ Variable Breakdown:
 
 * $a_1$: The starting value.
 * $r$ (Common Ratio): What you multiply by each time.
-  * If $r = 2$, it doubles.
-  * If $r = 0.5$, it cuts in half.
+ * If $r = 2$, it doubles.
+ * If $r = 0.5$, it cuts in half.
 * $n-1$: The number of times the growth has happened.
 
 A viral post starts with 10 shares ($a_1$). The number of shares triples ($r=3$) every hour. How many shares will occur in Hour 6 ($n$)?
@@ -77,7 +77,7 @@ $$S_4 = 100 \left( \frac{1 - 1.10^4}{1 - 1.10} \right) = 100 \times 4.641 = \mat
 
 **Infinite Geometric Series**
 
-This is the "Limit" part of your heading. If a geometric sequence gets smaller and smaller ($|r| < 1$), the total sum doesn't go to infinity—it hits a "wall" or a Limit.
+This is the "Limit" part of your heading. If a geometric sequence gets smaller and smaller ($|r| < 1$), the total sum doesn't go to infinityit hits a "wall" or a Limit.
 
 $$S_\infty = \frac{a_1}{1 - r}$$
 
@@ -99,7 +99,7 @@ A limit describes the value that a function or sequence approaches as the input 
 $$\lim_{x \to a} f(x) = L$$
 
 * $L$: The value $f(x)$ gets closer to as $x$ gets closer to $a$.
-* The arrow ($\to$) means "approaches"—$x$ gets arbitrarily close to $a$ without necessarily reaching it.
+* The arrow ($\to$) means "approaches"$x$ gets arbitrarily close to $a$ without necessarily reaching it.
 
 **Connecting to Sequences**
 

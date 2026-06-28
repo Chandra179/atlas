@@ -53,14 +53,14 @@ Use request coalescing to deduplicate concurrent identical requests to the same 
 
 ## References
 
-- [Stripe API Reference — Idempotent Requests](https://stripe.com/docs/api/idempotent_requests)
-- [Stripe API Reference — Pagination (cursor-based)](https://stripe.com/docs/api/pagination)
+- [Stripe API Reference Idempotent Requests](https://stripe.com/docs/api/idempotent_requests)
+- [Stripe API Reference Pagination (cursor-based)](https://stripe.com/docs/api/pagination)
 - [Google Cloud API Design Guide](https://cloud.google.com/apis/design)
 - [Microsoft REST API Guidelines](https://github.com/microsoft/api-guidelines)
-- [RFC 7807 — Problem Details for HTTP APIs](https://datatracker.ietf.org/doc/html/rfc7807)
-- [W3C Trace Context — traceparent](https://www.w3.org/TR/trace-context/)
+- [RFC 7807 Problem Details for HTTP APIs](https://datatracker.ietf.org/doc/html/rfc7807)
+- [W3C Trace Context traceparent](https://www.w3.org/TR/trace-context/)
 - [Go singleflight package](https://pkg.go.dev/golang.org/x/sync/singleflight)
-- [Zapier Engineering — Request Coalescing](https://zapier.com/engineering/request-coalescing/)
-- [AWS — Timeouts, retries, and backoff](https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/)
-- [Stripe — Designing APIs for humans](https://stripe.com/blog/designing-apis-for-humans)
-- [GitHub API v3 — Conditional requests (caching)](https://docs.github.com/en/rest/overview/resources-in-the-rest-api#conditional-requests)
+- [Zapier Engineering Request Coalescing](https://zapier.com/engineering/request-coalescing/)
+- [AWS Timeouts, retries, and backoff](https://aws.amazon.com/builders-library/timeouts-retries-and-backoff-with-jitter/)
+- [Stripe Designing APIs for humans](https://stripe.com/blog/designing-apis-for-humans)
+- [GitHub API v3 Conditional requests (caching)](https://docs.github.com/en/rest/overview/resources-in-the-rest-api#conditional-requests)

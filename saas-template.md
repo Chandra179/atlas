@@ -24,10 +24,10 @@ created: "2026-06-13"
 
 \[Rules that limit complexity. Prevents over-engineering.]
 
-* \[Constraint — e.g., "Only handle statuses: PENDING, COMPLETED, FAILED"]
-* \[Constraint — e.g., "Single tenant. No isolation logic."]
-* \[Constraint — e.g., "Max 3 retries. No custom retry policies."]
-* \[Constraint — e.g., "No update or delete of submitted tasks."]
+* \[Constraint e.g., "Only handle statuses: PENDING, COMPLETED, FAILED"]
+* \[Constraint e.g., "Single tenant. No isolation logic."]
+* \[Constraint e.g., "Max 3 retries. No custom retry policies."]
+* \[Constraint e.g., "No update or delete of submitted tasks."]
 
 ***
 
@@ -41,8 +41,8 @@ created: "2026-06-13"
 
 **Risks we tolerate:**
 
-* \[Risk — e.g., "No authentication on this endpoint"]
-* \[Risk — e.g., "Data loss if process crashes mid-write"]
+* \[Risk e.g., "No authentication on this endpoint"]
+* \[Risk e.g., "Data loss if process crashes mid-write"]
 
 **Trusted sources:**
 
@@ -90,21 +90,21 @@ use modular monolith architecture
 #### **Directory Structure**
 
 ```
-cmd/example/main.go   # entrypoint — starts HTTP + gRPC
-modules/              # domain modules
-  example/            #   example module
-    config.go         #     module-specific config struct
-    dependencies.go   #     wire deps, load own config
-    http.go           #     HTTP handlers + route registration
-middleware/           # shared: recovery, request ID, timeout, validation
-config/               # YAML loader + config.yaml
+cmd/example/main.go # entrypoint starts HTTP + gRPC
+modules/ # domain modules
+ example/ # example module
+ config.go # module-specific config struct
+ dependencies.go # wire deps, load own config
+ http.go # HTTP handlers + route registration
+middleware/ # shared: recovery, request ID, timeout, validation
+config/ # YAML loader + config.yaml
 ```
 
 #### **Module boundaries**
 
-\[Package 1] — Responsibility\
-\[Package 2] — Responsibility\
-\[Package 3] — Responsibility
+\[Package 1] Responsibility\
+\[Package 2] Responsibility\
+\[Package 3] Responsibility
 
 #### **Dependencies**
 

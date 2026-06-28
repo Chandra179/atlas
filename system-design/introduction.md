@@ -7,7 +7,7 @@ created: "2026-06-13"
 
 # System Design
 
-Building and architecting distributed systems at scale. Every concept here is a response to a real failure in production — someone built a system, it broke under load, and the pattern emerged.
+Building and architecting distributed systems at scale. Every concept here is a response to a real failure in production someone built a system, it broke under load, and the pattern emerged.
 
 ## Core Design Principles
 
@@ -16,16 +16,16 @@ Building and architecting distributed systems at scale. Every concept here is a 
 Handling growth without rewriting the system. Two approaches:
 
 - **Vertical scaling**: buy a bigger machine. Simple, hits a ceiling fast. AWS's largest instance can't serve 100 million users.
-- **Horizontal scaling**: add more machines. Complex — now you have to coordinate them — but unbounded. Netflix runs thousands of instances.
+- **Horizontal scaling**: add more machines. Complex now you have to coordinate them but unbounded. Netflix runs thousands of instances.
 - The hard part isn't adding servers. It's that your database, your cache, and your message queue all need to scale too, and they scale differently.
 
 ### Reliability & Availability
 
 A system that works today but fails tomorrow isn't reliable. A system that's down right now isn't available. The distinction matters because the fixes are different:
 
-- **Redundancy**: if one server dies, another takes over. But redundancy alone isn't enough — you need failover detection. A dead server in the pool silently dropping requests is worse than a server that's visibly down.
+- **Redundancy**: if one server dies, another takes over. But redundancy alone isn't enough you need failover detection. A dead server in the pool silently dropping requests is worse than a server that's visibly down.
 - **Uptime percentages**: 99.9% ("three nines") = ~8.7 hours of downtime per year. 99.99% = ~52 minutes. The jump from three to four nines often doubles the engineering effort.
-- **Real example**: GitHub's 2018 outage — a network partition split a MySQL cluster. The system detected failure but the failover mechanism itself had a bug. Availability requires testing the failure paths, not just the happy path.
+- **Real example**: GitHub's 2018 outage a network partition split a MySQL cluster. The system detected failure but the failover mechanism itself had a bug. Availability requires testing the failure paths, not just the happy path.
 
 ### Performance
 
@@ -33,7 +33,7 @@ Speed and capacity are two different things:
 
 - **Latency**: how fast one request completes. A user typing in a search box cares about latency.
 - **Throughput**: how many requests the system handles per second. A payment processor during Black Friday cares about throughput.
-- Optimizing one often helps the other — caching reduces both latency and server load — but they can conflict. Batching requests improves throughput at the cost of individual request latency.
+- Optimizing one often helps the other caching reduces both latency and server load but they can conflict. Batching requests improves throughput at the cost of individual request latency.
 
 ### Fault Tolerance
 
@@ -45,15 +45,15 @@ Systems fail. The question is whether they fail gracefully:
 
 ## Topics
 
-- **Infrastructure** — Kafka (high-throughput event streaming, LinkedIn processes 7 trillion messages/day), RabbitMQ (flexible routing, when you need per-message acknowledgements), event processing patterns (dead letter queues, exactly-once semantics, ordering guarantees).
-- **Patterns** — consistent hashing (add a cache node without invalidating everything), ID generation (Twitter Snowflake: 64-bit IDs, no coordination), cache stampede (expiring a hot key → 1000 servers all hit the DB simultaneously), rate limiting (token bucket — smooth bursts, sliding window — precise limits).
-- **Systems** — distributed cache (memcached at Facebook, Redis at Twitter), task scheduler (ensure a job runs exactly once, not zero times and not twice), notification system (APNs/FCM + WebSocket fallback, fan-out to millions), real-time chat (WebSocket state, message ordering, presence detection).
+- **Infrastructure** Kafka (high-throughput event streaming, LinkedIn processes 7 trillion messages/day), RabbitMQ (flexible routing, when you need per-message acknowledgements), event processing patterns (dead letter queues, exactly-once semantics, ordering guarantees).
+- **Patterns** consistent hashing (add a cache node without invalidating everything), ID generation (Twitter Snowflake: 64-bit IDs, no coordination), cache stampede (expiring a hot key → 1000 servers all hit the DB simultaneously), rate limiting (token bucket smooth bursts, sliding window precise limits).
+- **Systems** distributed cache (memcached at Facebook, Redis at Twitter), task scheduler (ensure a job runs exactly once, not zero times and not twice), notification system (APNs/FCM + WebSocket fallback, fan-out to millions), real-time chat (WebSocket state, message ordering, presence detection).
 
 ## Building Blocks
 
 ### Load Balancers
 
-Distribute traffic across servers. Layer 4 (TCP) is fast but blind. Layer 7 (HTTP) can route `/checkout` to a bigger instance pool and `/static` to a CDN. **Example**: a single NGINX instance can handle ~10k concurrent connections. At scale, you need a tiered approach — DNS → hardware LB → software LB → application.
+Distribute traffic across servers. Layer 4 (TCP) is fast but blind. Layer 7 (HTTP) can route `/checkout` to a bigger instance pool and `/static` to a CDN. **Example**: a single NGINX instance can handle ~10k concurrent connections. At scale, you need a tiered approach DNS → hardware LB → software LB → application.
 
 ### SQL vs NoSQL
 
@@ -73,15 +73,15 @@ The fastest database query is the one you never make. **Example**: at Reddit, a 
 
 ### Message Queues
 
-Decouple producers from consumers. A user uploads a video — instead of processing it synchronously (user waits 30 seconds), you drop a message in a queue and return "processing." **Example**: Instagram uploads. The upload API accepts the file, queues a processing job, and returns immediately. The user sees a spinner, not a timeout.
+Decouple producers from consumers. A user uploads a video instead of processing it synchronously (user waits 30 seconds), you drop a message in a queue and return "processing." **Example**: Instagram uploads. The upload API accepts the file, queues a processing job, and returns immediately. The user sees a spinner, not a timeout.
 
 ### CAP Theorem
 
-In a network partition, you can have Consistency (all nodes see the same data) or Availability (every request gets a response) — not both. **Example**: a banking system during a network split. Choose Consistency (reject writes until partition heals — no overdrafts but service is degraded) or Availability (accept writes on both sides, merge later — 24/7 service but risk of conflicting balances). Most systems choose CP for financial data and AP for user profiles.
+In a network partition, you can have Consistency (all nodes see the same data) or Availability (every request gets a response) not both. **Example**: a banking system during a network split. Choose Consistency (reject writes until partition heals no overdrafts but service is degraded) or Availability (accept writes on both sides, merge later 24/7 service but risk of conflicting balances). Most systems choose CP for financial data and AP for user profiles.
 
 ### Database Sharding
 
-Split data across multiple databases by a shard key. **Example**: shard by `user_id % 1000` → 1000 shards. User 42's data lives on shard 42. The problem: queries that cross shards (all users in California) become expensive scatter-gather operations. Shard key choice is irreversible — changing it requires migrating all data.
+Split data across multiple databases by a shard key. **Example**: shard by `user_id % 1000` → 1000 shards. User 42's data lives on shard 42. The problem: queries that cross shards (all users in California) become expensive scatter-gather operations. Shard key choice is irreversible changing it requires migrating all data.
 
 ### Database Replication
 
@@ -93,7 +93,7 @@ More than just name resolution. DNS does routing, load balancing, and failover. 
 
 ### CDNs
 
-Serve static content from edge locations close to users. **Example**: an image hosted on `cdn.example.com` is cached in 200+ edge locations. A user in Sydney fetches it from the Sydney edge in 10ms instead of from Virginia in 200ms. CDNs also absorb DDoS attacks — a 1 Tbps attack on Cloudflare's 200+ edge locations is a Tuesday.
+Serve static content from edge locations close to users. **Example**: an image hosted on `cdn.example.com` is cached in 200+ edge locations. A user in Sydney fetches it from the Sydney edge in 10ms instead of from Virginia in 200ms. CDNs also absorb DDoS attacks a 1 Tbps attack on Cloudflare's 200+ edge locations is a Tuesday.
 
 ### Data Consistency Models
 

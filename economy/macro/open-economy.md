@@ -11,7 +11,7 @@ created: "2026-06-13"
 
 An open economy trades goods, services, and assets across borders. Two key flows define its external position:
 
-- **Net exports (NX)** : exports minus imports — the trade balance
+- **Net exports (NX)** : exports minus imports the trade balance
 - **Net capital outflow (NCO)** : domestic purchase of foreign assets minus foreign purchase of domestic assets
 
 Every international transaction involves an exchange of value, so NX and NCO are always equal: a trade surplus must be offset by a capital outflow, and a trade deficit must be financed by a capital inflow.
@@ -32,7 +32,7 @@ The balance of payments records all transactions between a country and the rest 
 - **Capital account**: transfers of non-produced, non-financial assets (minor in practice)
 - **Financial account**: purchases of domestic assets by foreigners minus purchases of foreign assets by residents
 
-By accounting identity, the current account balance plus the financial account balance equals zero: $$CA + FA = 0$$. A current account deficit implies a financial account surplus — the country is borrowing from abroad.
+By accounting identity, the current account balance plus the financial account balance equals zero: $$CA + FA = 0$$. A current account deficit implies a financial account surplus the country is borrowing from abroad.
 
 ## The Mundell-Fleming Model
 
@@ -43,7 +43,7 @@ $$LM^*: \frac{M}{P} = L(Y, r^*)$$
 
 The world interest rate r* is taken as given (small open economy assumption). The exchange rate e is on the vertical axis; IS* slopes downward (depreciation boosts net exports), and LM* is vertical (the interest rate is fixed at r*).
 
-Under **floating exchange rates**, monetary policy is powerful — an expansion shifts LM* right, depreciates the currency, and raises Y. Fiscal policy is ineffective because expansionary fiscal policy shifts IS* right, appreciates the currency, and crowds out net exports.
+Under **floating exchange rates**, monetary policy is powerful an expansion shifts LM* right, depreciates the currency, and raises Y. Fiscal policy is ineffective because expansionary fiscal policy shifts IS* right, appreciates the currency, and crowds out net exports.
 
 Under **fixed exchange rates**, the opposite holds: fiscal policy is powerful, while monetary policy is ineffective (the central bank must adjust the money supply to defend the peg).
 
@@ -69,13 +69,13 @@ If UIP holds, investors are indifferent between holding domestic and foreign bon
 
 ## J-Curve and Marshall-Lerner Condition
 
-A depreciation initially worsens the trade balance (because existing contracts are priced in the old exchange rate) before improving it — the **J-curve** effect.
+A depreciation initially worsens the trade balance (because existing contracts are priced in the old exchange rate) before improving it the **J-curve** effect.
 
 The **Marshall-Lerner condition** states that a depreciation improves the trade balance in the long run only if the sum of the price elasticities of export demand and import demand exceeds 1. Evidence suggests this holds for most developed economies.
 
 ## Currency Crises and Speculative Attacks
 
-- **First-generation models** (Krugman, 1979): a currency crisis occurs when inconsistent policies — e.g., monetizing fiscal deficits while defending a peg — exhaust foreign reserves, triggering a speculative attack
+- **First-generation models** (Krugman, 1979): a currency crisis occurs when inconsistent policies e.g., monetizing fiscal deficits while defending a peg exhaust foreign reserves, triggering a speculative attack
 - **Second-generation models** (Obstfeld, 1994): a crisis can be self-fulfilling. If investors believe a devaluation is coming, they sell the currency, forcing the central bank to raise rates or deplete reserves, making the devaluation inevitable
 
 Modern crises often combine elements of both: fragile fundamentals plus a shift in market sentiment.

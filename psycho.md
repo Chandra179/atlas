@@ -9,7 +9,7 @@ created: "2026-06-13"
 
 Specifies the architecture, module boundaries, data flow, and implementation phases for a local-first psychometric analysis system. After reading, the implementing Go developer will understand the system's scope, each module's responsibilities and contracts, the storage rationale, and the sequence of phases to build a working MVP.
 
-**Audience:** A Go developer building the system. Familiarity with Go, SQLite, and basic NLP concepts is assumed. No prior knowledge of psychometric frameworks is required — the document references the published sources underlying each inference.
+**Audience:** A Go developer building the system. Familiarity with Go, SQLite, and basic NLP concepts is assumed. No prior knowledge of psychometric frameworks is required the document references the published sources underlying each inference.
 
 ## Overview
 
@@ -37,11 +37,11 @@ Every trait, cognitive label, and value assignment is traceable to specific ling
 * **Dictionary‑based extraction only.** LLM optional for narrative prose synthesis, never for core trait inference.
 * **Max 3 source types** flagged per analysis (e.g., blog, chat, email).
 * **No real‑time collaboration or sharing.** Export profile as JSON/PDF only.
-* **Accepted risks:** No authentication on ingestion endpoint. Analysis unreliable below 500 words (warns, doesn't block). Single‑threaded — texts >50,000 words may take >30 seconds with no progress indicator in MVP.
+* **Accepted risks:** No authentication on ingestion endpoint. Analysis unreliable below 500 words (warns, doesn't block). Single‑threaded texts >50,000 words may take >30 seconds with no progress indicator in MVP.
 
 ## Architecture
 
-**Style:** Modular monolith — components share a single process and database but have clear interface boundaries. No network calls between modules.
+**Style:** Modular monolith components share a single process and database but have clear interface boundaries. No network calls between modules.
 
 ### Core Flow
 
@@ -52,24 +52,24 @@ Every trait, cognitive label, and value assignment is traceable to specific ling
 
 ### Module Boundaries
 
-* **ingest** — Owns text normalisation, segmentation, and source metadata. Exposes a clean document object to downstream modules. Does NOT know about dictionaries, traits, or profiles.
-* **analyze** — Owns the psycholinguistic dictionary, feature extraction, and trait inference models. Depends on ingest for clean text. Does NOT know about temporal comparison or narrative synthesis.
-* **profile** — Owns score aggregation, confidence computation, and narrative generation. Depends on analyze for trait/feature data. Does NOT know about ingestion logic.
+* **ingest** Owns text normalisation, segmentation, and source metadata. Exposes a clean document object to downstream modules. Does NOT know about dictionaries, traits, or profiles.
+* **analyze** Owns the psycholinguistic dictionary, feature extraction, and trait inference models. Depends on ingest for clean text. Does NOT know about temporal comparison or narrative synthesis.
+* **profile** Owns score aggregation, confidence computation, and narrative generation. Depends on analyze for trait/feature data. Does NOT know about ingestion logic.
 
 ### Abstraction Depth per Module
 
-**ingest** — No interfaces. Single implementation. Text normalisation is not swappable; the rules are the product.
+**ingest** No interfaces. Single implementation. Text normalisation is not swappable; the rules are the product.
 
 **analyze**
 
-* `Dictionary` interface — **Why abstracted:** Allows swapping between LIWC‑compatible lexicons without changing inference logic. Users may bring their own dictionary. The module exports `Lookup(word) → []Category` as the contract.
-* `TraitModel` interface — **Why abstracted:** The regression model may be updated as new research publishes. The module exports `Infer(features) → BigFiveScores`.
-* `FeatureExtractor` is NOT abstracted — single implementation. The features are dictated by the psycholinguistic literature, not user preference.
+* `Dictionary` interface **Why abstracted:** Allows swapping between LIWC‑compatible lexicons without changing inference logic. Users may bring their own dictionary. The module exports `Lookup(word) → []Category` as the contract.
+* `TraitModel` interface **Why abstracted:** The regression model may be updated as new research publishes. The module exports `Infer(features) → BigFiveScores`.
+* `FeatureExtractor` is NOT abstracted single implementation. The features are dictated by the psycholinguistic literature, not user preference.
 
 **profile**
 
-* `NarrativeGenerator` interface — **Why abstracted:** Users may choose no LLM (template‑based), a local LLM (Ollama), or a cloud API (Gemini). The module exports `GenerateSynthesis(scores) → string`.
-* `ScoreAggregator` is NOT abstracted — single implementation. The aggregation math is the product.
+* `NarrativeGenerator` interface **Why abstracted:** Users may choose no LLM (template‑based), a local LLM (Ollama), or a cloud API (Gemini). The module exports `GenerateSynthesis(scores) → string`.
+* `ScoreAggregator` is NOT abstracted single implementation. The aggregation math is the product.
 
 ### Dependencies
 
@@ -89,31 +89,31 @@ Every inference in the system is anchored to published psycholinguistic research
 
 ### Storage Choice and Rationale
 
-**Embedded SQLite** — Single‑user local app with modest data volumes. No server process needed. Provides queryability for cross‑subject comparison and temporal tracking that flat JSON files would make cumbersome. The database file is portable; a user can back up their entire analysis history by copying one file.
+**Embedded SQLite** Single‑user local app with modest data volumes. No server process needed. Provides queryability for cross‑subject comparison and temporal tracking that flat JSON files would make cumbersome. The database file is portable; a user can back up their entire analysis history by copying one file.
 
 ### Directory Structure
 
 ```
-cmd/psycho/main.go      # entrypoint — starts HTTP server
+cmd/psycho/main.go # entrypoint starts HTTP server
 modules/
-  ingest/                  #   text ingestion module
-    config.go              #     module-specific config struct
-    dependencies.go        #     wire deps, load own config
-    http.go                #     HTTP handlers + route registration
-    normalizer.go          #     text normalization logic
-  analyze/                 #   psycholinguistic analysis module
-    config.go
-    dependencies.go
-    dictionary.go          #     dictionary lookup engine
-    features.go            #     stylometric feature extraction
-    inference.go           #     Big Five + cognitive style inference
-  profile/                 #   profile generation module
-    config.go
-    dependencies.go
-    synthesizer.go         #     aggregate scores, confidence intervals
-    narrative.go           #     optional LLM narrative synthesis
-middleware/                # shared: recovery, request ID, timeout, validation
-config/                    # YAML loader + config.yaml
+ ingest/ # text ingestion module
+ config.go # module-specific config struct
+ dependencies.go # wire deps, load own config
+ http.go # HTTP handlers + route registration
+ normalizer.go # text normalization logic
+ analyze/ # psycholinguistic analysis module
+ config.go
+ dependencies.go
+ dictionary.go # dictionary lookup engine
+ features.go # stylometric feature extraction
+ inference.go # Big Five + cognitive style inference
+ profile/ # profile generation module
+ config.go
+ dependencies.go
+ synthesizer.go # aggregate scores, confidence intervals
+ narrative.go # optional LLM narrative synthesis
+middleware/ # shared: recovery, request ID, timeout, validation
+config/ # YAML loader + config.yaml
 ```
 
 ## Implementation

@@ -96,12 +96,12 @@ _These are the universal lenses used to analyze any graph. While every function 
 * Range: All real numbers $(-\infty, \infty)$.
 * Vertical Asymptote: $x = 0$ (the y-axis) for standard logarithmic functions.
 * Logarithm Properties:
-  * Product Rule: $\log_b(mn) = \log_b(m) + \log_b(n)$
-  * Quotient Rule: $\log_b\left(\frac{m}{n}\right) = \log_b(m) - \log_b(n)$
-  * Power Rule: $\log_b(m^p) = p \cdot \log_b(m)$
-  * Zero Property: $\log_b(1) = 0$
-  * Identity Property: $\log_b(b) = 1$
-  * Inverse Property: $b^{\log_b(x)} = x$ and $\log_b(b^x) = x$
+ * Product Rule: $\log_b(mn) = \log_b(m) + \log_b(n)$
+ * Quotient Rule: $\log_b\left(\frac{m}{n}\right) = \log_b(m) - \log_b(n)$
+ * Power Rule: $\log_b(m^p) = p \cdot \log_b(m)$
+ * Zero Property: $\log_b(1) = 0$
+ * Identity Property: $\log_b(b) = 1$
+ * Inverse Property: $b^{\log_b(x)} = x$ and $\log_b(b^x) = x$
 * Change of Base Formula: $\log_b(x) = \frac{\log_a(x)}{\log_a(b)}$ for converting between bases.
 
 ***
@@ -149,30 +149,30 @@ _These are the universal lenses used to analyze any graph. While every function 
 * Coterminal Angles: Angles that differ by full rotations ($360°$ or $2\pi$); share the same terminal side.
 * Reciprocal Functions: $\csc\theta = \frac{1}{\sin\theta}$, $\sec\theta = \frac{1}{\cos\theta}$, $\cot\theta = \frac{1}{\tan\theta}$.
 * Pythagorean Identities:
-  * $\sin^2\theta + \cos^2\theta = 1$
-  * $1 + \tan^2\theta = \sec^2\theta$
-  * $1 + \cot^2\theta = \csc^2\theta$
+ * $\sin^2\theta + \cos^2\theta = 1$
+ * $1 + \tan^2\theta = \sec^2\theta$
+ * $1 + \cot^2\theta = \csc^2\theta$
 * Quotient Identities: $\tan\theta = \frac{\sin\theta}{\cos\theta}$ and $\cot\theta = \frac{\cos\theta}{\sin\theta}$.
 * Even/Odd Identities: $\sin(-x) = -\sin(x)$ (odd), $\cos(-x) = \cos(x)$ (even).
 * Cofunction Identities: $\sin\left(\frac{\pi}{2} - x\right) = \cos(x)$, $\cos\left(\frac{\pi}{2} - x\right) = \sin(x)$.
 * Sum and Difference Formulas:
-  * $\sin(A \pm B) = \sin A \cos B \pm \cos A \sin B$
-  * $\cos(A \pm B) = \cos A \cos B \mp \sin A \sin B$
-  * $\tan(A \pm B) = \frac{\tan A \pm \tan B}{1 \mp \tan A \tan B}$
+ * $\sin(A \pm B) = \sin A \cos B \pm \cos A \sin B$
+ * $\cos(A \pm B) = \cos A \cos B \mp \sin A \sin B$
+ * $\tan(A \pm B) = \frac{\tan A \pm \tan B}{1 \mp \tan A \tan B}$
 * Double-Angle Formulas:
-  * $\sin(2\theta) = 2\sin\theta\cos\theta$
-  * $\cos(2\theta) = \cos^2\theta - \sin^2\theta = 2\cos^2\theta - 1 = 1 - 2\sin^2\theta$
-  * ...
+ * $\sin(2\theta) = 2\sin\theta\cos\theta$
+ * $\cos(2\theta) = \cos^2\theta - \sin^2\theta = 2\cos^2\theta - 1 = 1 - 2\sin^2\theta$
+ * ...
 * Half-Angle Formulas (the $\pm$ depends on the quadrant of $\frac{\theta}{2}$):
-  * $\sin\left(\frac{\theta}{2}\right) = \pm\sqrt{\frac{1 - \cos\theta}{2}}$
-  * $\cos\left(\frac{\theta}{2}\right) = \pm\sqrt{\frac{1 + \cos\theta}{2}}$
-  * $\tan\left(\frac{\theta}{2}\right) = \frac{1 - \cos\theta}{\sin\theta}$
+ * $\sin\left(\frac{\theta}{2}\right) = \pm\sqrt{\frac{1 - \cos\theta}{2}}$
+ * $\cos\left(\frac{\theta}{2}\right) = \pm\sqrt{\frac{1 + \cos\theta}{2}}$
+ * $\tan\left(\frac{\theta}{2}\right) = \frac{1 - \cos\theta}{\sin\theta}$
 * Law of Sines: $\frac{a}{\sin A} = \frac{b}{\sin B} = \frac{c}{\sin C}$ for solving oblique triangles when you know angle-side pairs.
 * Law of Cosines: $c^2 = a^2 + b^2 - 2ab\cos(C)$ for solving triangles when you know SSS or SAS.
 * Inverse Identities:
-  * Composition: $\sin(\arcsin(x)) = x$, $\cos(\arccos(x)) = x$, $\tan(\arctan(x)) = x$
-  * Complementary: $\arcsin(x) + \arccos(x) = \frac{\pi}{2}$
-  * Negative Argument: $\arcsin(-x) = -\arcsin(x)$, $\arctan(-x) = -\arctan(x)$
+ * Composition: $\sin(\arcsin(x)) = x$, $\cos(\arccos(x)) = x$, $\tan(\arctan(x)) = x$
+ * Complementary: $\arcsin(x) + \arccos(x) = \frac{\pi}{2}$
+ * Negative Argument: $\arcsin(-x) = -\arcsin(x)$, $\arctan(-x) = -\arctan(x)$
 
 ***
 

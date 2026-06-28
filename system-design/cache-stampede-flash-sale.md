@@ -9,28 +9,28 @@ created: "2026-06-13"
 
 Also known as: **thundering herd problem**, **dog-piling**, **cache miss storm**.
 
-This document explains how to prevent a cache stampede when a hot key expires under high concurrency. After reading, you should understand request coalescing, probabilistic early expiration, and pre-warming — and how to combine them for a flash-sale workload.
+This document explains how to prevent a cache stampede when a hot key expires under high concurrency. After reading, you should understand request coalescing, probabilistic early expiration, and pre-warming and how to combine them for a flash-sale workload.
 
 **Audience:** Backend engineers building high-traffic systems. Familiarity with cache read/write patterns assumed.
 
 ## Cache Miss Storm
 
-When a hot cache key expires, all concurrent requests miss simultaneously and flood the database — causing contention, timeouts, and potentially cascading failure.
+When a hot cache key expires, all concurrent requests miss simultaneously and flood the database causing contention, timeouts, and potentially cascading failure.
 
 ```mermaid
 sequenceDiagram
-    participant C1 as Client 1
-    participant C2 as Client 2..N
-    participant Cache as Cache
-    participant DB as Database
-    Note over Cache: Hot key TTL expires
-    C1->>Cache: GET /hot-key
-    C2->>Cache: GET /hot-key
-    Cache-->>C1: MISS
-    Cache-->>C2: MISS
-    C1->>DB: SELECT...
-    C2->>DB: SELECT...
-    Note over DB: 100k concurrent queries<br/>contention, timeouts<br/>cascading failure
+ participant C1 as Client 1
+ participant C2 as Client 2..N
+ participant Cache as Cache
+ participant DB as Database
+ Note over Cache: Hot key TTL expires
+ C1->>Cache: GET /hot-key
+ C2->>Cache: GET /hot-key
+ Cache-->>C1: MISS
+ Cache-->>C2: MISS
+ C1->>DB: SELECT...
+ C2->>DB: SELECT...
+ Note over DB: 100k concurrent queries<br/>contention, timeouts<br/>cascading failure
 ```
 
 ## Mitigation Strategies
@@ -41,30 +41,30 @@ Request coalescing serializes recomputation so only one request hits the databas
 
 ```mermaid
 sequenceDiagram
-    participant C1 as Client 1
-    participant C2 as Client 2..N
-    participant Cache as Cache
-    participant DB as Database
-    Note over Cache: Hot key TTL expires
-    C1->>Cache: GET /hot-key
-    C2->>Cache: GET /hot-key
-    Cache-->>C1: MISS
-    Cache-->>C2: MISS
-    Note over C1: Acquires lock<br/>queries DB
-    C1->>DB: SELECT...
-    DB-->>C1: fresh data
-    C1->>Cache: SET /hot-key
-    Note over C1: Releases lock
-    C2->>Cache: GET /hot-key
-    Cache-->>C2: HIT
-    Note over C2: Never hits DB
+ participant C1 as Client 1
+ participant C2 as Client 2..N
+ participant Cache as Cache
+ participant DB as Database
+ Note over Cache: Hot key TTL expires
+ C1->>Cache: GET /hot-key
+ C2->>Cache: GET /hot-key
+ Cache-->>C1: MISS
+ Cache-->>C2: MISS
+ Note over C1: Acquires lock<br/>queries DB
+ C1->>DB: SELECT...
+ DB-->>C1: fresh data
+ C1->>Cache: SET /hot-key
+ Note over C1: Releases lock
+ C2->>Cache: GET /hot-key
+ Cache-->>C2: HIT
+ Note over C2: Never hits DB
 ```
 
 Let only one request recompute the cache value. All others wait on the result.
 
 - A mutex (in-memory lock) guards cache recomputation for each key.
 - The first request acquires the lock, queries the DB, and writes the fresh value to cache.
-- Concurrent requests that fail to acquire the lock block until the lock is released, then read the freshly cached value — never hitting the DB.
+- Concurrent requests that fail to acquire the lock block until the lock is released, then read the freshly cached value never hitting the DB.
 
 ```go
 import "golang.org/x/sync/singleflight"
@@ -72,15 +72,15 @@ import "golang.org/x/sync/singleflight"
 var sf singleflight.Group
 
 func fetch(key string) (Value, error) {
-    v, err, _ := sf.Do(key, func() (any, error) {
-        val, err := queryDB(key)
-        if err != nil {
-            return nil, err
-        }
-        cache.Set(key, val, 5*time.Minute)
-        return val, nil
-    })
-    return v.(Value), err
+ v, err, _ := sf.Do(key, func() (any, error) {
+ val, err := queryDB(key)
+ if err != nil {
+ return nil, err
+ }
+ cache.Set(key, val, 5*time.Minute)
+ return val, nil
+ })
+ return v.(Value), err
 }
 ```
 
@@ -94,7 +94,7 @@ Instead of reacting to expiry, refresh the cache *before* the TTL runs out.
 
 ```go
 func shouldRefresh(ttl, remaining time.Duration) bool {
-    return rand.Float64() < float64(ttl-remaining)/float64(ttl)
+ return rand.Float64() < float64(ttl-remaining)/float64(ttl)
 }
 ```
 
@@ -108,17 +108,17 @@ For scheduled high-traffic events (flash sales, live streams), populate the cach
 
 ```mermaid
 timeline
-    title Flash Sale Pre-Warming
-    T-120s : First warm pass : Populate cache with short TTL
-    T-30s : Second warm pass : Refresh with real TTL
-    T=0 : Flash sale starts : All cache hits
-    T+X : Probabilistic refresh : Self-sustaining
+ title Flash Sale Pre-Warming
+ T-120s : First warm pass : Populate cache with short TTL
+ T-30s : Second warm pass : Refresh with real TTL
+ T=0 : Flash sale starts : All cache hits
+ T+X : Probabilistic refresh : Self-sustaining
 ```
 
 - A background job warms the key 30–120 seconds early with a short TTL.
 - A second pass just before the event refreshes with the real TTL.
 - This turns the initial burst of cache misses into cache hits, buying time for the coalescing layer to stabilize.
-- Works best combined with probabilistic early expiry — even if the warm window is missed, the first real request refreshes early before expiry.
+- Works best combined with probabilistic early expiry even if the warm window is missed, the first real request refreshes early before expiry.
 
 ### Resilience & Fail-Safe
 

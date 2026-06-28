@@ -7,7 +7,7 @@ created: "2026-06-13"
 
 # Economist
 
-Study notes on economics — microeconomics, macroeconomics, global finance, and behavioral economics. Plus a live data dashboard for exchange rates, Fed rates, and reserves.
+Study notes on economics microeconomics, macroeconomics, global finance, and behavioral economics. Plus a live data dashboard for exchange rates, Fed rates, and reserves.
 
 ## Content
 
@@ -20,8 +20,8 @@ Study notes on economics — microeconomics, macroeconomics, global finance, and
 
 ### Start here
 
-- [Overview](overview.md) — mermaid diagram showing how topics connect
-- [SUMMARY.md](SUMMARY.md) — full table of contents
+- [Overview](overview.md) mermaid diagram showing how topics connect
+- [SUMMARY.md](SUMMARY.md) full table of contents
 
 ## Dashboard
 

@@ -43,12 +43,12 @@ When actual investment exceeds break-even investment, k rises; when it falls sho
 
 ```mermaid
 xychart-beta
-    title "Solow Steady State"
-    x-axis "Capital per worker (k)" 0 --> 100
-    y-axis "Output / Investment / Depreciation" 0 --> 50
-    line "f(k)" [0, 16, 25, 32, 39, 45, 50]
-    line "s·f(k)" [0, 6, 10, 13, 16, 18, 20]
-    line "δ·k" [0, 2, 5, 8, 12, 16, 20]
+ title "Solow Steady State"
+ x-axis "Capital per worker (k)" 0 --> 100
+ y-axis "Output / Investment / Depreciation" 0 --> 50
+ line "f(k)" [0, 16, 25, 32, 39, 45, 50]
+ line "s·f(k)" [0, 6, 10, 13, 16, 18, 20]
+ line "δ·k" [0, 2, 5, 8, 12, 16, 20]
 ```
 
 ## Steady State
@@ -95,7 +95,7 @@ Technological progress is the **only source of sustained long-run growth** in pe
 
 ## Endogenous vs. Exogenous Growth
 
-- **Solow (exogenous)**: technological progress is exogenous — it arrives from outside the model. The model explains convergence and the transition but does not explain the source of technological change.
+- **Solow (exogenous)**: technological progress is exogenous it arrives from outside the model. The model explains convergence and the transition but does not explain the source of technological change.
 - **Romer (endogenous)**: technological progress is driven by intentional investment in research and development. Knowledge is non-rival (one person's use does not reduce another's) and partially excludable (patents, copyrights). This can generate increasing returns to scale and sustained growth without relying on an outside force.
 
 The key distinction: in Solow, policy cannot affect the long-run growth rate; in Romer, policies that encourage R&D and human capital accumulation can raise the long-run growth rate.
@@ -108,6 +108,6 @@ $$\frac{\Delta Y}{Y} = \alpha \frac{\Delta K}{K} + (1 - \alpha) \frac{\Delta L}{
 
 - **α**: capital's share of output (typically ~1/3)
 - **1 − α**: labor's share (typically ~2/3)
-- **ΔA/A**: Solow residual (total factor productivity growth) — the portion of growth not explained by factor accumulation, attributed to technological progress and institutional improvements.
+- **ΔA/A**: Solow residual (total factor productivity growth) the portion of growth not explained by factor accumulation, attributed to technological progress and institutional improvements.
 
 The Solow residual is calculated as what remains after subtracting the contributions of capital and labor from actual output growth.

@@ -9,11 +9,11 @@ created: "2026-06-13"
 
 ## Vector Databases
 
-Vector databases are optimized for storing and querying **embeddings** — dense vector representations of data (text, images, audio). They enable **approximate nearest neighbor (ANN)** search for AI/ML applications.
+Vector databases are optimized for storing and querying **embeddings** dense vector representations of data (text, images, audio). They enable **approximate nearest neighbor (ANN)** search for AI/ML applications.
 
 ### Core Algorithm: ANN Search
 
-Exact nearest neighbor search is O(n*d) — too slow for millions of vectors. ANN sacrifices a small amount of accuracy for massive speed gains:
+Exact nearest neighbor search is O(n*d) too slow for millions of vectors. ANN sacrifices a small amount of accuracy for massive speed gains:
 
 | Algorithm | Type | Build Time | Search Time | Memory | Accuracy |
 |---|---|---|---|---|---|
@@ -63,13 +63,13 @@ Document 2: "the lazy dog"
 Document 3: "quick fox jumps"
 
 Inverted Index:
-brown  → {1}
-dog    → {2}
-fox    → {1, 3}
-jumps  → {3}
-lazy   → {2}
-quick  → {1, 3}
-the    → {1, 2}
+brown → {1}
+dog → {2}
+fox → {1, 3}
+jumps → {3}
+lazy → {2}
+quick → {1, 3}
+the → {1, 2}
 ```
 
 Behind the scenes: Term dictionary → posting list (document IDs + positions + offsets). Compressed using delta encoding, bit packing, and skip lists.
@@ -78,15 +78,15 @@ Behind the scenes: Term dictionary → posting list (document IDs + positions + 
 
 ```mermaid
 graph TD
-    subgraph "Lucene Index"
-        D1[Segment 1<br/>in-memory]
-        D2[Segment 2<br/>on disk]
-        D3[Segment 3<br/>on disk]
-    end
-    Write[Document] -->|1. Buffer| D1
-    D1 -->|2. Flush<br/>(commit)| D2
-    D1 & D2 & D3 -->|3. Merge| Merged[(Merged Segment)]
-    Query -->|4. Search all segments| Searcher
+ subgraph "Lucene Index"
+ D1[Segment 1<br/>in-memory]
+ D2[Segment 2<br/>on disk]
+ D3[Segment 3<br/>on disk]
+ end
+ Write[Document] -->|1. Buffer| D1
+ D1 -->|2. Flush<br/>(commit)| D2
+ D1 & D2 & D3 -->|3. Merge| Merged[(Merged Segment)]
+ Query -->|4. Search all segments| Searcher
 ```
 
 **Near-real-time**: Documents are searchable almost immediately after indexing (refresh interval, default 1s in Elasticsearch).
@@ -122,10 +122,10 @@ The most widely deployed database engine in the world (every smartphone, browser
 
 ```mermaid
 graph TD
-    App[Application<br/>Process] -->|SQL queries| SQLite
-    SQLite -->|B-Tree pages| DB[(database.sqlite)]
-    SQLite -->|WAL| WAL[(.sqlite-wal)]
-    SQLite -->|Rollback journal| RJ[(.sqlite-journal)]
+ App[Application<br/>Process] -->|SQL queries| SQLite
+ SQLite -->|B-Tree pages| DB[(database.sqlite)]
+ SQLite -->|WAL| WAL[(.sqlite-wal)]
+ SQLite -->|Rollback journal| RJ[(.sqlite-journal)]
 ```
 
 **Page structure**: 4KB pages (default), B-Tree for tables (leaf = data), B+Tree for indexes.
@@ -143,13 +143,13 @@ graph TD
 
 **WAL mode**: The write-ahead log allows concurrent readers and a single writer. Readers don't block the writer. The WAL is periodically checkpointed into the main database file.
 
-**Concurrency**: Limited — only one writer at a time (table-level locking). MVCC via WAL allows concurrent reads during writes.
+**Concurrency**: Limited only one writer at a time (table-level locking). MVCC via WAL allows concurrent reads during writes.
 
 **Best for**: Mobile apps, desktop apps, small servers, embedded systems, prototyping.
 
 ### DuckDB
 
-DuckDB is an **in-process columnar OLAP database** — the SQLite equivalent for analytical workloads.
+DuckDB is an **in-process columnar OLAP database** the SQLite equivalent for analytical workloads.
 
 **Columnar storage**: Data is stored by column, not by row. Enables:
 - Only read relevant columns (skip others)

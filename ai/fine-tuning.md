@@ -7,9 +7,9 @@ created: "2026-06-16"
 
 # Fine-Tuning Large Language Models
 
-> **Before reading**: understand the training pipeline, transfer learning, VRAM constraints, quantization, and QLoRA — all covered in [Machine Learning](ml.md).
+> **Before reading**: understand the training pipeline, transfer learning, VRAM constraints, quantization, and QLoRA all covered in [Machine Learning](ml.md).
 
-You've been prompting GPT-4 to classify customer support tickets: "urgent," "billing," "technical," "general." It works on 95% of tickets. But the other 5% — tickets with unusual phrasing, edge-case topics, or mixed intent — consistently misclassify. You've tried elaborate system prompts, few-shot examples, chain-of-thought. The edge cases persist.
+You've been prompting GPT-4 to classify customer support tickets: "urgent," "billing," "technical," "general." It works on 95% of tickets. But the other 5% tickets with unusual phrasing, edge-case topics, or mixed intent consistently misclassify. You've tried elaborate system prompts, few-shot examples, chain-of-thought. The edge cases persist.
 
 This is when you fine-tune. Prompt engineering shifts the distribution; fine-tuning changes the model.
 
@@ -28,9 +28,9 @@ Decision rule: start with prompt engineering. If you've hit diminishing returns 
 
 ## Full Fine-Tuning
 
-Full fine-tuning updates every parameter of the model. For a 7B model at FP16: 14 GB weights + 14 GB gradients + 28 GB optimizer states (Adam) = ~56 GB VRAM. For a 70B model: ~560 GB — you need 8× H100s or a high-end cluster.
+Full fine-tuning updates every parameter of the model. For a 7B model at FP16: 14 GB weights + 14 GB gradients + 28 GB optimizer states (Adam) = ~56 GB VRAM. For a 70B model: ~560 GB you need 8× H100s or a high-end cluster.
 
-Full fine-tuning is the most expressive method — every weight adapts. It's worth the cost when:
+Full fine-tuning is the most expressive method every weight adapts. It's worth the cost when:
 - You're adapting to a fundamentally different domain (code → medical knowledge).
 - You have a large dataset (10K+ examples) and want maximum quality.
 - You have the compute budget and the task justifies it.
@@ -45,15 +45,15 @@ The math: original output is `h = W·x`. With LoRA: `h = W·x + (B·A)·x` where
 
 **Practical numbers for a 7B model (FP16)**:
 - Full fine-tuning: ~56 GB
-- LoRA (r=16): ~15 GB (weights) + 2 GB (adapters) = ~17 GB — fits on a single 24 GB consumer GPU
+- LoRA (r=16): ~15 GB (weights) + 2 GB (adapters) = ~17 GB fits on a single 24 GB consumer GPU
 
-**Rank selection** — Higher rank = more capacity to adapt, but diminishing returns. r=16 is a safe default. For simple tasks (binary classification), r=4–8 suffices. For complex generation (writing in a specific style), r=32–64 may help.
+**Rank selection** Higher rank = more capacity to adapt, but diminishing returns. r=16 is a safe default. For simple tasks (binary classification), r=4–8 suffices. For complex generation (writing in a specific style), r=32–64 may help.
 
-**Target modules** — Apply LoRA to query and value projection matrices (`q_proj`, `v_proj`) as a minimum. Full attention (`q_proj`, `k_proj`, `v_proj`, `o_proj`) plus feed-forward layers gives best results but 2–3× more adapter params.
+**Target modules** Apply LoRA to query and value projection matrices (`q_proj`, `v_proj`) as a minimum. Full attention (`q_proj`, `k_proj`, `v_proj`, `o_proj`) plus feed-forward layers gives best results but 2–3× more adapter params.
 
 ## QLoRA (Quantized LoRA)
 
-QLoRA quantizes the base model to 4-bit (NF4 format) and adds LoRA adapters on top. The base model's 4-bit weights are dequantized to BF16 on the fly during the forward pass — you never store the full-precision weights in memory.
+QLoRA quantizes the base model to 4-bit (NF4 format) and adds LoRA adapters on top. The base model's 4-bit weights are dequantized to BF16 on the fly during the forward pass you never store the full-precision weights in memory.
 
 **VRAM comparison for fine-tuning**:
 
@@ -64,9 +64,9 @@ QLoRA quantizes the base model to 4-bit (NF4 format) and adds LoRA adapters on t
 | LLaMA 3 34B | ~272 GB | ~60 GB | ~24 GB |
 | LLaMA 3 70B | ~560 GB | ~120 GB | ~40 GB |
 
-QLoRA on a 7B model fits on a $300 consumer GPU. QLoRA on a 70B model fits on a single A100 (80 GB). The quality gap between QLoRA and full fine-tuning is typically 0–3% on downstream task metrics — negligible for most applications.
+QLoRA on a 7B model fits on a $300 consumer GPU. QLoRA on a 70B model fits on a single A100 (80 GB). The quality gap between QLoRA and full fine-tuning is typically 0–3% on downstream task metrics negligible for most applications.
 
-**Unsloth** — Optimized CUDA kernels that speed up QLoRA training 2–4× and further reduce VRAM by fusing operations. Open-source, supports LLaMA, Mistral, and Phi families. If you're running QLoRA on consumer hardware, use Unsloth.
+**Unsloth** Optimized CUDA kernels that speed up QLoRA training 2–4× and further reduce VRAM by fusing operations. Open-source, supports LLaMA, Mistral, and Phi families. If you're running QLoRA on consumer hardware, use Unsloth.
 
 ## Other PEFT Methods
 
@@ -84,13 +84,13 @@ LoRA is the safe default. QLoRA when VRAM-constrained. Prompt tuning when you ne
 
 Quality trumps quantity. The LIMA paper showed that 1,000 carefully curated examples can produce a fine-tune that matches models trained on 50× more data.
 
-**Format** — Each example should match your deployment prompt format exactly:
+**Format** Each example should match your deployment prompt format exactly:
 
 ```
 {"messages": [
-  {"role": "system", "content": "You classify support tickets."},
-  {"role": "user", "content": "My payment won't go through, I've tried 3 cards"},
-  {"role": "assistant", "content": "billing"}
+ {"role": "system", "content": "You classify support tickets."},
+ {"role": "user", "content": "My payment won't go through, I've tried 3 cards"},
+ {"role": "assistant", "content": "billing"}
 ]}
 ```
 
@@ -116,9 +116,9 @@ Quality trumps quantity. The LIMA paper showed that 1,000 carefully curated exam
 | LR schedule | Cosine with warmup (10% of steps) | Cosine with warmup (10% of steps) | Warmup prevents early instability |
 | Weight decay | 0.01–0.1 | 0.0–0.01 | LoRA barely regularizes; lower is fine |
 
-**The golden rule for epochs**: for fine-tuning datasets under 1,000 examples, 1–3 epochs is almost always enough. Beyond that, the model transitions from generalizing to memorizing — loss on training data keeps dropping while validation performance degrades silently.
+**The golden rule for epochs**: for fine-tuning datasets under 1,000 examples, 1–3 epochs is almost always enough. Beyond that, the model transitions from generalizing to memorizing loss on training data keeps dropping while validation performance degrades silently.
 
-**Validation during training**: log eval loss every N steps. Generate sample outputs on a held-out set and inspect them manually. A model with lower validation loss can still produce worse outputs — the loss only measures next-token prediction, not task quality.
+**Validation during training**: log eval loss every N steps. Generate sample outputs on a held-out set and inspect them manually. A model with lower validation loss can still produce worse outputs the loss only measures next-token prediction, not task quality.
 
 ## Catastrophic Forgetting
 
@@ -128,17 +128,17 @@ Fine-tuning on a narrow task can overwrite general capabilities. The model becom
 
 **Mitigation**:
 - **Data mixing**: add 5–10% general-domain examples to your fine-tuning dataset. The model stays anchored to its original distribution.
-- **Lower learning rate**: 1e-5 instead of 5e-5 — gentler updates preserve more of the base model.
+- **Lower learning rate**: 1e-5 instead of 5e-5 gentler updates preserve more of the base model.
 - **Early stopping**: stop training the moment task accuracy plateaus, not when training loss reaches zero.
 - **LoRA implicit regularization**: LoRA naturally resists catastrophic forgetting because it only updates a tiny fraction of parameters. This is an underappreciated advantage of PEFT methods.
 
 ## Practical Workflow
 
-**Axolotl** — YAML-config-based fine-tuning framework. Define model, dataset, LoRA rank, hyperparameters in a config file. Handles data formatting, distributed training, checkpointing. Good for reproducible experiments.
+**Axolotl** YAML-config-based fine-tuning framework. Define model, dataset, LoRA rank, hyperparameters in a config file. Handles data formatting, distributed training, checkpointing. Good for reproducible experiments.
 
-**Unsloth** — Drop-in replacement for HuggingFace Transformers with optimized kernels. 2–4× faster QLoRA, lower VRAM. Use when iterating rapidly on consumer hardware.
+**Unsloth** Drop-in replacement for HuggingFace Transformers with optimized kernels. 2–4× faster QLoRA, lower VRAM. Use when iterating rapidly on consumer hardware.
 
-**HuggingFace TRL** — `SFTTrainer` for supervised fine-tuning, `DPOTrainer` for DPO, `PPOTrainer` for RLHF. The standard library for training loops. Works with Axolotl.
+**HuggingFace TRL** `SFTTrainer` for supervised fine-tuning, `DPOTrainer` for DPO, `PPOTrainer` for RLHF. The standard library for training loops. Works with Axolotl.
 
 **Typical iteration cycle**: curate 50 examples → QLoRA with Unsloth (r=16, 2 epochs, ~10 minutes on a consumer GPU) → evaluate on held-out set → inspect failure cases → add 20 more examples targeting failures → retrain → repeat until plateau → increase dataset to 500 examples → run overnight with higher rank.
 
@@ -154,12 +154,12 @@ Fine-tuning on a narrow task can overwrite general capabilities. The model becom
 
 ## References
 
-- LoRA: Hu et al., 2021 — *LoRA: Low-Rank Adaptation of Large Language Models* — [arXiv](https://arxiv.org/abs/2106.09685)
-- QLoRA: Dettmers et al., 2023 — *QLoRA: Efficient Finetuning of Quantized Language Models* — [arXiv](https://arxiv.org/abs/2305.14314)
-- LIMA: Zhou et al., 2023 — *LIMA: Less Is More for Alignment* — [arXiv](https://arxiv.org/abs/2305.11206)
+- LoRA: Hu et al., 2021 *LoRA: Low-Rank Adaptation of Large Language Models* [arXiv](https://arxiv.org/abs/2106.09685)
+- QLoRA: Dettmers et al., 2023 *QLoRA: Efficient Finetuning of Quantized Language Models* [arXiv](https://arxiv.org/abs/2305.14314)
+- LIMA: Zhou et al., 2023 *LIMA: Less Is More for Alignment* [arXiv](https://arxiv.org/abs/2305.11206)
 - Unsloth: https://github.com/unslothai/unsloth
 - Axolotl: https://github.com/axolotl-ai-cloud/axolotl
 - TRL: https://github.com/huggingface/trl
-- Prefix Tuning: Li & Liang, 2021 — *Prefix-Tuning: Optimizing Continuous Prompts for Generation* — [arXiv](https://arxiv.org/abs/2101.00190)
-- Prompt Tuning: Lester et al., 2021 — *The Power of Scale for Parameter-Efficient Prompt Tuning* — [arXiv](https://arxiv.org/abs/2104.08691)
-- IA3: Liu et al., 2022 — *Few-Shot Parameter-Efficient Fine-Tuning is Better and Cheaper than In-Context Learning* — [arXiv](https://arxiv.org/abs/2205.05638)
+- Prefix Tuning: Li & Liang, 2021 *Prefix-Tuning: Optimizing Continuous Prompts for Generation* [arXiv](https://arxiv.org/abs/2101.00190)
+- Prompt Tuning: Lester et al., 2021 *The Power of Scale for Parameter-Efficient Prompt Tuning* [arXiv](https://arxiv.org/abs/2104.08691)
+- IA3: Liu et al., 2022 *Few-Shot Parameter-Efficient Fine-Tuning is Better and Cheaper than In-Context Learning* [arXiv](https://arxiv.org/abs/2205.05638)

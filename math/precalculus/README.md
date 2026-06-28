@@ -19,15 +19,15 @@ there is no real number that, when multiplied by itself, results in a negative n
 
 Let's test all possibilities for a Real Number $x$:
 
-1.  If $x$ is Positive (e.g., 3)
+1. If $x$ is Positive (e.g., 3)
 
-    $x \times x = 3 \times 3 = 9$ (Result is Positive)
-2.  If $x$ is Negative (e.g., $-3$)
+ $x \times x = 3 \times 3 = 9$ (Result is Positive)
+2. If $x$ is Negative (e.g., $-3$)
 
-    $x \times x = (-3) \times (-3) = 9$ (Result is Positive)
-3.  If $x$ is Zero (i.e., $0$)
+ $x \times x = (-3) \times (-3) = 9$ (Result is Positive)
+3. If $x$ is Zero (i.e., $0$)
 
-    $x \times x = 0 \times 0 = 0$ (Result is Zero)
+ $x \times x = 0 \times 0 = 0$ (Result is Zero)
 
 Since there is no way to multiply a real number by itself and get a negative result like $-9$, the answer to $\sqrt{-9}$ cannot be found on the Real Number Line.
 
@@ -62,20 +62,20 @@ Since there is no way to multiply a real number by itself and get a negative res
 Imagine you are buying items for a school trip:
 
 * First Group ($\mathbf{a+b}$): The number of people going.
-  * $a = 10$ students.
-  * $b = 2$ teachers.
-  * $\mathbf{a+b = 12}$ people.
+ * $a = 10$ students.
+ * $b = 2$ teachers.
+ * $\mathbf{a+b = 12}$ people.
 * Second Group ($\mathbf{x+y}$): The cost per person.
-  * $x = \$5$ for lunch.
-  * $y = \$3$ for a drink/snack.
-  * $\mathbf{x+y = \$8}$ total cost per person.
+ * $x = \$5$ for lunch.
+ * $y = \$3$ for a drink/snack.
+ * $\mathbf{x+y = \$8}$ total cost per person.
 
 The total cost is the product of the two: $(10 + 2)(5 + 3)$
 
-|                   | Lunch ($5)                      | Snack ($3)                      |
+| | Lunch ($5) | Snack ($3) |
 | ----------------- | ------------------------------- | ------------------------------- |
 | Students ($10$) | $10 \times 5 = \mathbf{\$50}$ | $10 \times 3 = \mathbf{\$30}$ |
-| Teachers ($2$)  | $2 \times 5 = \mathbf{\$10}$  | $2 \times 3 = \mathbf{\$6}$   |
+| Teachers ($2$) | $2 \times 5 = \mathbf{\$10}$ | $2 \times 3 = \mathbf{\$6}$ |
 
 Total Cost = $\$50 + \$30 + \$10 + \$6 = \mathbf{\$96}$
 
@@ -130,10 +130,10 @@ This step simplifies each of the three terms separately:
 
 1. Simplifying $\sqrt[4]{81}$ Since $3^4 = 3 \times 3 \times 3 \times 3 = 81$, the fourth root of 81 is 3.
 2. Simplifying $\sqrt[4]{x^8}$:
-   * This is rewritten by expressing $x^8$ as a power of 4: $x^8 = (x^2)^4$.
-   * The term becomes $\sqrt[4]{(x^2)^4}$.
+ * This is rewritten by expressing $x^8$ as a power of 4: $x^8 = (x^2)^4$.
+ * The term becomes $\sqrt[4]{(x^2)^4}$.
 3. Simplifying $\sqrt[4]{y^4}$
-   * This uses Property 5 ($\sqrt[n]{a^n} = |a|$, if $n$ is even). Since $n=4$ (even), the fourth root of $y^4$ must be the absolute value of $y$, or $|y|$.
+ * This uses Property 5 ($\sqrt[n]{a^n} = |a|$, if $n$ is even). Since $n=4$ (even), the fourth root of $y^4$ must be the absolute value of $y$, or $|y|$.
 
 $$= 3x^2|y|$$
 
@@ -153,7 +153,7 @@ The key takeaway is that the absolute value signs are essential when simplifying
 
 $$a^{\frac{m}{n}} = \sqrt[n]{a^m} = (\sqrt[n]{a})^m$$
 
-$8^{\frac{2}{3}} =(\sqrt[3]{8})^2$ = $2^2$ = $4$ 
+$8^{\frac{2}{3}} =(\sqrt[3]{8})^2$ = $2^2$ = $4$
 ### Product Formulas
 
 ![Special product formulas: difference of squares, perfect square trinomials, cube of binomials](../../assets/product_formulas.png)
@@ -194,7 +194,7 @@ $$(x + y)^n = \sum_{k=0}^{n} \binom{n}{k} x^{n-k} y^k$$
 * $k$: The term number you are currently calculating (it starts at 0 and goes up to $n$).
 * $\binom{n}{k}$: The Binomial Coefficient, read as "$n$ choose $k$":
 
-  $$\binom{n}{k} = \frac{n!}{k!(n-k)!}$$
+ $$\binom{n}{k} = \frac{n!}{k!(n-k)!}$$
 
 ***
 
@@ -270,12 +270,12 @@ $$(2x + 1)(x + 3)$$
 Used for two terms that are perfect cubes.
 
 * Sum: $a^3 + b^3 = (a + b)(a^2 - ab + b^2)$
-* Difference: $a^3 - b^3 = (a - b)(a^2 + ab + b^2)$ 
+* Difference: $a^3 - b^3 = (a - b)(a^2 + ab + b^2)$
 ### Equations
 
 ![Properties of equality: additive, multiplicative, reflexive, symmetric, and transitive](../../assets/prop_equality.png)
 
-A linear equation has degree 1 — its graph is always a straight line.
+A linear equation has degree 1 its graph is always a straight line.
 
 * $y = mx + b$
 * $ax + by = c$
@@ -285,7 +285,7 @@ the exponent is greater than 1
 * $y = 3x^2 - 4x + 1$
 * $x^3 + y = 7$
 
-Quadratic equations are essential for modeling paths, areas, and optimization problems. They are defined by the standard form $ax^2 + bx + c = 0$, where $x$ is the unknown, and $a$, $b$, and $c$ are known coefficients. 
+Quadratic equations are essential for modeling paths, areas, and optimization problems. They are defined by the standard form $ax^2 + bx + c = 0$, where $x$ is the unknown, and $a$, $b$, and $c$ are known coefficients.
 ### **Discriminant**
 
 $$\mathbf{D = b^2 - 4ac}$$
@@ -374,7 +374,7 @@ a car for two days, and the bill comes to $108. How many miles was the car drive
 * Mileage cost: The company charges $15¢$ (or $\$0.15$) per mile. For $x$ miles, the cost is $0.15x$.
 * Total Bill: The problem states the final bill comes to $\$108$.
 * $\text{Daily Cost} + \text{Mileage Cost} = \text{Total Bill}$
-* $60 + 0.15x = 108$ 
+* $60 + 0.15x = 108$
 ### Inequalities
 
 ![Rules for solving inequalities: multiplying by a negative flips the inequality sign](../../assets/inequalities_rules.png)
@@ -402,7 +402,7 @@ The solution is $x < -2$ or $x > 2$.
 
 ### **Intervals**
 
-![Interval notation: open, closed, and half-open intervals with bracket and parenthesis notation](../../assets/interval_notation.png) 
+![Interval notation: open, closed, and half-open intervals with bracket and parenthesis notation](../../assets/interval_notation.png)
 ### **Absolute Value**
 
 ![Properties of absolute value: definition, distance interpretation, and inequality rules](../../assets/prop_absolute_value.png)
@@ -522,7 +522,7 @@ In simple terms:
 
 $$\frac{\text{Change in Output}}{\text{Change in Input}} = \frac{\Delta y}{\Delta x}$$
 
-$$\text{AROC} = \frac{\text{Change in Distance}}{\text{Change in Time}} = \text{Average Speed}$$ 
+$$\text{AROC} = \frac{\text{Change in Distance}}{\text{Change in Time}} = \text{Average Speed}$$
 ### Transformation of Functions
 
 **Transformation of functions** is a set of mathematical operations that change the position, size, or orientation of a graph without losing its fundamental "family" shape.
@@ -544,7 +544,7 @@ Vertical/Horizontal Shifting: $f(x) \pm c$ or $f(x \pm c)$
 
 Reflecting: $-f(x)$ (over x-axis) or $f(-x)$ (over y-axis)
 
-Stretching/Shrinking: $cf(x)$ or $f(cx)$ 
+Stretching/Shrinking: $cf(x)$ or $f(cx)$
 ### Combining Functions
 
 $$f(g(x))$$
@@ -555,7 +555,7 @@ If I ask for $(f \circ g)(3)$:
 
 1. Start with the inside: $g(3) = 2 \cdot 3 = \mathbf{6}$
 2. Move to the outside: Put that 6 into $f$
-3. $f(6) = 6 + 5 = \mathbf{11}$ 
+3. $f(6) = 6 + 5 = \mathbf{11}$
 ### One to One function & Inverse
 
 A function $f$ is one-to-one (or injective) if it never takes the same value twice:
@@ -610,29 +610,29 @@ energy used = energy per mile x miles flown
 
 The bird's journey consists of two segments: flying over water (from A to C) and flying over land (from C to D).
 
-1.  Distance over Water ($AC$):
+1. Distance over Water ($AC$):
 
-    The path from $A$ to $C$ forms the hypotenuse of a right-angled triangle $ABC$.
+ The path from $A$ to $C$ forms the hypotenuse of a right-angled triangle $ABC$.
 
-    * The height ($A$) is 5 miles.
-    *   The base ($BC$) is $x$ miles.
+ * The height ($A$) is 5 miles.
+ * The base ($BC$) is $x$ miles.
 
-        Using the Pythagorean theorem:
+ Using the Pythagorean theorem:
 
-        $$\text{Distance}_{AC} = \sqrt{x^2 + 5^2} = \sqrt{x^2 + 25}$$
+ $$\text{Distance}_{AC} = \sqrt{x^2 + 5^2} = \sqrt{x^2 + 25}$$
 
-        Since energy over water is $14 \text{ kcal/mi}$, the energy used for this segment is:
+ Since energy over water is $14 \text{ kcal/mi}$, the energy used for this segment is:
 
-        $$14\sqrt{x^2 + 25}$$
-2.  Distance over Land ($CD$):
+ $$14\sqrt{x^2 + 25}$$
+2. Distance over Land ($CD$):
 
-    The total distance from point $B$ to the nesting area $D$ is $12 \text{ miles}$. Since the distance $BC$ is $x$, the remaining distance over land is:
+ The total distance from point $B$ to the nesting area $D$ is $12 \text{ miles}$. Since the distance $BC$ is $x$, the remaining distance over land is:
 
-    $$\text{Distance}_{CD} = 12 - x$$
+ $$\text{Distance}_{CD} = 12 - x$$
 
-    Since energy over land is $10 \text{ kcal/mi}$, the energy used for this segment is:
+ Since energy over land is $10 \text{ kcal/mi}$, the energy used for this segment is:
 
-    $$10(12 - x)$$
+ $$10(12 - x)$$
 
 Total Energy $E(x)$:
 
@@ -673,8 +673,8 @@ $(h, k)$: This is the Vertex (the peak or valley).
 * $h$ is the horizontal "address" (the $x$).
 * $k$ is the vertical "address" (the height, or $y$).
 * $a$: This is the "Shape Master."
-  * If $a$ is positive, it’s a U.
-  * If $a$ is negative, it’s an n.
+ * If $a$ is positive, it’s a U.
+ * If $a$ is negative, it’s an n.
 
 The Minus Sign ($-h$): This is the "Pusher." Because it is _inside_ the parentheses with $x$, it works backward from what you expect. If you see $(x - 3)$, it actually pushed the graph right to $+3$.
 
@@ -730,11 +730,11 @@ Factor Theorem is a specialized version of the Polynomial Remainder Theorem. It 
 Question: Is $(x - 1)$ a factor of $x^3 - 6x^2 + 11x - 6$?
 
 1. The Test Value: Since we are testing $(x - 1)$, our value is $1$.
-2.  The Calculation:
+2. The Calculation:
 
-    $f(1) = (1)^3 - 6(1)^2 + 11(1) - 6$
-    $f(1) = 1 - 6 + 11 - 6$
-    $$f(1) = 0$$
+ $f(1) = (1)^3 - 6(1)^2 + 11(1) - 6$
+ $f(1) = 1 - 6 + 11 - 6$
+ $$f(1) = 0$$
 3. The Verdict: Because we got 0, $(x - 1)$ is a factor. It divides the big equation perfectly with no leftovers.
 
 #### Polynomial Inequality
@@ -791,7 +791,7 @@ $$A(x) = \frac{5000 + 30x}{x}$$
 ![Graph of a rational function with vertical and horizontal asymptotes marked](../../assets/vertical_horizontal_asymptote.png)
 
 * Vertical Asymptote ($x=0$): You can't calculate the average cost for 0 sneakers (division by zero). As production gets closer to zero, the average cost per unit skyrockets.
-* Horizontal Asymptote ($y=30$): As production increases to very large numbers, the $5,000 fixed cost is spread so thin that it becomes negligible. The average cost "levels off" toward the variable cost of $30. 
+* Horizontal Asymptote ($y=30$): As production increases to very large numbers, the $5,000 fixed cost is spread so thin that it becomes negligible. The average cost "levels off" toward the variable cost of $30.
 #### **Factor Theorem for Rational Functions**
 
 In a rational function, we are usually looking for zeros (where the graph hits the x-axis).
@@ -839,15 +839,15 @@ $$\begin{array}{rll} \phantom{x+1} & x + 2 \\ x+1 & \overline{\smash{)} x^2 + 3x
 Solve: $\frac{x-5}{x+1} \geq 0$
 
 * Numerator: $x - 5 = 0 \implies \mathbf{x = 5}$
-*   Denominator: $x + 1 = 0 \implies \mathbf{x = -1}$
+* Denominator: $x + 1 = 0 \implies \mathbf{x = -1}$
 
-    These two numbers create three intervals: $(-\infty, -1), (-1, 5), and (5, \infty)$.
+ These two numbers create three intervals: $(-\infty, -1), (-1, 5), and (5, \infty)$.
 
-| Interval          | Test Point (x) | Calculation                           | Result   | Sign             |
+| Interval | Test Point (x) | Calculation | Result | Sign |
 | ----------------- | -------------- | ------------------------------------- | -------- | ---------------- |
-| $(-\infty, -1)$ | $-2$         | $\frac{-2-5}{-2+1} = \frac{-7}{-1}$ | $7$    | Positive (+)     |
-| $(-1, 5)$       | $0$          | $\frac{0-5}{0+1} = \frac{-5}{1}$    | $-5$   | Negative ($-$) |
-| $(5, \infty)$   | $6$          | $\frac{6-5}{6+1} = \frac{1}{7}$     | $0.14$ | Positive (+)     |
+| $(-\infty, -1)$ | $-2$ | $\frac{-2-5}{-2+1} = \frac{-7}{-1}$ | $7$ | Positive (+) |
+| $(-1, 5)$ | $0$ | $\frac{0-5}{0+1} = \frac{-5}{1}$ | $-5$ | Negative ($-$) |
+| $(5, \infty)$ | $6$ | $\frac{6-5}{6+1} = \frac{1}{7}$ | $0.14$ | Positive (+) |
 
 We want the intervals where the result is $\geq 0$ (Positive).
 
@@ -865,8 +865,8 @@ $$f(x) = a \cdot b^x$$
 
 * $a$: The initial value (the y-intercept).
 * $b$: The base (growth or decay factor).
-  * If $b > 1$, it is Exponential Growth.
-  * If $0 < b < 1$, it is Exponential Decay.
+ * If $b > 1$, it is Exponential Growth.
+ * If $0 < b < 1$, it is Exponential Decay.
 
 **The Growth/Decay Rate Form**
 
@@ -882,7 +882,7 @@ $$f(x) = e^x$$
 
 $$e \approx 2.71828$$
 
-It was discovered by studying compound interest. If you had $1 and a bank gave you 100% interest, but they compounded it every single tiny fraction of a second (continuously), you wouldn't get infinite money—you would end up with exactly $2.718... ($e$) at the end of the year
+It was discovered by studying compound interest. If you had $1 and a bank gave you 100% interest, but they compounded it every single tiny fraction of a second (continuously), you wouldn't get infinite moneyyou would end up with exactly $2.718... ($e$) at the end of the year
 
 
 ### Logarithmic

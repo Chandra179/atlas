@@ -73,7 +73,7 @@ $$\theta = \arctan\left(\frac{\text{Opposite}}{\text{Adjacent}}\right)$$
 * It finds the Angle of elevation or depression.
 * Use this when you have the width and height, but no diagonal.
 * Example: You are building a wheelchair ramp. The ramp must rise 2 feet (Opposite) over a horizontal distance of 24 feet (Adjacent). What is the angle of the ramp?
-  $$\tan(\theta) = \frac{2}{24} = 0.0833$$$$\theta = \arctan(0.0833)$$$$\theta \approx \mathbf{4.76^\circ}$$
+ $$\tan(\theta) = \frac{2}{24} = 0.0833$$$$\theta = \arctan(0.0833)$$$$\theta \approx \mathbf{4.76^\circ}$$
 ***
 
 ## **Unit circle**
@@ -110,11 +110,11 @@ Keep subtracting full circles ($360^\circ$) until we get a number we recognize b
 
 How far is the angle from the x-axis?
 
-| Where is your angle?       | The Formula            | Logic                                      |
+| Where is your angle? | The Formula | Logic |
 | -------------------------- | ---------------------- | ------------------------------------------ |
- | Q1 ($0$-$90^\circ$)    | No formula needed.     | The angle is its own reference!  |
- | Q2 ($90$-$180^\circ$)  | $180 - \text{Angle}$ | How many degrees _before_ the $180$ line? |
- | Q3 ($180$-$270^\circ$) | $\text{Angle} - 180$ | How many degrees _past_ the $180$ line?  |
+ | Q1 ($0$-$90^\circ$) | No formula needed. | The angle is its own reference! |
+ | Q2 ($90$-$180^\circ$) | $180 - \text{Angle}$ | How many degrees _before_ the $180$ line? |
+ | Q3 ($180$-$270^\circ$) | $\text{Angle} - 180$ | How many degrees _past_ the $180$ line? |
  | Q4 ($270$-$360^\circ$) | $360 - \text{Angle}$ | How many degrees _until_ the $360$ line? |
 
 ***
@@ -194,7 +194,7 @@ $$\csc(\theta) = \frac{\text{Hypotenuse}}{\text{Opposite}}$$ (The flip of Sine)
 
 * What it finds: The Diagonal length.
 * Use this when you know how high you need to go and want to find the diagonal path.
- * Real World Example: You want to build a zip-line. The platform is 20 feet high. You want the line at a $30^\circ$ angle. How much cable do you need to buy?$$\text{Cable} = 20 \times \csc(30^\circ)$$ (Note: $\csc$ is $1/0.5 = 2$)   $$20 \times 2 = \mathbf{40 \text{ feet of cable}}$$
+ * Real World Example: You want to build a zip-line. The platform is 20 feet high. You want the line at a $30^\circ$ angle. How much cable do you need to buy?$$\text{Cable} = 20 \times \csc(30^\circ)$$ (Note: $\csc$ is $1/0.5 = 2$) $$20 \times 2 = \mathbf{40 \text{ feet of cable}}$$
 ***
 
 ## Secant
@@ -203,7 +203,7 @@ $$\sec(\theta) = \frac{\text{Hypotenuse}}{\text{Adjacent}}$$ (The flip of Cosine
 
 * What it finds: The Diagonal length.
 * Use this when you know the flat distance and need to find the diagonal.
-* Real World Example: An architect is designing a bridge. The gap to cross is 100 feet wide. The support beam must be at a $30^\circ$ angle. How long is the beam? 
+* Real World Example: An architect is designing a bridge. The gap to cross is 100 feet wide. The support beam must be at a $30^\circ$ angle. How long is the beam?
 $$\text{Beam} = 100 \times \sec(30^\circ)$$$$100 \times 1.15 = \mathbf{115 \text{ feet long}}$$
 ***
 
@@ -364,13 +364,13 @@ These allow you to calculate the sine or cosine of a sum of two angles. This is 
 #### The Formulas
 
 * Sine:
-  $$\sin(A + B) = \sin A \cos B + \cos A \sin B$$
-  $$\sin(A - B) = \sin A \cos B - \cos A \sin B$$
+ $$\sin(A + B) = \sin A \cos B + \cos A \sin B$$
+ $$\sin(A - B) = \sin A \cos B - \cos A \sin B$$
 * Cosine: (Remember: signs flip!)
-  $$\cos(A + B) = \cos A \cos B - \sin A \sin B$$
-  $$\cos(A - B) = \cos A \cos B + \sin A \sin B$$
+ $$\cos(A + B) = \cos A \cos B - \sin A \sin B$$
+ $$\cos(A - B) = \cos A \cos B + \sin A \sin B$$
 * Tangent:
-  $$\tan(A + B) = \frac{\tan A + \tan B}{1 - \tan A \tan B}$$
+ $$\tan(A + B) = \frac{\tan A + \tan B}{1 - \tan A \tan B}$$
 
 ## Double-Angle and Half-Angle Formulas
 
@@ -382,8 +382,8 @@ Used to find the value of $2\theta$ when you know $\theta$.
 
 Sine: $$\sin(2\theta) = 2\sin\theta\cos\theta$$
 Cosine: $$\cos(2\theta) = \cos^2\theta - \sin^2\theta$$
-  _Alt form:_ $$2\cos^2\theta - 1$$
-  _Alt form:_ $$1 - 2\sin^2\theta$$
+ _Alt form:_ $$2\cos^2\theta - 1$$
+ _Alt form:_ $$1 - 2\sin^2\theta$$
 Tangent: $$\tan(2\theta) = \frac{2\tan\theta}{1 - \tan^2\theta}$$
 
 #### Half-Angle Formulas

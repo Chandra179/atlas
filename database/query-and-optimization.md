@@ -13,16 +13,16 @@ Every SQL query passes through these stages:
 
 ```mermaid
 flowchart LR
-    SQL["SELECT ..."] --> Parser
-    Parser -->|Parse Tree| Rewriter
-    Rewriter -->|Query Tree| Planner
-    Planner -->|Plan Tree| Executor
-    Executor -->|Tuples| Result
+ SQL["SELECT ..."] --> Parser
+ Parser -->|Parse Tree| Rewriter
+ Rewriter -->|Query Tree| Planner
+ Planner -->|Plan Tree| Executor
+ Executor -->|Tuples| Result
 ```
 
 **1. Parser**: Converts SQL text to an AST (parse tree). Validates syntax, resolves table/column names, checks permissions.
 
-**2. Rewriter**: Applies semantic transformations — expands views, unfolds nested queries, simplifies expressions, applies rules (PostgreSQL rules system).
+**2. Rewriter**: Applies semantic transformations expands views, unfolds nested queries, simplifies expressions, applies rules (PostgreSQL rules system).
 
 **3. Planner (Optimizer)**: The most complex stage. Generates multiple execution plans and picks the cheapest (cost-based optimization).
 
@@ -46,8 +46,8 @@ Each scan method has a cost formula that multiplies the number of pages read by 
 
 ```
 for each row in outer (smaller) relation:
-    for each row in inner (larger) relation:
-        if match: emit joined row
+ for each row in inner (larger) relation:
+ if match: emit joined row
 ```
 
 | Variant | Complexity | When Used |
@@ -93,14 +93,14 @@ Modern databases distribute query execution across multiple CPU cores:
 
 ```mermaid
 graph TD
-    Leader[Parallel Leader<br/>gathers results]
-    Leader --> W1[Worker 1<br/>Partial scan/join]
-    Leader --> W2[Worker 2<br/>Partial scan/join]
-    Leader --> W3[Worker 3<br/>Partial scan/join]
-    W1 --> PG[Partial Aggregate<br/>count=30]
-    W2 --> PG2[Partial Aggregate<br/>count=25]
-    W3 --> PG3[Partial Aggregate<br/>count=28]
-    PG & PG2 & PG3 --> Final[Final Aggregate<br/>count=83]
+ Leader[Parallel Leader<br/>gathers results]
+ Leader --> W1[Worker 1<br/>Partial scan/join]
+ Leader --> W2[Worker 2<br/>Partial scan/join]
+ Leader --> W3[Worker 3<br/>Partial scan/join]
+ W1 --> PG[Partial Aggregate<br/>count=30]
+ W2 --> PG2[Partial Aggregate<br/>count=25]
+ W3 --> PG3[Partial Aggregate<br/>count=28]
+ PG & PG2 & PG3 --> Final[Final Aggregate<br/>count=83]
 ```
 
 | Operator | Parallelism | Notes |
@@ -133,5 +133,5 @@ Databases use table and column statistics to estimate the cost of each plan. The
 
 1. **Prefix equality columns** in compound indexes: `WHERE a = 1 AND b > 5` → index on `(a, b)`
 2. **Covering indexes**: Include all queried columns to enable index-only scans
-3. **Partial indexes**: `CREATE INDEX ... WHERE status = 'active'` — smaller and faster
+3. **Partial indexes**: `CREATE INDEX ... WHERE status = 'active'` smaller and faster
 4. **Included columns** (SQL Server, PostgreSQL 11+): Non-key columns in index for covering

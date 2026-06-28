@@ -42,7 +42,7 @@ Determinants of supply:
 - **Change in price** → movement along the curve (change in quantity demanded/supplied)
 - **Change in a determinant** → shift of the curve (change in demand/supply)
 
-This distinction is the most common source of error in economic analysis. When the price of a good rises, demand does not "decrease" — quantity demanded decreases along the same demand curve.
+This distinction is the most common source of error in economic analysis. When the price of a good rises, demand does not "decrease" quantity demanded decreases along the same demand curve.
 
 ## Market Equilibrium
 
@@ -64,11 +64,11 @@ To analyze how a market event changes equilibrium, follow three steps:
 
 ```mermaid
 xychart-beta
-    title "Supply and Demand"
-    x-axis "Quantity" 0 --> 100
-    y-axis "Price" 0 --> 100
-    line "Demand" [80, 60, 40, 20, 0]
-    line "Supply" [0, 20, 40, 60, 80]
+ title "Supply and Demand"
+ x-axis "Quantity" 0 --> 100
+ y-axis "Price" 0 --> 100
+ line "Demand" [80, 60, 40, 20, 0]
+ line "Supply" [0, 20, 40, 60, 80]
 ```
 
 The diagram above shows the basic supply-demand framework. Equilibrium $$(P^*, Q^*)$$ occurs at the intersection of the two curves. A rightward shift of demand (e.g., from rising income for a normal good) raises both equilibrium price and quantity. A rightward shift of supply (e.g., from technological improvement) lowers equilibrium price and raises quantity.
@@ -115,8 +115,8 @@ Supply is more elastic over longer time horizons because firms can adjust produc
 
 ## Consumer and Producer Surplus
 
-**Consumer surplus** is the difference between what a buyer is willing to pay and what they actually pay — the area below the demand curve and above the market price.
+**Consumer surplus** is the difference between what a buyer is willing to pay and what they actually pay the area below the demand curve and above the market price.
 
-**Producer surplus** is the difference between the price a seller receives and their willingness to accept (marginal cost) — the area above the supply curve and below the market price.
+**Producer surplus** is the difference between the price a seller receives and their willingness to accept (marginal cost) the area above the supply curve and below the market price.
 
 Total surplus (consumer surplus + producer surplus) measures the net benefit to society from a market transaction and is the foundation of welfare analysis. For a full treatment, see [welfare-efficiency.md](welfare-efficiency.md).

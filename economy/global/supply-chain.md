@@ -24,7 +24,7 @@ created: "2026-06-13"
 
 ## Efficiency Optimization
 
-This is the direct result of your chain. It's often called "cost innovation" — making a product 80% as good for 50% of the price through relentless efficiency, not just lower wages.
+This is the direct result of your chain. It's often called "cost innovation" making a product 80% as good for 50% of the price through relentless efficiency, not just lower wages.
 
 ## External Conditions (Govt.)
 

@@ -7,7 +7,7 @@ created: "2026-06-13"
 
 # Geopolitics of Energy
 
-Energy is the original global supply chain — every country needs it, few have it, and it's priced in dollars.
+Energy is the original global supply chain every country needs it, few have it, and it's priced in dollars.
 
 ## The Three Leverage Points
 
@@ -15,10 +15,10 @@ Energy is the original global supply chain — every country needs it, few have 
 Russia cut gas to Europe after invading Ukraine (2022). Europe had no replacements overnight → gas prices spiked 10x → factories shut, inflation soared. Germany, which built its economy on cheap Russian gas, nearly went into recession.
 
 ### 2. Price Setting (OPEC+)
-OPEC (Saudi-led) + Russia = **OPEC+**. They coordinate production to control oil price. Cut production → oil price rises → more profit per barrel. The US hates this — high oil = inflation + recession risk. But the US can't control OPEC because oil is a global market.
+OPEC (Saudi-led) + Russia = **OPEC+**. They coordinate production to control oil price. Cut production → oil price rises → more profit per barrel. The US hates this high oil = inflation + recession risk. But the US can't control OPEC because oil is a global market.
 
 ### 3. Energy Transition as Geopolitics
-Europe's green push is as much about **energy independence** as climate. If you don't need oil/gas, you don't need the Middle East or Russia. China dominates solar, batteries, and EV supply chains — the new energy geopolitics. Whoever controls clean energy supply chains controls the next century's leverage.
+Europe's green push is as much about **energy independence** as climate. If you don't need oil/gas, you don't need the Middle East or Russia. China dominates solar, batteries, and EV supply chains the new energy geopolitics. Whoever controls clean energy supply chains controls the next century's leverage.
 
 ## The Next 5 Years (2025-2030)
 
@@ -39,7 +39,7 @@ Europe's green push is as much about **energy independence** as climate. If you 
 
 ### The Crunch Points
 1. AI electricity demand could overwhelm grids faster than renewables can come online
-2. US grid bottlenecks — connecting solar/wind takes 5-10 years due to permitting and transmission delays
+2. US grid bottlenecks connecting solar/wind takes 5-10 years due to permitting and transmission delays
 3. OPEC+ discipline could slip if Saudi gets tired of carrying Russia
 4. Coal phase-down slips by a decade
 
@@ -56,6 +56,6 @@ Oil still matters enormously today, but whoever wins the **transition** wins the
 
 ## Related
 
-- [The Dollar System](dollar-system.md) — petro-dollar and oil pricing
-- [Trade & Tariffs](trade.md) — how energy sanctions interact with trade policy
-- [Export Controls](export-controls.md) — China's rare earth leverage vs. energy
+- [The Dollar System](dollar-system.md) petro-dollar and oil pricing
+- [Trade & Tariffs](trade.md) how energy sanctions interact with trade policy
+- [Export Controls](export-controls.md) China's rare earth leverage vs. energy

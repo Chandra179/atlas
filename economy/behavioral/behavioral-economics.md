@@ -7,31 +7,31 @@ created: "2026-06-13"
 
 # Behavioral Economics
 
-Challenges the rational-agent assumption in standard economics. People aren't Econs (rational, patient, consistent) — they're Humans (emotional, impatient, easily influenced).
+Challenges the rational-agent assumption in standard economics. People aren't Econs (rational, patient, consistent) they're Humans (emotional, impatient, easily influenced).
 
 ```mermaid
 graph TD
-  Rational[Standard Economics<br/>Rational agent: always optimizes] -->|but real people...| Humans
+ Rational[Standard Economics<br/>Rational agent: always optimizes] -->|but real people...| Humans
 
-  subgraph Humans[How humans actually behave]
-    Prospect[Prospect Theory<br/>losses hurt 2x more than gains]
-    Anchoring[Anchoring<br/>first number sets reference]
-    Present[Present Bias<br/>want it now, procrastinate later]
-    Mental[Mental Accounting<br/>money is not fungible]
-    Herding[Herding<br/>copy the crowd]
-    StatusQuo[Status Quo Bias<br/>stick with default]
-  end
+ subgraph Humans[How humans actually behave]
+ Prospect[Prospect Theory<br/>losses hurt 2x more than gains]
+ Anchoring[Anchoring<br/>first number sets reference]
+ Present[Present Bias<br/>want it now, procrastinate later]
+ Mental[Mental Accounting<br/>money is not fungible]
+ Herding[Herding<br/>copy the crowd]
+ StatusQuo[Status Quo Bias<br/>stick with default]
+ end
 
-  Prospect -->|explains| RealWorld1[holding losing stocks<br/>housing market freezes<br/>insurance overpayment]
-  Anchoring -->|explains| RealWorld6[salary negotiation<br/>real estate prices<br/>retail discounts]
-  Present -->|explains| RealWorld2[credit card debt<br/>undersaving for retirement<br/>gym memberships]
-  Mental -->|explains| RealWorld3[payday loans + savings account<br/>theater ticket vs cash]
-  Herding -->|explains| RealWorld4[asset bubbles<br/>bank runs<br/>restaurant queues]
-  StatusQuo -->|explains| RealWorld5[organ donation rates<br/>401k enrollment<br/>sticky contracts]
+ Prospect -->|explains| RealWorld1[holding losing stocks<br/>housing market freezes<br/>insurance overpayment]
+ Anchoring -->|explains| RealWorld6[salary negotiation<br/>real estate prices<br/>retail discounts]
+ Present -->|explains| RealWorld2[credit card debt<br/>undersaving for retirement<br/>gym memberships]
+ Mental -->|explains| RealWorld3[payday loans + savings account<br/>theater ticket vs cash]
+ Herding -->|explains| RealWorld4[asset bubbles<br/>bank runs<br/>restaurant queues]
+ StatusQuo -->|explains| RealWorld5[organ donation rates<br/>401k enrollment<br/>sticky contracts]
 
-  Nudge[Nudge Theory<br/>change defaults, not choices] -->|uses| StatusQuo
-  Nudge -->|uses| Framing[Framing<br/>how options are presented]
-  Nudge -->|uses| Salience[Salience<br/>make info visible]
+ Nudge[Nudge Theory<br/>change defaults, not choices] -->|uses| StatusQuo
+ Nudge -->|uses| Framing[Framing<br/>how options are presented]
+ Nudge -->|uses| Salience[Salience<br/>make info visible]
 ```
 
 ## Prospect Theory (Kahneman & Tversky 1979, Nobel 2002)
@@ -56,16 +56,16 @@ Most pick D (gamble to avoid a sure loss).
 
 ```
 Value (subjective)
-     ^
-     |      /  (gains — concave, risk-averse)
-     |     /
-     |    /
-     |   /
+ ^
+ | / (gains concave, risk-averse)
+ | /
+ | /
+ | /
  ----+-------> Outcome
-     |   \
-     |    \
-     |     \   (losses — convex, risk-seeking)
-     |      \
+ | \
+ | \
+ | \ (losses convex, risk-seeking)
+ | \
 ```
 
 - **Loss aversion**: losing \$100 hurts ~2x more than gaining \$100 feels good
@@ -77,7 +77,7 @@ Value (subjective)
 | Behavior | Explanation |
 |---|---|
 | **Holding losing stocks** | Sell = realize loss (pain). Hold = hope it recovers. "Disposition effect" |
-| **Refusing to sell house at market price** | Bought for \$500K, now worth \$400K. "I'll wait for a better offer" — discounting is admitting loss |
+| **Refusing to sell house at market price** | Bought for \$500K, now worth \$400K. "I'll wait for a better offer" discounting is admitting loss |
 | **Buying overpriced insurance** | Loss aversion makes small certain cost (premium) feel better than small chance of large loss |
 | **Panic selling in crashes** | Losses exceed pain threshold → "get me out" → sell at the bottom |
 
@@ -90,11 +90,11 @@ Spin a wheel of fortune (rigged to stop at 10 or 65). Then ask: "What percentage
 - People who saw **10** → guessed ~25%
 - People who saw **65** → guessed ~45%
 
-The random number anchored their estimate. Even though they knew the wheel was random, their brain started from that number and adjusted — but never adjusted enough.
+The random number anchored their estimate. Even though they knew the wheel was random, their brain started from that number and adjusted but never adjusted enough.
 
 ### Why it works
 
-The brain doesn't estimate from scratch. It picks the first available number (anchor) and adjusts up or down. The adjustment is almost always **insufficient** — you don't move far enough from the starting point.
+The brain doesn't estimate from scratch. It picks the first available number (anchor) and adjusts up or down. The adjustment is almost always **insufficient** you don't move far enough from the starting point.
 
 Crucially: **anchors work even when they're completely irrelevant**. The UN question had nothing to do with a 10 or 65, but those numbers still biased the answer.
 
@@ -105,7 +105,7 @@ Crucially: **anchors work even when they're completely irrelevant**. The UN ques
 | **Real estate** | Asking price anchors appraisals and offers. List at \$500K vs \$550K → same house sells differently. High anchor: buyer adjusts down but not enough. Low anchor: creates bidding war (buyers anchor on each other) |
 | **Salary negotiation** | Whoever says a number first loses. Offer \$100K → you anchor toward \$105K. If you state \$120K first → negotiation starts higher |
 | **Retail discounts** | "Was \$200, now \$150." Was it ever \$200? Doesn't matter. The \$200 anchor makes \$150 feel cheap |
-| **Stock investing** | Bought at \$100, now \$60. The \$100 purchase price becomes the anchor. "I'll sell when it gets back to \$100" — even if \$60 is a fair price |
+| **Stock investing** | Bought at \$100, now \$60. The \$100 purchase price becomes the anchor. "I'll sell when it gets back to \$100" even if \$60 is a fair price |
 
 ### Connection to Prospect Theory
 
@@ -124,7 +124,7 @@ Together they explain the disposition effect fully: you anchor on the purchase p
 
 Same trade-off (wait 1 week for \$10 extra), different time horizon. The discount rate between *now* and *next week* is huge. Between *two future dates* it's small.
 
-**Standard economics**: discount rate should be constant. Real people have a **present bias** — today is special.
+**Standard economics**: discount rate should be constant. Real people have a **present bias** today is special.
 
 | Situation | What happens |
 |---|---|
@@ -156,7 +156,7 @@ Same \$50 loss. Same net result (you're down \$50 plus pay \$50 for the ticket e
 | Behavior | Mental accounts |
 |---|---|
 | **Payday loan + savings account** | "Emergency fund" is off-limits. "Borrowing money" is different. Both are cash |
-| **Tax refund spent on luxuries** | "That's free money, not my salary" — even though it was your salary all year |
+| **Tax refund spent on luxuries** | "That's free money, not my salary" even though it was your salary all year |
 | **Lost investment vs lost cash** | Stock loss = "paper loss, not real." Losing cash = "real loss." Same money |
 | **Sunk cost fallacy** | "I already paid for the movie ticket, so I'll stay even though it's boring." The money is gone. Staying doesn't get it back |
 
@@ -170,7 +170,7 @@ You're in a new city. Three restaurants:
 - B: 5 people
 - C: 20 people
 
-You pick C. Not because the food is good — you're using other people as a signal. But they picked C for the same reason. The crowd is just copying the crowd.
+You pick C. Not because the food is good you're using other people as a signal. But they picked C for the same reason. The crowd is just copying the crowd.
 
 This is an **information cascade**: after the first few people choose, everyone after them ignores their own information and copies.
 
@@ -203,7 +203,7 @@ Prices up → "everyone is buying" → more people buy → prices up more
 → overshoot below fair value → cycle repeats
 ```
 
-Housing 2006, crypto 2021, tulips 1637 — same cascade in both directions.
+Housing 2006, crypto 2021, tulips 1637 same cascade in both directions.
 
 ## Nudge / Choice Architecture
 
@@ -255,6 +255,6 @@ Same people, same values, same religion. Just the default direction flipped.
 
 ## Related
 
-- [Supply & Demand](../micro/supply-demand.md) — the rational consumer this challenges
-- [Welfare & Efficiency](../micro/welfare-efficiency.md) — consumer surplus assumes rational choice
-- [Market Intervention](../micro/market-intervention.md) — nudge as third way between tax and ban
+- [Supply & Demand](../micro/supply-demand.md) the rational consumer this challenges
+- [Welfare & Efficiency](../micro/welfare-efficiency.md) consumer surplus assumes rational choice
+- [Market Intervention](../micro/market-intervention.md) nudge as third way between tax and ban

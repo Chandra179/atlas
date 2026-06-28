@@ -3,15 +3,16 @@ tags: [ml, ai, infrastructure]
 audience: Engineers choosing a serving engine for LLM deployment. Knows vLLM basics from ai-infra.md.
 style: Reference + Comparison
 prerequisites:
-  - ai/ai-infra.md
-  - ai/ml.md
+ - ../usecase/modal-gemma4-h200.md
+ - ai/ai-infra.md
+ - ai/ml.md
 ---
 
 # LLM Inference Engines
 
-The inference engine you pick determines your throughput, latency, hardware compatibility, and operational complexity. vLLM is the default for a reason — but it's not always the best choice. This file compares the six major engines and when to pick each.
+The inference engine you pick determines your throughput, latency, hardware compatibility, and operational complexity. vLLM is the default for a reason but it's not always the best choice. This file compares the six major engines and when to pick each.
 
-> **Prerequisites**: [`ai-infra.md`](ai-infra.md) — vLLM startup, cold start anatomy, continuous batching, prefix caching. [`ml.md`](ml.md) — model architectures, Transformer attention.
+> **Prerequisites**: [`modal-gemma4-h200.md`](../usecase/modal-gemma4-h200.md) Modal setup, cold starts, vLLM flags. [`ai-infra.md`](ai-infra.md) vLLM concepts (batching, caching, decoding). [`ml.md`](ml.md) model architectures, Transformer attention.
 
 ---
 
@@ -30,7 +31,7 @@ The inference engine you pick determines your throughput, latency, hardware comp
 
 ## vLLM
 
-The current standard for production LLM serving. Its key innovation is **PagedAttention** — managing the KV cache in non-contiguous pages, similar to virtual memory in operating systems. This eliminates fragmentation and enables near-optimal memory utilization.
+The current standard for production LLM serving. Its key innovation is **PagedAttention** managing the KV cache in non-contiguous pages, similar to virtual memory in operating systems. This eliminates fragmentation and enables near-optimal memory utilization.
 
 **What it does well:**
 - Broadest model support of any engine (500+ architectures via HF integration).
@@ -42,12 +43,12 @@ The current standard for production LLM serving. Its key innovation is **PagedAt
 - Active development: releases every 2-3 weeks.
 
 **Where it falls short:**
-- Python-based scheduling overhead — SGLang and TRT-LLM have lower scheduling latency.
-- No structured generation (constrained decoding) built-in — relies on outlines/lm-format-enforcer integrations.
+- Python-based scheduling overhead SGLang and TRT-LLM have lower scheduling latency.
+- No structured generation (constrained decoding) built-in relies on outlines/lm-format-enforcer integrations.
 - Guided decoding (JSON mode, regex) is less mature than SGLang.
 - Memory overhead from Python runtime (~1-2 GiB).
 
-**See [`ai-infra.md`](ai-infra.md) for deep-dive coverage of vLLM startup, cold starts, and configuration.**
+**See [`modal-gemma4-h200.md`](../usecase/modal-gemma4-h200.md) for cold start optimization and [`ai-infra.md`](ai-infra.md) for vLLM concepts.**
 
 ---
 
@@ -56,7 +57,7 @@ The current standard for production LLM serving. Its key innovation is **PagedAt
 Stanford's Structured Generation Language. Built on many of the same ideas as vLLM (PagedAttention, continuous batching) but with a faster scheduler, built-in structured generation, and a domain-specific language for composing LLM calls.
 
 **What it does well:**
-- **RadixAttention**: a tree-based prefix cache that handles branching prefixes (different completions from the same prompt) — more general than vLLM's linear prefix cache. Critical for multi-turn chat trees and best-of-N sampling.
+- **RadixAttention**: a tree-based prefix cache that handles branching prefixes (different completions from the same prompt) more general than vLLM's linear prefix cache. Critical for multi-turn chat trees and best-of-N sampling.
 - **Structured generation**: first-class support for JSON, regex, grammar-constrained decoding. Faster than vLLM + outlines for constrained generation.
 - **Lower scheduling latency**: C++ scheduler yields 5-15% lower latency than vLLM at high concurrency.
 - **SGLang DSL**: compose multi-call LLM workflows (chain calls, parallel calls, branching) as Python programs that are optimized by the runtime.
@@ -64,7 +65,7 @@ Stanford's Structured Generation Language. Built on many of the same ideas as vL
 **Where it falls short:**
 - Smaller model support library than vLLM (catches up quickly but lags by months).
 - Less documentation and community than vLLM.
-- Newer project — fewer production war stories, less battle-tested edge case handling.
+- Newer project fewer production war stories, less battle-tested edge case handling.
 - Modal integration less mature than vLLM.
 
 **When to pick SGLang over vLLM:**
@@ -76,11 +77,11 @@ Stanford's Structured Generation Language. Built on many of the same ideas as vL
 
 ## TensorRT-LLM (NVIDIA)
 
-NVIDIA's inference engine. The fastest engine on NVIDIA hardware — period. Achieved through deep kernel fusion (combining multiple operations into a single GPU kernel) and inflight batching (a more aggressive form of continuous batching that reorders scheduled operations for cache efficiency).
+NVIDIA's inference engine. The fastest engine on NVIDIA hardware period. Achieved through deep kernel fusion (combining multiple operations into a single GPU kernel) and inflight batching (a more aggressive form of continuous batching that reorders scheduled operations for cache efficiency).
 
 **What it does well:**
 - **Best throughput on NVIDIA GPUs**: 10-30% faster than vLLM on H100 for most model architectures.
-- **Kernel fusion**: merges attention, MLP, layernorm, and residual operations into single GPU kernels — fewer kernel launches, less memory bandwidth waste.
+- **Kernel fusion**: merges attention, MLP, layernorm, and residual operations into single GPU kernels fewer kernel launches, less memory bandwidth waste.
 - **FP8 native support**: hardware-accelerated FP8 on H100/H200 with near-zero accuracy loss.
 - **Multi-node inference**: supports tensor + pipeline parallelism across GPU nodes (DGX, HGX).
 
@@ -100,10 +101,10 @@ NVIDIA's inference engine. The fastest engine on NVIDIA hardware — period. Ach
 
 ## TGI (Text Generation Inference)
 
-HuggingFace's inference server. Tightest integration with the HuggingFace Hub — one command to serve any model on the Hub.
+HuggingFace's inference server. Tightest integration with the HuggingFace Hub one command to serve any model on the Hub.
 
 **What it does well:**
-- **Zero-config from Hub**: `docker run ghcr.io/huggingface/text-generation-inference --model-id <model>` — no flag hunting.
+- **Zero-config from Hub**: `docker run ghcr.io/huggingface/text-generation-inference --model-id <model>` no flag hunting.
 - **Safetensors + weight streaming**: downloads and loads weights in parallel, reducing cold start.
 - **Built-in watermarking**: probabilistic watermarking of generated text for provenance.
 - **Guidance/constrained decoding**: built-in grammar support.
@@ -111,7 +112,7 @@ HuggingFace's inference server. Tightest integration with the HuggingFace Hub �
 
 **Where it falls short:**
 - **Performance**: generally 10-20% lower throughput than vLLM on equivalent configs.
-- **Model support**: HF Hub models only — no custom architectures without conversion.
+- **Model support**: HF Hub models only no custom architectures without conversion.
 - **Multi-GPU**: supported but less mature than vLLM or TRT-LLM.
 - **Less active development**: slower release cadence, fewer contributors.
 
@@ -128,7 +129,7 @@ One-command local LLM serving: `ollama run llama3`. Built on llama.cpp, wraps it
 
 **What it does well:**
 - **Easiest setup**: `curl -fsSL https://ollama.com/install.sh | sh`, then `ollama run <model>`. Zero config.
-- **Built-in model library**: curated, quantized GGUF models — no HuggingFace account needed.
+- **Built-in model library**: curated, quantized GGUF models no HuggingFace account needed.
 - **CPU+GPU hybrid**: automatically offloads layers to GPU if available, runs remaining on CPU.
 - **Local-first**: everything runs on your machine. No cloud, no API keys.
 - **REST API**: OpenAI-compatible (`/api/chat`, `/api/generate`).
@@ -143,7 +144,7 @@ One-command local LLM serving: `ollama run llama3`. Built on llama.cpp, wraps it
 - Local dev and testing: run a model on your laptop to test prompts before deploying to Modal.
 - Demos and hackathons: zero-setup serving on any machine.
 - CPU inference or low-resource edge deployment.
-- **Not for production** — use vLLM/SGLang/TensorRT-LLM for anything facing real users.
+- **Not for production** use vLLM/SGLang/TensorRT-LLM for anything facing real users.
 
 ---
 
@@ -153,13 +154,13 @@ The engine that made local LLM inference possible. Pure C/C++ with minimal depen
 
 **What it does well:**
 - **Runs anywhere**: CPU-only inference on a laptop, Raspberry Pi, or server.
-- **GGUF quantization**: the most flexible quantization ecosystem — K-quants, I-quants, arbitrary bit widths.
+- **GGUF quantization**: the most flexible quantization ecosystem K-quants, I-quants, arbitrary bit widths.
 - **Minimal dependencies**: single binary. No Python, no Docker, no CUDA toolkit needed.
-- **Memory-mapped loading**: model weights are mmap'd — multiple processes share the same weights in RAM.
+- **Memory-mapped loading**: model weights are mmap'd multiple processes share the same weights in RAM.
 - **Hardware diversity**: supports CUDA, Metal (Apple Silicon), Vulkan (AMD), ROCm, SYCL (Intel).
 
 **Where it falls short:**
-- **Performance on GPU**: no continuous batching, no PagedAttention — throughput is 5-20× lower than vLLM on the same GPU.
+- **Performance on GPU**: no continuous batching, no PagedAttention throughput is 5-20× lower than vLLM on the same GPU.
 - **Limited concurrency**: designed for single-user or few-user scenarios.
 - **No production server**: the built-in server mode is bare-bones. Use Ollama (wraps llama.cpp) or llama-cpp-python for HTTP serving.
 - **Development velocity**: improvements are steady but slower than vLLM/SGLang.
@@ -192,11 +193,11 @@ The engine that made local LLM inference possible. Pure C/C++ with minimal depen
 ## Key Things
 
 - vLLM is the safest default: broadest model support, best Modal integration, most production stories. Start here unless you have a specific reason not to.
-- SGLang is vLLM's strongest competitor — faster scheduling, better structured generation. Worth evaluating if those matter.
-- TensorRT-LLM has the highest ceiling but the highest floor — only worth the complexity when throughput is the binding constraint and you control the hardware.
-- Ollama and llama.cpp are for local/dev use — not for production serverless deployments facing real users.
+- SGLang is vLLM's strongest competitor faster scheduling, better structured generation. Worth evaluating if those matter.
+- TensorRT-LLM has the highest ceiling but the highest floor only worth the complexity when throughput is the binding constraint and you control the hardware.
+- Ollama and llama.cpp are for local/dev use not for production serverless deployments facing real users.
 - Engine migration cost is low: all support the OpenAI API format. Switching from vLLM to SGLang means changing a URL, not rewriting your application.
-- Continuous batching is table stakes for production — any engine without it (Ollama, llama.cpp) is not suitable for multi-user serving.
+- Continuous batching is table stakes for production any engine without it (Ollama, llama.cpp) is not suitable for multi-user serving.
 
 ---
 

@@ -51,7 +51,7 @@ Monetary policy affects the economy through a chain of channels:
 
 ## Liquidity Trap and Zero Lower Bound
 
-When the nominal interest rate hits zero (the **zero lower bound**), conventional monetary policy loses traction — the central bank cannot cut rates further. The economy may fall into a **liquidity trap**: people hoard money rather than spend or invest, and monetary policy becomes ineffective at stimulating demand.
+When the nominal interest rate hits zero (the **zero lower bound**), conventional monetary policy loses traction the central bank cannot cut rates further. The economy may fall into a **liquidity trap**: people hoard money rather than spend or invest, and monetary policy becomes ineffective at stimulating demand.
 
 ### Quantitative and Qualitative Easing
 
@@ -73,8 +73,8 @@ The fed funds rate is guided into the target range by these administered rates r
 
 ## Central Bank Independence and Time Inconsistency
 
-**Central bank independence** — freedom from political pressure — is correlated with lower and more stable inflation. The rationale is the **time inconsistency problem**: a central bank has a short-run incentive to create surprise inflation to boost output, but the private sector anticipates this, embedding higher inflation expectations. A credible, independent central bank can commit to low inflation, avoiding this trap.
+**Central bank independence** freedom from political pressure is correlated with lower and more stable inflation. The rationale is the **time inconsistency problem**: a central bank has a short-run incentive to create surprise inflation to boost output, but the private sector anticipates this, embedding higher inflation expectations. A credible, independent central bank can commit to low inflation, avoiding this trap.
 
 ## Seigniorage and the Inflation Tax
 
-The government raises revenue by printing money — a practice called **seigniorage**. When the central bank creates money to finance government spending, it imposes an **inflation tax** on holders of money: as prices rise, the real value of cash balances erodes. In extreme cases (e.g., Zimbabwe 2008, Weimar Germany), seigniorage becomes the primary source of government revenue, leading to hyperinflation.
+The government raises revenue by printing money a practice called **seigniorage**. When the central bank creates money to finance government spending, it imposes an **inflation tax** on holders of money: as prices rise, the real value of cash balances erodes. In extreme cases (e.g., Zimbabwe 2008, Weimar Germany), seigniorage becomes the primary source of government revenue, leading to hyperinflation.

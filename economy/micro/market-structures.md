@@ -48,7 +48,7 @@ The Golden Rule of Profit Maximization:
 
 * If $$MR > MC$$: The firm should increase production (it adds more to revenue than to cost).
 * If $$MR < MC$$: The firm should decrease production (the last unit cost more to make than it earned).
-  * Profit is maximized where $$MR = MC$$.
+ * Profit is maximized where $$MR = MC$$.
 
 Sometimes, a firm is better off not producing anything at all. A Shutdown refers to a short-run decision not to produce anything during a specific period because of current market conditions.
 
@@ -111,7 +111,7 @@ Mankiw highlights a clever theory: the _content_ of an advertisement may be less
 
 Because an oligopoly has only a small number of firms, the key feature is **interdependence**: the actions of one seller significantly affect the profits of all other sellers
 
-**Collusion and Cartels**: Firms would ideally like to collude—agreeing on quantities to produce or prices to charge. A group of firms acting in unison is called a cartel.
+**Collusion and Cartels**: Firms would ideally like to colludeagreeing on quantities to produce or prices to charge. A group of firms acting in unison is called a cartel.
 
 * If they form a cartel, they effectively act as a monopoly, maximizing total profit by producing a low quantity and charging a high price.
 

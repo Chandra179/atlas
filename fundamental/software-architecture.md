@@ -10,7 +10,7 @@ created: "2026-06-13"
 ### Core Definitions
 
 * **Architecture Characteristics:** Often referred to as the "-ilities," these are the non-domain design considerations the system must support (e.g., scalability, security).
-* **Architecture Decisions:** These define the rules for how a system should be constructed—what is and is not allowed.
+* **Architecture Decisions:** These define the rules for how a system should be constructedwhat is and is not allowed.
 * **Variance:** If a decision cannot be implemented due to constraints, the process moves into a variance. This formalizes seeking approval or denial based on justifications and trade-offs.
 * **Design Principles:** Unlike hard-and-fast rules (decisions), these are guidelines. They provide a preferred method (e.g., asynchronous messaging) while allowing developers flexibility (e.g., using REST or gRPC) in specific circumstances.
 
@@ -32,7 +32,7 @@ created: "2026-06-13"
 
 Understanding domain scope helps architects frame problems at the right level:
 
-- **Domain (The Field)**: The broadest category — the "industry" or "sector" (_e.g., Science, Business, Arts, Engineering_).
+- **Domain (The Field)**: The broadest category the "industry" or "sector" (_e.g., Science, Business, Arts, Engineering_).
 - **Discipline (The Branch)**: A specific branch of learning with its own rules and methods (_e.g., within Science: Physics, Biology, Chemistry_).
 - **Topic (The Subject)**: A specific area of focus within a discipline (_e.g., within Physics: Quantum Mechanics, Thermodynamics_).
 - **Niche (The Expertise)**: Where professional domain expertise truly lives (_e.g., within Fluid Dynamics: Turbulent Flow in Micro-channels_).
@@ -66,31 +66,31 @@ Characteristics influence structural aspects of design and are critical to appli
 
 Focus on runtime capabilities and DevOps.
 
-| Term                   | Definition                                                             |
+| Term | Definition |
 | ---------------------- | ---------------------------------------------------------------------- |
-| **Availability**       | How long the system must be available (e.g., 24/7) and recovery plans. |
-| **Continuity**         | Disaster recovery capability.                                          |
-| **Performance**        | Stress testing, peak analysis, capacity planning, and response times.  |
-| **Recoverability**     | How quickly a system returns online after disaster (RTO/RPO).          |
-| **Reliability/Safety** | Assessment of mission-critical or life-critical nature.                |
-| **Robustness**         | Ability to handle error conditions and hardware failures.              |
-| **Scalability**        | Ability to maintain performance as user/request counts increase.       |
+| **Availability** | How long the system must be available (e.g., 24/7) and recovery plans. |
+| **Continuity** | Disaster recovery capability. |
+| **Performance** | Stress testing, peak analysis, capacity planning, and response times. |
+| **Recoverability** | How quickly a system returns online after disaster (RTO/RPO). |
+| **Reliability/Safety** | Assessment of mission-critical or life-critical nature. |
+| **Robustness** | Ability to handle error conditions and hardware failures. |
+| **Scalability** | Ability to maintain performance as user/request counts increase. |
 
 #### Structural Characteristics
 
 Focus on internal code quality and physical structure.
 
-| Term                | Definition                                                       |
+| Term | Definition |
 | ------------------- | ---------------------------------------------------------------- |
-| **Configurability** | Ability for users to change settings via interfaces.             |
-| **Extensibility**   | Ease of plugging in new functionality.                           |
-| **Installability**  | Ease of system installation across platforms.                    |
-| **Reuse**           | Ability to use common components across products.                |
-| **Localization**    | Support for multiple languages, currencies, and units.           |
-| **Maintainability** | Ease of applying changes, fixing bugs, and enhancing code.       |
-| **Portability**     | Need to run on more than one platform (e.g., multiple DB types). |
-| **Supportability**  | Level of logging and debugging facilities required.              |
-| **Upgradeability**  | Ease of moving from old to new versions.                         |
+| **Configurability** | Ability for users to change settings via interfaces. |
+| **Extensibility** | Ease of plugging in new functionality. |
+| **Installability** | Ease of system installation across platforms. |
+| **Reuse** | Ability to use common components across products. |
+| **Localization** | Support for multiple languages, currencies, and units. |
+| **Maintainability** | Ease of applying changes, fixing bugs, and enhancing code. |
+| **Portability** | Need to run on more than one platform (e.g., multiple DB types). |
+| **Supportability** | Level of logging and debugging facilities required. |
+| **Upgradeability** | Ease of moving from old to new versions. |
 
 #### Cross-Cutting Characteristics
 

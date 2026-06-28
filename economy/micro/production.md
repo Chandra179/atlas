@@ -35,21 +35,21 @@ Measure of Costs
 
 * **Fixed Costs (FC)**: Costs that do not vary with the quantity of output produced (e.g., rent, insurance, cost of machinery). Even if the firm produces zero, these costs remain.
 * **Variable Costs (VC)**: Costs that change as the firm alters the quantity of output produced (e.g., raw materials, wages for production workers).
-*   **Total Cost (TC)**: The sum of fixed and variable costs.
+* **Total Cost (TC)**: The sum of fixed and variable costs.
 
-    $$TC = FC + VC$$
+ $$TC = FC + VC$$
 
 Average costs tell us the cost of a typical unit of product.
 
-*   **Average Fixed Cost (AFC)**: Fixed cost divided by the quantity of output. As production increases, AFC always declines (this is called "spreading the overhead").
+* **Average Fixed Cost (AFC)**: Fixed cost divided by the quantity of output. As production increases, AFC always declines (this is called "spreading the overhead").
 
-    $$AFC = FC / Q$$
-*   **Average Variable Cost (AVC)**: Variable cost divided by the quantity of output.
+ $$AFC = FC / Q$$
+* **Average Variable Cost (AVC)**: Variable cost divided by the quantity of output.
 
-    $$AVC = VC / Q$$
-*   **Average Total Cost (ATC)**: Total cost divided by the quantity of output. It is also the sum of AFC and AVC.
+ $$AVC = VC / Q$$
+* **Average Total Cost (ATC)**: Total cost divided by the quantity of output. It is also the sum of AFC and AVC.
 
-    $$ATC = TC / Q$$
+ $$ATC = TC / Q$$
 
 This is the most important measure for decision-making. It tells us the increase in total cost that arises from an extra unit of production.
 

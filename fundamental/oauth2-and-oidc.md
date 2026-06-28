@@ -4,7 +4,7 @@ aliases: []
 tags: [cs, cs/oauth]
 created: "2026-06-13"
 ---
-	
+
 # Oauth2 & Oidc
 
 For backend engineers implementing OAuth 2.0 and OpenID Connect in server-side web applications. Covers the authorization code flow with PKCE. Assumes familiarity with OAuth roles (client, authorization server, resource server).
@@ -60,10 +60,10 @@ Delete the local session (destroy the session in Redis/Memory and clear the cook
 
 ## References
 
-- [IETF RFC 6749 — OAuth 2.0 Authorization Framework](https://datatracker.ietf.org/doc/html/rfc6749)
-- [IETF RFC 7636 — PKCE](https://datatracker.ietf.org/doc/html/rfc7636)
-- [IETF RFC 6750 — Bearer Token Usage](https://datatracker.ietf.org/doc/html/rfc6750)
+- [IETF RFC 6749 OAuth 2.0 Authorization Framework](https://datatracker.ietf.org/doc/html/rfc6749)
+- [IETF RFC 7636 PKCE](https://datatracker.ietf.org/doc/html/rfc7636)
+- [IETF RFC 6750 Bearer Token Usage](https://datatracker.ietf.org/doc/html/rfc6750)
 - [OpenID Connect Core 1.0](https://openid.net/specs/openid-connect-core-1_0.html)
-- [IETF RFC 6819 — OAuth 2.0 Threat Model](https://datatracker.ietf.org/doc/html/rfc6819)
-- [Auth0 — Refresh Token Rotation](https://auth0.com/docs/secure/tokens/refresh-tokens/refresh-token-rotation)
-- [Auth0 — OAuth 2.0 Best Practices](https://auth0.com/resources/ebooks/best-practices-for-oauth-and-oidc)
+- [IETF RFC 6819 OAuth 2.0 Threat Model](https://datatracker.ietf.org/doc/html/rfc6819)
+- [Auth0 Refresh Token Rotation](https://auth0.com/docs/secure/tokens/refresh-tokens/refresh-token-rotation)
+- [Auth0 OAuth 2.0 Best Practices](https://auth0.com/resources/ebooks/best-practices-for-oauth-and-oidc)

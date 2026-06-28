@@ -19,8 +19,8 @@ Whats the solution for Negative externalities?
 * **Direct Regulation**: The government might mandate that all cars have catalytic converters or that a factory cannot dump more than a specific amount of chemicals into a river.
 * **Limitations**: This is often inefficient because the government doesn't know which firms can reduce pollution at a lower cost. It treats all firms the same, regardless of their technology.
 * **Corrective Taxes** (Pigovian Taxes): A tax enacted to induce private decision-makers to take account of the social costs that arise from a negative externality.
-  * An ideal corrective tax is equal to the External Cost.
-  * Unlike most taxes that distort incentives and cause deadweight loss (as seen in Ch. 8), corrective taxes actually improve economic efficiency by correcting a market failure.
+ * An ideal corrective tax is equal to the External Cost.
+ * Unlike most taxes that distort incentives and cause deadweight loss (as seen in Ch. 8), corrective taxes actually improve economic efficiency by correcting a market failure.
 * **Corrective Subsidies**: Used for positive externalities (like education). The government pays part of the cost to encourage more of the activity.
 
 Private Solutions to Negative Externalities?
@@ -33,7 +33,7 @@ Private Solutions to Negative Externalities?
 
 The **Coase theorem** states that if property rights are clearly defined and transaction costs are zero, private bargaining between affected parties will lead to an efficient outcome regardless of how property rights were initially assigned.
 
-*Example*: A factory emitting pollution that harms a nearby laundry. If the laundry has the right to clean air, the factory can pay the laundry to accept some pollution. If the factory has the right to pollute, the laundry can pay the factory to reduce emissions. In either case, bargaining leads to the efficient level of pollution — the same outcome.
+*Example*: A factory emitting pollution that harms a nearby laundry. If the laundry has the right to clean air, the factory can pay the laundry to accept some pollution. If the factory has the right to pollute, the laundry can pay the factory to reduce emissions. In either case, bargaining leads to the efficient level of pollution the same outcome.
 
 **Limitations**:
 - High transaction costs: bargaining breaks down when many parties are involved (coordination costs, free-riding)
@@ -58,9 +58,9 @@ Cap and trade combines the certainty of a quantity limit (the cap) with the effi
 
 * _Example:_ If I eat a cheeseburger, you cannot eat that same cheeseburger (Rival). If I watch a sunset, it doesn't stop you from watching it (Non-rival).
 
-|                | **Rival**                                             | **Non-Rival**                                   |
+| | **Rival** | **Non-Rival** |
 | -------------- | ----------------------------------------------------- | ----------------------------------------------- |
-| Excludable     | Private Goods (Ice cream, clothes)                    | Club Goods (Netflix, Satellite TV, Toll roads)  |
+| Excludable | Private Goods (Ice cream, clothes) | Club Goods (Netflix, Satellite TV, Toll roads) |
 | Non-Excludable | Common Resources (Fish in the ocean, the environment) | Public Goods (National defense, Tornado sirens) |
 
 Public Goods Example
@@ -82,11 +82,11 @@ Real-World Examples of Common Resources
 
 ### Free-Rider Problem
 
-A **free-rider** is a person who receives the benefit of a good but avoids paying for it. Public goods are non-excludable, so people have an incentive to let others pay and enjoy the benefit without contributing. This leads to under-provision by the private market — the classic justification for government provision of public goods.
+A **free-rider** is a person who receives the benefit of a good but avoids paying for it. Public goods are non-excludable, so people have an incentive to let others pay and enjoy the benefit without contributing. This leads to under-provision by the private market the classic justification for government provision of public goods.
 
 ### Lindahl Pricing
 
-**Lindahl pricing** is a theoretical solution to the free-rider problem. Each individual pays a price (Lindahl tax) equal to their marginal benefit from the public good. If everyone pays their Lindahl price, the sum of individual contributions covers the total cost and the public good is provided at the efficient level. In practice, Lindahl pricing is difficult to implement because individuals have no incentive to reveal their true willingness to pay — they will understate their benefit to reduce their tax burden.
+**Lindahl pricing** is a theoretical solution to the free-rider problem. Each individual pays a price (Lindahl tax) equal to their marginal benefit from the public good. If everyone pays their Lindahl price, the sum of individual contributions covers the total cost and the public good is provided at the efficient level. In practice, Lindahl pricing is difficult to implement because individuals have no incentive to reveal their true willingness to pay they will understate their benefit to reduce their tax burden.
 
 ### Samuelson Condition
 
@@ -94,4 +94,4 @@ The **Samuelson condition** states the efficiency rule for public good provision
 
 $$\sum_i MRS_i = MRT$$
 
-The sum of the marginal rates of substitution across all consumers (the sum of individuals' willingness to pay for an additional unit of the public good) must equal the marginal rate of transformation (the marginal cost of producing the public good). For private goods, efficiency requires each individual's MRS equals the MRT; for public goods, the sum of MRS across all consumers equals the MRT because the good is non-rival — one unit benefits everyone.
+The sum of the marginal rates of substitution across all consumers (the sum of individuals' willingness to pay for an additional unit of the public good) must equal the marginal rate of transformation (the marginal cost of producing the public good). For private goods, efficiency requires each individual's MRS equals the MRT; for public goods, the sum of MRS across all consumers equals the MRT because the good is non-rival one unit benefits everyone.

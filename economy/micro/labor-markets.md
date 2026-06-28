@@ -13,13 +13,13 @@ In a competitive labor market, a firm hires workers up to the point where the va
 
 $$VMPL = MPL \times P = W$$
 
-The demand for labor is the VMPL curve — it slopes downward because of diminishing marginal product. Any factor that raises the marginal product of labor (better technology, more capital) shifts labor demand right and raises wages.
+The demand for labor is the VMPL curve it slopes downward because of diminishing marginal product. Any factor that raises the marginal product of labor (better technology, more capital) shifts labor demand right and raises wages.
 
 ## Monopsony
 
 A **monopsony** is a market with a single buyer of labor (e.g., a dominant employer in a company town). The monopsonist faces an upward-sloping labor supply curve: to hire more workers, it must raise wages for all workers, not just the marginal hire.
 
-This creates a gap between the marginal cost of labor and the wage. The monopsonist hires fewer workers than a competitive market and pays a wage below the VMPL — **monopsonistic exploitation**.
+This creates a gap between the marginal cost of labor and the wage. The monopsonist hires fewer workers than a competitive market and pays a wage below the VMPL **monopsonistic exploitation**.
 
 ## Minimum Wage Analysis
 
@@ -27,7 +27,7 @@ In a **competitive labor market**, a binding minimum wage above the equilibrium 
 
 In a **monopsonistic labor market**, a well-calibrated minimum wage can raise wages *and* increase employment. By setting a floor above the monopsony wage, the minimum wage eliminates the monopsonist's incentive to restrict hiring. The employment effect depends on where the minimum is set relative to the competitive equilibrium.
 
-Empirical evidence on minimum wage effects is mixed. The famous Card-Krueger (1994) study of fast-food restaurants in New Jersey and Pennsylvania found no negative employment effect from a minimum wage increase — consistent with the monopsony model.
+Empirical evidence on minimum wage effects is mixed. The famous Card-Krueger (1994) study of fast-food restaurants in New Jersey and Pennsylvania found no negative employment effect from a minimum wage increase consistent with the monopsony model.
 
 ## Measuring Inequality: Gini Coefficient and Lorenz Curve
 

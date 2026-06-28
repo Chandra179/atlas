@@ -123,11 +123,11 @@ Example
 First, you walk from Home to the Store, then from the Store to the Coffee Shop.
 
 1. Vector $\vec{v}$ (Home to Store): You move 4 units East.
-   * $\vec{v} = [4, 0]$
-   * Length $\|v\| = 4$
+ * $\vec{v} = [4, 0]$
+ * Length $\|v\| = 4$
 2. Vector $\vec{w}$ (Store to Coffee): You move 3 units North.
-   * $\vec{w} = [0, 3]$
-   * Length $\|w\| = 3$
+ * $\vec{w} = [0, 3]$
+ * Length $\|w\| = 3$
 
 Total Distance of Path B: $4 + 3 = \mathbf{7}$
 
@@ -215,9 +215,9 @@ There are three ways to write the same operation:
 Just like the vector dot product tells us about the "relationship" between two arrows in space, the matrix inner product tells us about the relationship between two data structure:
 
 * **Measuring Similarity**: It tells us how "aligned" two matrices are. If the inner product is high, the matrices are similar; if it's zero, the matrices are orthogonal.
-*   **Defining "Length" (Norm)**: The inner product of a matrix with itself gives the square of its "size," known as the Frobenius Norm:
+* **Defining "Length" (Norm)**: The inner product of a matrix with itself gives the square of its "size," known as the Frobenius Norm:
 
-    $$\|A\|_F = \sqrt{\langle A, A \rangle}$$
+ $$\|A\|_F = \sqrt{\langle A, A \rangle}$$
 * **Projection**: In machine learning and signal processing, we use inner products to "project" a data matrix onto a set of basis matrices (like in SVD or JPEG compression).
 * **Optimization**: Many loss functions in deep learning (like the cost of weights) are calculated using these types of inner products.
 
@@ -261,11 +261,11 @@ simplifying a complex fraction. make the matrix clean
 
 #### Cost Of Elimination
 
-| Phase               | Operation Count (Approx) | Complexity |
+| Phase | Operation Count (Approx) | Complexity |
 | ------------------- | ------------------------ | ---------- |
-| Forward Elimination | $\frac{2}{3}n^3$       | $O(n^3)$ |
-| Back-Substitution   | $n^2$                  | $O(n^2)$ |
-| Total Solve Cost    | $\frac{2}{3}n^3 + n^2$ | $O(n^3)$ |
+| Forward Elimination | $\frac{2}{3}n^3$ | $O(n^3)$ |
+| Back-Substitution | $n^2$ | $O(n^2)$ |
+| Total Solve Cost | $\frac{2}{3}n^3 + n^2$ | $O(n^3)$ |
 
 ### **Augmented Matrix**
 
@@ -354,12 +354,12 @@ $$U = \begin{bmatrix} 2 & 3 \\ 8 - (4 \times 2) & 15 - (4 \times 3) \end{bmatrix
 
 The $L$ matrix is the "memory" of the elimination. Its job is to store the multipliers you used.
 
-1.  Start with the Identity: $L$ always starts as an Identity Matrix (1s on the diagonal, 0s elsewhere).
+1. Start with the Identity: $L$ always starts as an Identity Matrix (1s on the diagonal, 0s elsewhere).
 
-    $$\begin{bmatrix} 1 & 0 \\ ? & 1 \end{bmatrix}$$
-2.  Insert the Multiplier: In Phase 1, we used the multiplier 4 to eliminate the value in Row 2, Column 1. We place that 4 in the exact same spot in $L$.
+ $$\begin{bmatrix} 1 & 0 \\ ? & 1 \end{bmatrix}$$
+2. Insert the Multiplier: In Phase 1, we used the multiplier 4 to eliminate the value in Row 2, Column 1. We place that 4 in the exact same spot in $L$.
 
-    $$L = \begin{bmatrix} 1 & 0 \\ \mathbf{4} & 1 \end{bmatrix}$$
+ $$L = \begin{bmatrix} 1 & 0 \\ \mathbf{4} & 1 \end{bmatrix}$$
 
 Why is it 0 in the top right? Because we never use Row 2 to eliminate Row 1. We only work "downward," so only the "lower" half of the matrix gets values
 
@@ -391,12 +391,12 @@ This breaks a matrix into an Orthogonal matrix ($Q$) and an Upper Triangular mat
 
 $$A = \begin{bmatrix} 1 & 1 \\ 1 & 0 \end{bmatrix}$$
 
-1.  Find $Q$: We use the Gram-Schmidt process to make the columns of $A$ orthonormal.
+1. Find $Q$: We use the Gram-Schmidt process to make the columns of $A$ orthonormal.
 
-    After normalizing, we get $Q = \begin{bmatrix} 1/\sqrt{2} & 1/\sqrt{2} \\ 1/\sqrt{2} & -1/\sqrt{2} \end{bmatrix}$
-2.  Find $R$: $R$ is calculated as $Q^T A$.
+ After normalizing, we get $Q = \begin{bmatrix} 1/\sqrt{2} & 1/\sqrt{2} \\ 1/\sqrt{2} & -1/\sqrt{2} \end{bmatrix}$
+2. Find $R$: $R$ is calculated as $Q^T A$.
 
-    $$R = \begin{bmatrix} \sqrt{2} & 1/\sqrt{2} \\ 0 & 1/\sqrt{2} \end{bmatrix}$$
+ $$R = \begin{bmatrix} \sqrt{2} & 1/\sqrt{2} \\ 0 & 1/\sqrt{2} \end{bmatrix}$$
 
 ***
 
@@ -432,7 +432,7 @@ $$A = \begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix}$$
 Notice that Row 2 is just $2 \times$ Row 1. It adds no new information to the system. Because there is only one unique row, the Rank = 1.
 
 
-**Span, Subspace, Columnspace — A Unified Example**
+**Span, Subspace, Columnspace A Unified Example**
 
 We will use 3D vectors where the numbers represent the amount of Cyan, Magenta, and Yellow ($C, M, Y$).
 

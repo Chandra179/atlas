@@ -32,9 +32,9 @@ Algebra cannot find the jump rate at a single point (3), so we have to use two p
 
 1. Point A: $(3, 9)$
 2. Point B (The Nudge): Let's move to $3.01$. The output is $3.01^2 = 9.0601$.
-3.  The Calculation:
+3. The Calculation:
 
-    $$\frac{\text{Jump}}{\text{Nudge}} = \frac{9.0601 - 9}{3.01 - 3} = \frac{0.0601}{0.01} = \mathbf{6.01}$$
+ $$\frac{\text{Jump}}{\text{Nudge}} = \frac{9.0601 - 9}{3.01 - 3} = \frac{0.0601}{0.01} = \mathbf{6.01}$$
 4. The Guess: You have to look at $6.01$ and "guess" that if the nudge was zero, the answer would be 6.
 
 Newton looked at these results: 7, 6.1, 6.01, 6.001... He realized that as the "Nudge" (the distance between points) gets smaller and smaller, the answer is clearly heading toward 6.

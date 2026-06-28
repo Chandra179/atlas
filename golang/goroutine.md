@@ -12,43 +12,43 @@ A goroutine is a lightweight thread managed by the Go runtime. This guide covers
 
 ```mermaid
 graph TB
-    subgraph Goroutines["Goroutines (G) — The Tasks"]
-        direction LR
-        G1["G1 (running)"]
-        G2["G2"]
-        G3["G3"]
-        G4["G4"]
-        G5["G5"]
-    end
+ subgraph Goroutines["Goroutines (G) The Tasks"]
+ direction LR
+ G1["G1 (running)"]
+ G2["G2"]
+ G3["G3"]
+ G4["G4"]
+ G5["G5"]
+ end
 
-    P1_RUN["P1: Running G1"]
-    P1_LRQ["P1 Local Run Queue<br/>G2 → G3"]
-    P2_RUN["P2: Running G6"]
-    P2_LRQ["P2 Local Run Queue<br/>G4 → G5"]
+ P1_RUN["P1: Running G1"]
+ P1_LRQ["P1 Local Run Queue<br/>G2 → G3"]
+ P2_RUN["P2: Running G6"]
+ P2_LRQ["P2 Local Run Queue<br/>G4 → G5"]
 
-    subgraph Threads["OS Threads (M) — Chefs"]
-        M1["M1"]
-        M2["M2"]
-    end
+ subgraph Threads["OS Threads (M) Chefs"]
+ M1["M1"]
+ M2["M2"]
+ end
 
-    P1_RUN -->|executes on| M1
-    P2_RUN -->|executes on| M2
-    G1 --> P1_RUN
-    G2 --> P1_LRQ
-    G3 --> P1_LRQ
-    G4 --> P2_LRQ
-    G5 --> P2_LRQ
-    P2 -.->|"① Work Stealing<br/>(steal half)"| P1_LRQ
+ P1_RUN -->|executes on| M1
+ P2_RUN -->|executes on| M2
+ G1 --> P1_RUN
+ G2 --> P1_LRQ
+ G3 --> P1_LRQ
+ G4 --> P2_LRQ
+ G5 --> P2_LRQ
+ P2 -.->|"① Work Stealing<br/>(steal half)"| P1_LRQ
 ```
 
 **Syscall handoff flow:**
 
 ```mermaid
 graph LR
-    G1["G1 (running)"] -->|blocking syscall| M1["M1 (blocks)"]
-    M1 -.->|"scheduler detaches P1"| P1["P1"]
-    P1 --> M2["M2 (new/idle)"]
-    P1 --> G2["G2 (resumed on M2)"]
+ G1["G1 (running)"] -->|blocking syscall| M1["M1 (blocks)"]
+ M1 -.->|"scheduler detaches P1"| P1["P1"]
+ P1 --> M2["M2 (new/idle)"]
+ P1 --> G2["G2 (resumed on M2)"]
 ```
 
 * **G (Goroutine)** → The task itself. **Physically, a `g` struct in RAM** (heap). It contains a private stack (starting at \~2KB [2]) and a "Program Counter" (a bookmark of the next line of code). [1][8]
@@ -79,29 +79,29 @@ Channels are the primary mechanism for communication between goroutines. Underst
 
 ```go
 ch := make(chan string) // unbuffered
-ch <- "apple"           // ❌ blocks immediately (no receiver)
+ch <- "apple" // ❌ blocks immediately (no receiver)
 ```
 
 ```go
 ch := make(chan string)
 
 go func() {
-    msg := <-ch
-    fmt.Println("received:", msg)
+ msg := <-ch
+ fmt.Println("received:", msg)
 }()
 
 ch <- "apple" // blocks until receiver is ready
 ```
 
-**Buffered:** `make(chan T, n)`. Has a "waiting room" of size `n`. Sends only block when the buffer is full. A non-blocking send via `select` + `default` can drop data when the buffer is full — this is the basis of the [leaky buffer pattern](https://go.dev/doc/effective_go#leaky_buffer) for reusing allocations.
+**Buffered:** `make(chan T, n)`. Has a "waiting room" of size `n`. Sends only block when the buffer is full. A non-blocking send via `select` + `default` can drop data when the buffer is full this is the basis of the [leaky buffer pattern](https://go.dev/doc/effective_go#leaky_buffer) for reusing allocations.
 
 ```go
 func main() {
-    ch := make(chan string, 2)
+ ch := make(chan string, 2)
 
-    ch <- "apple"   
-    ch <- "banana"  
-    ch <- "cherry"  // blocks (buffer full)
+ ch <- "apple"
+ ch <- "banana"
+ ch <- "cherry" // blocks (buffer full)
 }
 ```
 
@@ -109,9 +109,9 @@ func main() {
 ch := make(chan string, 2)
 
 go func() {
-    for v := range ch {
-        fmt.Println("received:", v)
-    }
+ for v := range ch {
+ fmt.Println("received:", v)
+ }
 }()
 
 ch <- "apple"
@@ -140,20 +140,20 @@ When a Goroutine (G) hits a blocking operation (e.g., receiving from an empty ch
 
 ```mermaid
 graph TB
-    subgraph hchan["hchan (Channel Struct in RAM)"]
-        LOCK["lock<br/>(mutex — thread-safe access)"]
-        BUF["buf<br/>(circular buffer — stores values)"]
-        SENDQ["sendq<br/>(linked list of blocked senders)"]
-        RECVQ["recvq<br/>(linked list of blocked receivers)"]
-    end
+ subgraph hchan["hchan (Channel Struct in RAM)"]
+ LOCK["lock<br/>(mutex thread-safe access)"]
+ BUF["buf<br/>(circular buffer stores values)"]
+ SENDQ["sendq<br/>(linked list of blocked senders)"]
+ RECVQ["recvq<br/>(linked list of blocked receivers)"]
+ end
 
-    G_SENDER["Goroutine (blocked sender)"] -->|pointer enqueued| SENDQ
-    G_RECEIVER["Goroutine (blocked receiver)"] -->|pointer enqueued| RECVQ
-    BUF -->|"stores"| DATA["buffered values"]
+ G_SENDER["Goroutine (blocked sender)"] -->|pointer enqueued| SENDQ
+ G_RECEIVER["Goroutine (blocked receiver)"] -->|pointer enqueued| RECVQ
+ BUF -->|"stores"| DATA["buffered values"]
 ```
 
 
-When you need to wait on multiple channels at once — or add timeouts and cancellation — the select statement is the tool.
+When you need to wait on multiple channels at once or add timeouts and cancellation the select statement is the tool.
 
 ## Select Statement
 
@@ -162,11 +162,11 @@ When you need to wait on multiple channels at once — or add timeouts and cance
 ```go
 select {
 case msg := <-ch1:
-    fmt.Println("Received from ch1:", msg)
+ fmt.Println("Received from ch1:", msg)
 case ch2 <- "ping":
-    fmt.Println("Sent ping to ch2")
+ fmt.Println("Sent ping to ch2")
 default:
-    fmt.Println("No channel ready")
+ fmt.Println("No channel ready")
 }
 ```
 
@@ -176,38 +176,38 @@ default:
 // Wait on multiple channels
 select {
 case msg := <-ch1:
-    fmt.Println("ch1 said", msg)
+ fmt.Println("ch1 said", msg)
 case msg := <-ch2:
-    fmt.Println("ch2 said", msg)
+ fmt.Println("ch2 said", msg)
 }
 
 // Using timeout
 select {
 case result := <-dbResponse:
-    fmt.Println("Got data:", result)
+ fmt.Println("Got data:", result)
 case <-time.After(3 * time.Second):
-    fmt.Println("Timeout waiting for DB")
+ fmt.Println("Timeout waiting for DB")
 }
 
 // Graceful shutdown
 func worker(ctx context.Context, ch <-chan int) {
-    for {
-        select {
-        case val := <-ch:
-            fmt.Println("got", val)
-        case <-ctx.Done():
-            fmt.Println("worker stopped")
-            return
-        }
-    }
+ for {
+ select {
+ case val := <-ch:
+ fmt.Println("got", val)
+ case <-ctx.Done():
+ fmt.Println("worker stopped")
+ return
+ }
+ }
 }
 
 // Non blocking send
 select {
 case ch <- 1:
-    fmt.Println("sent")
+ fmt.Println("sent")
 default:
-    fmt.Println("channel is full, skipping")
+ fmt.Println("channel is full, skipping")
 }
 ```
 
@@ -220,26 +220,26 @@ Without `select`, you’d need manual checks, polling, or additional goroutines.
 ```go
 // Without select
 for {
-    if len(ch1) > 0 {
-        msg := <-ch1
-        fmt.Println("Got from ch1:", msg)
-    }
+ if len(ch1) > 0 {
+ msg := <-ch1
+ fmt.Println("Got from ch1:", msg)
+ }
 
-    if len(ch2) > 0 {
-        msg := <-ch2
-        fmt.Println("Got from ch2:", msg)
-    }
+ if len(ch2) > 0 {
+ msg := <-ch2
+ fmt.Println("Got from ch2:", msg)
+ }
 
-    time.Sleep(1 * time.Millisecond) // avoid CPU burn
+ time.Sleep(1 * time.Millisecond) // avoid CPU burn
 }
 
 // With select
 select {
 case msg := <-ch1:
-    fmt.Println("Got from ch1:", msg)
+ fmt.Println("Got from ch1:", msg)
 
 case msg := <-ch2:
-    fmt.Println("Got from ch2:", msg)
+ fmt.Println("Got from ch2:", msg)
 }
 ```
 
@@ -248,7 +248,7 @@ case msg := <-ch2:
 
 **The Scheduling Delay**
 
-A common point of confusion is why goroutines don't execute immediately. When you call `go func()`, you aren't running the function "now"—you are giving a task to the Go Scheduler.
+A common point of confusion is why goroutines don't execute immediately. When you call `go func()`, you aren't running the function "now"you are giving a task to the Go Scheduler.
 
 The loop is running in the `main` goroutine, which already "owns" an OS Thread (M). Because the loop is extremely fast and doesn't "block" (wait for I/O), the computer prefers to finish the loop instructions before switching to the new tasks. Consequently, the new goroutines sit in the Local Run Queue while the loop finishes.
 
@@ -260,10 +260,10 @@ The closure captures the reference (memory address) of the loop variable `n`. Si
 numbers := []int{1, 2, 3}
 
 for _, n := range numbers {
-    // Each G holds a pointer to the SAME 'n'
-    go func() {
-        fmt.Println(n) 
-    }()
+ // Each G holds a pointer to the SAME 'n'
+ go func() {
+ fmt.Println(n)
+ }()
 }
 // Likely output: 3, 3, 3
 ```
@@ -280,10 +280,10 @@ The Go team changed the language semantics so that the loop variable `n` is inst
 
 ```go
 for _, n := range numbers {
-    // By passing 'n' as 'val', we copy the current value immediately
-    go func(val int) {
-        fmt.Println(val)
-    }(n) 
+ // By passing 'n' as 'val', we copy the current value immediately
+ go func(val int) {
+ fmt.Println(val)
+ }(n)
 }
 ```
 
@@ -301,20 +301,20 @@ Use Mutexes when you need high-performance access to shared state (maps, structs
 
 ```go
 type SafeCounter struct {
-    mu sync.RWMutex
-    v  map[string]int
+ mu sync.RWMutex
+ v map[string]int
 }
 
 func (c *SafeCounter) Inc(key string) {
-    c.mu.Lock()         // 🔒 Write Lock: No one else can read or write
-    defer c.mu.Unlock()
-    c.v[key]++
+ c.mu.Lock() // 🔒 Write Lock: No one else can read or write
+ defer c.mu.Unlock()
+ c.v[key]++
 }
 
 func (c *SafeCounter) Value(key string) int {
-    c.mu.RLock()        // 🔓 Read Lock: Others can read, but no one can write
-    defer c.mu.RUnlock()
-    return c.v[key]
+ c.mu.RLock() // 🔓 Read Lock: Others can read, but no one can write
+ defer c.mu.RUnlock()
+ return c.v[key]
 }
 ```
 
@@ -326,11 +326,11 @@ Calling `Add(1)` _inside_ the goroutine. This creates a race condition where `Wa
 var wg sync.WaitGroup
 
 for i := 0; i < 3; i++ {
-    wg.Add(1) // ✅ Correct: Add BEFORE starting goroutine
-    go func(id int) {
-        defer wg.Done()
-        fmt.Printf("Worker %d starting\n", id)
-    }(i)
+ wg.Add(1) // ✅ Correct: Add BEFORE starting goroutine
+ go func(id int) {
+ defer wg.Done()
+ fmt.Printf("Worker %d starting\n", id)
+ }(i)
 }
 
 wg.Wait() // Blocks until counter is 0
@@ -358,35 +358,35 @@ Spawning `go func()` for every HTTP then you will get Out-Of-Memory (OOM) errors
 
 ```go
 func worker(id int, jobs <-chan int, results chan<- int) {
-    for j := range jobs {
-        fmt.Printf("worker %d processing job %d\n", id, j)
-        time.Sleep(time.Second) // Simulate work
-        results <- j * 2
-    }
+ for j := range jobs {
+ fmt.Printf("worker %d processing job %d\n", id, j)
+ time.Sleep(time.Second) // Simulate work
+ results <- j * 2
+ }
 }
 
 func main() {
-    const numJobs = 100
-    const numWorkers = 5
+ const numJobs = 100
+ const numWorkers = 5
 
-    jobs := make(chan int, numJobs)
-    results := make(chan int, numJobs)
+ jobs := make(chan int, numJobs)
+ results := make(chan int, numJobs)
 
-    // Start fixed number of workers
-    for w := 1; w <= numWorkers; w++ {
-        go worker(w, jobs, results)
-    }
+ // Start fixed number of workers
+ for w := 1; w <= numWorkers; w++ {
+ go worker(w, jobs, results)
+ }
 
-    // Send jobs
-    for j := 1; j <= numJobs; j++ {
-        jobs <- j
-    }
-    close(jobs) // Signal workers that no more jobs are coming
+ // Send jobs
+ for j := 1; j <= numJobs; j++ {
+ jobs <- j
+ }
+ close(jobs) // Signal workers that no more jobs are coming
 
-    // Collect results
-    for a := 1; a <= numJobs; a++ {
-        <-results
-    }
+ // Collect results
+ for a := 1; a <= numJobs; a++ {
+ <-results
+ }
 }
 ```
 
@@ -402,29 +402,29 @@ The modern "Senior" alternative to `sync.WaitGroup`. It handles:
 import "golang.org/x/sync/errgroup"
 
 func main() {
-    g, ctx := errgroup.WithContext(context.Background())
-    urls := []string{"http://google.com", "http://bad-url.com", "http://bing.com"}
+ g, ctx := errgroup.WithContext(context.Background())
+ urls := []string{"http://google.com", "http://bad-url.com", "http://bing.com"}
 
-    for _, url := range urls {
-        url := url // Capture loop var (standard in Go < 1.22)
-        g.Go(func() error {
-            // Check context before working
-            if ctx.Err() != nil {
-                return ctx.Err()
-            }
-            resp, err := http.Get(url)
-            if err == nil {
-                resp.Body.Close()
-            }
-            return err // If this returns error, all other Gs get cancelled via ctx
-        })
-    }
+ for _, url := range urls {
+ url := url // Capture loop var (standard in Go < 1.22)
+ g.Go(func() error {
+ // Check context before working
+ if ctx.Err() != nil {
+ return ctx.Err()
+ }
+ resp, err := http.Get(url)
+ if err == nil {
+ resp.Body.Close()
+ }
+ return err // If this returns error, all other Gs get cancelled via ctx
+ })
+ }
 
-    if err := g.Wait(); err != nil {
-        fmt.Println("Error encountered:", err)
-    } else {
-        fmt.Println("All fetches successful")
-    }
+ if err := g.Wait(); err != nil {
+ fmt.Println("Error encountered:", err)
+ } else {
+ fmt.Println("All fetches successful")
+ }
 }
 ```
 
@@ -444,51 +444,51 @@ Leaked goroutines cause:
 ```go
 // Lost goroutine due to async operations not tied to context
 func handler(w http.ResponseWriter, r *http.Request) {
-    go func() {
-        // do db operation / send notification
-        // BUG: ignores r.Context()
-    }()
+ go func() {
+ // do db operation / send notification
+ // BUG: ignores r.Context()
+ }()
 }
 // Fix ✅
 func handler(w http.ResponseWriter, r *http.Request) {
-    ctx := r.Context()
+ ctx := r.Context()
 
-    go func() {
-        select {
-        case <-time.After(time.Second):
-            // finish work
-        case <-ctx.Done():    // client disconnected → abort
-            return
-        }
-    }()
+ go func() {
+ select {
+ case <-time.After(time.Second):
+ // finish work
+ case <-ctx.Done(): // client disconnected → abort
+ return
+ }
+ }()
 }
 ```
 
 ```go
 // Forgetting to stop goroutines when using select + channels
 func doWork(ch chan int) {
-    go func() {
-        for {
-            select {
-            case <-ch:
-                // do something
-            }
-            // BUG: no default / no cancel path
-        }
-    }()
+ go func() {
+ for {
+ select {
+ case <-ch:
+ // do something
+ }
+ // BUG: no default / no cancel path
+ }
+ }()
 }
 // Fix ✅
 func doWork(ctx context.Context, ch chan int) {
-    go func() {
-        for {
-            select {
-            case <-ch:
-                // do something
-            case <-ctx.Done():  // required exit
-                return
-            }
-        }
-    }()
+ go func() {
+ for {
+ select {
+ case <-ch:
+ // do something
+ case <-ctx.Done(): // required exit
+ return
+ }
+ }
+ }()
 }
 ```
 
@@ -496,52 +496,52 @@ func doWork(ctx context.Context, ch chan int) {
 // Goroutine waiting forever on a channel (blocked read/write)
 // If ch stops receiving values or is never closed, worker() blocks forever.
 func worker(ch <-chan int) {
-    for {
-        v := <-ch   // blocked forever if no one sends to ch
-        fmt.Println(v)
-    }
+ for {
+ v := <-ch // blocked forever if no one sends to ch
+ fmt.Println(v)
+ }
 }
 // Fix ✅
 func worker(ctx context.Context, ch <-chan int) {
-    for {
-        select {
-        case v, ok := <-ch:
-            if !ok {           // channel closed → exit goroutine
-                return
-            }
-            fmt.Println(v)
-        case <-ctx.Done():     // cancellation → exit goroutine
-            return
-        }
-    }
+ for {
+ select {
+ case v, ok := <-ch:
+ if !ok { // channel closed → exit goroutine
+ return
+ }
+ fmt.Println(v)
+ case <-ctx.Done(): // cancellation → exit goroutine
+ return
+ }
+ }
 }
 ```
 
 ```go
 // Deadlock inside goroutine due to mutual channel dependency
 func main() {
-    ch1 := make(chan int)
-    ch2 := make(chan int)
+ ch1 := make(chan int)
+ ch2 := make(chan int)
 
-    go func() {
-        <-ch1
-        ch2 <- 1 // waits forever if main never reads ch2
-    }()
+ go func() {
+ <-ch1
+ ch2 <- 1 // waits forever if main never reads ch2
+ }()
 
-    <-ch2 // waits forever if goroutine never writes to ch2
+ <-ch2 // waits forever if goroutine never writes to ch2
 }
 // Fix ✅
 func main() {
-    ch1 := make(chan int)
-    ch2 := make(chan int, 1) // buffered channel prevents deadlock
+ ch1 := make(chan int)
+ ch2 := make(chan int, 1) // buffered channel prevents deadlock
 
-    go func() {
-        <-ch1
-        ch2 <- 1
-    }()
+ go func() {
+ <-ch1
+ ch2 <- 1
+ }()
 
-    ch1 <- 1
-    fmt.Println(<-ch2)
+ ch1 <- 1
+ fmt.Println(<-ch2)
 }
 ```
 
@@ -552,26 +552,26 @@ func main() {
 
 ## References
 
-[1] Go runtime source — `src/runtime/proc.go` lines 28–31: G, P, M definitions.
-    https://go.dev/src/runtime/proc.go
+[1] Go runtime source `src/runtime/proc.go` lines 28–31: G, P, M definitions.
+ https://go.dev/src/runtime/proc.go
 
-[2] Go runtime source — `src/runtime/stack.go` line 78: `stackMin = 2048` (initial goroutine stack ~2KB).
-    https://go.dev/src/runtime/stack.go
+[2] Go runtime source `src/runtime/stack.go` line 78: `stackMin = 2048` (initial goroutine stack ~2KB).
+ https://go.dev/src/runtime/stack.go
 
-[3] Go runtime source — `src/runtime/proc.go` lines 3837–3909: `stealWork()` function, line 7778: `runqsteal` steals half of another P's run queue.
-    https://go.dev/src/runtime/proc.go
+[3] Go runtime source `src/runtime/proc.go` lines 3837–3909: `stealWork()` function, line 7778: `runqsteal` steals half of another P's run queue.
+ https://go.dev/src/runtime/proc.go
 
-[4] Go runtime source — `src/runtime/proc.go` lines 4859–4869: `entersyscallblock()`: P handoff during blocking syscall via `handoffp(releasep())`.
-    https://go.dev/src/runtime/proc.go
+[4] Go runtime source `src/runtime/proc.go` lines 4859–4869: `entersyscallblock()`: P handoff during blocking syscall via `handoffp(releasep())`.
+ https://go.dev/src/runtime/proc.go
 
-[5] Go runtime source — `src/runtime/chan.go` lines 34–55: `hchan` struct with `buf`, `sendq`/`recvq`, `lock`.
-    https://go.dev/src/runtime/chan.go
+[5] Go runtime source `src/runtime/chan.go` lines 34–55: `hchan` struct with `buf`, `sendq`/`recvq`, `lock`.
+ https://go.dev/src/runtime/chan.go
 
-[6] Go 1.22 Release Notes — "each iteration of the loop creates new variables, to avoid accidental sharing bugs."
-    https://go.dev/doc/go1.22#language
+[6] Go 1.22 Release Notes "each iteration of the loop creates new variables, to avoid accidental sharing bugs."
+ https://go.dev/doc/go1.22#language
 
-[7] `golang.org/x/sync/errgroup` — error propagation and context cancellation on first error.
-    https://pkg.go.dev/golang.org/x/sync/errgroup
+[7] `golang.org/x/sync/errgroup` error propagation and context cancellation on first error.
+ https://pkg.go.dev/golang.org/x/sync/errgroup
 
 [8] Go scheduler design document.
-    https://golang.org/s/go11sched
+ https://golang.org/s/go11sched

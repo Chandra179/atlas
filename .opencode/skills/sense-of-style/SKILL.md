@@ -7,13 +7,13 @@ description: Apply Steven Pinker's classic prose style from The Sense of Style, 
 
 ## Quick Start
 
-When asked to apply Pinker's style, diagnose the text against the rules below. Classic style aims to show the reader something real — not talk about writing, but write about the world.
+When asked to apply Pinker's style, diagnose the text against the rules below. Classic style aims to show the reader something real not talk about writing, but write about the world.
 
 ## Principles
 
 ### 1. Write in Classic Style
 
-Treat prose as a window onto the world. The writer sees something and points it out. Avoid metadiscourse — writing about your own writing. Instead of _"In this section we will discuss X"_, just say: _"X works like this"_. Let the reader see the thing, not the signpost.
+Treat prose as a window onto the world. The writer sees something and points it out. Avoid metadiscourse writing about your own writing. Instead of _"In this section we will discuss X"_, just say: _"X works like this"_. Let the reader see the thing, not the signpost.
 
 ### 2. Beware the Curse of Knowledge
 
@@ -37,20 +37,20 @@ Start sentences with familiar information (what the reader already knows or has 
 
 ### 5. Build Coherence Arcs
 
-Each sentence should connect to the last — not jump to a new topic. Link via repetition, pronoun reference, or logical connectors. Read the text aloud: if it sounds jerky, you're missing bridges.
+Each sentence should connect to the last not jump to a new topic. Link via repetition, pronoun reference, or logical connectors. Read the text aloud: if it sounds jerky, you're missing bridges.
 
 ### 6. Understand the Tree Structure
 
 Sentences are trees, not strings. Long sentences fail when too many branches dangle off the right side. Move subordinate clauses to the left or restructure. A twenty-word sentence with balanced structure is easier than a ten-word one that's all right-branching.
 
-### 7. Use Passive Voice — But Only When It Helps
+### 7. Use Passive Voice But Only When It Helps
 
 Passive is not a sin. Use it when:
 - The actor is unknown or obvious: _"The window was broken."_
 - The recipient is the topic: _"The patient was admitted at midnight."_
 - You want to avoid blaming the actor.
 
-The real enemy is indirect, windy prose — not passive voice itself.
+The real enemy is indirect, windy prose not passive voice itself.
 
 ### 8. Ignore Zombie Rules
 

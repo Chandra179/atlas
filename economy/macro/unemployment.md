@@ -15,7 +15,7 @@ $$\text{Unemployment Rate (U3)} = \frac{\text{Unemployed}}{\text{Labor Force}} \
 
 The labor force includes employed and unemployed persons actively seeking work. Two broader measures capture underutilization:
 
-- **U6**: includes discouraged workers (those who have stopped searching) and part-time workers who prefer full-time work — typically 2–3× higher than U3
+- **U6**: includes discouraged workers (those who have stopped searching) and part-time workers who prefer full-time work typically 2–3× higher than U3
 - **Labor force participation rate**: the percentage of the working-age population that is in the labor force
 - **Employment-population ratio**: the percentage of the working-age population that is employed
 
@@ -23,7 +23,7 @@ Falling participation can mask improvements in the unemployment rate when worker
 
 ## Natural Rate of Unemployment
 
-The **natural rate of unemployment** (also called NAIRU — Non-Accelerating Inflation Rate of Unemployment) is the unemployment rate at which inflation is stable. It is not zero; even a healthy economy has frictional and structural unemployment.
+The **natural rate of unemployment** (also called NAIRU Non-Accelerating Inflation Rate of Unemployment) is the unemployment rate at which inflation is stable. It is not zero; even a healthy economy has frictional and structural unemployment.
 
 $$\text{Actual Unemployment} = \text{Natural Rate} + \text{Cyclical Unemployment}$$
 
@@ -33,9 +33,9 @@ Cyclical unemployment arises from short-run fluctuations in aggregate demand. Wh
 
 - **Frictional unemployment**: short-term unemployment from workers searching for jobs that match their skills. A natural byproduct of a dynamic economy.
 - **Structural unemployment**: occurs when the number of jobs available in some labor markets is insufficient for everyone who wants one. Three primary causes:
-  - **Minimum-wage laws**: prevent wages from adjusting to equilibrium for low-skilled workers
-  - **Unions and collective bargaining**: push wages above equilibrium through market power
-  - **Efficiency wages**: firms voluntarily pay above-market wages to increase productivity
+ - **Minimum-wage laws**: prevent wages from adjusting to equilibrium for low-skilled workers
+ - **Unions and collective bargaining**: push wages above equilibrium through market power
+ - **Efficiency wages**: firms voluntarily pay above-market wages to increase productivity
 
 ## Okun's Law
 
@@ -64,10 +64,10 @@ Insiders (employed workers with bargaining power) push for higher wages at the e
 
 The Mortensen-Pissarides search-and-matching model frames unemployment as an equilibrium outcome of the search process:
 
-- Workers and firms must search for each other — matching is costly and time-consuming (frictional)
+- Workers and firms must search for each other matching is costly and time-consuming (frictional)
 - **Unemployment insurance (UI)** lowers the opportunity cost of searching, increasing reservation wages and prolonging unemployment duration
 - More generous UI raises the steady-state unemployment rate but may improve job fit quality
 
 ## Beveridge Curve
 
-The **Beveridge curve** plots the vacancy rate (job openings as a share of labor force) against the unemployment rate. It is typically downward-sloping: more vacancies correspond with less unemployment in a boom. An outward shift of the curve indicates worsening labor-market matching efficiency — more vacancies coexist with the same unemployment rate, a sign of structural mismatch.
+The **Beveridge curve** plots the vacancy rate (job openings as a share of labor force) against the unemployment rate. It is typically downward-sloping: more vacancies correspond with less unemployment in a boom. An outward shift of the curve indicates worsening labor-market matching efficiency more vacancies coexist with the same unemployment rate, a sign of structural mismatch.

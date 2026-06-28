@@ -7,7 +7,7 @@ created: "2026-06-13"
 
 # Computing
 
-*Purpose: For software engineers who need a mental model of how CPU, memory, and addressing work — from physical hardware through OS abstractions to the bit level.*
+*Purpose: For software engineers who need a mental model of how CPU, memory, and addressing work from physical hardware through OS abstractions to the bit level.*
 
 ## Physical Hardware
 
@@ -59,42 +59,42 @@ The Operating System and CPU work together to provide a simplified view of memor
 
 * **Virtual Address Space:** Every program is given its own continuous range of addresses (from 0 to Max). It doesn't know where its data is physically stored in the RAM chips; the MMU handles that translation.
 * **Segmentation and Offsets:** The CPU often calculates addresses using a **Base Address** (start of a region) + an **Offset** (distance into that region).
-  * _Example:_ If a data block starts at `1000` and you need the 5th item, the CPU accesses `1000 + 5`.
+ * _Example:_ If a data block starts at `1000` and you need the 5th item, the CPU accesses `1000 + 5`.
 * **Memory Width:** A 64-bit CPU has a **theoretical** address space of 2^64 bytes, but current x86-64 implementations use **48-bit addresses** (256 TB) or 57-bit with 5-level paging. 32-bit CPUs are limited to 2^32 bytes (4 GB).
 
 ### Virtual Memory Layout (OS Dependent)
 
 The OS divides a program's virtual address space into specific segments. Each process sees its own private layout, but the structure is defined by the OS kernel.
 
-| Segment   | Contents                                            | Growth                                  |
+| Segment | Contents | Growth |
 | --------- | --------------------------------------------------- | --------------------------------------- |
-| **Text**  | Executable code (read‑only)                         | Fixed size                              |
-| **Data**  | Initialized global/static variables                 | Fixed size                              |
-| **BSS**   | Uninitialized global/static variables (zero‑filled) | Fixed size                              |
-| **Heap**  | Dynamic allocations (malloc/Box)                    | Grows upward (toward higher addresses)  |
-| **Stack** | Local variables, call frames                        | Grows downward (toward lower addresses) |
-| **MMIO**  | Memory‑mapped I/O regions                           | Fixed                                   |
+| **Text** | Executable code (read‑only) | Fixed size |
+| **Data** | Initialized global/static variables | Fixed size |
+| **BSS** | Uninitialized global/static variables (zero‑filled) | Fixed size |
+| **Heap** | Dynamic allocations (malloc/Box) | Grows upward (toward higher addresses) |
+| **Stack** | Local variables, call frames | Grows downward (toward lower addresses) |
+| **MMIO** | Memory‑mapped I/O regions | Fixed |
 
 The heap and stack are managed differently and positioned at opposite ends of the address space to maximize room before collision.
 
-| Feature        | The Stack                                    | The Heap                                  |
+| Feature | The Stack | The Heap |
 | -------------- | -------------------------------------------- | ----------------------------------------- |
-| **Purpose**    | Short-term local variables & function calls. | Long-term data & large objects.           |
-| **Management** | Automatic (LIFO - Last In, First Out).       | Manual (Programmer) or Garbage Collector. |
+| **Purpose** | Short-term local variables & function calls. | Long-term data & large objects. |
+| **Management** | Automatic (LIFO - Last In, First Out). | Manual (Programmer) or Garbage Collector. |
 
 ## VRAM vs Physical RAM
 
 **VRAM** (Video RAM) is memory physically located on a graphics card (GPU). **Physical RAM** (system RAM) is attached to the CPU. They serve different purposes and have distinct characteristics.
 
-| Aspect               | Physical RAM (DDR4/DDR5)         | VRAM (GDDR6 / HBM)                                          |
+| Aspect | Physical RAM (DDR4/DDR5) | VRAM (GDDR6 / HBM) |
 | -------------------- | -------------------------------- | ----------------------------------------------------------- |
-| **Primary user**     | CPU                              | GPU                                                         |
-| **Latency**          | Lower (\~70‑100 ns)              | Higher (\~150‑300 ns)                                       |
-| **Bandwidth**        | Moderate (\~50‑100 GB/s)         | Very high (\~500‑2000 GB/s)                                 |
-| **Capacity**         | Larger (up to 2 TB on servers)   | Smaller (typically 4‑24 GB for gaming, up to 80 GB for HPC) |
-| **Error correction** | ECC optional (common in servers) | ECC rarely used (except in professional cards)              |
-| **Access pattern**   | Random (caches hide latency)     | Sequential / streaming (optimised for throughput)           |
-| **Voltage**          | 1.1‑1.2 V (DDR4)                 | 1.35‑1.5 V (GDDR6)                                          |
+| **Primary user** | CPU | GPU |
+| **Latency** | Lower (\~70‑100 ns) | Higher (\~150‑300 ns) |
+| **Bandwidth** | Moderate (\~50‑100 GB/s) | Very high (\~500‑2000 GB/s) |
+| **Capacity** | Larger (up to 2 TB on servers) | Smaller (typically 4‑24 GB for gaming, up to 80 GB for HPC) |
+| **Error correction** | ECC optional (common in servers) | ECC rarely used (except in professional cards) |
+| **Access pattern** | Random (caches hide latency) | Sequential / streaming (optimised for throughput) |
+| **Voltage** | 1.1‑1.2 V (DDR4) | 1.35‑1.5 V (GDDR6) |
 
 **How CPU and GPU share data**
 
@@ -112,7 +112,7 @@ The heap and stack are managed differently and positioned at opposite ends of th
 
 This section explains the relationship between bits, bytes, and common encoding schemes.
 
-A **bit** is the smallest unit of information in computer — **0 or 1**.
+A **bit** is the smallest unit of information in computer **0 or 1**.
 
 * 1 bit → 2 possibilities → `0`, `1`
 * 2 bits → 2² = 4 possibilities → `00`, `01`, `10`, `11`
@@ -121,15 +121,15 @@ A **bit** is the smallest unit of information in computer — **0 or 1**.
 
 If you have **n bits**, you can represent **2ⁿ unique values**.
 
-| Encoding         | Bits per symbol      | Example characters  |
+| Encoding | Bits per symbol | Example characters |
 | ---------------- | -------------------- | ------------------- |
-| **Base2**        | 1                    | 0,1                 |
-| **Base16 (hex)** | 4 bits per char      | 0–9, A–F            |
-| **Base32**       | 5 bits per char      | A–Z, 2–7            |
-| **Base58**       | \~5.86 bits per char | Bitcoin addresses   |
-| **Base62**       | \~5.95 bits per char | 0–9, A–Z, a–z       |
-| **Base64**       | 6 bits per char      | A–Z, a–z, 0–9, +, / |
+| **Base2** | 1 | 0,1 |
+| **Base16 (hex)** | 4 bits per char | 0–9, A–F |
+| **Base32** | 5 bits per char | A–Z, 2–7 |
+| **Base58** | \~5.86 bits per char | Bitcoin addresses |
+| **Base62** | \~5.95 bits per char | 0–9, A–Z, a–z |
+| **Base64** | 6 bits per char | A–Z, a–z, 0–9, +, / |
 
 **Example**
 
-If you need to generate 10,000 unique codes per day using Base64 and codes can be at most 8 characters long, each code represents 48 bits, giving 2^48 ≈ 2.8 × 10^14 possible values — more than enough for 10,000 per day.
+If you need to generate 10,000 unique codes per day using Base64 and codes can be at most 8 characters long, each code represents 48 bits, giving 2^48 ≈ 2.8 × 10^14 possible values more than enough for 10,000 per day.
