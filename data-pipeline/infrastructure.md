@@ -5,6 +5,8 @@ tags: [architecture, data-pipeline, infrastructure, scaling]
 created: "2026-06-28"
 ---
 
+This document covers infrastructure patterns that let the pipeline scale to billions of rows — semantic caching, hot-state offload, partitioning, and lockless queue design. Use it to plan capacity and avoid the common bottlenecks at scale.
+
 ## Semantic Caching
 
 Standard exact-string caching rarely works for AI — users phrase the same question a dozen different ways. Semantic caching solves this:
@@ -50,3 +52,11 @@ The best solution: design so workers never fight over the same row.
 - Use a partitioned queue (Kafka, Kinesis). Route each `raw_data_id` to a specific partition.
 - Assign exactly one worker thread per partition.
 - The queue guarantees mutual exclusion — no database locking needed at all.
+
+### Pattern Comparison
+
+| Pattern | When to use | Trade-off |
+|---------|-------------|-----------|
+| Hot State Offload | High write velocity, transient states only | Eventual consistency on status; Redis adds operational complexity and persistence risk |
+| Horizontal Partitioning | Must keep status in SQL, can't add Redis | Fixed partition count; repartitioning requires data migration |
+| Lockless Queue Partitioning | Maximum throughput, already using Kafka | Tight coupling of queue partitioning to data model; partition count is fixed and must handle rebalancing |

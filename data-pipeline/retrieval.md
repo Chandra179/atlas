@@ -5,7 +5,9 @@ tags: [architecture, data-pipeline, retrieval]
 created: "2026-06-28"
 ---
 
-## Advanced Metadata Filtering
+This document covers how the pipeline fetches relevant data in response to a query — hybrid search, reranking, and the evaluation loop. Use it to understand the trade-offs between speed, accuracy, and cost across query types.
+
+## Metadata Filtering
 
 Organize data by tags and topics. Chunking logic is strict:
 

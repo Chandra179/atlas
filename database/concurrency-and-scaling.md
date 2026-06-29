@@ -13,17 +13,17 @@ created: "2026-06-13"
 
 ACID stands for Atomicity (all-or-nothing execution), Consistency (data always follows rules/constraints), Isolation (concurrent transactions don't interfere with each other), Durability (saved data survives power loss).
 
-In a high-throughput environment, Isolation is mostly relaxed because perfect isolation (Serializability) is incredibly expensive. To guarantee that every transaction appears to happen one after another, the database must employ aggressive locking or validation, which forces transactions to wait in line. This creates a massive bottleneck that kills performance. Therefore, engineers often choose weaker isolation levels (like *Read Committed* or *Repeatable Read*) to allow higher concurrency and speed, accepting the risk of specific data anomalies (like Phantom Reads) as the "price" for scale.
+Perfect isolation (Serializability) is too expensive for high throughput, so databases relax the I in ACID. Serializability requires aggressive locking or validation to make every transaction appear to happen one after another, forcing transactions to wait in line — a massive bottleneck that kills performance. Engineers instead choose weaker isolation levels (*Read Committed*, *Repeatable Read*) for higher concurrency and speed, accepting anomalies like Phantom Reads as the price for scale.
 
 ### Transaction Isolation Levels
 
-**Read Uncommitted** is the lowest level, where a transaction can read data modified by another transaction but not yet committed. This allows "dirty reads" if the other transaction rolls back, your transaction has processed invalid data. Use only for non-critical logging or analytics where absolute accuracy is less important than raw speed.
+**Read Uncommitted** is the lowest level, where a transaction can read data modified by another transaction but not yet committed. This allows "dirty reads" — if the other transaction rolls back, your transaction has processed invalid data. Use only for non-critical logging or analytics where absolute accuracy is less important than raw speed.
 
-**Read Committed** is the most common default (PostgreSQL, Oracle, SQL Server). Guarantees a transaction can only read committed data. Prevents dirty reads but allows "non-repeatable reads" querying the same row twice in one transaction may return different data if another transaction commits an update in between. Use for most standard web applications balances concurrency and data integrity.
+**Read Committed** is the most common default (PostgreSQL, Oracle, SQL Server). Guarantees a transaction can only read committed data. Prevents dirty reads but allows "non-repeatable reads" — querying the same row twice in one transaction may return different data if another transaction commits an update in between. Use for most standard web applications — balances concurrency and data integrity.
 
-**Repeatable Read** ensures that reading a row twice within a transaction returns the same data, effectively locking that version for your session. Prevents non-repeatable reads but can still allow "phantom reads" new rows added by others may appear in range queries. Use for reporting dashboards or financial calculations where numbers must remain consistent throughout the operation.
+**Repeatable Read** ensures that reading a row twice within a transaction returns the same data, locking that version for your session. Prevents non-repeatable reads but can still allow "phantom reads" — new rows added by others may appear in range queries. Use for reporting dashboards or financial calculations where numbers must remain consistent throughout the operation.
 
-**Serializable** is the strictest level. Forces transactions to run as if they happened one after another, preventing all anomalies (dirty reads, non-repeatable reads, phantoms). Massive performance cost due to heavy locking or frequent transaction retries. Use only for critical operations preventing double-booking in reservations or sensitive banking transfers.
+**Serializable** is the strictest level. Forces transactions to run as if they happened one after another, preventing all anomalies (dirty reads, non-repeatable reads, phantoms). Massive performance cost due to heavy locking or frequent transaction retries. Use only for critical operations — preventing double-booking in reservations or sensitive banking transfers.
 
 | Isolation Level | Dirty Read | Non-Repeatable Read | Phantom Read |
 |---|---|---|---|
@@ -39,11 +39,11 @@ A Race Condition occurs when the final outcome of a process depends on the uncon
 1. User A reads balance: $100.
 2. User B reads balance: $100 (before A saves).
 3. User A calculates $100 - $10 = $90 and saves.
-4. User B calculates $100 - $10 = $90 and saves. Final balance is $90, but should be $80. The second update "raced" the first and overwrote it a Lost Update anomaly.
+4. User B calculates $100 - $10 = $90 and saves. Final balance is $90, but should be $80. The second update "raced" the first and overwrote it — a Lost Update anomaly.
 
 ### Optimistic vs Pessimistic Locking
 
-Isolation levels handle locks implicitly, but sometimes explicit control is needed:
+Isolation levels handle locks implicitly, but sometimes you need explicit control:
 
 **Pessimistic Locking** (`SELECT ... FOR UPDATE`): Assumes a conflict *will* happen. Locks the row immediately on read. No one else can touch it until commit. Use for high-contention data (e.g., a central generic wallet).
 
@@ -79,7 +79,7 @@ WHERE id = 1 AND version = 2;
 
 ### N+1 Query Problem
 
-The N+1 Query Problem is a performance issue primarily in ORMs (GORM, Hibernate, Entity Framework). It occurs when code fetches a parent record (1 query) and then iterates through a loop to fetch related child records for *each* parent (N queries). Example: fetching 100 `Users` and executing a new SQL query inside a loop for each user's `Address` 101 total database calls.
+The N+1 Query Problem plagues ORMs (GORM, Hibernate, Entity Framework). It occurs when code fetches a parent record (1 query) and then iterates through a loop to fetch related child records for *each* parent (N queries). Example: fetching 100 `Users` and executing a new SQL query inside a loop for each user's `Address` — 101 total database calls.
 
 **Identify**: Look for a waterfall of identical `SELECT` statements in database logs or APM tools (Datadog, New Relic).
 
@@ -90,9 +90,9 @@ The N+1 Query Problem is a performance issue primarily in ORMs (GORM, Hibernate,
 
 ### Normalization (3NF) vs Denormalization
 
-**Normalization** (3NF) is the standard design for write-heavy OLTP systems (banking, e-commerce, inventory). Reduces data redundancy and ensures integrity. Every piece of data lives in exactly one place updating a customer's address requires one update, not updates across every order.
+**Normalization** (3NF) is standard for write-heavy OLTP systems (banking, e-commerce, inventory). Reduces data redundancy and ensures integrity. Every piece of data lives in exactly one place — updating a customer's address requires one update, not updates across every order.
 
-**Denormalization** is an optimization for read-heavy OLAP systems. Duplicates data across tables to avoid expensive `JOIN`s. Example: storing `username` directly in the `Posts` table rather than just `user_id`. Faster reads, slower/complex writes (must update multiple places).
+**Denormalization** optimizes for read-heavy OLAP systems. Duplicates data across tables to avoid expensive `JOIN`s. Example: storing `username` directly in the `Posts` table rather than just `user_id`. Faster reads, slower/complex writes (must update multiple places).
 
 | | Normalization | Denormalization |
 |---|---|---|
@@ -103,7 +103,7 @@ The N+1 Query Problem is a performance issue primarily in ORMs (GORM, Hibernate,
 
 ### Connection Pooling
 
-A cache of open, reusable database connections instead of opening/closing a connection per request. Without pooling, each API call requires: TCP handshake → TLS handshake → DB authentication → query → close. At 10,000 requests/sec, this overwhelms both the application and the database.
+Connection pooling is a cache of open, reusable database connections — instead of opening a new connection per request. Without pooling, each API call requires: TCP handshake → TLS handshake → DB authentication → query → close. At 10,000 requests/sec, this overwhelms both the application and the database.
 
 Connection pooling keeps a set of connections alive. A request "borrows" an existing connection, executes the query, and returns it to the pool immediately. Key parameters: `max_pool_size`, `min_idle`, `connection_timeout`, `idle_timeout`.
 
@@ -113,7 +113,7 @@ Connection pooling keeps a set of connections alive. A request "borrows" an exis
 
 ### Synchronous vs Asynchronous Replication
 
-**Synchronous Replication**: Primary sends data to the replica and *waits* for acknowledgment before telling the client "Success." Zero data loss (RPO=0). Increases write latency (network round-trip). Reduces availability if the replica is down, the primary cannot accept writes.
+**Synchronous Replication**: Primary sends data to the replica and *waits* for acknowledgment before telling the client "Success." Zero data loss (RPO=0). Increases write latency (network round-trip). Reduces availability — if the replica is down, the primary cannot accept writes.
 
 **Asynchronous Replication**: Primary writes locally, immediately acknowledges "Success" to the client, then forwards data to the replica in the background. Faster, no blocking on replica failures. Risk of data loss if the primary crashes before forwarding the latest data.
 
@@ -128,7 +128,7 @@ Connection pooling keeps a set of connections alive. A request "borrows" an exis
 
 **Strong Consistency**: Once a write is confirmed, any subsequent read from any node returns the new value. Requires coordination (Paxos/Raft or synchronous replication). Increases latency, reduces scalability. Use for financial ledgers, inventory, password changes.
 
-**Eventual Consistency**: If no new updates are made, all reads will *eventually* return the last updated value. For a short window (milliseconds to seconds), a user may read stale data. Allows high availability and speed no blocking for sync. Use for social media feeds, DNS, analytics.
+**Eventual Consistency**: If no new updates are made, all reads will *eventually* return the last updated value. For a short window (milliseconds to seconds), a user may read stale data. Allows high availability and speed — no blocking for sync. Use for social media feeds, DNS, analytics.
 
 ***
 
@@ -136,12 +136,12 @@ Connection pooling keeps a set of connections alive. A request "borrows" an exis
 
 ### Two-Phase Commit (2PC)
 
-When data is sharded or spans multiple services, a single database's ACID properties no longer apply. The traditional solution is Two-Phase Commit:
+When data is sharded or spans multiple services, a single database's ACID properties no longer apply. The solution is Two-Phase Commit:
 
 1. **Prepare Phase**: A coordinator tells all participants to "Prepare" (lock resources, verify they can commit).
 2. **Commit Phase**: If all say "Yes," the coordinator sends "Commit." If any says "No," the coordinator sends "Abort."
 
-Problem: 2PC is a blocking protocol. If the coordinator crashes or the network fails after the Prepare phase, participants hold locks indefinitely freezing the system.
+2PC is a blocking protocol. If the coordinator crashes or the network fails after the Prepare phase, participants hold locks indefinitely — freezing the system.
 
 ### Sharding
 
@@ -187,7 +187,7 @@ flowchart LR
 
 **Paxos** (Spanner, Cassandra): More complex but proven in production. Multi-Paxos optimizes the basic protocol by pre-electing a leader (similar to Raft's stable leader). Spanner uses Paxos for replica group consensus.
 
-**VSR** (TigerBeetle): Virtual Synchrony Replication. Combines view change protocol with synchronous replication. Has only 3 types of messages, making it simpler to reason about and test deterministically.
+**VSR** (TigerBeetle): Virtual Synchrony Replication. Combines view change protocol with synchronous replication. VSR uses only 3 types of messages, making it simpler to reason about and test deterministically.
 
 ### Gossip Protocol
 
@@ -195,8 +195,8 @@ Nodes periodically exchange membership and state information with a small set of
 
 - Each node tracks heartbeats for all other nodes.
 - A node gossips with 1-3 random peers every second.
-- After a configurable timeout, a node is marked as suspicious (and later dead) if no heartbeat received.
-- Propagation is exponential a membership change spreads to all nodes in O(log n) rounds.
+- After a configurable timeout, the cluster marks a node as suspicious (and later dead) if no heartbeat received.
+- Propagation is exponential — a membership change spreads to all nodes in O(log n) rounds.
 
 ### Consistent Hashing
 
@@ -218,6 +218,6 @@ graph TD
  New -->|takes range 26-40| N2
 ```
 
-Distributes keys across nodes so that adding or removing a node only affects a fraction of the keys (1/n). Used by Cassandra, DynamoDB, and consistent cache rings.
+Consistent hashing distributes keys across nodes so that adding or removing a node only affects a fraction of the keys (1/n). Used by Cassandra, DynamoDB, and consistent cache rings.
 
-**Virtual nodes (vnodes)**: Each physical node is represented by 100+ virtual nodes on the ring. This improves load distribution and speeds up recovery a failed node's load is spread across all other nodes, not just its successor.
+**Virtual nodes (vnodes)**: Each physical node is represented by 100+ virtual nodes on the ring. This improves load distribution and speeds up recovery — a failed node's load is spread across all other nodes, not just its successor.

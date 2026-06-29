@@ -10,6 +10,7 @@ created: "2026-06-13"
 > For the underlying mechanics of LSM-Trees, Merkle Trees, and Bloom Filters,
 > see [Storage Engines](../storage-engines.md) and [Database Algorithms](../algorithms.md).
 
+This deep dive examines Cassandra's internal architecture, storage model, and indexing design. Understanding these trade-offs helps data engineers and platform teams select the right database for pipeline workloads and avoid the sharp edges that bite production deployments.
 
 ### AP in CAP always-writable, eventual consistency
 
@@ -71,7 +72,7 @@ When a shopping cart app uses `QUORUM` for writes and `ONE` for reads, a user ad
 
 ---
 
-**When to tjreach for it:** Time-series metrics ingestion (millions of writes from sensors/servers), IoT data streams, messaging systems, recommendation engines, any write-heavy workload that needs linear scalability across many nodes, and can tolerate eventual consistency.
+**When to reach for it:** Time-series metrics ingestion (millions of writes from sensors/servers), IoT data streams, messaging systems, recommendation engines, any write-heavy workload that needs linear scalability across many nodes, and can tolerate eventual consistency.
 
 **When not to:** Strongly consistent financial transactions (use Spanner or PostgreSQL), complex ad-hoc queries (Cassandra requires query-driven schema design), small datasets (<1TB Cassandra overhead isn't worth it), need native SQL JOINs, or when you need to change query patterns frequently (schema changes in Cassandra are expensive and require data migration).
 

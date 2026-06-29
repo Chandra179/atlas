@@ -5,6 +5,8 @@ tags: [architecture, data-pipeline, idempotency]
 created: "2026-06-28"
 ---
 
+This document explains how the pipeline guarantees each message is processed exactly once despite at-least-once delivery. Use it to understand the optimistic-locking state machine, its failure modes, and when to choose a different approach.
+
 ## Problem
 
 Message queues often deliver messages more than once (at-least-once delivery). Two workers can pull the same message simultaneously, leading to duplicate processing.
@@ -57,9 +59,18 @@ WHERE raw_data_id = 101
 
 ## State Machine
 
+```mermaid
+stateDiagram-v2
+    [*] --> PENDING
+    PENDING --> PROCESSING
+    PROCESSING --> COMPLETED
+    PROCESSING --> FAILED
+    FAILED --> PROCESSING : retry (optional DLQ)
+    COMPLETED --> [*]
 ```
-PENDING ──► PROCESSING ──► COMPLETED
-                │
-                ▼
-             FAILED ──► retry (optional DLQ)
-```
+
+## When This Works (and When It Doesn't)
+
+**Works well:** moderate write volume, low contention on any single row, database supports optimistic locking (PostgreSQL, MySQL, Spanner, SQL Server).
+
+**Breaks down under:** high contention on a single `raw_data_id` (many workers competing for the same row), monotonically increasing hot-spot keys, or a database that only supports pessimistic locking (early MySQL without row-level locking, SQLite). In those cases, switch to guaranteed queue partitioning (see [infrastructure.md](./infrastructure.md#pattern-3-guaranteed-queue-partitioning-lockless-consumer)) to eliminate contention entirely.

@@ -11,10 +11,10 @@ created: "2026-06-13"
 
 **Cardinality** refers to the number of unique values in a column relative to the total row count. It is the primary metric the query optimizer uses to decide whether to use an index.
 
-- **High Cardinality** (e.g., `User_ID`, `Email`): Indexes are extremely effective. The B+Tree can rapidly narrow millions of rows to a single match.
+- **High Cardinality** (e.g., `User_ID`, `Email`): Indexes are effective. The B+Tree can rapidly narrow millions of rows to a single match.
 - **Low Cardinality** (e.g., `Gender`, `Status`): Indexes are often ignored. Querying for 90% of rows via an index means jumping back and forth (random I/O) slower than a full sequential table scan.
 
-**Clustered vs Non-Clustered**: A clustered index stores the actual row data in the index leaf pages (table is the index). A non-clustered index stores pointers to the row data either the row ID (heap) or the clustered key.
+**Clustered vs Non-Clustered**: A clustered index stores the actual row data in the index leaf pages (table is the index). A non-clustered index stores pointers to the row data — either the row ID (heap) or the clustered key.
 
 ---
 
@@ -29,7 +29,7 @@ A Composite Index is a single index on multiple columns, ordered by the definiti
 - `WHERE B = ?` does NOT use index (skipped A)
 - `WHERE A = ? AND C = ?` uses A but cannot use C for filtering (skipped B)
 
-This is critical for index design: order columns by selectivity (most selective first) and align with query patterns.
+Order columns by selectivity (most selective first) and align with query patterns.
 
 ---
 
@@ -50,14 +50,14 @@ graph TD
 
 The B+Tree is the dominant index structure in relational databases:
 
-- **Internal nodes** store only keys (not data) to maximize fan-out a single 16KB page can hold hundreds of keys.
-- **Leaf nodes** store the actual row pointer either the full row (clustered) or a pointer.
-- **Leaf nodes are linked** a linked list connects them left-to-right, enabling efficient range scans (`BETWEEN`, `>`).
+- **Internal nodes** store only keys (not data) to maximize fan-out — a single 16KB page can hold hundreds of keys.
+- **Leaf nodes** store the actual row pointer — either the full row (clustered) or a pointer.
+- **Leaf nodes are linked** — a linked list connects them left-to-right, enabling efficient range scans (`BETWEEN`, `>`).
 - **Height is typically 3-4** for billions of rows. Every lookup is 3-4 I/O operations.
 
 **Concrete example 1M rows with an index on an INT column (PostgreSQL, 8KB pages):**
 
-PostgreSQL uses 8KB (8,192 bytes) per page. Some space is reserved for headers and metadata:
+PostgreSQL uses 8KB (8,192 bytes) per page. Headers and metadata reserve some space:
 
 - Page header: 24 bytes
 - Line pointer array: 4 bytes per entry
@@ -80,9 +80,9 @@ Building a B+Tree for 1M rows:
 | Internal | 366 pointers/page | 2,732 / 366 ≈ 8 pages |
 | Root | 366 pointers/page | 8 / 366 ≈ 1 page |
 
-Total tree height = **3**. Every `WHERE id = ?` lookup reads exactly 3 pages root, internal, leaf regardless of which row is queried.
+Total tree height = **3**. Every `WHERE id = ?` lookup reads exactly 3 pages — root, internal, leaf — regardless of which row is queried.
 
-With larger keys (TEXT, UUID) the entries are bigger, fan-out drops, and the tree may need an extra level at the same row count. For example, a UUID (16 bytes) roughly halves the fan-out.
+With larger keys (TEXT, UUID) the entries are bigger, fan-out drops, and the tree may need an extra level at the same row count. For example, a UUID (16 bytes) halves the fan-out.
 
 ```mermaid
 graph TD
@@ -104,11 +104,11 @@ graph TD
  L --> Heap["Heap Page 0<br/>row data"]
 ```
 
-**SQL Server**: Supports both clustered and non-clustered indexes. In a clustered index, the leaf level is the data page. In a non-clustered index, the leaf contains either the clustered key (if the table has a clustered index) or a Row ID (RID, if the table is a heap). SQL Server also supports **included columns** non-key columns stored at the leaf level to cover queries without touching the table.
+**SQL Server**: Supports both clustered and non-clustered indexes. In a clustered index, the leaf level is the data page. In a non-clustered index, the leaf contains either the clustered key (if the table has a clustered index) or a Row ID (RID, if the table is a heap). SQL Server also supports **included columns** — non-key columns stored at the leaf level to cover queries without touching the table.
 
 ### B-Tree Index File Layout
 
-An index is stored as its own file on disk a flat array of fixed-size blocks. The logical tree structure is encoded through block indices (page numbers):
+An index is stored as its own file on disk — a flat array of fixed-size blocks. The logical tree structure is encoded through block indices (page numbers):
 
 ```
 PostgreSQL B-Tree index file (8KB blocks)
@@ -125,7 +125,7 @@ Index Type Contents
 [7] Leaf (71, (3,1)), (72, (3,2)), ...
 ```
 
-Each leaf stores `(key, CTID)` where `CTID = (heap_page, tuple_offset)` the physical location of the row in the heap file.
+Each leaf stores `(key, CTID)` where `CTID = (heap_page, tuple_offset)` — the physical location of the row in the heap file.
 
 **Logical tree:**
 
@@ -149,9 +149,9 @@ The per-page layout (header, slot array, row data) is identical to the B-Tree pa
 Beyond B-Tree, PostgreSQL offers advanced index types:
 
 - **GiST** (Generalized Search Tree): For full-text search, geometric data, range types. Used by PostGIS for spatial queries.
-- **GIN** (Generalized Inverted Index): For arrays, JSONB, full-text search (tsvector). Stores a mapping from values to rows efficient for finding rows containing a specific array element.
+- **GIN** (Generalized Inverted Index): For arrays, JSONB, full-text search (tsvector). Stores a mapping from values to rows — efficient for finding rows containing a specific array element.
 - **BRIN** (Block Range Index): For large tables where data is naturally ordered (time-series). Stores min/max values per block range. 100-1000x smaller than B-Tree but slower on random lookups.
-- **SP-GiST**: For k-d trees, quad-trees good for point data and network addresses.
+- **SP-GiST**: For k-d trees, quad-trees — good for point data and network addresses.
 - **Hash**: Equality-only lookups. Rarely used because B-Tree handles both equality and range.
 
 ---
@@ -168,7 +168,7 @@ Beyond B-Tree, PostgreSQL offers advanced index types:
 
 MongoDB uses **WiredTiger** as the default storage engine:
 
-- **Primary Index**: Always on `_id` a B-Tree. Documents are not stored in index order (heap-based).
+- **Primary Index**: Always on `_id` — a B-Tree. Documents are not stored in index order (heap-based).
 - **Secondary Indexes**: B-Tree or LSM depending on WiredTiger configuration. Default is B-Tree.
 - **Compound Indexes**: Same leftmost prefix rules as SQL.
 - **Multikey Index**: For array fields creates an index entry for each array element.
@@ -197,7 +197,7 @@ flowchart LR
  PI -->|seek to offset| Data
 ```
 
-- **Bloom Filter**: Memory-resident, probabilistic check "does this partition exist in this SSTable?" avoids unnecessary SSTable reads.
+- **Bloom Filter**: Memory-resident, probabilistic check. Answers "Does this partition exist in this SSTable?" and avoids unnecessary SSTable reads.
 - **Partition Index**: Maps partition keys to byte offsets within the SSTable. Loaded into memory lazily.
 - **SSTable Offset Map**: For range scans within a partition, the clustering columns are sorted on disk.
 - **Secondary Indexes**: Local indexes built on each node. Good for low-cardinality columns only. For high-cardinality, use materialized views or a separate table (SASI index).
@@ -208,7 +208,7 @@ flowchart LR
 
 Redis is an in-memory data structure store. Its "indexes" are the data structures themselves:
 
-- **Hash Table**: The primary store for all key lookups O(1) average.
-- **Skiplist**: Used by `ZSET` (sorted set) O(log n) for insert/delete/range. A probabilistic balanced tree.
+- **Hash Table**: The primary store for all key lookups — O(1) average.
+- **Skiplist**: Used by `ZSET` (sorted set) — O(log n) for insert/delete/range. A probabilistic balanced tree.
 - **Hash**: Field lookups within a `HASH` key are O(1) via hash table.
 - **Secondary indexing is manual**: Maintain a `ZSET` mapping a field value to key names, or use the RedisJSON module with array indexing.

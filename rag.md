@@ -7,9 +7,7 @@ created: "2026-06-13"
 
 # RAG
 
-Documents flow through a RAG pipeline in eight stages. Six are implemented (ingest, chunk, embed, retrieve, generate, evaluate); test coverage is minimal (unit tests only); monitor is scaffolded but broken on `main`. This note documents the `nadir` implementation as of `main` config defaults, exact mechanics, and where the code has gaps.
-
-> **Before reading:** `nadir` is a separate Go repo (github.com/Chandra179/nadir); this vault note documents it. Retrieval-quality concepts (recall@k, MRR, NDCG, faithfulness, LLM-as-judge) live in `ai/evaluation.md`.
+Documents flow through a RAG pipeline in eight stages. Six are implemented (ingest, chunk, embed, retrieve, generate, evaluate); test coverage is minimal (unit tests only); monitor is scaffolded but broken on `main`. This note documents the `nadir` implementation as of `main` config defaults, exact mechanics, and where the code has gaps. Go repo (github.com/Chandra179/nadir)
 
 ## Ingestion
 

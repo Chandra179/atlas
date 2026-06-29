@@ -10,6 +10,7 @@ created: "2026-06-13"
 > For the underlying mechanics of B-Trees, heap storage, WAL, MVCC, and related algorithms,
 > see [Storage Engines](../storage-engines.md) and [Database Algorithms](../algorithms.md).
 
+This deep dive examines PostgreSQL's internal architecture, storage model, and indexing design. Understanding these trade-offs helps data engineers and platform teams select the right database for pipeline workloads and avoid the sharp edges that bite production deployments.
 
 ### PK is a B-Tree index pointing to heap
 
@@ -127,74 +128,8 @@ flowchart LR
 |-------------|---------------|------|
 | Directory | B-Tree | License plate → spot (quick lookup) |
 | Parking spots | Heap | Actual cars at physical spots |
-| Row status sheet | Visibility Map | Per-row: "clean" (no cars left) or "dirty" (some have left) |
+| Row status sheet | Visibility Map | Per-spot: "clean" (spot contains a car) or "dirty" (spot is empty, car moved) |
 
-```go
-package main
-
-type Position struct{ Row, Spot int }
-
-type Spot struct {
-	Plate, Owner string
-	Dead bool // "withdrawn" car left
-	CTIDRow int // t_ctid: "→ Row X, Spot Y"
-	CTIDSpot int
-}
-
-func main() {
-	directory := map[string]Position{} // B-Tree
-
-	rows := make([][]Spot, 5) // Heap (5 rows, 4 spots each)
-	for i := range rows {
-		rows[i] = make([]Spot, 4)
-	}
-
-	rowStatus := make([]bool, 5) // Visibility Map
-	for i := range rowStatus {
-		rowStatus[i] = true
-	}
-
-	// ── 1. INSERT ──
-	directory["ABC123"] = Position{0, 1}
-	rows[0][1] = Spot{Plate: "ABC123", Owner: "Alice"}
-	rowStatus[0] = true
-	// B-Tree: {"ABC123" => (0,1)}
-	// Heap: Row 0, Spot 1 = {ABC123, Alice}
-	// VM: Row 0 = clean
-
-	// ── 2. HOT: same car shifts spots within Row 0 ──
-	rows[0][1].Dead = true
-	rows[0][1].CTIDRow = 0
-	rows[0][1].CTIDSpot = 3
-	rows[0][3] = Spot{Plate: "ABC123", Owner: "Alice"}
-	rowStatus[0] = false
-	// B-Tree: {"ABC123" => (0,1)} ← unchanged (plate = key didn't change)
-	// Heap: Row 0, Spot 1 = {dead, t_ctid → (0,3)}
-	// Row 0, Spot 3 = {ABC123, Alice}
-	// VM: Row 0 = dirty (dead spot)
-
-	// ── 3. No-HOT: car moves to different row ──
-	delete(directory, "ABC123")
-	directory["ABC123"] = Position{2, 0}
-	rows[0][3].Dead = true
-	rows[2][0] = Spot{Plate: "ABC123", Owner: "Alice"}
-	rowStatus[0] = false
-	// B-Tree: {"ABC123" => (2,0)} ← entry rewritten (plate = key changed)
-	// Heap: Row 0, Spot 3 = {dead}
-	// Row 2, Spot 0 = {ABC123, Alice}
-	// VM: Row 0 = dirty, Row 2 = clean
-
-	// ── 4. Lookup ──
-	pos, ok := directory["ABC123"]
-	if !ok {
-		// not found
-	} else if rowStatus[pos.Row] {
-		// clean → trust directory, 1 lookup
-	} else {
-		// dirty → walk to spot, follow t_ctid chain if dead
-	}
-	_ = pos
-}
-```
+A lookup hits the directory (B-Tree), checks the row status sheet (Visibility Map) to see if the spot is clean, then either reads the car (index-only scan) or walks to the spot and possibly follows a forwarding chain (heap + CTID).
 
 (For B-Tree index structure, see [Indexing](../storage-engines.md#b-tree))
