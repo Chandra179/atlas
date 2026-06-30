@@ -11,11 +11,48 @@ prerequisites:
 
 # DeepSeek Flash V4 Architecture
 
-## 0. Transformer Foundations
+## 0. Before the Transformer (Brief History)
+
+You don't need to know pre-Transformer history to understand V4-Flash, but it helps to know *why* Transformers exist — the problems they solved that nothing before could.
+
+### 0.1 The Pre-Transformer Era
+
+Before 2017, sequence models were **RNNs (Recurrent Neural Networks)** and **LSTMs**. They processed text one word at a time, left to right, updating a "hidden state" as they went:
+
+```
+Input:  "The" → "cat" → "sat" → "on" → "the" → "mat"
+State:  [s0] → [s1] → [s2] → [s3] → [s4] → [s5] → final state
+```
+
+**The fatal flaw:** To understand word #5 ("mat"), the model had to carry information all the way from word #1 ("The") through 4 sequential steps. Information faded with distance. Remembering something from 50 words back was nearly impossible. This is called the **long-range dependency problem**.
+
+RNNs also could not parallelize — you had to finish word 1 before starting word 2. Training was slow.
+
+### 0.2 What the Transformer Changed
+
+The Transformer (2017) replaced sequential processing with **parallel attention**:
+
+- **RNN:** "cat" → wait for "The" → update state → pass to "sat" → update state → ... (serial, O(N))
+- **Transformer:** "cat" looks directly at "The" in one step, regardless of distance (parallel, O(1) per pair, O(N²) total)
+
+This was revolutionary because:
+1. **Long-range dependencies became trivial** — word 1 and word 1000 connected equally easily.
+2. **Training became parallelizable** — all tokens processed simultaneously.
+3. **Scale became possible** — bigger models, more data, faster training.
+
+### 0.3 Is It Enough to Know Only the Transformer?
+
+**Yes.** For understanding V4-Flash (and any modern LLM), the Transformer is the only foundation you need. Everything before it (RNNs, LSTMs, GRUs, seq2seq with attention) is historical context — interesting for depth, unnecessary for understanding how or why V4-Flash works.
+
+The V4-Flash architecture doc assumes you understand the Transformer (Section 0.4-0.10 below). If you do, you have everything you need.
+
+---
+
+## 0.4 Transformer Foundations
 
 Before we can understand what DeepSeek V4-Flash improves, we need to understand what a Transformer is, what it's trying to do, and why it has problems that need solving. This section teaches you the entire Transformer from scratch — no prior knowledge needed.
 
-### 0.1 What Is a Transformer?
+### 0.4 What Is a Transformer?
 
 A **Transformer** is a type of neural network designed to process sequences of things — words in a sentence, pixels in an image, notes in a melody. It was invented in 2017 (Google, "Attention Is All You Need") and is the basis for every modern large language model (GPT, Claude, Llama, Gemini, DeepSeek).
 
@@ -30,7 +67,7 @@ Output: "Paris"
 
 The model read "The capital of France is" and predicted "Paris" because it learned, from training on billions of sentences, that Paris is the answer.
 
-### 0.2 The High-Level Flow
+### 0.5 The High-Level Flow
 
 Here is what happens inside a Transformer when you give it a sentence:
 
@@ -52,7 +89,7 @@ Predicted next token: " on"
 
 Each step is explained below.
 
-### 0.3 Step 1: Tokenizer — Turning Text into Numbers
+### 0.6 Step 1: Tokenizer — Turning Text into Numbers
 
 A Transformer cannot read letters. It needs numbers. The **tokenizer** splits text into small chunks (tokens) and assigns each an ID number.
 
@@ -64,7 +101,7 @@ A Transformer cannot read letters. It needs numbers. The **tokenizer** splits te
 
 Vocabulary size = how many unique tokens the model knows. V4-Flash knows **129,280** different tokens (enough for English, Chinese, code, math symbols, etc.).
 
-### 0.4 Step 2: Embedding — Giving Meaning to Numbers
+### 0.7 Step 2: Embedding — Giving Meaning to Numbers
 
 A token ID (e.g., 4762 for "cat") is just an index — it carries no meaning. The **embedding layer** converts each ID into a **vector** — a list of ~7000 numbers (for V4-Flash, 7168 numbers). These numbers are learned during training so that similar words end up with similar vectors.
 
@@ -76,11 +113,11 @@ token ID 1291 ("quantum") ──→ [-0.87, 0.23, -0.04, ..., 0.91] (different n
 
 After embedding, the sentence "The cat sat" becomes a **matrix** of shape [3 tokens × 7168 dimensions]. Every subsequent layer processes this matrix.
 
-### 0.5 Step 3: Attention — The Heart of the Transformer
+### 0.8 Step 3: Attention — The Heart of the Transformer
 
 Attention is the core innovation of the Transformer. It lets each token **look at every other token** and decide how much to listen to each one.
 
-**Intuition with an example:**
+**0.8.1 Intuition with an example:**
 
 Consider the sentence: "The cat sat on the mat because **it** was comfortable."
 
@@ -109,7 +146,7 @@ These scores determine how much each token's value (V) contributes to the output
 
 **Crucially:** every token attends to **every** token. For N tokens, that's N² comparisons. This is where the O(N²) cost comes from — the central problem DeepSeek V4-Flash is designed to fix.
 
-### 0.6 Step 4: Feed-Forward Network (FFN) — Processing What Attention Found
+### 0.9 Step 4: Feed-Forward Network (FFN) — Processing What Attention Found
 
 After attention, each token has a new vector that carries context from every other token. The FFN is a simple neural network (two matrix multiplications with a nonlinearity) that processes this vector **independently for each token**.
 
@@ -122,7 +159,7 @@ token's enriched representation. This is why it's called "feed-forward."
 
 Think of the FFN as the "thinking" step — attention gathered information, and the FFN decides what to do with it.
 
-### 0.7 Stacking Layers: Why 67?
+### 0.10 Stacking Layers: Why 67?
 
 A single attention + FFN pair is one **layer**. Transformers stack many layers so that each layer can build on the previous one's output.
 
@@ -135,7 +172,7 @@ Layer 67: "cat" has full-document understanding → predicts next word accuratel
 
 Each layer can attend to ALL tokens (using the previous layer's representations). After 67 layers, the representation of the last token contains information about the entire sequence.
 
-### 0.8 Step 5: Output Head — Predicting the Next Token
+### 0.11 Step 5: Output Head — Predicting the Next Token
 
 After all 67 layers, the model has a final vector for each position. For the **last position**, it runs this through a large classifier (vocabulary × hidden_dim = 129,280 × 7168) to produce a probability for every token in the vocabulary.
 
@@ -146,7 +183,7 @@ Final vector → [0.001, 0.0001, 0.8, 0.02, ..., 0.00001]
             "Paris" has 80% probability → model predicts "Paris"
 ```
 
-### 0.9 What Is the Model Actually Learning During Training?
+### 0.12 What Is the Model Actually Learning During Training?
 
 During training, the model sees billions of text examples. For each example, it:
 
@@ -162,7 +199,7 @@ After seeing 14.8 **trillion** tokens, the model's 284 billion parameters encode
 - Code syntax (for loops, function definitions)
 - Conversation style (how to answer helpfully)
 
-### 0.10 The Big Problems with Vanilla Transformers
+### 0.13 The Big Problems with Vanilla Transformers
 
 Now we understand the pain points that DeepSeek V4-Flash is designed to solve:
 
