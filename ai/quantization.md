@@ -38,6 +38,131 @@ Quantization reduces the numerical precision of model weights (and optionally ac
 
 ---
 
+> **Skip to [Quantization Formats](#quantization-formats)** if you already understand the math and just need to pick a format for deployment.
+
+## The Quantization Algorithm
+
+### The Affine Formula
+
+Every quantization scheme rests on one linear transformation:
+
+```
+x_q = round(x / scale)                          (symmetric)
+x_q = round(x / scale) + zero_point             (asymmetric)
+```
+
+`x` is the original FP16 weight. `x_q` is the quantized integer — for INT4, that is one of 16 possible values (-8 to 7). `scale` maps the range between FP16 space and integer space. `zero_point` shifts the range for asymmetric distributions.
+
+The model never computes with `x_q` directly — it **dequantizes** back to approximate FP16 on the fly:
+
+```
+x_approx = x_q × scale                          (symmetric)
+x_approx = (x_q - zero_point) × scale           (asymmetric)
+```
+
+### A Worked Example
+
+Take a tiny weight vector:
+
+```
+w = [0.42, -1.35, 0.08, 2.91]
+```
+
+**Step 1 — Compute the scale (absmax method).** For symmetric INT4, the quantized range is [-7, 7]:
+
+```
+max(|w|) = 2.91
+Qmax (INT4) = 2^(4-1) - 1 = 7
+scale = 2.91 / 7 = 0.416
+```
+
+**Step 2 — Quantize each weight:**
+
+```
+w_q[0] = round(0.42 / 0.416)   = round(1.01)  = 1
+w_q[1] = round(-1.35 / 0.416)  = round(-3.25) = -3
+w_q[2] = round(0.08 / 0.416)   = round(0.19)  = 0
+w_q[3] = round(2.91 / 0.416)   = round(7.00)  = 7
+```
+
+Result: `w_q = [1, -3, 0, 7]` — 4 values × 4 bits = 16 bits, plus one FP16 scale (16 bits). Original: 4 × 16 = 64 bits. **4× compression.**
+
+**Step 3 — Dequantize to see the error:**
+
+```
+w_approx[0] = 1 × 0.416   = 0.416
+w_approx[1] = -3 × 0.416  = -1.248
+w_approx[2] = 0 × 0.416   = 0.0
+w_approx[3] = 7 × 0.416   = 2.912
+```
+
+| Original | Quantized | Dequantized | Error |
+|---|---|---|---|
+| 0.42 | 1 | 0.416 | -0.004 (1%) |
+| -1.35 | -3 | -1.248 | +0.102 (7.6%) |
+| 0.08 | 0 | 0.0 | -0.08 (100%) |
+| 2.91 | 7 | 2.912 | +0.002 (0.1%) |
+
+The small weight (0.08) lost all its value — it quantized to 0. The large weight (2.91) lost almost nothing. This asymmetry is why group size matters.
+
+### How Scale Is Determined (Calibration)
+
+The scale must be computed before quantizing. Three common methods:
+
+| Method | Formula | Best For |
+|---|---|---|
+| **Absmax** | `scale = max(\|W\|) / Qmax` | Weights (symmetric around zero) |
+| **Min-max** | `scale = (max - min) / (Qmax - Qmin)` | Activations (all-positive after ReLU) |
+| **Percentile** | Uses the 99.9th percentile instead of absolute max | Data with outliers — clips extremes for better overall precision |
+
+For weight-only quantization, no calibration pass is needed — the weight values are static. For activation quantization, a calibration dataset (a few hundred text samples) is run through the model to observe each layer's activation ranges.
+
+### How Group Size Controls Error
+
+A single scale for a whole 70B-parameter matrix would be useless — the weights span too wide a range. The solution: slice the weight matrix into groups and give each group its own scale.
+
+| Group Size | Scales per 4096×4096 matrix | Memory Overhead | Error Profile |
+|---|---|---|---|
+| Full matrix | 1 | 0% | All weights share one scale — outliers corrupt every value |
+| Per row (channel) | 4096 | 0.02% | Each row adapts to its own range |
+| 128 weights | ~131K | ~3% | Standard sweet spot |
+| 32 weights | ~524K | ~12% | Better for outlier-prone layers |
+
+**Why groupsize 128 is standard:** Each FP16 scale adds 16 bits of overhead. With groupsize 128, that is 16 / (128 × 4) = 3.1% overhead — the scale is negligible compared to the data. Dropping to groupsize 32 quadruples the scales to ~12% overhead, which eats into the memory savings.
+
+**Concrete comparison:**
+
+| Scenario | Scale | Weight 0.01 | Weight 2.50 |
+|---|---|---|---|
+| Global scale | 2.50 / 7 = 0.357 | Quantizes to 0. Error = 100% | Quantizes to 7. Error ≈ 0% |
+| Group scale (size 4) | 0.02 / 7 = 0.0029 | Quantizes to 3. Error = 13% | Quantizes to 7. Error ≈ 0% |
+
+A small weight that would be erased by a global scale becomes representable with a local scale.
+
+### Symmetric vs Asymmetric
+
+| | Symmetric | Asymmetric |
+|---|---|---|
+| Formula | `x_q = round(x / scale)` | `x_q = round(x / scale) + zp` |
+| Range | [-Qmax, Qmax] | [0, 255] for INT8 |
+| Zero | Exactly representable | May map to any integer |
+| Weights | Standard (cluster around zero) | Not needed |
+| Activations | Wastes half the range | Better (all-positive after ReLU) |
+
+Symmetric quantizes zero to zero exactly — important when zero-padding or masked positions appear. Asymmetric captures the full dynamic range for one-sided distributions.
+
+### Where Dequantization Happens
+
+Quantized weights never return to full FP16 storage — that would defeat the memory savings. Instead:
+
+- **Hardware-native formats (INT8, FP8):** Tensor cores on H100 and RTX 4090 accept INT8 or FP8 inputs directly and accumulate into FP16/FP32. The dequantization is electrical — the circuit interprets the bits differently, no software overhead.
+
+- **Software formats (INT4, INT2):** No GPU has INT4 tensor cores. The runtime loads INT4 weights, multiplies by the per-group scale, promotes to FP16, and feeds the result to FP16 tensor cores. This happens in a **fused dequantization kernel** that overlaps the conversion with the matrix multiply — the GPU does not stall.
+
+- **FP8** is a true floating-point format, not integer quantization (see [`deepseek-v4-flash.md`](deepseek-v4-flash.md) §9 for E4M3 vs E5M2). H100 tensor cores accept FP8 natively — dequantization is free.
+
+---
+
 ## Quantization Formats
 
 ### Post-Training Quantization (PTQ)

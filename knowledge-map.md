@@ -6,19 +6,19 @@ created: 2026-06-29
 
 | Domain | Breadth Level | Depth | Files | Missing |
 |--------|--------------|-------|-------|---------|
-| **Database** | Full | Deep | 16 | — |
+| **Database** | Full | Deep | 14 | — |
 | **Economy** | Full | Moderate | 30 | Depth varies across subtopics |
 | **Distributed Systems (etcd/Raft, Syncthing)** | Narrow | Deep | 2 | Other consensus protocols (Paxos, VSR, EPaxXos), gossip protocol, CRDTs |
 | **System Design** | Narrow | Deep | 3 | Consistent hashing, ID generation (Snowflake), rate limiting, distributed cache, notification system, real-time chat, URL shortener, rate limiter design |
 | **Math** | Broad | Deep (trig/lin alg) | 7 | Integral calculus, multivariable calculus, differential equations, probability/statistics, discrete math, numerical methods, information theory, optimization, proof techniques |
-| **AI/ML** | Broad | Moderate | 9 | Transformer architecture, attention mechanism, training fundamentals, RLHF, prompt engineering |
+| **AI/ML** | Broad | Moderate | 10 | Transformer architecture, attention mechanism, training fundamentals, RLHF, prompt engineering |
 | **RAG** | Narrow (one system) | Deep | 1 | Search engine internals, alternative retrieval strategies (ColBERT, late interaction) |
 | **React** | Broad | Deep | 1 | Server Components hands-on, Next.js, state management libraries, testing |
 | **Go** | Narrow | Deep goroutines, Shallow strings | 2 | Interfaces, errors, generics, testing, modules, HTTP/net, reflection, context, memory model, GC, profiling, embedding, structs/methods, type system, standard library |
-| **Fundamentals** | Moderate | Deep | 8 | Operating systems, compilers/interpreters, data structures & algorithms, design patterns, testing strategies, CI/CD, containerization, security (beyond OAuth) |
+| **Fundamentals** | Moderate | Deep | 7 | Operating systems, compilers/interpreters, data structures & algorithms, design patterns, testing strategies, CI/CD, containerization, security (beyond OAuth) |
 | **Data Pipeline** | Narrow | Practitioner | 5 | Stream processing engines, CDC patterns beyond Debezium, data lakehouse (Iceberg, Delta Lake) |
 | **Psychometric System** | Narrow | Architecture spec | 1 | — |
-| **Distributed Systems Engineering** | Narrow | Moderate | 0 | distributed caching, lock service, coordination, leader election, failure detectors |
+| **Lattice Work** | Placeholder | — | 0 | Charlie Munger mental models — no content yet |
 
 # Foundation Health
 

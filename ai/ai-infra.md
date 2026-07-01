@@ -140,7 +140,7 @@ Embedding model serving is fundamentally different from generative model serving
 
 For production embedding serving, a mid-range GPU handles thousands of requests per second. High-end generative GPUs are overkill for embeddings alone.
 
-**See also:** [`embeddings.md`](embeddings.md) vector representations, similarity measures, training.
+**See also:** [`ml.md`](ml.md) § Embeddings & Vector Representations — vector representations, similarity measures, training.
 
 ---
 

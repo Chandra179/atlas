@@ -9,7 +9,7 @@ created: "2026-06-13"
 
 Documents flow through a RAG pipeline in eight stages. Six are implemented (ingest, chunk, embed, retrieve, generate, evaluate); test coverage is minimal (unit tests only); monitor is scaffolded but broken on `main`. This note documents the `nadir` implementation as of `main` config defaults, exact mechanics, and where the code has gaps.
 
-> **Before reading:** `nadir` is a separate Go repo (github.com/Chandra179/nadir); this vault note documents it. Retrieval-quality concepts (recall@k, MRR, NDCG, faithfulness, LLM-as-judge) live in `ai/evaluation.md`.
+> **Before reading:** `nadir` is a separate Go repo (github.com/Chandra179/nadir); this vault note documents it. Retrieval-quality concepts (recall@k, MRR, NDCG, faithfulness, LLM-as-judge) live in `ai/ml.md` § Model Evaluation & Benchmarks.
 
 ## Ingestion
 
@@ -187,7 +187,7 @@ The judge calls Ollama's OpenAI-compatible `/v1/chat/completions`; the judge mod
 
 > The `EVAL_LLM_BASE_URL` / `EVAL_LLM_MODEL` / `EVAL_HISTORY_PATH` entries were removed from `.env.example` they were never read by any code.
 
-For the conceptual basis perplexity, BLEU/ROUGE/METEOR/BERTScore, LLM-as-judge, benchmarks see `ai/evaluation.md`.
+For the conceptual basis perplexity, BLEU/ROUGE/METEOR/BERTScore, LLM-as-judge, benchmarks see `ai/ml.md` § Model Evaluation & Benchmarks.
 
 ***
 

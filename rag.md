@@ -185,7 +185,7 @@ The judge calls Ollama's OpenAI-compatible `/v1/chat/completions`; the judge mod
 
 > The `EVAL_LLM_BASE_URL` / `EVAL_LLM_MODEL` / `EVAL_HISTORY_PATH` entries were removed from `.env.example` they were never read by any code.
 
-For the conceptual basis perplexity, BLEU/ROUGE/METEOR/BERTScore, LLM-as-judge, benchmarks see `ai/evaluation.md`.
+For the conceptual basis perplexity, BLEU/ROUGE/METEOR/BERTScore, LLM-as-judge, benchmarks see `ai/ml.md` § Model Evaluation & Benchmarks.
 
 ***
 

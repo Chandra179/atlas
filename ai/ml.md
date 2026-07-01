@@ -41,7 +41,15 @@ The activation function shapes what the neuron can express:
 | GELU | (-∞, ∞) | Transformers | Non-zero gradient for negative inputs (~0.1 at -1), avoids dead neurons [^1] |
 | Swish | (-∞, ∞) | Deep CNNs | Self-gated, smoother gradient landscape |
 
-The choice affects gradient flow. Sigmoid squashes everything between 0 and 1 great for "yes/no" at the output, but deep networks lose signal because gradients approach zero at the extremes. ReLU fixed this by being linear for positive inputs (gradient = 1), but neurons with permanently negative inputs "die" and stop learning. GELU and Swish avoid the dead-neuron problem by maintaining a non-zero gradient for negative inputs (e.g., GELU ~0.1 at -1 [^1]), enabling consistent gradient flow in very deep networks.
+The choice affects gradient flow because backpropagation multiplies derivatives through every layer via the chain rule:
+
+$$\text{Total Gradient} = \text{Layer 3 Gradient} \times \text{Layer 2 Gradient} \times \text{Activation Derivative}$$
+
+If any activation derivative is zero, the entire gradient chain collapses to zero — the weight freezes and stops learning.
+
+Sigmoid squashes everything between 0 and 1 — great for "yes/no" outputs, but deep networks lose signal because gradients approach zero at the extremes (vanishing gradients). ReLU fixed this by being linear for positive inputs (gradient = 1), but neurons with permanently negative inputs output exactly 0, whose derivative is 0 — multiplying the gradient chain by 0 kills it. This is the **Dead ReLU** problem: the weight update becomes $w_{\text{new}} = w_{\text{old}} - 0$ and the neuron freezes permanently.
+
+GELU avoids this by maintaining a non-zero gradient for negative inputs (e.g., ~0.1 at -1 [^1]). That tiny curve instead of a flat line lets a fraction of the gradient leak backward even through negative neurons, keeping all 100+ layers trainable. This is why modern Transformers use GELU.
 
 ### Loss: Measuring How Wrong We Are
 
@@ -57,13 +65,16 @@ The loss is the number the entire training process tries to minimize.
 
 ### Gradient Descent: Walking Downhill
 
-If loss is a landscape, gradient descent finds the lowest valley. At each step:
+If loss is a landscape, gradient descent finds the lowest valley. Imagine a U-shaped valley where height = Loss (how wrong the AI is) and horizontal position = a specific weight value. Calculus finds the slope at your current position:
 
-1. Compute the gradient which direction is uphill? (partial derivative of loss w.r.t. each weight)
-2. Take a step in the **opposite** direction (downhill).
-3. Step size = learning rate.
+- **Negative slope** (downhill to the right) → increase the weight.
+- **Positive slope** (uphill to the right) → decrease the weight.
 
-Too large a step: overshoot the valley, oscillate, diverge. Too small: training takes forever.
+The weight update follows:
+
+$$w_{\text{new}} = w_{\text{old}} - (\alpha \times \text{Gradient})$$
+
+Where $\alpha$ is the **Learning Rate** — a small multiplier (e.g., 0.001) controlling step size. Too large: overshoot the valley, oscillate, diverge. Too small: training takes forever.
 
 ### Backpropagation: Assigning Blame
 
@@ -75,7 +86,15 @@ How do we know which weight to change by how much? Backpropagation applies the c
 
 The chain rule means `d(loss)/d(weight) = d(loss)/d(output) × d(output)/d(net_input) × d(net_input)/d(weight)`. Each layer's gradient depends on the layer after it hence "back" propagation.^[The same principle applies regardless of depth gradients flow backward through every differentiable operation in the computation graph.]
 
-> **Key things**: (1) Forward pass computes predictions and loss. (2) Backward pass applies the chain rule from the loss back to each weight. (3) Each weight is updated via SGD in proportion to its contribution to the error.
+The full learning loop:
+
+1. **Text → Vectors** — tokens become embeddings.
+2. **Vectors × Weights** — stacked Transformer layers transform them.
+3. **GELU** — keeps gradients flowing through 100+ layers.
+4. **Vocab projection** — final vector dot-producted against vocabulary matrix → logits.
+5. **Softmax** — normalizes logits into probabilities.
+6. **Loss** — error measured against ground truth.
+7. **Gradient descent** — calculus slides weights down the loss curve.
 
 ## From One Neuron to Deep Networks
 
@@ -155,8 +174,6 @@ Adam is the safe default. AdamW is preferred for Transformers because it separat
 
 **Hyperparameter Tuning** Learning rate, batch size, dropout rate, layer count, hidden size. Search strategies: grid (exhaustive, expensive), random (surprisingly effective), Bayesian (learns which regions are promising).
 
-> **Key things**: (1) Prepare data shape tensors correctly, normalize features, split into train/val/test. (2) Choose an optimizer and learning rate schedule. (3) Tune hyperparameters systematically random search usually beats grid.
-
 ## Fight Overfitting
 
 Beyond architecture choices, these techniques directly combat overfitting:
@@ -173,88 +190,6 @@ Beyond architecture choices, these techniques directly combat overfitting:
 Distribution shift is the silent killer of deployed models. Covariate shift (input distribution changes) and concept drift (the relationship between input and output changes) degrade performance without any code change or error message.
 
 > **Practical note**: For fine-tuning large models, the sweet spot is often 1–3 epochs. Beyond that, you transition from generalizing to memorizing, especially when the fine-tuning dataset is small.
-
-## The Architecture Zoo
-
-Why different architectures? Because different data has different structure. A spreadsheet row, an image, and a sentence are fundamentally different shapes of information and the architecture should reflect that structure.
-
-### Convolutional Neural Networks (CNN) For Spatial Data
-
-Images have **local** structure. A pixel is related to its neighbors, not to pixels far across the image. CNNs exploit this with weight sharing: the same filter slides across the entire image, detecting the same pattern (edge, texture, shape) wherever it appears.
-
-Key operations: convolution (pattern matching), pooling (downsampling, translation invariance), stride (how far the filter moves each step).
-
-> **When not to use CNNs**: Avoid CNNs when global position matters more than local structure e.g., tabular data where column order is arbitrary, or graphs where connectivity is non-Euclidean. For those cases, MLPs (tabular) or GNNs (graphs) are better suited.
-
-### RNNs & LSTMs For Sequential Data
-
-Text, audio, and time series have **temporal** structure. Order matters. RNNs process input one step at a time, carrying a hidden state forward. The hidden state is the network's "memory" of everything it has seen so far.
-
-The problem: vanilla RNNs can't learn long-range dependencies. Gradients vanish across time steps. LSTMs solved this with **gating** learnable forget/input/output gates that control what information is kept, added, and emitted from the hidden state. The gates create shortcuts for gradients to flow unchanged across many time steps.
-
-> **When not to use RNNs**: Skip RNNs for sequences longer than ~512 tokens gradient issues re-emerge and sequential processing becomes a bottleneck. Transformers handle long-range dependencies and parallelize better.
-
-### The Transformer Revolution
-
-The insight that changed everything: instead of processing tokens one at a time (RNN bottleneck), look at **all tokens simultaneously** via attention. [^8]
-
-**Self-Attention** Each token computes how relevant every other token is to understanding it. "The animal didn't cross the street because it was too tired" "it" should attend strongly to "animal." This attention score is a learned weighted sum of all tokens.
-
-**Multi-Head Attention** Run multiple attention operations in parallel. One head might track subject-verb agreement, another tracks pronoun references, another tracks sentiment. Each head captures a different relationship.
-
-**Cross-Attention** One sequence attends to another. In translation: the decoder (generating French) attends to the encoder's representation of the English source. The decoder queries, the encoder provides keys and values.
-
-**Encoder-Decoder Architecture** The encoder processes the input into a dense latent representation. The decoder generates the output from that representation. Backbone of T5, the original Transformer, and most seq2seq tasks. For GPT-style models, the decoder-only variant dominates.
-
-| Mechanism | Purpose |
-|-----------|---------|
-| Self-Attention | Each token attends to every other token in the same sequence |
-| Multi-Head Attention | Multiple parallel attention views, each capturing different relationships |
-| Cross-Attention | Decoder attends to encoder's output query from decoder, keys/values from encoder |
-| Encoder-Decoder | Bidirectional encoding → autoregressive decoding |
-
-> See [Attention Is All You Need, Figure 2](https://arxiv.org/abs/1706.03762) for the original multi-head attention diagram the parallel structure is much clearer visually than prose can convey. [^8]
-
-> **When not to use Transformers**: Not ideal for small datasets (<10K examples) where simpler models (e.g., CNNs, MLPs) generalize better with less compute. Also avoid when latency is critical on low-end hardware the quadratic attention cost over sequence length adds up quickly.
-
-### Generative Models
-
-Three families, three approaches to creating new data:
-
-**GANs** Adversarial game. Generator creates fakes, discriminator tries to spot them. Both improve through competition. Produces sharp images but training is unstable (mode collapse: generator only produces one type of output).
-
-**VAEs** Learn a compressed latent space, then sample from it. More stable than GANs but outputs tend to be blurrier the model averages over possibilities rather than picking one sharp output.
-
-**Diffusion Models** Learn to denoise. Forward: gradually add noise to an image until it's pure noise. Reverse: learn to remove noise step by step. State-of-the-art for image/video generation (Stable Diffusion, DALL-E, Sora). [^17]
-
-### Mixture of Experts (MoE)
-
-Instead of one giant model, have many smaller "expert" sub-networks and a router that decides which experts handle each input. Each token activates only ~2 of 8 experts. Result: massive total capacity with compute proportional to only the active experts. Used in Mixtral, GPT-4, DeepSeek-V3. [^16][^21]
-
-**How routing works** For each token, the router computes a softmax over all experts and selects the top-k (typically k=2). The token is then processed only by the selected experts. This keeps FLOPs per token roughly constant while scaling total parameters.
-
-**Load balancing** Naive top-k routing causes expert collapse: the router learns to send most tokens to 1–2 experts, starving the rest. The fix: an auxiliary loss that penalizes imbalanced expert usage. [^22] Without this, MoE training fails experts that never receive tokens stop receiving gradients and die permanently.
-
-**Tradeoffs vs dense models:**
-
-| Dimension | Dense (e.g., LLaMA 3 70B) | MoE (e.g., Mixtral 8×7B) |
-|-----------|---------------------------|---------------------------|
-| Total params | 70B | ~46B (but 8×7B experts) |
-| Active params per token | 70B | ~12B (2 of 8 experts) |
-| VRAM (inference) | ~140 GB (FP16) | ~92 GB (FP16, all experts loaded) |
-| Training stability | Stable | Requires auxiliary loss, expert balancing |
-| Throughput | Slower per token | Faster per token (fewer active params) |
-| Memory bandwidth | Bottlenecked by loading all weights | Same bottleneck all experts must be in VRAM |
-
-> Despite lower active params per token, MoE inference VRAM is still high because all experts must reside in memory. The win is compute speed, not memory savings. DeepSeek-V3 pushes this to extreme: 671B total params, 37B active per token the largest open-weight MoE to date. [^23]
-
-### Self-Supervised Learning
-
-The data provide their own labels. No human annotation needed:
-
-- **Autoregressive (AR)**: predict the next token. Given "The cat sat on the", predict "mat." GPT-style.
-- **Masked Language Modeling (MLM)**: hide random words, predict them. "The [MASK] sat on the mat" → "cat." BERT-style.
-- **Contrastive Learning**: pull similar examples together in embedding space, push dissimilar apart. CLIP (images + captions).
 
 ## The Modern LLM Era
 
@@ -323,46 +258,190 @@ Despite all sharing Transformer roots, major models differ in:
 
 Training a top-tier model: 3–6 months, tens of thousands of H100/TPU GPUs interconnected with NVLink/InfiniBand. A single chip failure or network loss spike can corrupt a multi-million dollar training run. Checkpoints occur every 100–1000 steps (minutes apart), each writing terabytes of model state to parallel storage a single lost checkpoint can lose days of computation. Fault tolerance is an engineering requirement, not a nice-to-have.
 
+## Embeddings & Vector Representations
+
+You search for "fast Python web framework" and get the Flask docs. Not because the page contains those exact words it doesn't but because an embedding model understood that "Flask" is a fast Python web framework and placed its vector near that query in semantic space.
+
+This is the power of embeddings: they capture meaning, not just text matching. And they're the backbone of every modern search, recommendation, and RAG system.
+
+### What Is an Embedding?
+
+An embedding is a dense vector of floating-point numbers typically 768 to 3072 dimensions that represents a piece of text, an image, or any data in a continuous vector space. The key property: semantically similar items are close together. The distance between two embeddings encodes how related their meanings are.
+
+Embeddings are the bridge between discrete symbols (words, tokens) and continuous mathematics (gradients, optimization). Without embeddings, neural networks would operate on integer IDs with no notion of similarity "cat" would be as different from "kitten" as from "concrete."
+
+### How Embeddings Are Trained
+
+Modern text embedding models use a dual-encoder architecture:
+
+1. Two identical Transformer encoders process a pair of texts (query/document, sentence/sentence, or text/image).
+2. The final hidden state is pooled (mean, CLS token, or last token) into a single embedding vector.
+3. A contrastive loss function pulls similar pairs closer in vector space and pushes dissimilar pairs apart.
+
+The training data creates the signal. For search embeddings: (query, relevant document) pairs. For sentence similarity: naturally occurring paraphrases, or synthetically generated by LLMs. For code embeddings: (docstring, function body) pairs. For multimodal embeddings (CLIP): (image, caption) pairs the model learns to map images and text into a shared embedding space. [^43]
+
+### Popular Embedding Models
+
+| Model | Dimensions | Max Tokens | Strengths | Weaknesses |
+|-------|------------|------------|-----------|------------|
+| **OpenAI text-embedding-3-small** | 512/1536 | 8191 | Cheap, easy, Matryoshka-compatible | Closed-source, tied to OpenAI API |
+| **OpenAI text-embedding-3-large** | 256–3072 | 8191 | Best-in-class on MTEB, Matryoshka [^37] | Expensive (~$0.13/1M tokens) |
+| **Voyage voyage-3** | 1024 | 32000 | Long context, strong retrieval | Closed-source, fewer dimensions |
+| **Jina embeddings v3** | 1024 | 8192 | Task-specific LoRA adapters, multilingual [^41] | Newer, smaller community |
+| **BGE-M3 (BAAI)** | 1024 | 8192 | Dense + sparse + ColBERT, multilingual, open-weight [^38][^39] | Needs careful batching for throughput |
+| **Cohere Embed v3** | 1024 | 512 | Compression-aware, good for long docs | Closed-source |
+| **E5-mistral-7b-instruct** | 4096 | 32768 | Synthetic data trained, open-weight [^42] | Huge embed dim → expensive vector DB |
+
+The MTEB (Massive Text Embedding Benchmark) leaderboard tracks performance across classification, clustering, pair classification, reranking, retrieval, STS, and summarization. No single model dominates all tasks. Benchmark on your specific data and task type.
+
+### Similarity Measures
+
+Once you have vectors, you need a way to compare them:
+
+| Measure | Formula | Range | When to Use | When It Fails |
+|---------|---------|-------|-------------|---------------|
+| **Cosine Similarity** | `A·B / (‖A‖‖B‖)` | [-1, 1] | Default for text embeddings | Magnitude matters (rare) |
+| **Dot Product** | `A·B` | (-∞, ∞) | Vector DBs with normalized vectors | Unnormalized longer docs score higher |
+| **Euclidean Distance** | `‖A − B‖` | [0, ∞) | Clustering, anomaly detection | Embeddings at different scales |
+
+Most embedding models normalize output vectors to unit length, making cosine similarity and dot product equivalent. Use cosine as the default. For unnormalized embeddings (rare), prefer Euclidean distance in clustering where absolute position matters.
+
+L²-normalize your embeddings before storing them in a vector database. It makes dot-product search equivalent to cosine similarity search, which is faster to compute without the normalization denominator.
+
+### Dimensionality Tradeoffs
+
+Higher-dimensional embeddings capture more nuance but cost more:
+
+| Dimensions | Storage per 1M vectors | Approximate Recall | Use Case |
+|------------|------------------------|---------------------|----------|
+| 256 | ~1 GB (FP32) | 95–97% of full-dim | Budget-sensitive, high-volume |
+| 768 | ~3 GB | 98–99% | Good default for most tasks |
+| 1024 | ~4 GB | 98–99% | Open-weight model sweet spot |
+| 1536 | ~6 GB | 99%+ | Best-in-class retrieval |
+| 3072 | ~12 GB | 99%+ | Diminishing returns past 1536 for most tasks |
+
+Storage in a vector database isn't just the raw vectors add index overhead (HNSW graphs, IVF clusters) and metadata. Budget 1.5–2× the raw vector size for the full index. For 10M vectors at 1536 dimensions: ~60 GB raw + ~30 GB index = ~90 GB total.
+
+**Matryoshka embeddings** Train once, use at any dimension. A Matryoshka embedding model produces a single 3072-dim vector, but you can truncate it to 1536, 768, or 256 and keep strong performance. text-embedding-3 and voyage-3 use this technique. [^40] This means you can store full-dim embeddings in cold storage and truncate to 256 dims for a fast approximate index no separate model or re-embedding needed.
+
+### Practical: Storing and Querying
+
+Embeddings are worthless without retrieval. The vector database handles indexing and similarity search at scale (see [Specialized Databases](../database/specialized-databases.md) for pgvector/Pinecone/Milvus).
+
+The pipeline:
+1. Embed documents → store vectors + metadata in vector DB
+2. Embed user query → search vector DB for nearest neighbors (k-NN or ANN)
+3. Retrieve top-k results → feed into LLM context (if RAG) or return directly (if search)
+
+**Chunking matters more than embedding model choice.** A single 10,000-token document produces one embedding that averages all its topics into a single point useless for retrieval. Split into chunks of 256–1024 tokens with 10–20% overlap. Semantic chunking (split at natural boundaries like paragraphs or sentence groups) outperforms fixed-size chunking. Bad chunking makes even text-embedding-3-large look bad.
+
+### Code, Image, and Multimodal Embeddings
+
+**Code embeddings** Models like Voyage-code-2 or CodeBERT embed code snippets for semantic search. "Find all functions that handle file uploads" works because the embedding captures what the code does, not what it's named. Useful for codebase-wide search and RAG over documentation.
+
+**Image embeddings** CLIP embeds images and text into the same space. An image of a dog and the text "a photo of a dog" produce similar vectors. This enables text-to-image search, zero-shot image classification, and multimodal RAG.
+
+**Multimodal embeddings** Jina CLIP v2 and similar models produce a single embedding from an image + its surrounding text. Store these in a vector DB and you can search a PDF with diagrams using natural language.
+
 ## Practical Deployment
 
-### VRAM Is the Constraint
+VRAM is the binding constraint: a 7B FP16 model needs ~14 GB for weights alone; training adds optimizer states and gradients → ~56+ GB. For detailed guidance:
+- **[Quantization](quantization.md)** — reduce precision to fit models in limited VRAM (FP16 → INT8 → 4-bit).
+- **[Fine-tuning](fine-tuning.md)** — QLoRA for efficient fine-tuning on consumer GPUs.
+- **Knowledge Distillation**: train a small "student" model to mimic a large "teacher" using the teacher's output distribution (soft labels). [^15]
+- **Model Merging**: combine multiple fine-tuned variants without retraining using SLERP or DARE.
 
-When running models locally, VRAM is everything. It must simultaneously hold:
+## Model Evaluation & Benchmarks
 
-- **Weights**: the actual model parameters (e.g., 7B params × 2 bytes = 14 GB for FP16).
-- **Optimizer states**: Adam stores two momentum buffers per parameter (another 2× memory).
-- **Gradients**: one value per parameter during training.
-- **Activations**: intermediate values of every layer during the forward pass.
+"Why does my model look great in the playground but fail in production?" You ran a few prompts, the outputs looked reasonable, and you shipped it. Then users started reporting nonsense answers, biased completions, and confident hallucinations.
 
-A 7B model at FP16: ~14 GB for weights alone. Training adds optimizer states and gradients → ~56+ GB. This is why training runs on clusters and inference can run on a single consumer GPU.
+Evaluation is the difference between "looks good to me" and knowing your model works. Without it, every change a new fine-tune, a different prompt format, a bigger model is a coin flip.
 
-### Fitting Into Limited VRAM
+### Perplexity
 
-When your GPU can't fit the full model:
+Perplexity measures how "surprised" a model is by text it hasn't seen. It's the exponentiated average negative log-likelihood of each token:
 
-- **Smaller models**: LLaMA 1B or 3B instead of 7B or 70B. [^18]
-- **QLoRA** (Quantized Low-Rank Adaptation): freeze the full model in 4-bit, train only tiny adapter matrices. Cuts memory by ~2–3×; fine-tuning a 7B model drops from ~56 GB to ~24 GB. [^14]
-- **Unsloth**: optimized CUDA kernels that speed up QLoRA fine-tuning 2–4×.
-- **Quantization**: reduce precision. FP16 → INT8 → 4-bit. Each halving roughly halves VRAM. Modern 4-bit quantization loses <1% quality for many use cases.
+```
+Perplexity = exp(-1/N * Σ log P(token_i | token_1...token_{i-1}))
+```
 
-### Knowledge Distillation
+Lower perplexity = the model assigns higher probability to the correct next token = it better predicts the test data. A perplexity of 10 means the model is as uncertain as if choosing uniformly among 10 equally likely options at each step.
 
-Train a small "student" model to mimic a large "teacher." The student doesn't just learn from data it learns from the teacher's output distribution (soft labels). [^15] The student compresses the teacher's knowledge into a fraction of the size.
+Perplexity is fast, automatic, and reproducible no human needed. It's the standard metric during pre-training and fine-tuning for tracking whether loss is still decreasing.
 
-### Model Merging
+**But it's insufficient alone.** Perplexity rewards a model for being good at next-token prediction on its training distribution. It does not capture factual accuracy, reasoning ability, helpfulness, safety, or instruction following. A model can have low perplexity and still generate confident nonsense. Use perplexity to monitor training, not to evaluate quality.
 
-Combine multiple fine-tuned variants into one model without retraining. SLERP (spherical linear interpolation) blends weights smoothly. DARE (Drop and REscale) randomly drops most delta parameters then rescales the remainder. Useful when you fine-tuned one model for coding and another for creative writing merge gives you both.
+### Generation Metrics
 
-### Where to Go Next
+For tasks with a reference output (translation, summarization, question answering), these metrics compare generated text against a human-written reference:
 
-This survey covered the ML fundamentals: from a single neuron up to deploying LLMs. To go deeper:
+| Metric | What It Measures | Good For | Blind Spots |
+|--------|-----------------|----------|-------------|
+| **BLEU** | n-gram overlap with reference(s) [^27] | Machine translation | Penalizes valid synonyms, ignores semantics |
+| **ROUGE** | Recall of n-grams from reference [^28] | Summarization (did we cover the key points?) | Long outputs score higher regardless of quality |
+| **METEOR** | Unigram precision + recall + synonym matching | Translation, better correlation with human judgment than BLEU | Slower, language-dependent synonym sets |
+| **BERTScore** | Cosine similarity of BERT embeddings between generated and reference [^29] | Any generation task | Requires a strong embedding model, computationally heavier |
+
+All n-gram metrics share a fundamental problem: they compare surface form, not meaning. "The cat sat on the mat" and "A feline rested upon the rug" share zero n-grams but are semantically identical. BERTScore partially addresses this by operating in embedding space, where synonyms are close.
+
+### LLM-as-Judge
+
+Instead of n-gram overlap, use a strong LLM to score outputs. The judge model rates each response on dimensions like helpfulness, accuracy, relevance, and safety.
+
+**MT-Bench** A multi-turn benchmark where GPT-4 scores model responses on a 1–10 scale across 80 questions in 8 categories (writing, reasoning, math, coding, extraction, STEM, humanities, roleplay). GPT-4 judgments correlate well with human preference rankings. [^30]
+
+**Chatbot Arena (LMSYS)** Users submit a prompt, two anonymous models respond, the user votes for the better response. Over 1 million human preference votes collected. Models are ranked using Elo scores the same system used in chess. [^31]
+
+The key insight: strong LLMs are decent evaluators, but they have biases. They prefer longer responses, responses from their own model family, and responses that appear confident. Always validate judge-model evaluations against human judgments on a subset of your data.
+
+### Elo Ratings & Leaderboards
+
+Elo ratings convert pairwise preference data (A beats B) into a global ranking:
+
+1. Every model starts with the same rating (e.g., 1500).
+2. When model A beats model B, A gains points from B proportional to how surprising the outcome was.
+3. A model expected to win (higher Elo) gains few points for winning and loses many for losing.
+4. Over thousands of comparisons, scores stabilize and reflect relative strength.
+
+Chatbot Arena maintains the most widely used LLM Elo leaderboard. It's not perfect different user populations (developer vs general public) produce different rankings but it's the closest thing to a ground-truth leaderboard we have.
+
+### Benchmark Suite
+
+| Benchmark | Task | Format | Metric | Why It Matters |
+|-----------|------|--------|--------|----------------|
+| **MMLU** | 57 subjects (law, medicine, math, history) [^32] | Multiple choice | Accuracy | Broad knowledge the SAT for LLMs |
+| **HumanEval** | Python function completion from docstring [^33] | Code generation | pass@k | Measures coding ability, not recall |
+| **SWE-bench** | Real GitHub issue → fix + PR [^34] | Software engineering | % resolved | Closest to real-world SWE work |
+| **GSM8K** | Grade-school math word problems [^35] | Step-by-step reasoning | Final answer accuracy | Multi-step reasoning, easy to verify |
+| **HellaSwag** | Pick the most plausible sentence ending | Multiple choice | Accuracy | Commonsense reasoning, hard for models |
+| **MATH** | Competition-level math (AMC/AIME) | Step-by-step reasoning | Final answer accuracy | Frontier reasoning ability |
+| **ARC-Challenge** | Grade-school science questions | Multiple choice | Accuracy | Tests reasoning, not retrieval |
+| **TruthfulQA** | Questions designed to trigger false beliefs [^36] | Free-text generation | Truthfulness (judge-model) | Measures hallucination resistance |
+
+Benchmarks measure specific capabilities, not overall quality. A model can ace HumanEval and still generate terrible code review feedback. Aggregate scores hide weakness in domains you care about. Pick benchmarks that match your use case don't chase leaderboard position.
+
+### Human Evaluation
+
+When benchmarks and judge-models aren't enough, you need humans:
+
+**Inter-annotator agreement** If two humans disagree on whether a response is good, the evaluation rubric is underspecified. Measure agreement with Cohen's kappa or Krippendorff's alpha. Values below 0.6 mean your evaluation criteria need work, not your model.
+
+**A/B preference** Show two responses side by side. "Which is more helpful?" The gold standard for comparing models. Cheaper and more reliable than absolute ratings because humans are better at relative judgment than absolute scoring.
+
+**Likert scales** Rate on 1–5 scale: "How coherent is this response?" Problematic because raters cluster differently (one person's 3 is another's 4) and disagree on what "coherent" means. Prefer A/B testing over Likert when possible.
+
+Human evaluation is expensive, slow, and noisy. It does not scale. Use it to validate automated metrics and judge-models, then let those automated systems carry the evaluation load.
+
+### Go Deeper
 
 | Path | Start With |
 |------|-----------|
 | **ML infrastructure** | [AI infra](ai-infra.md) vLLM, HuggingFace, scaling. [Use case: Gemma 4 on Modal](modal-gemma4-h200.md) GPU pricing, cold starts, storage |
+| **Architectures** | [architectures.md](architectures.md) CNN, RNN, Transformer, MoE, generative models |
+| **Embeddings** | [Embeddings section](#embeddings--vector-representations) in this file, plus [Specialized Databases](../database/specialized-databases.md) for vector storage |
 | **Reinforcement Learning** | Sutton & Barto the canonical textbook |
 | **Computer Vision** | CNNs → ResNets → ViTs |
-| **NLP / LLMs** | Transformer paper → BERT → GPT → LLaMA [^8][^18] |
+| **NLP / LLMs** | Transformer paper → BERT → GPT → LLaMA. See [architectures.md](architectures.md) for the full architecture deep-dive. [^18] |
 | **MLOps** | Production pipelines, monitoring, CI/CD for models |
 | **Generative AI** | Diffusion → GANs → autoregressive models |
 
@@ -375,22 +454,32 @@ This survey covered the ML fundamentals: from a single neuron up to deploying LL
 [^5]: Ioffe & Szegedy, 2015 *Batch Normalization: Accelerating Deep Network Training by Reducing Internal Covariate Shift* [arXiv](https://arxiv.org/abs/1502.03167)
 [^6]: Ba et al., 2016 *Layer Normalization* [arXiv](https://arxiv.org/abs/1607.06450)
 [^7]: Hoffmann et al., 2022 *Training Compute-Optimal Large Language Models* (Chinchilla) [arXiv](https://arxiv.org/abs/2203.15556)
-[^8]: Vaswani et al., 2017 *Attention Is All You Need* [arXiv](https://arxiv.org/abs/1706.03762)
 [^9]: Srivastava et al., 2014 *Dropout: A Simple Way to Prevent Neural Networks from Overfitting* [JMLR](https://jmlr.org/papers/v15/srivastava14a.html)
 [^10]: Kingma & Ba, 2014 *Adam: A Method for Stochastic Optimization* [arXiv](https://arxiv.org/abs/1412.6980)
 [^11]: Loshchilov & Hutter, 2017 *Decoupled Weight Decay Regularization* (AdamW) [arXiv](https://arxiv.org/abs/1711.05101)
 [^12]: Ouyang et al., 2022 *Training language models to follow instructions with human feedback* (InstructGPT / RLHF) [arXiv](https://arxiv.org/abs/2203.02155)
 [^13]: Bai et al., 2022 *Constitutional AI: Harmlessness from AI Feedback* [arXiv](https://arxiv.org/abs/2212.08073)
-[^14]: Dettmers et al., 2023 *QLoRA: Efficient Finetuning of Quantized Language Models* [arXiv](https://arxiv.org/abs/2305.14314)
 [^15]: Hinton et al., 2015 *Distilling the Knowledge in a Neural Network* [arXiv](https://arxiv.org/abs/1503.02531)
-[^16]: Jiang et al., 2024 *Mixtral of Experts* [arXiv](https://arxiv.org/abs/2401.04088)
-[^17]: Ho et al., 2020 *Denoising Diffusion Probabilistic Models* [arXiv](https://arxiv.org/abs/2006.11239)
 [^18]: Touvron et al., 2023 *LLaMA: Open and Efficient Foundation Language Models* [arXiv](https://arxiv.org/abs/2302.13971)
 [^19]: Rafailov et al., 2023 *Direct Preference Optimization: Your Language Model is Secretly a Reward Model* [arXiv](https://arxiv.org/abs/2305.18290)
 [^20]: Xu et al., 2024 *When is DPO Better than PPO?* comparison of offline vs online preference optimization [arXiv](https://arxiv.org/abs/2404.10719)
-[^21]: Lepikhin et al., 2020 *GShard: Scaling Giant Models with Conditional Computation and Automatic Sharding* [arXiv](https://arxiv.org/abs/2006.16668)
-[^22]: Fedus et al., 2022 *Switch Transformers: Scaling to Trillion Parameter Models with Simple and Efficient Sparsity* [arXiv](https://arxiv.org/abs/2101.03961)
-[^23]: DeepSeek-AI, 2024 *DeepSeek-V3 Technical Report* [arXiv](https://arxiv.org/abs/2412.19437)
 [^24]: Wei et al., 2022 *Chain-of-Thought Prompting Elicits Reasoning in Large Language Models* [arXiv](https://arxiv.org/abs/2201.11903)
 [^25]: Yao et al., 2023 *Tree of Thoughts: Deliberate Problem Solving with Large Language Models* [arXiv](https://arxiv.org/abs/2305.10601)
 [^26]: Yao et al., 2022 *ReAct: Synergizing Reasoning and Acting in Language Models* [arXiv](https://arxiv.org/abs/2210.03629)
+[^27]: Papineni et al., 2002 *BLEU: a Method for Automatic Evaluation of Machine Translation*
+[^28]: Lin, 2004 *ROUGE: A Package for Automatic Evaluation of Summaries*
+[^29]: Zhang et al., 2020 *BERTScore: Evaluating Text Generation with BERT* [arXiv](https://arxiv.org/abs/1904.09675)
+[^30]: Zheng et al., 2024 *Judging LLM-as-a-Judge with MT-Bench and Chatbot Arena* [arXiv](https://arxiv.org/abs/2306.05685)
+[^31]: Chiang et al., 2024 *Chatbot Arena: An Open Platform for Evaluating LLMs by Human Preference* [arXiv](https://arxiv.org/abs/2403.04132)
+[^32]: Hendrycks et al., 2021 *Measuring Massive Multitask Language Understanding* [arXiv](https://arxiv.org/abs/2009.03300)
+[^33]: Chen et al., 2021 *Evaluating Large Language Models Trained on Code* [arXiv](https://arxiv.org/abs/2107.03374)
+[^34]: Jimenez et al., 2024 *SWE-bench: Can Language Models Resolve Real-World GitHub Issues?* [arXiv](https://arxiv.org/abs/2310.06770)
+[^35]: Cobbe et al., 2021 *Training Verifiers to Solve Math Word Problems* [arXiv](https://arxiv.org/abs/2110.14168)
+[^36]: Lin et al., 2021 *TruthfulQA: Measuring How Models Mimic Human Falsehoods* [arXiv](https://arxiv.org/abs/2109.07958)
+[^37]: Muennighoff et al., 2023 *MTEB: Massive Text Embedding Benchmark* [arXiv](https://arxiv.org/abs/2210.07316)
+[^38]: Xiao et al., 2023 *C-Pack: Packaged Resources To Advance General Chinese Embedding* [arXiv](https://arxiv.org/abs/2309.07597)
+[^39]: Chen et al., 2024 *BGE M3-Embedding: Multi-Lingual, Multi-Functionality, Multi-Granularity* [arXiv](https://arxiv.org/abs/2402.03216)
+[^40]: Kusupati et al., 2022 *Matryoshka Representation Learning* [arXiv](https://arxiv.org/abs/2205.13147)
+[^41]: Günther et al., 2024 *jina-embeddings-v3* [arXiv](https://arxiv.org/abs/2409.10173)
+[^42]: Wang et al., 2022 *Text Embeddings by Weakly-Supervised Contrastive Pre-training* [arXiv](https://arxiv.org/abs/2212.03533)
+[^43]: Radford et al., 2021 *Learning Transferable Visual Models From Natural Language Supervision* [arXiv](https://arxiv.org/abs/2103.00020)

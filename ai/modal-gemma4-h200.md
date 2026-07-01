@@ -266,15 +266,6 @@ Timings below are from a separate measurement run. Differences vs. the [Cold Sta
 
 ## vLLM Deep Dive
 
-### CUDA Graph Memory Profiling (v0.21.0+)
-
-Since v0.21.0, vLLM profiles CUDA graph memory during startup and subtracts it from the GPU memory budget. The effective `--gpu-memory-utilization` is lower than the nominal value:
-
-- **Nominal**: `--gpu-memory-utilization=0.9200`
-- **Effective**: `0.9145` (i.e., you lose ~0.55pp to CUDA graph overhead)
-- **To maintain the same KV cache size**: increase `--gpu-memory-utilization` to `0.9255`
-- **To disable profiling**: set `VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0`
-
 ### GPU Memory Breakdown (H200, 31B dense)
 
 | Component | Memory |
@@ -286,18 +277,9 @@ Since v0.21.0, vLLM profiles CUDA graph memory during startup and subtracts it f
 | KV cache capacity | 639,184 tokens |
 | Max concurrency (262k-token reqs) | ~2.44x |
 
-The KV cache is where vLLM stores intermediate attention states during text generation.^[Key-Value cache each token generated stores its attention keys and values so previous tokens do not need to be reprocessed. It grows linearly with sequence length and number of concurrent requests.] Its size determines how many concurrent requests your GPU can handle.
+CUDA graph profiling (v0.21.0+) reduces effective GPU memory by ~0.55pp; bump `--gpu-memory-utilization` to 0.9255 to compensate, or disable with `VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0`. Weight loading from `huggingface-cache` volume takes ~27.65s for a 58.25 GiB model (2 safetensors shards). 9P filesystem disables auto-prefetch; force with `--safetensors-load-strategy=prefetch` if needed.
 
-### Filesystem & Weight Loading
-
-Modal containers use the **9P** filesystem by default^[A distributed filesystem protocol from the Plan 9 operating system. Modal uses it to serve files into containers without the metadata overhead of NFS.]. vLLM's auto-prefetch detection skips 9P because it is not a recognized network filesystem (NFS/Lustre):
-
-```
-Auto-prefetch is disabled because the filesystem (9P) is not a recognized network FS (NFS/Lustre).
-If you want to force prefetching, start vLLM with --safetensors-load-strategy=prefetch.
-```
-
-Weight loading from `huggingface-cache` volume takes ~27.65s for a 58.25 GiB model (2 safetensors shards).
+For general vLLM concepts (continuous batching, prefix caching, speculative decoding, KV cache mechanics), see [AI infra](ai-infra.md).
 
 ---
 
