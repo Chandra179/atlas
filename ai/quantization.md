@@ -1,10 +1,13 @@
 ---
-tags: [ml, ai, infrastructure, ml-infra]
-audience: Engineers deploying LLMs on GPU infrastructure. Knows basic ML concepts from ml.md.
-style: Deep dive + Reference
+title: "Quantization for LLM Deployment"
+tags: [ml, ai, infrastructure, ml-infra, quantization]
+audience: "Engineers deploying LLMs on GPU infrastructure. Knows basic ML concepts from ml.md."
+style: reference
 prerequisites:
- - ai/ml.md
- - ai/ai-infra.md
+  - ai/ml.md
+  - ai/ai-infra.md
+difficulty: advanced
+created: "2026-07-04"
 ---
 
 # Quantization for LLM Deployment

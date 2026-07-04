@@ -1,7 +1,11 @@
 ---
 title: "Fine-Tuning Large Language Models"
-aliases: []
-tags: [ml, ai, deep-learning]
+tags: [ml, ai, deep-learning, fine-tuning]
+audience: "Engineers fine-tuning LLMs for domain adaptation. Knows ML training pipeline and VRAM constraints from ml.md."
+style: tutorial
+prerequisites:
+  - ai/ml.md
+difficulty: intermediate
 created: "2026-06-16"
 ---
 

@@ -1,9 +1,12 @@
 ---
-tags: [ml, ai, infrastructure, ml-infra]
-audience: Engineers deploying LLMs on serverless GPUs. Python basics assumed.
-style: Reference
+title: "AI Infrastructure Learnings"
+tags: [ml, ai, infrastructure, ml-infra, vllm]
+audience: "Engineers deploying LLMs on serverless GPUs. Python basics assumed."
+style: reference
 prerequisites:
- - ai/ml.md
+  - ai/ml.md
+difficulty: intermediate
+created: "2026-07-04"
 ---
 
 # AI Infrastructure Learnings

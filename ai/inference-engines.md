@@ -1,11 +1,13 @@
 ---
-tags: [ml, ai, infrastructure, ml-infra]
-audience: Engineers choosing a serving engine for LLM deployment. Knows vLLM basics from ai-infra.md.
-style: Reference + Comparison
+title: "LLM Inference Engines"
+tags: [ml, ai, infrastructure, ml-infra, inference]
+audience: "Engineers choosing a serving engine for LLM deployment. Knows vLLM basics from ai-infra.md."
+style: comparison
 prerequisites:
- - ../usecase/modal-gemma4-h200.md
- - ai/ai-infra.md
- - ai/ml.md
+  - ai/ai-infra.md
+  - ai/ml.md
+difficulty: intermediate
+created: "2026-07-04"
 ---
 
 # LLM Inference Engines

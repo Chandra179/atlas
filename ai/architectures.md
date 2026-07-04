@@ -1,7 +1,11 @@
 ---
 title: "Neural Network Architectures"
-aliases: []
-tags: [ml, deep-learning]
+tags: [ml, deep-learning, architectures]
+audience: "Anyone learning neural network architectures. Knows ML fundamentals from ml.md."
+style: tutorial
+prerequisites:
+  - ai/ml.md
+difficulty: intermediate
 created: "2026-07-01"
 ---
 

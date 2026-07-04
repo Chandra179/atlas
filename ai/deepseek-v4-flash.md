@@ -1,13 +1,14 @@
 ---
 title: "DeepSeek V4-Flash"
-aliases: []
-tags: [ml, ai, deepseek, deep-learning]
+tags: [ml, ai, deepseek, deep-learning, architecture]
 created: "2026-07-01"
-audience: Engineers who want to understand the DeepSeek V4-Flash model — architecture, training infrastructure, and serving.
+audience: "Engineers who want to understand the DeepSeek V4-Flash model — architecture, training infrastructure, and serving."
+style: deep-dive
 prerequisites:
   - ai/ml.md
   - ai/transformer-inference.md
   - ai/architectures.md
+difficulty: advanced
 ---
 
 # DeepSeek V4-Flash

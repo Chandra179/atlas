@@ -1,7 +1,12 @@
 ---
+title: "Deploying Gemma 4 31B on H200 via Modal"
 tags: [ml, ai, infrastructure, modal, gemma4, h200, ml-infra]
-audience: Engineers deploying Gemma 4 31B on H200 via Modal. Python basics assumed.
-style: Deployment case study
+audience: "Engineers deploying Gemma 4 31B on H200 via Modal. Python basics assumed."
+style: case-study
+prerequisites:
+  - ai/ai-infra.md
+difficulty: advanced
+created: "2026-07-04"
 ---
 
 # Deploying Gemma 4 31B on H200 via Modal
