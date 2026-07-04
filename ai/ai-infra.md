@@ -34,7 +34,7 @@ vLLM uses **iteration-level scheduling**: at each forward pass, it fills the bat
 | Batching Strategy | How It Works | Throughput | Tail Latency |
 |---|---|---|---|
 | Static batching | Fill batch, process all to completion, drain | Baseline | Worst one slow request blocks all |
-| Continuous batching (vLLM, SGLang) | Swap finished requests out at every iteration | 2-10× vs static | Low |
+| Continuous batching (vLLM, SGLang) | Swap finished requests out at every iteration | 2-10× vs static [^1] | Low |
 | Inflight batching (TRT-LLM) | Continuous + scheduling reordering for efficiency | Slightly better than continuous | Lowest in class |
 
 **Configuration knobs:**

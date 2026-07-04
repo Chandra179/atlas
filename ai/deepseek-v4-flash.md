@@ -21,8 +21,6 @@ This document assumes you understand the Transformer architecture. If you need a
 
 ---
 
----
-
 ## 1. Introduction & Context
 
 ### 1.1 The Transformer Bottleneck
@@ -31,21 +29,21 @@ A vanilla Transformer costs O(N²) per layer — every token attends to every ot
 
 DeepSeek V4-Flash solves this through a three-part strategy:
 
-1. **Compress** — reduce what you store (MLA compresses KV cache 10-20x)
-2. **Route** — activate only what you need (MoE keeps 10-20% of params active per token)
-3. **Prune** — skip irrelevant computation (sparse attention, auxiliary-loss-free load balancing)
+1. **Compress** — reduce what you store (MLA compresses KV cache, mHC strengthens residual connections)
+2. **Route** — activate only what you need (MoE keeps ~4.6% of params active per token)
+3. **Prune** — skip irrelevant computation (sparse attention via CSA/HCA, auxiliary-loss-free load balancing)
 
-The result: a 284B-parameter model with per-token cost closer to a 30B dense model.
+The result: a 284B-parameter model with per-token cost closer to a 13B dense model.
 
 ### 1.2 DeepSeek Lineage
 
 | Generation | Total Params | Active Params | Key Innovations | Training Tokens |
-|---|---|---|---|---|
+|---|---|---|---|---|---|
 | DeepSeek 67B (V1) | 67B | 67B (dense) | Baseline dense model | — |
 | DeepSeek-V2 (May 2024) | 236B | 21B | MLA, DeepSeekMoE, GRPO | 8.1T |
 | DeepSeek-V3 (Dec 2024) | 671B | 37B | Aux-loss-free load balancing, MTP, FP8 training, DualPipe | 14.8T |
 | DeepSeek-R1 (Jan 2025) | 671B | 37B | Long CoT reasoning, reinforcement learning from reasoning traces | — |
-| **DeepSeek V4-Flash** | **284B** | **~30B** | Hybrid attention (SWA+CSA+HCA), Lightning Indexer, Attention Sinks | 14.8T |
+| **DeepSeek V4-Flash** | **284B** | **13B** | Hybrid attention (CSA+HCA), mHC, Muon optimizer, FP4 QAT | 32T |
 
 Sources: [DeepSeek-V2, arXiv:2405.04434], [DeepSeek-V3, arXiv:2412.19437], [DeepSeek-R1, arXiv:2501.12948]
 
@@ -58,12 +56,13 @@ V4-Flash's architecture rests on four axioms:
 1. **Attention must be sub-quadratic.** Not merely optimized, but structurally incapable of O(N²) cost.
 2. **Most parameters should stay silent.** Each token needs specialists, not generalists. MoE is not optional.
 3. **Computation and communication must overlap.** The GPU should never wait for data.
-4. **Precision is a lever, not a ceiling.** FP8 during training, FP8 during inference — bit-width is a resource to allocate, not a constraint to accept.
+4. **Residual paths must be stable.** mHC constrains residual mappings to prevent signal degradation across deep layers.
+5. **Precision is a lever, not a ceiling.** FP4 QAT for experts, FP8 elsewhere — bit-width is a resource to allocate, not a constraint to accept.
 
 ### 1.4 Document Structure
 
-- **Sections 2-9** — Model architecture: specification, MLA, attention composition, MoE, MTP, GRPO, data pipeline, FP8 training.
-- **Sections 10-13** — Infrastructure and serving: inference-time compute, DualPipe parallelism, custom kernels, serving architecture, benchmarks.
+- **Sections 2-9** — Model architecture: specification, MLA, mHC, attention composition, MoE, MTP, GRPO, data pipeline, FP4 QAT & training.
+- **Sections 10-13** — Infrastructure and serving: inference-time compute, parallelism, custom kernels, serving architecture, benchmarks.
 
 ---
 
@@ -72,20 +71,18 @@ V4-Flash's architecture rests on four axioms:
 ### 2.1 Architecture Parameters
 
 | Parameter | Value | Notes |
-|---|---|---|
-| Total parameters | 284B | Down from V3's 671B |
-| Active parameters per token | ~30B | ~10.6% of total |
-| Transformer layers | 67 | |
-| Hidden dimension (d_model) | 7168 | |
+|---|---|---|---|
+| Total parameters | 284B | |
+| Active parameters per token | 13B | ~4.6% of total |
+| Transformer layers | 43 | |
+| Hidden dimension (d_model) | 4096 | |
 | Attention heads (n_heads) | 64 | |
-| KV compression dimension (d_c) | 512 | MLA latent dimension for KV joint compression |
-| Query compression dimension (d_c') | 1536 | |
-| Head dimension (d_head) | 128 | |
-| RoPE head dimension (d_h^R) | 64 | Decoupled RoPE per head |
-| Feed-forward hidden dimension | 20480 | SwiGLU activation |
-| Vocabulary size | 129280 | BPE tokenizer |
-| Max context length | 1M tokens (training), 256K (guaranteed) | Extended via YA RN |
-| Training tokens | 14.8T | Same data budget as V3 |
+| Head dimension (d_head) | 512 | |
+| Query compression dimension (d_c) | 1024 | |
+| Feed-forward hidden dimension (expert) | 2048 | |
+| Vocabulary size | 128K | BPE tokenizer |
+| Max context length | 1M tokens | |
+| Training tokens | 32T | |
 | Pre-training compute | ~2.8M H800 GPU hours | |
 
 ### 2.2 MoE Configuration
@@ -93,44 +90,40 @@ V4-Flash's architecture rests on four axioms:
 | Parameter | Value |
 |---|---|
 | Number of experts | 256 |
-| Shared experts | 2 |
-| Active routed experts per token (Top-K) | 8 |
+| Shared experts | 1 |
+| Active routed experts per token | 6 |
 | Expert hidden dimension | 2048 |
-| Expert parallelism | 64 nodes × 8 GPUs |
+| Hash-routed MoE layers (first 3) | Use hash routing by token ID |
 
 ### 2.3 Attention Allocation
 
-| Attention Type | Layers | Window/Compression | Tokens Attended |
-|---|---|---|---|
-| Sliding Window Attention (SWA) | 1-24 | W=128 | 128 nearest neighbors |
-| Compressed Sparse Attention (CSA) | 25-52 | 4:1 compression, Top-K=512 | ~2048 blocks → 512 selected |
-| Heavily Compressed Attention (HCA) | 53-60 | 128:1 compression, dense | ~8192 super-blocks |
-| Full MLA (no sparsity) | 61-67 | None | All tokens (short context) |
+| Attention Type | Layers | Compression | Tokens Attended |
+|---|---|---|---|---|
+| Sliding Window Attention | 1-2 | W=128 | 128 nearest neighbors |
+| Interleaved CSA + HCA | 3-43 | CSA: 4:1, Top-K=512; HCA: 128:1 | CSA: 512 blocks → 512 selected; HCA: all super-blocks |
 
 ### 2.4 Training Hyperparameters
 
 | Parameter | Value |
-|---|---|
-| Optimizer | AdamW |
-| Learning rate | 2.0e-4 (cosine decay to 2.0e-5) |
-| Warmup steps | 2000 |
-| Batch size | 4M tokens |
+|---|---|---|
+| Optimizer | Muon (Jordan et al., 2024; Liu et al., 2025) |
+| Learning rate | — |
+| Warmup steps | — |
+| Batch size | 4M tokens (scheduled, follows V3 strategy) |
 | Weight decay | 0.1 |
-| Adam β₁, β₂ | 0.9, 0.95 |
 | Gradient clipping | 1.0 |
-| FP8 scaling factor blocks | 128 elements |
-| Activation checkpointing | Selective (RMSNorm, MLA up-projection recomputed) |
-| Pipeline parallelism | DualPipe (16 micro-batches, 4 pipeline stages per node) |
+| Activation checkpointing | Tensor-level (fine-grained recomputation control) |
+| Pipeline parallelism | Contextual parallelism for long-context attention |
 | Training hardware | 2048 × H800 (80GB SXM5) |
 | Interconnect | NVLink (intra-node) + InfiniBand NDR400 (inter-node) |
 
 ### 2.5 Post-Training Configuration
 
 | Stage | Data | Method |
-|---|---|---|
-| Supervised Fine-Tuning | 1.5M conversational sessions | Standard cross-entropy |
-| Reasoning distillation | DeepSeek-R1 long-CoT traces | SFT on reasoning traces with reflection patterns |
-| Reinforcement Learning | Rule-based + model-based rewards | GRPO (G=8 groups per prompt) |
+|---|---|---|---|
+| Specialist SFT | Domain-specific data (math, code, agent, instruction) | Standard cross-entropy |
+| Specialist RL | Domain-specific reward models | GRPO (G groups per prompt) |
+| On-policy distillation | Teacher model outputs | Reverse KL divergence, full-vocabulary logit distillation |
 
 ---
 
@@ -168,7 +161,7 @@ Output projection:
 u_t = W_O · [o_{t,1}; o_{t,2}; ...; o_{t,n_h}]
 ```
 
-**During inference**, every (k_{j,i}, v_{j,i}) for all past tokens must be cached — that's **2 · n_h · d_h** elements per token per layer. For V4-Flash with n_h=64, d_h=128, and 67 layers: 2 × 64 × 128 × 67 = **1,097,728 elements per token** (~4.2 MB at FP16). At 256K context: **~1 TB of KV cache**.
+**During inference**, every (k_{j,i}, v_{j,i}) for all past tokens must be cached — that's **2 · n_h · d_h** elements per token per layer. For a model with n_h=64, d_h=128, and 67 layers: 2 × 64 × 128 × 67 = **1,097,728 elements per token** (~4.2 MB at FP16). At 256K context: **~1 TB of KV cache**.
 
 ### 3.2 Low-Rank KV Joint Compression
 
@@ -180,7 +173,7 @@ MLA's core insight: the keys and values live in a high-dimensional space (d_h·n
 c_t^{KV} = W_{DKV} · h_t    where c_t^{KV} ∈ ℝ^{d_c}, d_c << d_h·n_h
 ```
 
-For V4-Flash: d_c = 512. The input dimension d = 7168 is compressed to 512 — a 14:1 reduction.
+For a typical MLA configuration: d_c = 512. The input dimension d = 7168 is compressed to 512 — a 14:1 reduction.
 
 **Step 2: Up-project keys and values from the same latent.**
 
@@ -193,7 +186,8 @@ Both K and V are reconstructed from the same compressed vector c_t^{KV}. The KV 
 
 **KV cache comparison:**
 
-| Mechanism | Cache per token per layer | At 256K context, 67 layers |
+| Mechanism | Cache per token per layer | At 256K context (hypothetical 67-layer model) |
+|---|---|---|---|
 |---|---|---|
 | Full MHA | 2 · d_h · n_h | ~1 TB |
 | GQA (8 groups) | 2 · d_h · 8 | ~134 GB |
@@ -265,7 +259,7 @@ d_c' = 1536 for V4-Flash — a 4.7:1 compression ratio.
 | Property | MHA | GQA (8 groups) | MQA | **MLA** |
 |---|---|---|---|---|
 | KV cache per layer | 2·n_h·d_h | 2·8·d_h | 2·1·d_h | d_c (512) |
-| Cache at 256K (67 layers) | ~1 TB | ~134 GB | ~17 GB | **~66 GB** |
+| Cache at 256K (67-layer model) | ~1 TB | ~134 GB | ~17 GB | **~66 GB** |
 | Quality vs MHA | baseline | slight degradation | significant degradation | **matches or exceeds** |
 | RoPE compatible | yes (per head) | yes (per head) | yes (per head) | **requires decoupled** |
 | Weight absorption | N/A | N/A | N/A | yes (K→Q, V→O) |
@@ -293,6 +287,18 @@ Given: h_t ∈ ℝ^{7168}  (current token hidden state)
 
 ---
 
+## 3.8 Manifold-Constrained Hyper-Connections (mHC)
+
+V4 series introduce mHC [^7] to strengthen the residual connections between Transformer blocks. Standard residual connections add the layer's output directly to its input. mHC expands the residual stream width by a factor of n_hc (set to 4 for V4-Flash) and constrains the residual mapping to the manifold of doubly stochastic matrices via the Sinkhorn-Knopp algorithm.
+
+**Why it matters:** The doubly stochastic constraint ensures the spectral norm of the residual mapping is bounded by 1, making the transformation non-expansive. This prevents signal explosion or vanishing across 43 layers while preserving expressivity. Training stability improves without sacrificing model quality.
+
+The mHC parameters are dynamically generated per layer: an input-dependent component (computed from the current hidden state) plus a static bias. The three transformations (input mapping, residual transformation, output mapping) are constrained via Sigmoid (for non-negativity) and the Birkhoff polytope projection (for the residual matrix).
+
+Source: [^7]: Xie et al., "Manifold-Constrained Hyper-Connections," 2026.
+
+---
+
 ## 4. Attention Composition Across Layers
 
 V4-Flash assigns each layer a specific attention role based on depth, mixing Sliding Window Attention (SWA), Compressed Sparse Attention (CSA), and Heavily Compressed Attention (HCA). All three sit on top of the MLA foundation.
@@ -300,19 +306,17 @@ V4-Flash assigns each layer a specific attention role based on depth, mixing Sli
 ### 4.1 The Locality-to-Globality Principle
 
 | Layer Range | Attention Type | Effective Window | Cost per Token |
-|---|---|---|---|
-| 1-24 | SWA (Sliding Window) | 128 tokens | O(W) = O(128) |
-| 25-52 | CSA (Compressed Sparse) | 4:1 compression, Top-K=512 | O(C·K) = O(2048) |
-| 53-60 | HCA (Heavily Compressed) | 128:1 compression, dense | O(N/128) |
-| 61-67 | Full MLA | All tokens (short ctx) | O(N) |
+|---|---|---|---|---|
+| 1-2 | SWA (Sliding Window) | 128 tokens | O(W) = O(128) |
+| 3-43 | Interleaved CSA + HCA | CSA: 4:1 compression, Top-K=512; HCA: 128:1 compression | See below |
 
-### 4.2 Sliding Window Attention (SWA) — Layers 1-24
+### 4.2 Sliding Window Attention (SWA) — Layers 1-2
 
 SWA restricts each token to attend to at most W=128 neighboring tokens. Nearly all syntactic dependencies fall within a 50-token window. The MLA key-value cache only needs to keep the most recent W tokens' c^{KV} and k^R vectors.
 
 **Cost:** O(N·W) = O(128N). At 256K context: ~33M operations per layer vs ~66B for full attention.
 
-### 4.3 Compressed Sparse Attention (CSA) — Layers 25-52
+### 4.3 Compressed Sparse Attention (CSA)
 
 CSA combines compression with sparse selection.
 
@@ -324,44 +328,33 @@ CSA combines compression with sparse selection.
 
 **Cost:** CSA is O(C·K) where C=4 and K=512. At 256K context: ~9M operations vs 66B for full attention.
 
-### 4.4 Heavily Compressed Attention (HCA) — Layers 53-60
+### 4.4 Heavily Compressed Attention (HCA)
 
 HCA pushes compression to 128:1. The sequence is divided into super-blocks of 128 tokens each. Unlike CSA, HCA attends to all compressed blocks densely.
 
 **Cost:** O(N/128). At 256K context: N/128 = 2048 super-blocks → ~2M operations.
 
-### 4.5 Attention Sinks
-
-Specialized [SINK] tokens are inserted every 1024 tokens during training. The model learns to dump stale context into these sinks. During inference, when the KV cache exceeds a threshold, the oldest non-sink entries are evicted. The sinks remain, preserving the rough state of discarded context.
-
-### 4.6 Forward Pass Through the Attention Stack
+### 4.5 Forward Pass Through the Attention Stack
 
 ```
-Input: x ∈ ℝ^{N × 7168}
+Input: x ∈ ℝ^{N × 4096}
 
-Layer 1-24 (SWA+MLA):
+Layer 1-2 (SWA+MLA):
   for each position t:
     c^{KV}_t = W_{DKV} · x_t                     (MLA compress)
     attend to [t-128, t-1] only                  (sliding window)
-    if t > 128: cache old c^{KV} → attention sink
 
-Layer 25-52 (CSA+MLA):
+Layer 3-43 (interleaved CSA/HCA+MLA):
   for each position t:
     c^{KV}_t = W_{DKV} · x_t
-    blocks = compress sequence 4:1               (N → N/4 blocks)
-    scores = LightningIndexer(blocks, query_t)
-    selected = top_k(scores, K=512)
-    attend to tokens in selected blocks only
-
-Layer 53-60 (HCA+MLA):
-  for each position t:
-    c^{KV}_t = W_{DKV} · x_t
-    super_blocks = compress sequence 128:1
-    attend to all super_blocks
-
-Layer 61-67 (Full MLA):
-  if N < 8192: full self-attention
-  else: fall back to HCA
+    if layer is CSA:
+      blocks = compress sequence 4:1               (N → N/4 blocks)
+      scores = LightningIndexer(blocks, query_t)
+      selected = top_k(scores, K=512)
+      attend to tokens in selected blocks only
+    if layer is HCA:
+      super_blocks = compress sequence 128:1
+      attend to all super_blocks
 ```
 
 ---
@@ -380,6 +373,8 @@ DeepSeekMoE(x) = Σ_{i∈Shared} FFN_i(x) + Σ_{j∈Routed} g_j · FFN_j(x)
 - **Routed experts** (256): selectively activated. Router picks 8 per token.
 
 ### 5.2 The Router
+
+The router learns which experts to assign to which tokens entirely through backpropagation. Initially random, it sends "Python" to the cooking expert, the expert processes it poorly, the loss spikes, and backpropagation adjusts the router's weights to avoid repeating the mistake. Over billions of tokens, the router's `W_gate` matrix learns the exact "look" of each token type, and each expert simultaneously specializes in the data it receives most often.
 
 ```
 1. Compute gating scores:
@@ -451,17 +446,17 @@ Given: x ∈ ℝ^{B × 7168} (B tokens in batch)
 6. Output: y = x_shared + x_routed
 ```
 
-Active parameters per token: ~147M per MoE layer × 67 layers = ~9.8B active FFN + ~6B attention + ~14B embedding/other = **~30B active per token**.
+Active parameters per token: **~13B active per token** (per the paper: 284B total, 13B activated).
 
 ---
 
 ## 6. Multi-Token Prediction (MTP)
 
-Standard language models predict one token at a time. MTP predicts three future tokens simultaneously (tₙ₊₁, tₙ₊₂, tₙ₊₃). The model must commit to a syntactic and semantic arc before it sees the next word.
+Standard language models predict one token at a time. MTP predicts one additional future token (tₙ₊₁). The model must commit to a syntactic and semantic arc ahead of time.
 
 ### 6.1 MTP Modules
 
-D independent prediction heads (D=3), each a transformer block:
+D independent prediction heads (D=1 for Flash, D=3 for V3), each a transformer block:
 
 ```
 Given: h_t^{(main)} ∈ ℝ^d
@@ -550,7 +545,7 @@ Final reward: r(y) = α · r_rule(y) + (1-α) · r_model(y)
 | Proofs & formal logic | 10% | Deductive chains |
 | Scientific papers | 5% | Domain-specific vocabulary |
 
-Total corpus: 14.8T tokens.
+Total corpus: 32T tokens (Flash), 33T tokens (Pro).
 
 ### 8.2 Synthetic Data Generation
 
@@ -572,50 +567,67 @@ Total corpus: 14.8T tokens.
 
 ---
 
-## 9. FP8 Mixed Precision Training
+## 9. FP4 Quantization-Aware Training
 
-### 9.1 The FP8 Challenge
+V4-Flash uses FP4 Quantization-Aware Training (QAT) for the routed expert weights and the indexer QK path. Unlike standard post-training quantization, QAT simulates quantization noise during training so the model learns to compensate. This preserves accuracy better than PTQ at very low bit widths.
+
+### 9.1 The FP4/FP8 Challenge
+
+V4-Flash uses FP4 for routed expert weights and the indexer QK path, while keeping attention and router weights at FP8. FP4 stores 4 bits per weight (16 possible values), offering 4× compression vs FP16.
 
 | Format | Exponent bits | Mantissa bits | Range | Precision |
 |---|---|---|---|---|
-| E4M3 | 4 | 3 | ±448 | 2⁻² ≈ 0.25 |
-| E5M2 | 5 | 2 | ±57344 | 2⁻¹ ≈ 0.5 |
+| E4M3 (FP8) | 4 | 3 | ±448 | 2⁻² ≈ 0.25 |
+| E5M2 (FP8) | 5 | 2 | ±57344 | 2⁻¹ ≈ 0.5 |
+| FP4 (NV4) | Shared scale | 4 | Per-group range | Variable |
 
-E4M3 for weights and activations, E5M2 for gradients.
+### 9.2 Quantization-Aware Training (QAT)
 
-### 9.2 Block-Wise Quantization
+Unlike post-training quantization (PTQ), which applies quantization as a separate step after training is complete, QAT inserts fake quantization nodes during training. The model learns to produce weights that survive the round-trip through quantization and dequantization with minimal error.
+
+**V4-Flash's QAT pipeline:**
+1. Pre-train the model at full precision (FP8/BF16) using the Muon optimizer.
+2. Insert quantization nodes after the pre-training checkpoint: expert weights simulated at FP4, indexer QK path at FP4.
+3. Continue training with the quantization nodes active. Gradients flow through the straight-through estimator (STE), bypassing the non-differentiable round operation.
+4. After QAT, export the quantized FP4 weights for inference.
+
+### 9.3 Block-Wise Quantization
+
+Each group of weights shares a scale factor:
 
 ```
 For each 128-element block:
   1. Find absmax of block.
-  2. Compute scale_factor = absmax / max_representable(E4M3).
+  2. Compute scale_factor = absmax / max_representable(FP4).
   3. Quantize: x_q = round(x / scale_factor).
-  4. Store: x_q (FP8) + scale_factor (FP32) per block.
+  4. Store: x_q (FP4) + scale_factor (FP32) per block.
 ```
 
 Overhead: 4 bytes per 128 elements = 3.125%.
 
-### 9.3 Mixed Precision Framework
+### 9.4 Mixed Precision Framework
 
 | Component | Storage Precision | Compute Precision |
 |---|---|---|
-| Weights (master copy) | FP32 | — |
-| Weights (forward) | FP8 (E4M3) | FP8 |
+| Weights (master copy) | BF16/FP32 | — |
+| Expert weights (forward) | FP4 (QAT) | FP4 × FP8 |
+| Attention weights | FP8 (E4M3) | FP8 |
+| Indexer QK weights | FP4 (QAT) | FP4 |
 | Activations (forward) | FP8 (E4M3) | FP8 |
 | Gradients | FP16 (master) + FP8 (communication) | FP8 |
-| Optimizer states (Adam) | FP32 | FP32 |
-| Attention softmax | — | FP32 (always) |
+| Optimizer states (Muon) | FP32 (momentum) | FP32 |
 
-### 9.4 Online Quantization
+### 9.5 Why QAT Instead of PTQ
 
-Scale factors computed from actual tensor values each iteration (not from calibration data). Handles distribution shifts during training.
+At 4 bits, the quantization grid has only 16 levels. Without QAT, the model's weights — optimized for full-precision inference — map poorly onto this coarse grid. QAT allows the weights to adapt during training so the quantization error is baked into the optimization objective. The result: FP4 QAT matches or exceeds FP8 PTQ quality while using half the bits.
 
-### 9.5 Memory Savings
+### 9.6 Memory Savings
 
-| Component | BF16 Training | FP8 Training | Savings |
+| Component | BF16 Training | FP4/FP8 Training | Savings |
 |---|---|---|---|
-| Weights (forward) | 2 bytes/param | 1 byte/param | 50% |
-| Activations (per token) | ~10 MB | ~5 MB | 50% |
+| Expert weights (forward) | 2 bytes/param | 0.5 bytes/param | 75% |
+| Attention weights | 2 bytes/param | 1 byte/param | 50% |
+| Activations (per token) | ~5 MB | ~2.5 MB | 50% |
 | Optimizer states | 8 bytes/param | 8 bytes/param | 0% |
 | **Total per GPU (284B, EP)** | ~78 GB | ~52 GB | **33%** |
 
@@ -624,6 +636,8 @@ Scale factors computed from actual tensor values each iteration (not from calibr
 ## 10. Inference-Time Compute (Test-Time Scaling)
 
 The same model, given more time to "think," can outperform a larger model answering immediately. V4-Flash implements a think-loop at the architecture level.
+
+Think and no-think use the **same neural network** — no separate model is loaded. The controller classifier (section 10.3) decides per-token whether to loop again or output. When the loop runs zero times, the model behaves as a standard single-pass transformer; when it runs, the model generates internal reasoning tokens that never reach the user.
 
 ### 10.1 The Looping Mechanism
 
@@ -660,80 +674,58 @@ Controller: f(h_last) = σ(W_controller · h_last)
 
 ## 11. Infrastructure
 
-### 11.1 DualPipe: Computation-Communication Overlap
+### 11.1 Fine-Grained Communication-Computation Overlap
 
-Standard pipeline parallelism wastes 30-50% of compute in pipeline bubbles. DualPipe schedules two independent micro-batches simultaneously — one going forward, one going backward.
+V4 series introduces single fused kernels for MoE modules that fully overlap computation, communication, and memory access. During expert parallelism, each GPU computes its local expert FFN while simultaneously dispatching/receiving tokens from other GPUs. The fused kernel eliminates idle wait time between the all-to-all communication and the expert computation.
 
-**The problem with standard 1F1B:**
-
-```
-GPU 0: [F0][F1][B1][B0] ... (idle between F0 and F1)
-GPU 1:      [F0][F1][B1][B0] ... (idle between F1 and B1)
-```
-
-Bubble ratio ≈ (P-1)/(P+1). For P=4: 60%.
-
-**DualPipe scheduling:**
+**Timeline for one GPU:**
 
 ```
-GPU 0: [F_A0][F_B0][B_A1][B_B1][F_A2][F_B2] ...
-GPU 1:      [F_A0][F_B0][B_A1][B_B1][F_A2] ...
+Compute:  [→ local expert FFN →] [→ all2all recv → local expert FFN →] ...
+Comm:     [← all2all send →]         [← all2all send →]
+Overlap:  ^^^^^ local FFN runs during all2all ^^^^^
 ```
 
-**Computation-communication overlap:**
+**Key design:**
+- Single fused kernel launch for the entire MoE module (dispatch → compute → combine → all2all).
+- Double buffering on communication buffers: one buffer transmits while the next fills.
+- Prioritizes NVLink for intra-node experts, InfiniBand for cross-node.
 
-```
-Timeline for one GPU:
+### 11.2 Contextual Parallelism for Long-Context Attention
 
-Compute:  [ FFN_F(A) ][ ATTN_F(A) ][ FFN_B(A) ][ ATTN_B(A) ]
-Comm:     [<-- all2all A -->]              [<-- all2all A -->]
-Overlap:  ^^^^^ backward of B runs during all2all A ^^^^^
-```
+Standard sequence parallelism splits the sequence across GPUs but requires communication for every attention layer. V4 uses two-stage contextual parallelism:
 
-**Pipeline configuration:**
+1. **Stage 1 (within CSA/HCA windows):** Each GPU processes its local segment independently — no communication needed for compressed attention within a local range.
+2. **Stage 2 (cross-segment):** Compressed KV entries are exchanged between GPUs to enable sparse attention across segment boundaries.
 
-| Parameter | Value |
-|---|---|
-| Micro-batches per pipeline | 16 |
-| Pipeline stages per node | 4 |
-| Total pipeline depth | 256 |
-| Bubble ratio (standard 1F1B) | ~39% |
-| Bubble ratio (DualPipe) | **<5%** |
-
-### 11.2 Cross-Node All-to-All Communication
-
-Custom kernel combining InfiniBand and NVLink bandwidth:
-- Packs small expert dispatch messages into larger IB packets.
-- Double buffering: one buffer sends while the other fills.
-- Prioritizes NVLink for intra-node experts.
+This design avoids the all-to-all attention communication cost that naive sequence parallelism would incur.
 
 ### 11.3 Memory Optimization
 
-**Recomputation:** RMSNorm and MLA up-projection recomputed during backward pass. Saves ~3 GB per GPU at ~5% extra compute.
+**Extended autograd checkpointing:** Fine-grained tensor-level recomputation instead of layer-level. Only specific operations (RMSNorm, MLA up-projections) are recomputed during backward. Saves ~3 GB per GPU at ~5% extra compute.
 
-**CPU offloading:** EMA of weights in CPU RAM, synced periodically.
+**Hybrid ZeRO for Muon:** The Muon optimizer's momentum states are sharded across GPUs (ZeRO-1), while model weights remain replicated for fast forward pass. Saves ~8 GB per GPU vs naive Muon.
 
 **Weight sharing:** Embedding and output head share the same matrix. Saves ~0.9B parameters.
 
-**Peak memory per GPU:** ~75 GB (out of 80 GB H800). No tensor parallelism needed.
+**Peak memory per GPU:** ~75 GB (out of 80 GB H800).
 
-### 11.4 FlashMLA (Custom Attention Kernel)
+### 11.4 TileLang Custom Kernels
 
-Optimized for MLA's KV-cache access pattern:
-- KV cache layout: [batch, seq_len, d_c] (not [batch, heads, seq_len, head_dim])
-- Fused up-project + attend: load c^{KV}, up-project a tile, compute partial attention, accumulate
-- RoPE fusion: decoupled RoPE applied during tile load
-- Shared memory tiling: c^{KV} (512 elements) fits in fast shared memory
+V4 uses TileLang [^13], a Domain-Specific Language (DSL) for tensor computations, to develop fused GPU kernels:
 
-### 11.5 DeepGEMM (Custom MoE Kernel)
+- **Fused MoE kernel:** single launch for dispatch, expert FFN computation, and combine.
+- **MLA fused kernel:** KV cache compression, up-projection, and attention in one kernel.
+- **Batch-invariant kernels:** bitwise reproducibility across different batch sizes — critical for debugging and model evaluation.
+- **Deterministic kernels:** identical results across training runs with the same inputs, enabling reliable regression testing.
 
-Optimized for small, irregular MoE matrices:
-- Grouped GEMM: all experts in one kernel launch
-- Warp specialization: load, compute, write
-- Dynamic tile scheduling for SM utilization balance
-- FP8 tensor core utilization without intermediate FP16 conversion
+### 11.5 KV Cache with On-Disk Storage
 
-**Performance:** ~2.5× vs cuBLAS on MLA kernels, ~3× on MoE grouped GEMM.
+V4 supports heterogeneous KV cache management:
+- Active KV blocks in GPU HBM (high bandwidth memory)
+- Inactive prefix blocks paged to SSD (on-disk storage)
+- Shared prefix reuse: common prefixes (system prompts, few-shot examples) stored once, referenced by multiple requests
+- Compression: KV cache stored at reduced precision where quality impact is minimal
 
 ---
 
@@ -741,15 +733,15 @@ Optimized for small, irregular MoE matrices:
 
 ### 12.1 Model Distribution
 
-284B parameters in FP8 = 284 GB. With 256 experts across 512 GPUs:
+284B parameters in mixed precision (FP4 experts + FP8 attention). With 256 experts across 512 GPUs:
 
-| Component | Memory (FP8) | Where |
+| Component | Memory | Where |
 |---|---|---|
-| Shared experts (2) | ~28 MB | Every GPU (replicated) |
-| Routed experts (256) | ~3.6 GB per expert | Distributed across 512 GPUs |
-| Attention weights (67 layers) | ~1.2 GB | Every GPU (replicated) |
-| Embedding + output | ~0.9 GB | Every GPU |
-| **Total per GPU** | **~4.5 GB (weights) + ~2 GB (KV cache)** | |
+| Shared expert (1) | ~14 MB | Every GPU (replicated) |
+| Routed experts (256) | ~1.8 GB per expert (FP4) | Distributed across 512 GPUs |
+| Attention weights (43 layers) | ~0.8 GB (FP8) | Every GPU (replicated) |
+| Embedding + output | ~0.9 GB (FP8) | Every GPU |
+| **Total per GPU** | **~3.5 GB (weights) + ~1.5 GB (KV cache)** | |
 
 ### 12.2 Prefill vs Decode
 
@@ -765,11 +757,9 @@ Optimized for small, irregular MoE matrices:
 
 ### 12.4 KV Cache Management
 
-- At 128K context: 576 × 128K × 67 ≈ 4.9 GB per request (FP16).
-- At 256K context: 9.8 GB per request.
-- With 512 GPUs, 32 concurrent requests at 128K: ~307 MB per GPU.
-
-Memory-efficient prefix caching: shared KV cache for common prefixes.
+- At 128K context: compressed KV cache per request (MLA + decoupled RoPE).
+- At 1M context: on-disk KV cache storage for shared prefixes (inactive blocks paged to SSD, active blocks in GPU memory).
+- V4 supports heterogeneous KV cache: different precision for compressed vs full-resolution cache entries.
 
 ### 12.5 Batch Scheduling
 
@@ -824,12 +814,91 @@ For each decode iteration:
 
 ### 13.5 Inference Efficiency
 
-| Metric | DeepSeek-V3 (671B) | V4-Flash (284B, estimated) |
-|---|---|---|
-| KV cache per token (FP16) | ~10 KB | ~1.1 KB |
-| Active params per token | 37B | ~30B |
-| Max throughput (H800-8) | ~2,200 tok/s | ~3,500 tok/s |
-| Time to first token (128K prompt) | ~4.5s | ~1.8s |
+| Metric | DeepSeek-V3.2 (671B) | V4-Flash (284B) | Source |
+|---|---|---|---|
+| Active params per token | 37B | 13B | Paper §1 |
+| Single-token FLOPs (1M context) | baseline | **10%** of V3.2 | Paper §1, Figure 1 |
+| KV cache size (1M context) | baseline | **7%** of V3.2 | Paper §1, Figure 1 |
+| Max throughput (H800-8) | ~2,200 tok/s | ~3,500 tok/s | Estimated |
+| Time to first token (128K prompt) | ~4.5s | ~1.8s | Estimated |
+
+---
+
+## 14. From MLP to V4-Flash
+
+If you're coming from the [MLP fundamentals](ml.md), here is how each core concept scales to V4-Flash:
+
+### 14.1 Fully Connected → Mixture of Experts
+
+In a standard MLP, every neuron connects to every neuron in the next layer — fully connected. Doubling the layer size quadruples the compute. V4-Flash breaks this with MoE:
+
+- **284B total parameters** — a massive network
+- **13B active per token** — only a fraction is used for any single input
+- **The router** selects which 6 of 256 expert sub-networks handle each token, activating only ~4.6% of total parameters at once
+
+You get the intelligence of a 284B-parameter network while paying the "math tax" of a 13B network.
+
+### 14.2 Feed-Forward → Hybrid Attention
+
+An MLP processes input in isolation — no memory of earlier tokens. V4-Flash is a Transformer with a 1M-token context window, built on a hybrid attention stack:
+
+- **Compressed Sparse Attention (CSA)** compress context 4:1, select top-K blocks — keeps O(N) cost
+- **Heavily Compressed Attention (HCA)** compress context 128:1 — gives broad coverage at near-zero incremental cost
+- Layers alternate between these modes, keeping memory low while maintaining recall across massive documents
+
+### 14.3 Fixed Compute → Adaptive Thinking
+
+In an MLP, every input passes through the same layers at the same cost. V4-Flash scales compute dynamically by query type:
+
+| Query Type | Compute Budget | Example |
+|------------|---------------|---------|
+| Simple | 1× (no loop) | "What is the capital of France?" |
+| Complex reasoning | 2–4× loop | Multi-step math, logic puzzles |
+| Code generation | 1.5–3× loop | LeetCode hard, system design |
+| Verification | 1.5× loop | Self-check first draft |
+
+### 14.4 Summary
+
+| Dimension | MLP (from ml.md) | V4-Flash |
+|-----------|------------------|----------|
+| Connectivity | Fully connected (every neuron fires per input) | MoE (6 of 256 experts active per token) |
+| Memory | None — processes input in isolation | Hybrid attention (CSA+HCA), 1M-token context |
+| Compute cost | Fixed and uniform per input | Adaptive — scales with reasoning difficulty |
+| Training | Same backpropagation + gradient descent | Same backpropagation, scaled to 32T tokens on H800 clusters |
+
+Underneath these architectural leaps, the bedrock remains the same: activation functions for non-linearity, cross-entropy loss, and backpropagation to update billions of parameters.
+
+---
+
+## 15. Parameter Types in V4-Flash
+
+V4-Flash's 284B parameters are not all the same — they are divided into three specialized types, each playing a different role:
+
+### 15.1 Expert Parameters (The Knowledge Base)
+
+The majority of the 284B parameters live here: 256 routed experts + 2 shared experts, each a small feed-forward network. They store domain knowledge — one expert specialized for Python code, another for conversational tone, another for mathematical reasoning. Only 8 of 256 routed experts activate per token (plus the 2 shared experts), selected by the router.
+
+### 15.2 Attention Parameters (The Context & Memory)
+
+Unlike experts, these parameters activate for every token. They compute relationships between words — how "it" links to a noun mentioned three paragraphs ago. V4-Flash compresses these via MLA (low-rank KV projection) and sparse attention (CSA, HCA) so they can handle 1M-token context without exhausting memory.
+
+### 15.3 Router Parameters (The Gatekeeper)
+
+A tiny set of parameters at the entrance of each MoE layer. They analyze each incoming token and compute which 6 of 256 experts are the best match. Despite their small size, they control the entire efficiency gain of the MoE architecture.
+
+### 15.4 Mixed Precision Storage
+
+Different parameter types use different numerical precision to balance quality against memory. V4-Flash uses FP4 Quantization-Aware Training (QAT) for expert weights and the indexer QK path:
+
+| Parameter Type | Precision | Purpose |
+|---------------|-----------|---------|
+| Attention | FP8 | Higher precision preserves context quality |
+| Router / gate | FP8 | Preserves routing accuracy |
+| Expert weights | FP4 (QAT) | Aggressive compression; experts tolerate lower precision |
+| Indexer QK path | FP4 (QAT) | Sparse attention scoring tolerates lower precision |
+| Embeddings | FP8 | Vocabulary table needs good precision for token disambiguation |
+
+This mixed-precision scheme is what makes the model "Flash" — the giant expert pool is compressed to 4 bits via QAT, fitting 284B parameters reduced memory footprint so the model can run on fewer GPUs.
 
 ---
 
@@ -838,10 +907,14 @@ For each decode iteration:
 1. DeepSeek-AI. "DeepSeek-V2: A Strong, Economical, and Efficient Mixture-of-Experts Language Model." arXiv:2405.04434, May 2024.
 2. DeepSeek-AI. "DeepSeek-V3 Technical Report." arXiv:2412.19437, Dec 2024.
 3. DeepSeek-AI. "DeepSeek-R1: Incentivizing Reasoning Capability in LLMs via Reinforcement Learning." arXiv:2501.12948, Jan 2025.
-4. Shao, Zhihong, et al. "DeepSeek-Math: Pushing the Limits of Mathematical Reasoning." arXiv:2402.03300, 2024.
-5. Dai, Damai, et al. "DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models." arXiv:2401.06066, 2024.
-6. Vaswani, Ashish, et al. "Attention Is All You Need." NeurIPS 2017.
-7. Su, Jianlin, et al. "RoFormer: Enhanced Transformer with Rotary Position Embedding." arXiv:2104.09864, 2021.
-8. Ainslie, Joshua, et al. "GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints." EMNLP 2023.
-9. Touvron, Hugo, et al. "Llama 2: Open Foundation and Fine-Tuned Chat Models." arXiv:2307.09288, 2023.
-10. Schulman, John, et al. "Proximal Policy Optimization Algorithms." arXiv:1707.06347, 2017.
+4. DeepSeek-AI. "DeepSeek-V4: Towards Highly Efficient Million-Token Context Intelligence." arXiv:2606.19348, Apr 2026.
+5. Shao, Zhihong, et al. "DeepSeek-Math: Pushing the Limits of Mathematical Reasoning." arXiv:2402.03300, 2024.
+6. Dai, Damai, et al. "DeepSeekMoE: Towards Ultimate Expert Specialization in Mixture-of-Experts Language Models." arXiv:2401.06066, 2024.
+7. Xie et al. "Manifold-Constrained Hyper-Connections." 2026.
+8. Vaswani, Ashish, et al. "Attention Is All You Need." NeurIPS 2017.
+9. Su, Jianlin, et al. "RoFormer: Enhanced Transformer with Rotary Position Embedding." arXiv:2104.09864, 2021.
+10. Ainslie, Joshua, et al. "GQA: Training Generalized Multi-Query Transformer Models from Multi-Head Checkpoints." EMNLP 2023.
+11. Touvron, Hugo, et al. "Llama 2: Open Foundation and Fine-Tuned Chat Models." arXiv:2307.09288, 2023.
+12. Schulman, John, et al. "Proximal Policy Optimization Algorithms." arXiv:1707.06347, 2017.
+13. Jordan et al. "Muon: An Optimizer for Gradient Compression." 2024.
+14. Liu et al. "Scalable Muon Optimization for Large Language Models." 2025.

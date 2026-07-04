@@ -79,7 +79,7 @@ Data passes through Feed-Forward Networks (FFNs) in every layer to "think." In d
 Instead of one massive FFN, a layer contains multiple smaller "expert" FFNs (e.g., 8 experts). A tiny **Router** (gating algorithm) sits in front and decides which experts handle each token:
 
 - When the token "the" comes through, the router says "This is grammar, go to Expert 1 and 2."
-- When the token `return (x);` comes through, the router says "This is Python code, go to Expert 7 and 8."
+- When the token `return x` comes through, the router says "This is Python code, go to Expert 7 and 8."
 
 Each token activates only ~2 of 8 experts. Result: a model can have 1 trillion total parameters, but for any single token it only activates ~100 billion. This makes massive models drastically cheaper and faster to run. Used in Mixtral, GPT-4, DeepSeek-V3. [^3][^4]
 

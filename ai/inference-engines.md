@@ -80,7 +80,7 @@ Stanford's Structured Generation Language. Built on many of the same ideas as vL
 NVIDIA's inference engine. The fastest engine on NVIDIA hardware period. Achieved through deep kernel fusion (combining multiple operations into a single GPU kernel) and inflight batching (a more aggressive form of continuous batching that reorders scheduled operations for cache efficiency).
 
 **What it does well:**
-- **Best throughput on NVIDIA GPUs**: 10-30% faster than vLLM on H100 for most model architectures.
+- **Best throughput on NVIDIA GPUs**: 10-30% faster than vLLM on H100 for most model architectures [^3].
 - **Kernel fusion**: merges attention, MLP, layernorm, and residual operations into single GPU kernels fewer kernel launches, less memory bandwidth waste.
 - **FP8 native support**: hardware-accelerated FP8 on H100/H200 with near-zero accuracy loss.
 - **Multi-node inference**: supports tensor + pipeline parallelism across GPU nodes (DGX, HGX).
