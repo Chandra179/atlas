@@ -1,8 +1,7 @@
 ---
-title: "Precalculus"
+title: Precalculus
 aliases: []
-tags: [math/precalculus]
-created: "2026-06-13"
+created: '2026-06-13'
 ---
 
 # Precalculus
@@ -13,7 +12,7 @@ created: "2026-06-13"
 
 **Real number**
 
-![Real number line with integers and fractions marked at regular intervals](../../assets/linear_number_line.png)
+![Real number line with integers and fractions marked at regular intervals](../../.gitbook/assets/linear_number_line.png)
 
 there is no real number that, when multiplied by itself, results in a negative number. The expression $\sqrt{-9}$ asks the question: What real number, when multiplied by itself (squared), equals $-9$?
 
@@ -21,13 +20,11 @@ Let's test all possibilities for a Real Number $x$:
 
 1. If $x$ is Positive (e.g., 3)
 
- $x \times x = 3 \times 3 = 9$ (Result is Positive)
-2. If $x$ is Negative (e.g., $-3$)
+$x \times x = 3 \times 3 = 9$ (Result is Positive) 2. If $x$ is Negative (e.g., $-3$)
 
- $x \times x = (-3) \times (-3) = 9$ (Result is Positive)
-3. If $x$ is Zero (i.e., $0$)
+$x \times x = (-3) \times (-3) = 9$ (Result is Positive) 3. If $x$ is Zero (i.e., $0$)
 
- $x \times x = 0 \times 0 = 0$ (Result is Zero)
+$x \times x = 0 \times 0 = 0$ (Result is Zero)
 
 Since there is no way to multiply a real number by itself and get a negative result like $-9$, the answer to $\sqrt{-9}$ cannot be found on the Real Number Line.
 
@@ -35,7 +32,7 @@ Since there is no way to multiply a real number by itself and get a negative res
 
 **Natural number** positive number
 
-**Irrational number** Any real number that cannot be written as a ratio of two integers ($p/q$) like $\mathbf{\sqrt{2}}$, $\mathbf{\pi}$, $\mathbf{e}$ (Euler's number)
+**Irrational number** Any real number that cannot be written as a ratio of two integers ($p/q$) like $\mathbf{\sqrt{2\}}$, $\mathbf{\pi}$, $\mathbf{e}$ (Euler's number)
 
 **Variables** (like $x$ or $y$)
 
@@ -52,7 +49,6 @@ Since there is no way to multiply a real number by itself and get a negative res
 
 ***
 
-
 #### **Distributive Property**
 
 * $a(b + c) = ab + ac$
@@ -62,25 +58,24 @@ Since there is no way to multiply a real number by itself and get a negative res
 Imagine you are buying items for a school trip:
 
 * First Group ($\mathbf{a+b}$): The number of people going.
- * $a = 10$ students.
- * $b = 2$ teachers.
- * $\mathbf{a+b = 12}$ people.
+* $a = 10$ students.
+* $b = 2$ teachers.
+* $\mathbf{a+b = 12}$ people.
 * Second Group ($\mathbf{x+y}$): The cost per person.
- * $x = \$5$ for lunch.
- * $y = \$3$ for a drink/snack.
- * $\mathbf{x+y = \$8}$ total cost per person.
+* $x = $5$ for lunch.
+* $y = $3$ for a drink/snack.
+* $\mathbf{x+y = $8}$ total cost per person.
 
 The total cost is the product of the two: $(10 + 2)(5 + 3)$
 
-| | Lunch ($5) | Snack ($3) |
-| ----------------- | ------------------------------- | ------------------------------- |
-| Students ($10$) | $10 \times 5 = \mathbf{\$50}$ | $10 \times 3 = \mathbf{\$30}$ |
-| Teachers ($2$) | $2 \times 5 = \mathbf{\$10}$ | $2 \times 3 = \mathbf{\$6}$ |
+|                 | Lunch ($5)                   | Snack ($3)                   |
+| --------------- | ---------------------------- | ---------------------------- |
+| Students ($10$) | $10 \times 5 = \mathbf{$50}$ | $10 \times 3 = \mathbf{$30}$ |
+| Teachers ($2$)  | $2 \times 5 = \mathbf{$10}$  | $2 \times 3 = \mathbf{$6}$   |
 
-Total Cost = $\$50 + \$30 + \$10 + \$6 = \mathbf{\$96}$
+Total Cost = \$$50 + $30 + $10 + $6 = \mathbf{$96}$
 
 ***
-
 
 #### **Associative Property**
 
@@ -89,17 +84,15 @@ Total Cost = $\$50 + \$30 + \$10 + \$6 = \mathbf{\$96}$
 
 ***
 
-
 #### Fractions
 
-![Properties of fractions: addition, subtraction, multiplication, and division rules](../../assets/prop_of_fractions.png)
+![Properties of fractions: addition, subtraction, multiplication, and division rules](../../.gitbook/assets/prop_of_fractions.png)
 
 ***
 
-
 ### **Integer Exponents**
 
-![Laws of exponents: product, quotient, power, and zero exponent rules](../../assets/laws_of_exponent.png)
+![Laws of exponents: product, quotient, power, and zero exponent rules](../../.gitbook/assets/laws_of_exponent.png)
 
 A product of identical numbers is usually written in exponential notation
 
@@ -113,50 +106,52 @@ A product of identical numbers is usually written in exponential notation
 
 ***
 
-
 ### **Radicals**
 
 The number inside the root _must_ be a result of something being raised to the power of $n$
 
-![Properties of nth roots: product, quotient, and power rules for radicals](../../assets/prop_of_roots.png)
+![Properties of nth roots: product, quotient, and power rules for radicals](../../.gitbook/assets/prop_of_roots.png)
 
-The expression to simplify is $\sqrt[4]{81x^8y^4}$.
+The expression to simplify is $\sqrt\[4]{81x^8y^4}$.
 
-$\sqrt[4]{81x^8y^4} = \sqrt[4]{81}\sqrt[4]{x^8}\sqrt[4]{y^4}$ This step uses Property 1 ($\sqrt[n]{ab} = \sqrt[n]{a} \cdot \sqrt[n]{b}$) to separate the single radical into a product of three individual radicals.
+$\sqrt\[4]{81x^8y^4} = \sqrt\[4]{81}\sqrt\[4]{x^8}\sqrt\[4]{y^4}$ This step uses Property 1 ($\sqrt\[n]{ab} = \sqrt\[n]{a} \cdot \sqrt\[n]{b}$) to separate the single radical into a product of three individual radicals.
 
 $$= 3\sqrt[4]{(x^2)^4}|y|$$
 
 This step simplifies each of the three terms separately:
 
-1. Simplifying $\sqrt[4]{81}$ Since $3^4 = 3 \times 3 \times 3 \times 3 = 81$, the fourth root of 81 is 3.
-2. Simplifying $\sqrt[4]{x^8}$:
- * This is rewritten by expressing $x^8$ as a power of 4: $x^8 = (x^2)^4$.
- * The term becomes $\sqrt[4]{(x^2)^4}$.
-3. Simplifying $\sqrt[4]{y^4}$
- * This uses Property 5 ($\sqrt[n]{a^n} = |a|$, if $n$ is even). Since $n=4$ (even), the fourth root of $y^4$ must be the absolute value of $y$, or $|y|$.
+1. Simplifying $\sqrt\[4]{81}$ Since $3^4 = 3 \times 3 \times 3 \times 3 = 81$, the fourth root of 81 is 3.
+2. Simplifying $\sqrt\[4]{x^8}$:
+
+* This is rewritten by expressing $x^8$ as a power of 4: $x^8 = (x^2)^4$.
+* The term becomes $\sqrt\[4]{(x^2)^4}$.
+
+3. Simplifying $\sqrt\[4]{y^4}$
+
+* This uses Property 5 ($\sqrt\[n]{a^n} = |a|$, if $n$ is even). Since $n=4$ (even), the fourth root of $y^4$ must be the absolute value of $y$, or $|y|$.
 
 $$= 3x^2|y|$$
 
-Simplifying $\sqrt[4]{(x^2)^4}$
+Simplifying $\sqrt\[4]{(x^2)^4}$
 
-* This uses Property 5 again. The $n$th root cancels the $n$th power, and since $n=4$ is even, we use the absolute value: $\sqrt[4]{(x^2)^4} = |x^2|$.
+* This uses Property 5 again. The $n$th root cancels the $n$th power, and since $n=4$ is even, we use the absolute value: $\sqrt\[4]{(x^2)^4} = |x^2|$.
 * However, because any real number squared ($x^2$) is always non-negative, the absolute value signs are not necessary. So, $|x^2|$ simplifies to just $x^2$.
 
 The final simplified expression is $3x^2|y|$.
 
-The key takeaway is that the absolute value signs are essential when simplifying an even root of a variable raised to the same power (like $\sqrt[4]{y^4}$), unless you are certain the result is non-negative (like in the case of $x^2$).
+The key takeaway is that the absolute value signs are essential when simplifying an even root of a variable raised to the same power (like $\sqrt\[4]{y^4}$), unless you are certain the result is non-negative (like in the case of $x^2$).
 
 ***
-
 
 #### Rational Exponent
 
 $$a^{\frac{m}{n}} = \sqrt[n]{a^m} = (\sqrt[n]{a})^m$$
 
-$8^{\frac{2}{3}} =(\sqrt[3]{8})^2$ = $2^2$ = $4$
+$8^{\frac{2}{3\}} =(\sqrt\[3]{8})^2$ = $2^2$ = $4$
+
 ### Product Formulas
 
-![Special product formulas: difference of squares, perfect square trinomials, cube of binomials](../../assets/product_formulas.png)
+![Special product formulas: difference of squares, perfect square trinomials, cube of binomials](../../.gitbook/assets/product_formulas.png)
 
 $$(3x + 4)(3x - 4) = (3x)^2 - (4)^2$$
 
@@ -182,7 +177,6 @@ $$(2m - 1)^3 = 8m^3 - 12m^2 + 6m - 1$$
 
 ***
 
-
 ### Binomial Theorem
 
 Used to expand expressions that consist of two terms (a "binomial") raised to a high power. Instead of multiplying brackets manually for hours, this theorem provides a direct shortcut to the final answer.
@@ -194,10 +188,9 @@ $$(x + y)^n = \sum_{k=0}^{n} \binom{n}{k} x^{n-k} y^k$$
 * $k$: The term number you are currently calculating (it starts at 0 and goes up to $n$).
 * $\binom{n}{k}$: The Binomial Coefficient, read as "$n$ choose $k$":
 
- $$\binom{n}{k} = \frac{n!}{k!(n-k)!}$$
+$$\binom{n}{k} = \frac{n!}{k!(n-k)!}$$
 
 ***
-
 
 ### Rational
 
@@ -219,7 +212,6 @@ The denominator, $Q(x)$, cannot be equal to zero. Division by zero is undefined.
 * GCF: $5x^2$
 
 ***
-
 
 ### Factoring
 
@@ -271,9 +263,10 @@ Used for two terms that are perfect cubes.
 
 * Sum: $a^3 + b^3 = (a + b)(a^2 - ab + b^2)$
 * Difference: $a^3 - b^3 = (a - b)(a^2 + ab + b^2)$
+
 ### Equations
 
-![Properties of equality: additive, multiplicative, reflexive, symmetric, and transitive](../../assets/prop_equality.png)
+![Properties of equality: additive, multiplicative, reflexive, symmetric, and transitive](../../.gitbook/assets/prop_equality.png)
 
 A linear equation has degree 1 its graph is always a straight line.
 
@@ -286,6 +279,7 @@ the exponent is greater than 1
 * $x^3 + y = 7$
 
 Quadratic equations are essential for modeling paths, areas, and optimization problems. They are defined by the standard form $ax^2 + bx + c = 0$, where $x$ is the unknown, and $a$, $b$, and $c$ are known coefficients.
+
 ### **Discriminant**
 
 $$\mathbf{D = b^2 - 4ac}$$
@@ -308,7 +302,7 @@ The Real Part ($a$): These are normal numbers like $5$, $-3$
 
 The Imaginary Part ($bi$): This is a real number multiplied by $i$
 
-![Complex number representation in standard form a+bi with real and imaginary parts](../../assets/complex_number_table.png)
+![Complex number representation in standard form a+bi with real and imaginary parts](../../.gitbook/assets/complex_number_table.png)
 
 Imagine you are controlling a drone.
 
@@ -337,14 +331,14 @@ If you want to tell that drone to "turn 90 degrees," you don't need a complicate
 * Rotate 90°: $(3 + 4i) \times i = 3i + 4i^2$
 * Since $i^2 = -1$, this becomes $-4 + 3i$.
 
-<img src="../../assets/flip_imaginary.png" alt="90-degree rotation of a complex number on the complex plane after multiplying by i" width="375">
+<img src="../../.gitbook/assets/flip_imaginary.png" alt="90-degree rotation of a complex number on the complex plane after multiplying by i" width="375">
 
-| Power | Simplified | Rule |
-| --- | --- | --- |
-| $i^1$ | $i$ | Remainder of 1 |
-| $i^2$ | $-1$ | Remainder of 2 |
-| $i^3$ | $-i$ | Remainder of 3 |
-| $i^4$ | $1$ | Remainder of 0 (no remainder) |
+| Power | Simplified | Rule                          |
+| ----- | ---------- | ----------------------------- |
+| $i^1$ | $i$        | Remainder of 1                |
+| $i^2$ | $-1$       | Remainder of 2                |
+| $i^3$ | $-i$       | Remainder of 3                |
+| $i^4$ | $1$        | Remainder of 0 (no remainder) |
 
 **The 180-Degree "Flip"**
 
@@ -358,7 +352,6 @@ Now, look at the math definition: $i \times i = -1$ This means that doing the "m
 
 If "multiplying by $-1$" is a 180-degree turn, then "multiplying by $i$" must be half of that turn to make the math work. Half of 180 degrees is 90 degrees.
 
-
 ### Guidelines for Modeling with Equations
 
 1. Identify the Variable. **Identify the quantity** that the problem asks you to find. This quantity can usually be determined by a careful reading of the question that is posed at the end of the problem. Then introduce notation for the variable (call it x or some other letter).
@@ -370,22 +363,22 @@ A car rental company charges 30 dollar a day and 15¢ a mile for renting a car. 
 a car for two days, and the bill comes to $108. How many miles was the car driven?
 
 * Let $x$ = the number of miles driven.
-* Daily cost: The company charges $\$30$ per day. Since the car was rented for 2 days, the cost is $2 \times 30 = 60$.
-* Mileage cost: The company charges $15¢$ (or $\$0.15$) per mile. For $x$ miles, the cost is $0.15x$.
-* Total Bill: The problem states the final bill comes to $\$108$.
+* Daily cost: The company charges \$$30$ per day. Since the car was rented for 2 days, the cost is $2 \times 30 = 60$.
+* Mileage cost: The company charges $15¢$ (or \$$0.15$) per mile. For $x$ miles, the cost is $0.15x$.
+* Total Bill: The problem states the final bill comes to \$$108$.
 * $\text{Daily Cost} + \text{Mileage Cost} = \text{Total Bill}$
 * $60 + 0.15x = 108$
+
 ### Inequalities
 
-![Rules for solving inequalities: multiplying by a negative flips the inequality sign](../../assets/inequalities_rules.png)
+![Rules for solving inequalities: multiplying by a negative flips the inequality sign](../../.gitbook/assets/inequalities_rules.png)
 
 A linear inequality is one where the variable has a power of 1. When you graph these, they always form a straight line that divides the plane into two regions.
 
 * $ax + b < c$ or $y > mx + b$
 * $2x + 3 \leq 7$
 
-Subtract 3: $2x \leq 4$
-Divide by 2: $x \leq 2$
+Subtract 3: $2x \leq 4$ Divide by 2: $x \leq 2$
 
 A nonlinear inequality contains a variable with a power other than 1 (like $x^2$, $x^3$), or variables multiplied together, or variables in a denominator.
 
@@ -395,31 +388,33 @@ A nonlinear inequality contains a variable with a power other than 1 (like $x^2$
 Find the "critical points" where $x^2 - 4 = 0$. This happens at $x = 2$ and $x = -2$.
 
 Test the intervals:
+
 * If $x = 0$ (between -2 and 2): $0^2 - 4 > 0$ is False.
 * If $x = 3$ (greater than 2): $3^2 - 4 > 0$ is True.
-* If $x = -3$ (less than -2): $(-3)^2 - 4 > 0$ is True.
-The solution is $x < -2$ or $x > 2$.
+* If $x = -3$ (less than -2): $(-3)^2 - 4 > 0$ is True. The solution is $x < -2$ or $x > 2$.
 
 ### **Intervals**
 
-![Interval notation: open, closed, and half-open intervals with bracket and parenthesis notation](../../assets/interval_notation.png)
+![Interval notation: open, closed, and half-open intervals with bracket and parenthesis notation](../../.gitbook/assets/interval_notation.png)
+
 ### **Absolute Value**
 
-![Properties of absolute value: definition, distance interpretation, and inequality rules](../../assets/prop_absolute_value.png)
+![Properties of absolute value: definition, distance interpretation, and inequality rules](../../.gitbook/assets/prop_absolute_value.png)
+
 ### Coordinate Plane, Graphs of Equations, Line, Circles
 
-<img src="../../assets/coordinate_plane.png" alt="Coordinate plane with x-axis, y-axis, quadrants I through IV, and origin" width="563">
+<img src="../../.gitbook/assets/coordinate_plane.png" alt="Coordinate plane with x-axis, y-axis, quadrants I through IV, and origin" width="563">
 
-**Distance formula** $d = \sqrt{(x_2 - x_1)^2 + (y_2 - y_1)^2}$
+**Distance formula** $d = \sqrt{(x\_2 - x\_1)^2 + (y\_2 - y\_1)^2}$
 
-* The Subtraction $(x_2 - x_1)$: This is just a math way of saying "how many steps did I walk sideways?" If you start at $x=2$ and end at $x=5$, you walked $5 - 2 = 3$ steps.
+* The Subtraction $(x\_2 - x\_1)$: This is just a math way of saying "how many steps did I walk sideways?" If you start at $x=2$ and end at $x=5$, you walked $5 - 2 = 3$ steps.
 * The Squaring $(...)^2$: This comes directly from Pythagoras ($a^2 + b^2 = c^2$). Squaring also makes sure that even if you walk "backwards" (negative numbers), the result becomes positive, because distance is always positive.
 * The Plus Sign $(+)$: We add the "sideways steps" squared and the "upward steps" squared together, just like $a^2 + b^2$.
 * The Square Root $(\sqrt{\dots})$: In the Pythagorean theorem, we have $c^2$. To get just $c$ (the distance), we have to "undo" the square by taking the square root.
 
 **Example**
 
-<img src="../../assets/coorplane_example.png" alt="Coordinate plane with points A(5,3), P(1,-2), and Q(8,9) to compare distances" width="375">
+<img src="../../.gitbook/assets/coorplane_example.png" alt="Coordinate plane with points A(5,3), P(1,-2), and Q(8,9) to compare distances" width="375">
 
 The goal is to find which point is closer to $A(5, 3)$. To do that, we find the distance to $P(1, -2)$ and the distance to $Q(8, 9)$.
 
@@ -441,7 +436,7 @@ Since $\sqrt{41}$ is a smaller number than $\sqrt{45}$, Point $P$ is closer to $
 
 ***
 
-<img src="../../assets/midpoint_distance.png" alt="Line segment with midpoint labeled between two points on a coordinate plane" width="563">
+<img src="../../.gitbook/assets/midpoint_distance.png" alt="Line segment with midpoint labeled between two points on a coordinate plane" width="563">
 
 **Midpoint formula** finds the coordinates of the point that lies exactly halfway between two endpoints.
 
@@ -459,7 +454,7 @@ $$(x - h)^2 + (y - k)^2 = r^2$$
 
 #### **Intercept**
 
-![X-intercept and y-intercept of a line crossing the axes on a graph](../../assets/intercept.png)
+![X-intercept and y-intercept of a line crossing the axes on a graph](../../.gitbook/assets/intercept.png)
 
 #### Lines
 
@@ -469,22 +464,21 @@ $$slope = rise/run$$
 
 $$m = \frac{y_2 - y_1}{x_2 - x_1}$$
 
-* Numerator ($y_2 - y_1$): This is the Rise. It tells you how much the line goes up or down.
-* Denominator ($x_2 - x_1$): This is the Run. It tells you how much the line goes left or right.
+* Numerator ($y\_2 - y\_1$): This is the Rise. It tells you how much the line goes up or down.
+* Denominator ($x\_2 - x\_1$): This is the Run. It tells you how much the line goes left or right.
 
-![Slope of a line as rise over run with positive, negative, zero, and undefined slopes](../../assets/slope_of_line.png)
+![Slope of a line as rise over run with positive, negative, zero, and undefined slopes](../../.gitbook/assets/slope_of_line.png)
 
 #### Circle Equation
 
-![Equation of a circle in standard form with center (h,k) and radius r graphed on axes](../../assets/circle_eq.png)
+![Equation of a circle in standard form with center (h,k) and radius r graphed on axes](../../.gitbook/assets/circle_eq.png)
 
-point-slope equation: $y - y_1 = m(x - x_1)$
+point-slope equation: $y - y\_1 = m(x - x\_1)$
 
-**Parallel Lines**: Two non-vertical lines are parallel if they have the same slope ($m_1 = m_2$).
+**Parallel Lines**: Two non-vertical lines are parallel if they have the same slope ($m\_1 = m\_2$).
 
 **Perpendicular line** is a line that intersects another line at a perfect 90° angle (also known as a right angle). Two lines with slopes m1 and m2 are perpendicular if and only if m1m2 = -1,\
-that is, their slopes are negative reciprocals: $m_2 = -\frac{1}{m_1}$
-
+that is, their slopes are negative reciprocals: $m\_2 = -\frac{1}{m\_1}$
 
 ## Functions
 
@@ -492,7 +486,7 @@ General properties for functions
 
 **Range notation**
 
-Range of $f = \{f(x) \mid x \in A\}$ _(The set of all_ $f(x)$ _values such that_ $x$ _is an element of the domain_ $A$_.)_
+Range of $f = {f(x) \mid x \in A}$ _(The set of all_ $f(x)$ _values such that_ $x$ _is an element of the domain_ $A$_.)_
 
 **Domain of function**
 
@@ -510,9 +504,9 @@ $$f(x) = \frac{5}{x-3}$$
 
 **Graph of functions**
 
-If $f$ is a function with domain $A$, then the graph of $f$ is the set of ordered pairs: $\{(x, f(x)) \mid x \in A\}$ plotted in a coordinate plane. In other words, the graph of $f$ is the set of all points $(x, y)$ such that $y = f(x)$
+If $f$ is a function with domain $A$, then the graph of $f$ is the set of ordered pairs: ${(x, f(x)) \mid x \in A}$ plotted in a coordinate plane. In other words, the graph of $f$ is the set of all points $(x, y)$ such that $y = f(x)$
 
-<img src="../../assets/domain_and_range_of_graph.png" alt="Graph of a function with domain and range labeled on x and y axes" width="563">
+<img src="../../.gitbook/assets/domain_and_range_of_graph.png" alt="Graph of a function with domain and range labeled on x and y axes" width="563">
 
 ### Average Rate of Change of a Function
 
@@ -523,6 +517,7 @@ In simple terms:
 $$\frac{\text{Change in Output}}{\text{Change in Input}} = \frac{\Delta y}{\Delta x}$$
 
 $$\text{AROC} = \frac{\text{Change in Distance}}{\text{Change in Time}} = \text{Average Speed}$$
+
 ### Transformation of Functions
 
 **Transformation of functions** is a set of mathematical operations that change the position, size, or orientation of a graph without losing its fundamental "family" shape.
@@ -545,6 +540,7 @@ Vertical/Horizontal Shifting: $f(x) \pm c$ or $f(x \pm c)$
 Reflecting: $-f(x)$ (over x-axis) or $f(-x)$ (over y-axis)
 
 Stretching/Shrinking: $cf(x)$ or $f(cx)$
+
 ### Combining Functions
 
 $$f(g(x))$$
@@ -556,11 +552,12 @@ If I ask for $(f \circ g)(3)$:
 1. Start with the inside: $g(3) = 2 \cdot 3 = \mathbf{6}$
 2. Move to the outside: Put that 6 into $f$
 3. $f(6) = 6 + 5 = \mathbf{11}$
+
 ### One to One function & Inverse
 
 A function $f$ is one-to-one (or injective) if it never takes the same value twice:
 
-> If $x_1 \neq x_2$, then $f(x_1) \neq f(x_2)$
+> If $x\_1 \neq x\_2$, then $f(x\_1) \neq f(x\_2)$
 
 **The Horizontal Line Test (HLT)**
 
@@ -596,7 +593,6 @@ notice from + to minus 3 and from multiplication of 2x become x/2
 
 ***
 
-
 #### Bird Flight
 
 A bird is released from point A on an island, 5 miles from the nearest point B\
@@ -606,33 +602,32 @@ energy to fly over land and 14 kcal/mi to fly over water.
 
 energy used = energy per mile x miles flown
 
-<img src="../../assets/bird_problem.png" alt="Geometry diagram of a bird flying from an island to a point on the shoreline and then along the coast" width="375">
+<img src="../../.gitbook/assets/bird_problem.png" alt="Geometry diagram of a bird flying from an island to a point on the shoreline and then along the coast" width="375">
 
 The bird's journey consists of two segments: flying over water (from A to C) and flying over land (from C to D).
 
 1. Distance over Water ($AC$):
 
- The path from $A$ to $C$ forms the hypotenuse of a right-angled triangle $ABC$.
+The path from $A$ to $C$ forms the hypotenuse of a right-angled triangle $ABC$.
 
- * The height ($A$) is 5 miles.
- * The base ($BC$) is $x$ miles.
+* The height ($A$) is 5 miles.
+* The base ($BC$) is $x$ miles.
 
- Using the Pythagorean theorem:
+Using the Pythagorean theorem:
 
- $$\text{Distance}_{AC} = \sqrt{x^2 + 5^2} = \sqrt{x^2 + 25}$$
+$$\text{Distance}_{AC} = \sqrt{x^2 + 5^2} = \sqrt{x^2 + 25}$$
 
- Since energy over water is $14 \text{ kcal/mi}$, the energy used for this segment is:
+Since energy over water is $14 \text{ kcal/mi}$, the energy used for this segment is:
 
- $$14\sqrt{x^2 + 25}$$
-2. Distance over Land ($CD$):
+$$14\sqrt{x^2 + 25}$$ 2. Distance over Land ($CD$):
 
- The total distance from point $B$ to the nesting area $D$ is $12 \text{ miles}$. Since the distance $BC$ is $x$, the remaining distance over land is:
+The total distance from point $B$ to the nesting area $D$ is $12 \text{ miles}$. Since the distance $BC$ is $x$, the remaining distance over land is:
 
- $$\text{Distance}_{CD} = 12 - x$$
+$$\text{Distance}_{CD} = 12 - x$$
 
- Since energy over land is $10 \text{ kcal/mi}$, the energy used for this segment is:
+Since energy over land is $10 \text{ kcal/mi}$, the energy used for this segment is:
 
- $$10(12 - x)$$
+$$10(12 - x)$$
 
 Total Energy $E(x)$:
 
@@ -673,13 +668,12 @@ $(h, k)$: This is the Vertex (the peak or valley).
 * $h$ is the horizontal "address" (the $x$).
 * $k$ is the vertical "address" (the height, or $y$).
 * $a$: This is the "Shape Master."
- * If $a$ is positive, it’s a U.
- * If $a$ is negative, it’s an n.
+* If $a$ is positive, it’s a U.
+* If $a$ is negative, it’s an n.
 
 The Minus Sign ($-h$): This is the "Pusher." Because it is _inside_ the parentheses with $x$, it works backward from what you expect. If you see $(x - 3)$, it actually pushed the graph right to $+3$.
 
 The square is what creates that "U" shape. Because any number squared (positive or negative) becomes positive, the graph mirrors itself on both sides, creating a valley or a hill.
-
 
 ## Polynomial and Rational functions
 
@@ -687,7 +681,7 @@ A polynomial of degree $n$ can have up to $n-1$ turning points and can have loca
 
 **Polynomial**
 
-Question: Current: $\$20$ price, $60$ units sold. Change: $+\$1$ price $\rightarrow$ $-2$ units sold.
+Question: Current: \$$20$ price, $60$ units sold. Change: $+$1$ price $\rightarrow$ $-2$ units sold.
 
 Find $x$ (price increases) for Max Revenue ($R$)
 
@@ -717,11 +711,11 @@ $$R_{max} = 25 \times 50 = \$1,250$$
 
 #### Long Division Polynomial
 
-<img src="../../assets/long_div_polynomial.png" alt="Step-by-step long division of polynomials with quotient and remainder" width="563">
+<img src="../../.gitbook/assets/long_div_polynomial.png" alt="Step-by-step long division of polynomials with quotient and remainder" width="563">
 
 #### Synthetic Division
 
-<img src="../../assets/sythetic_division.png" alt="Synthetic division of a polynomial by a linear factor (x - c)" width="375">
+<img src="../../.gitbook/assets/sythetic_division.png" alt="Synthetic division of a polynomial by a linear factor (x - c)" width="375">
 
 #### Factor Theorem
 
@@ -732,10 +726,7 @@ Question: Is $(x - 1)$ a factor of $x^3 - 6x^2 + 11x - 6$?
 1. The Test Value: Since we are testing $(x - 1)$, our value is $1$.
 2. The Calculation:
 
- $f(1) = (1)^3 - 6(1)^2 + 11(1) - 6$
- $f(1) = 1 - 6 + 11 - 6$
- $$f(1) = 0$$
-3. The Verdict: Because we got 0, $(x - 1)$ is a factor. It divides the big equation perfectly with no leftovers.
+$f(1) = (1)^3 - 6(1)^2 + 11(1) - 6$ $f(1) = 1 - 6 + 11 - 6$ $$f(1) = 0$$ 3. The Verdict: Because we got 0, $(x - 1)$ is a factor. It divides the big equation perfectly with no leftovers.
 
 #### Polynomial Inequality
 
@@ -760,7 +751,7 @@ $$(x - 1)(x + 1)(x - 4) = 0$$
 
 Critical values are: $x = -1, 1, 4$.
 
-These roots create four intervals on the number line: $(-\infty, -1]$, $[-1, 1]$, $[1, 4]$, and $[4, \infty)$. (We use brackets because the inequality is $\leq$).
+These roots create four intervals on the number line: $(-\infty, -1]$, $\[-1, 1]$, $\[1, 4]$, and $\[4, \infty)$. (We use brackets because the inequality is $\leq$).
 
 * Test $x = -2$: $(-)(-)(-) = \text{negative}$ (Matches $\leq 0$)
 * Test $x = 0$: $(-)(+)(-) = \text{positive}$
@@ -770,7 +761,6 @@ These roots create four intervals on the number line: $(-\infty, -1]$, $[-1, 1]$
 The intervals where the expression is less than or equal to zero are:
 
 $$(-\infty, -1] \cup [1, 4]$$
-
 
 ## Rational Function
 
@@ -788,10 +778,11 @@ The Average Cost per pair ($A(x)$) is a rational function:
 
 $$A(x) = \frac{5000 + 30x}{x}$$
 
-![Graph of a rational function with vertical and horizontal asymptotes marked](../../assets/vertical_horizontal_asymptote.png)
+![Graph of a rational function with vertical and horizontal asymptotes marked](../../.gitbook/assets/vertical_horizontal_asymptote.png)
 
 * Vertical Asymptote ($x=0$): You can't calculate the average cost for 0 sneakers (division by zero). As production gets closer to zero, the average cost per unit skyrockets.
 * Horizontal Asymptote ($y=30$): As production increases to very large numbers, the $5,000 fixed cost is spread so thin that it becomes negligible. The average cost "levels off" toward the variable cost of $30.
+
 #### **Factor Theorem for Rational Functions**
 
 In a rational function, we are usually looking for zeros (where the graph hits the x-axis).
@@ -841,21 +832,20 @@ Solve: $\frac{x-5}{x+1} \geq 0$
 * Numerator: $x - 5 = 0 \implies \mathbf{x = 5}$
 * Denominator: $x + 1 = 0 \implies \mathbf{x = -1}$
 
- These two numbers create three intervals: $(-\infty, -1), (-1, 5), and (5, \infty)$.
+These two numbers create three intervals: $(-\infty, -1), (-1, 5), and (5, \infty)$.
 
-| Interval | Test Point (x) | Calculation | Result | Sign |
-| ----------------- | -------------- | ------------------------------------- | -------- | ---------------- |
-| $(-\infty, -1)$ | $-2$ | $\frac{-2-5}{-2+1} = \frac{-7}{-1}$ | $7$ | Positive (+) |
-| $(-1, 5)$ | $0$ | $\frac{0-5}{0+1} = \frac{-5}{1}$ | $-5$ | Negative ($-$) |
-| $(5, \infty)$ | $6$ | $\frac{6-5}{6+1} = \frac{1}{7}$ | $0.14$ | Positive (+) |
+| Interval        | Test Point (x) | Calculation                         | Result | Sign           |
+| --------------- | -------------- | ----------------------------------- | ------ | -------------- |
+| $(-\infty, -1)$ | $-2$           | $\frac{-2-5}{-2+1} = \frac{-7}{-1}$ | $7$    | Positive (+)   |
+| $(-1, 5)$       | $0$            | $\frac{0-5}{0+1} = \frac{-5}{1}$    | $-5$   | Negative ($-$) |
+| $(5, \infty)$   | $6$            | $\frac{6-5}{6+1} = \frac{1}{7}$     | $0.14$ | Positive (+)   |
 
 We want the intervals where the result is $\geq 0$ (Positive).
 
 * We include $5$ because it makes the numerator zero (and the inequality allows $\geq$).
 * We exclude $-1$ because it makes the denominator zero (undefined).
 
-Solution: $(-\infty, -1) \cup [5, \infty)$
-
+Solution: $(-\infty, -1) \cup \[5, \infty)$
 
 ## Exponential & Logarithmic Functions
 
@@ -865,8 +855,8 @@ $$f(x) = a \cdot b^x$$
 
 * $a$: The initial value (the y-intercept).
 * $b$: The base (growth or decay factor).
- * If $b > 1$, it is Exponential Growth.
- * If $0 < b < 1$, it is Exponential Decay.
+* If $b > 1$, it is Exponential Growth.
+* If $0 < b < 1$, it is Exponential Decay.
 
 **The Growth/Decay Rate Form**
 
@@ -884,7 +874,6 @@ $$e \approx 2.71828$$
 
 It was discovered by studying compound interest. If you had $1 and a bank gave you 100% interest, but they compounded it every single tiny fraction of a second (continuously), you wouldn't get infinite moneyyou would end up with exactly $2.718... ($e$) at the end of the year
 
-
 ### Logarithmic
 
 The most fundamental formula for a logarithm relates the logarithmic form to its exponential form:
@@ -895,14 +884,14 @@ $$\log_b(x) = y \iff b^y = x$$
 * $x$ (Argument): Must be a positive real number ($x > 0$).
 * $y$ (Exponent): The result or the "power" itself.
 
-| Rule Name | Formula |
-| --- | --- |
-| Product Rule | $\log_b(m \cdot n) = \log_b(m) + \log_b(n)$ |
-| Quotient Rule | $\log_b(\frac{m}{n}) = \log_b(m) - \log_b(n)$ |
-| Power Rule | $\log_b(m^p) = p \cdot \log_b(m)$ |
-| Zero Property | $\log_b(1) = 0$ |
-| Identity Property | $\log_b(b) = 1$ |
-| Inverse Property | $b^{\log_b(x)} = x$ and $\log_b(b^x) = x$ |
+| Rule Name         | Formula                                          |
+| ----------------- | ------------------------------------------------ |
+| Product Rule      | $\log\_b(m \cdot n) = \log\_b(m) + \log\_b(n)$   |
+| Quotient Rule     | $\log\_b(\frac{m}{n}) = \log\_b(m) - \log\_b(n)$ |
+| Power Rule        | $\log\_b(m^p) = p \cdot \log\_b(m)$              |
+| Zero Property     | $\log\_b(1) = 0$                                 |
+| Identity Property | $\log\_b(b) = 1$                                 |
+| Inverse Property  | $b^{\log\_b(x)} = x$ and $\log\_b(b^x) = x$      |
 
 **Natural logarithm**
 
@@ -917,4 +906,3 @@ Where $e$ (Euler's number) is approximately $2.71828$
 Because it is the inverse of the exponential function $e^x$, the relationship is:
 
 $$e^y = x \iff \ln(x) = y$$
-

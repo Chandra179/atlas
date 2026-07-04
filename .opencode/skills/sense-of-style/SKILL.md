@@ -1,6 +1,9 @@
 ---
 name: sense-of-style
-description: Apply Steven Pinker's classic prose style from The Sense of Style, grounded in cognitive science of language. Use when user requests "Pinker style", "sense of style", "classic prose", "rewrite for clarity", or asks to improve readability, flow, and cognitive grace in writing.
+description: >-
+  Apply Steven Pinker's classic prose style from The Sense of Style, grounded in
+  cognitive science of language. Use when user requests "Pinker style", "sense
+  of style", "classic prose", "rewrite for cla
 ---
 
 # Sense of Style (Pinker)
@@ -23,13 +26,13 @@ You know more than your reader. You can't unknow it, so you can't tell what's ha
 
 Zombie nouns (nominalizations) drain life from prose. Turn verbs back into verbs:
 
-| Zombie | Living |
-|---|---|
+| Zombie                      | Living      |
+| --------------------------- | ----------- |
 | conduct an investigation of | investigate |
-| make a recommendation that | recommend |
-| give consideration to | consider |
-| provide documentation for | document |
-| is an indication of | indicates |
+| make a recommendation that  | recommend   |
+| give consideration to       | consider    |
+| provide documentation for   | document    |
+| is an indication of         | indicates   |
 
 ### 4. Follow the Given-New Contract
 
@@ -46,19 +49,21 @@ Sentences are trees, not strings. Long sentences fail when too many branches dan
 ### 7. Use Passive Voice But Only When It Helps
 
 Passive is not a sin. Use it when:
-- The actor is unknown or obvious: _"The window was broken."_
-- The recipient is the topic: _"The patient was admitted at midnight."_
-- You want to avoid blaming the actor.
+
+* The actor is unknown or obvious: _"The window was broken."_
+* The recipient is the topic: _"The patient was admitted at midnight."_
+* You want to avoid blaming the actor.
 
 The real enemy is indirect, windy prose not passive voice itself.
 
 ### 8. Ignore Zombie Rules
 
 Writing guides are full of superstitions. You may:
-- Split infinitives: _"to boldly go"_
-- End sentences with prepositions: _"That's what it's for"_
-- Use singular _they_: _"Everyone brought their lunch"_
-- Start sentences with _and_ or _but_
+
+* Split infinitives: _"to boldly go"_
+* End sentences with prepositions: _"That's what it's for"_
+* Use singular _they_: _"Everyone brought their lunch"_
+* Start sentences with _and_ or _but_
 
 These were never real rules. Save your attention for real problems.
 

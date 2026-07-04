@@ -1,6 +1,9 @@
 ---
 name: technical-writing-style
-description: Apply Gerald J. Alred's technical writing conventions from the Handbook of Technical Writing. Use when user requests "Alred style", "technical writing style", "apply technical writing rules", or asks to review/rewrite text for professional/technical/ workplace clarity.
+description: >-
+  Apply Gerald J. Alred's technical writing conventions from the Handbook of
+  Technical Writing. Use when user requests "Alred style", "technical writing
+  style", "apply technical writing rules", or asks
 ---
 
 # Technical Writing Style (Alred)
@@ -23,9 +26,9 @@ Set your boundaries. Use your purpose and audience profile to draw a line around
 
 Organize your approach. Pull from internal knowledge, interviews, internet archives, or workplace correspondence. As you analyze data, pick a development method that matches your goal:
 
-- **Sequential:** For step-by-step instructions.
-- **Chronological:** For historical timelines.
-- **Specific-to-General:** For leading with individual case studies to prove a broader point (great for persuasive writing).
+* **Sequential:** For step-by-step instructions.
+* **Chronological:** For historical timelines.
+* **Specific-to-General:** For leading with individual case studies to prove a broader point (great for persuasive writing).
 
 ### 5. Outline & Plan the Layout
 
