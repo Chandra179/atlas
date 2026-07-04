@@ -5,7 +5,6 @@ audience: ""
 style: "tutorial | reference | deep-dive | comparison | case-study"
 prerequisites: []
 difficulty: "beginner | intermediate | advanced"
-created: ""
 ---
 
 # Title
