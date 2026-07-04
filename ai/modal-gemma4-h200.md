@@ -1,5 +1,5 @@
 ---
-tags: [ml, ai, infrastructure, modal, gemma4, h200]
+tags: [ml, ai, infrastructure, modal, gemma4, h200, ml-infra]
 audience: Engineers deploying Gemma 4 31B on H200 via Modal. Python basics assumed.
 style: Deployment case study
 ---

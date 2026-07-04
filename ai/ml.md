@@ -1,7 +1,7 @@
 ---
 title: "Machine Learning"
 aliases: []
-tags: [ml]
+tags: [ml, machine-learning]
 created: "2026-06-13"
 ---
 
@@ -37,27 +37,33 @@ There are three types of parameters with different roles:
 - **Biases** (one per neuron). Set how easily a neuron activates regardless of input. A high bias means the neuron fires readily; a low or negative bias means a strong input signal is required.
 - **Embeddings**. A special parameter table at the network's entrance that maps each discrete token (word, subword) to a dense vector of continuous numbers. These vectors are learned during training so that semantically similar words ("king" and "queen") end up with similar vector coordinates.
 
+These parameters are just numbers — what transforms them into a useful output is the activation function, covered next.
+
 ### Activation Functions
 
 The activation function shapes what the neuron can express:
 
-| Function | Range | Used For | Tradeoff |
-|----------|-------|----------|----------|
-| Sigmoid | (0, 1) | Binary classification output | Saturates → vanishing gradients |
-| Tanh | (-1, 1) | Hidden layers (older nets) | Same saturation problem |
-| ReLU | [0, ∞) | Hidden layers (default) | Dead neurons if input < 0 |
-| GELU | (-∞, ∞) | Transformers | Non-zero gradient for negative inputs (~0.1 at -1), avoids dead neurons [^1] |
-| Swish | (-∞, ∞) | Deep CNNs | Self-gated, smoother gradient landscape |
+| Function | Range | Used For | Key Behavior |
+|----------|-------|----------|-------------|
+| Sigmoid | (0, 1) | Binary classification output | Compresses any input to a 0-1 range; saturates at extremes |
+| Tanh | (-1, 1) | Hidden layers (older nets) | Zero-centered; saturates at extremes |
+| ReLU | [0, ∞) | Hidden layers (default) | Passes positive values through, blocks negatives to zero |
+| GELU | (-∞, ∞) | Transformers, modern architectures | Smooth curve; non-zero for negative inputs [^1] |
+| Swish | (-∞, ∞) | Deep CNNs | Self-gated: input × sigmoid(input); smooth everywhere |
 
-The choice affects gradient flow because backpropagation multiplies derivatives through every layer via the chain rule:
+**Sigmoid** squashes any value into a (0, 1) range — useful for outputting probabilities. It's the standard final activation for binary classification.
 
-$$\text{Total Gradient} = \text{Layer 3 Gradient} \times \text{Layer 2 Gradient} \times \text{Activation Derivative}$$
+**Tanh** is zero-centered (range -1 to 1), which helps optimization center around zero. Popular in older recurrent networks and multi-layer perceptrons.
 
-If any activation derivative is zero, the entire gradient chain collapses to zero — the weight freezes and stops learning.
+**ReLU** is the default hidden-layer activation. Simple and fast: it passes positive values unchanged and zeroes out negative ones. It's the go-to choice unless you have a reason to use something else.
 
-Sigmoid squashes everything between 0 and 1 — great for "yes/no" outputs, but deep networks lose signal because gradients approach zero at the extremes (vanishing gradients). ReLU fixed this by being linear for positive inputs (gradient = 1), but neurons with permanently negative inputs output exactly 0, whose derivative is 0 — multiplying the gradient chain by 0 kills it. This is the **Dead ReLU** problem: the weight update becomes $w_{\text{new}} = w_{\text{old}} - 0$ and the neuron freezes permanently.
+**GELU** is the modern replacement for ReLU in Transformers and large models. Instead of a hard zero for negatives, it has a smooth curve — so every neuron stays slightly responsive regardless of input. [^1]
 
-GELU avoids this by maintaining a non-zero gradient for negative inputs (e.g., ~0.1 at -1 [^1]). That tiny curve instead of a flat line lets a fraction of the gradient leak backward even through negative neurons, keeping all 100+ layers trainable. This is why modern Transformers use GELU.
+**Swish** (also called SiLU) is a self-gated activation where the input is multiplied by its own sigmoid. It produces a smooth, non-monotonic landscape that can help optimization in very deep convolutional networks.
+
+Choosing the right activation depends on where it sits in the network: hidden layers need something that keeps signal flowing (ReLU, GELU), while output layers need a function that maps to the right range (Sigmoid for 0-1, linear for unbounded values).
+
+The activation function gives the neuron a way to express itself. But how do we know if that expression is correct? We need a way to measure how far off the prediction is from the truth — that's the **loss function**.
 
 ### Loss: Measuring How Wrong We Are
 
@@ -85,6 +91,8 @@ $$-\sum y_i \ln(\hat{y}_i) = -(1.0 \times \ln(0.85) + 0.0 \times \ln(0.15)) = 0.
 
 A confident correct prediction (cat = 0.99) gives loss near 0. A confident wrong prediction (dog = 0.99) gives a large loss.
 
+The loss tells us we're wrong. But how do we adjust the weights to be less wrong? Enter **gradient descent** — the algorithm that uses calculus to find which direction moves us toward a lower loss.
+
 ### Gradient Descent: Walking Downhill
 
 If loss is a landscape, gradient descent finds the lowest valley. Imagine a U-shaped valley where height = Loss (how wrong the AI is) and horizontal position = a specific weight value. Calculus finds the slope at your current position:
@@ -97,6 +105,8 @@ The weight update follows:
 $$w_{\text{new}} = w_{\text{old}} - (\alpha \times \text{Gradient})$$
 
 Where $\alpha$ is the **Learning Rate** — a small multiplier (e.g., 0.001) controlling step size. Too large: overshoot the valley, oscillate, diverge. Too small: training takes forever.
+
+Gradient descent adjusts the last layer's weights. But deep networks have many layers — how does an early layer know what to change? That's where **backpropagation** comes in: it traces the error backward through every layer, computing each weight's contribution to the final loss.
 
 ### Backpropagation: Assigning Blame
 
@@ -192,6 +202,12 @@ Can you use multiple activation functions inside the same layer? Within a single
 Across different layers, yes — mixing is standard practice. A binary classifier might use ReLU or GELU in all hidden layers (for healthy gradient flow) and Sigmoid in the output layer (to squash the final logit into a $(0, 1)$ probability). Each activation is chosen for what that layer needs: gradient flow in the depths, output-range control at the surface.
 
 ### How Activations Affect Backpropagation
+
+Backpropagation multiplies derivatives through every layer via the chain rule:
+
+$$\text{Total Gradient} = \text{Layer N Gradient} \times \cdots \times \text{Layer 2 Gradient} \times \text{Activation Derivative}$$
+
+If any activation derivative is zero, the entire gradient chain collapses to zero — that weight freezes and stops learning. This is why the choice of activation function has outsized impact on trainability.
 
 The activation function's derivative acts as a **gatekeeper** for the gradient signal during backpropagation:
 

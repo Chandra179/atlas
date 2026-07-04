@@ -1,5 +1,5 @@
 ---
-tags: [ml, ai, infrastructure]
+tags: [ml, ai, infrastructure, ml-infra]
 audience: Engineers deploying LLMs on GPU infrastructure. Knows basic ML concepts from ml.md.
 style: Deep dive + Reference
 prerequisites:

@@ -1,5 +1,5 @@
 ---
-tags: [ml, ai, infrastructure]
+tags: [ml, ai, infrastructure, ml-infra]
 audience: Engineers choosing a serving engine for LLM deployment. Knows vLLM basics from ai-infra.md.
 style: Reference + Comparison
 prerequisites:

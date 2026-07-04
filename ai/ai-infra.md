@@ -1,5 +1,5 @@
 ---
-tags: [ml, ai, infrastructure]
+tags: [ml, ai, infrastructure, ml-infra]
 audience: Engineers deploying LLMs on serverless GPUs. Python basics assumed.
 style: Reference
 prerequisites:

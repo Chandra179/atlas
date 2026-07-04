@@ -1,7 +1,7 @@
 ---
 title: "Neural Network Architectures"
 aliases: []
-tags: [ml]
+tags: [ml, deep-learning]
 created: "2026-07-01"
 ---
 

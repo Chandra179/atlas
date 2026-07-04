@@ -1,5 +1,5 @@
 ---
-tags: [ml, ai, transformer, inference]
+tags: [ml, ai, transformer, inference, deep-learning]
 audience: Engineers who want to understand how Transformers generate text — autoregressive decoding, KV caching, vocabulary, and token selection.
 style: tutorial
 prerequisites:
