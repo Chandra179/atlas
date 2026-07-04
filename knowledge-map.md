@@ -114,13 +114,13 @@ created: 2026-06-29
 ## Math
 - Calculus 1: chain rule, product rule, quotient rule, related rates, optimization
 - Calculus 2: integration by substitution, by parts, trigonometric integrals, improper integrals
-- Calculus 3: partial derivatives, gradient, curl, divergence, lagrange multipliers
-- Probability: random variables, PDF/CDF, Bayes theorem, law of large numbers, CLT
-- Statistics: hypothesis testing, p-values, confidence intervals, ANOVA, A/B testing
-- Discrete Math: boolean algebra, counting, induction, recurrence relations, graph theory
-- Information Theory: entropy, KL divergence, mutual information, cross-entropy
-- Numerical Methods: floating-point precision, root-finding, numerical integration, iterative solvers
-- Optimization: gradient descent variants, convex optimization, constraint solving, duality
+    - Calculus 3: partial derivatives, gradient, curl, divergence, lagrange multipliers
+    - Probability: random variables, PDF/CDF, Bayes theorem, law of large numbers, CLT
+    - Statistics: hypothesis testing, p-values, confidence intervals, ANOVA, A/B testing
+    - Discrete Math: boolean algebra, counting, induction, recurrence relations, graph theory
+    - Information Theory: entropy, KL divergence, mutual information, cross-entropy
+    - Numerical Methods: floating-point precision, root-finding, numerical integration, iterative solvers
+    - Optimization: gradient descent variants, convex optimization, constraint solving, duality
 
 ## AI/ML
 - Transformer architecture: attention mechanism, multi-head, positional encoding, GPT/LLaMA decoder
