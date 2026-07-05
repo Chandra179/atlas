@@ -11,7 +11,7 @@ created: "2026-07-04"
 
 # Transformer Inference: How They Generate Text
 
-A Transformer is a stack of identical layers built around a single core computation: scaled dot-product attention. This document covers how the architecture works and how it runs during inference — from the attention formula through autoregressive decoding to token selection.
+A Transformer is a stack of identical layers built around a single core computation: scaled dot-product attention. Inference runs through three stages — attention computation, autoregressive decoding, and token selection — to generate each new word.
 
 ---
 
@@ -42,7 +42,7 @@ The result: each token's output is a weighted mixture of every token's value, wi
 
 A single attention computation captures one relationship pattern. Language has many: grammar, coreference, sentiment, factual association. Multi-head attention runs the entire computation multiple times in parallel, each with its own set of W_Q, W_K, W_V matrices.
 
-With h heads (typically 16 to 128), the input vector is split into h segments each of dimension d_k = d_model / h. Each head computes attention independently. The h outputs are concatenated back into a single vector of dimension d_model, then multiplied by a learned output projection matrix W_O.
+With h heads (16 to 128), the architecture splits the input vector into h segments, each of dimension d_k = d_model / h. Each head computes attention independently. The model concatenates the h outputs into a single vector of dimension d_model, then multiplies that vector by a learned output projection matrix W_O.
 
 If 32 attention heads look at "The cat sat on the mat," one head tracks subject-verb agreement (cat → sat), another links the article (The → cat), another follows the prepositional chain (on → mat), and a fourth captures spatial relationships. All 32 perspectives combine into a single enriched representation.
 
@@ -112,7 +112,7 @@ Transformers rely on **autoregressive next-token prediction via Self-Attention**
 
 ### The Core Algorithm: Autoregressive Prediction
 
-The Transformer looks at your entire prompt. Every word is turned into three mathematical vectors: **Query (Q)**, **Key (K)**, and **Value (V)**.
+The Transformer looks at your entire prompt and turns every word into three mathematical vectors: **Query (Q)**, **Key (K)**, and **Value (V)**.
 
 **The "Matchmaking" (Self-Attention):** The model takes the Query of the very last word and multiplies it against the Keys of all previous words in the context window. This generates a relevance score for each past word.
 
@@ -196,7 +196,7 @@ That's a 10,000× reduction — why Transformers stream text instantly rather th
 
 ### Why This Works: The Training Objective
 
-The model generates text the way it does because training taught it exactly this skill. The training loop and the inference loop run the same algorithm. One just skips the weight updates.
+Training taught the model exactly this skill. The training and inference loops run the same algorithm; inference just skips the weight updates.
 
 During training, the model reads a sentence — "The quick brown fox jumps over the lazy dog" — and tries to predict every word from the words before it:
 
@@ -249,7 +249,7 @@ Once Softmax gives probabilities, the selection depends on **Temperature**:
 
 ## Vector Dimensions, Vocab Size, and Weight Factors
 
-Vector dimensions and vocabulary size directly shape model quality. Every architecture must strike a delicate balance between them.
+Vector dimensions and vocabulary size determine model quality. Every architecture balances them carefully.
 
 **Vector Dimensions (d_model):** The size of the embedding vector for each token (typically 768 to 4096+). Think of this as the model's conceptual bandwidth. More dimensions let each token store more nuanced information (e.g., "apple" as a fruit, a company, a color, and a stock all at once). Too few dimensions and understanding becomes overly simplistic.
 

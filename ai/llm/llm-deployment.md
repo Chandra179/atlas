@@ -1,5 +1,5 @@
 ---
-title: "AI Infrastructure"
+title: "LLM Deployment Infrastructure"
 tags: [ml, ai, infrastructure, ml-infra, vllm]
 audience: "Engineers deploying LLMs on serverless GPUs. Python basics assumed."
 style: reference
@@ -9,7 +9,7 @@ difficulty: intermediate
 created: "2026-07-04"
 ---
 
-# AI Infrastructure
+# LLM Deployment Infrastructure
 
 This document covers general concepts for deploying large language models (LLMs) on serverless GPU infrastructure using **vLLM**.
 

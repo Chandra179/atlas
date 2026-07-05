@@ -1,10 +1,10 @@
 ---
 title: "LLM Inference Engines"
 tags: [ml, ai, infrastructure, ml-infra, inference]
-audience: "Engineers choosing a serving engine for LLM deployment. Knows vLLM basics from ai-infra.md."
+audience: "Engineers choosing a serving engine for LLM deployment. Knows vLLM basics from llm-deployment.md."
 style: comparison
 prerequisites:
-  - ai-infra.md
+  - llm-deployment.md
   - ../neural-network-fundamentals.md
 difficulty: intermediate
 created: "2026-07-04"
@@ -14,7 +14,7 @@ created: "2026-07-04"
 
 The inference engine you pick determines your throughput, latency, hardware compatibility, and operational complexity. vLLM is the default for a reason but it's not always the best choice. This file compares the six major engines and when to pick each.
 
-**Prerequisites**: [`modal-gemma4-h200.md`](../modal-gemma4-h200.md) Modal setup, cold starts, vLLM flags. [`ai-infra.md`](ai-infra.md) vLLM concepts (batching, caching, decoding). [`neural-network-fundamentals.md`](../neural-network-fundamentals.md) model architectures, Transformer attention.
+**Prerequisites**: [`modal-gemma4-h200.md`](../modal-gemma4-h200.md) Modal setup, cold starts, vLLM flags. [`llm-deployment.md`](llm-deployment.md) vLLM concepts (batching, caching, decoding). [`neural-network-fundamentals.md`](../neural-network-fundamentals.md) model architectures, Transformer attention.
 
 ---
 
@@ -50,7 +50,7 @@ The current standard for production LLM serving. Its key innovation is **PagedAt
 - Guided decoding (JSON mode, regex) is less mature than SGLang.
 - Memory overhead from Python runtime (~1-2 GiB).
 
-**See [`modal-gemma4-h200.md`](../modal-gemma4-h200.md) for cold start optimization and [`ai-infra.md`](ai-infra.md) for vLLM concepts.**
+**See [`modal-gemma4-h200.md`](../modal-gemma4-h200.md) for cold start optimization and [`llm-deployment.md`](llm-deployment.md) for vLLM concepts.**
 
 ---
 

@@ -15,11 +15,11 @@ Using `+=` for string concatenation is an **inefficient approach** especially wi
 
 ```go
 func concat(values []string) string {
- s := ""
- for _, value := range values {
- s += value // Each iteration allocates and copies
- }
- return s
+	s := ""
+	for _, value := range values {
+		s += value // Each iteration allocates and copies
+	}
+	return s
 }
 ```
 
@@ -39,11 +39,11 @@ With 10,000 strings, that's 10,000 allocations and roughly 50 million bytes copi
 import "strings"
 
 func concat(values []string) string {
- var sb strings.Builder
- for _, value := range values {
- sb.WriteString(value)
- }
- return sb.String()
+	var sb strings.Builder
+	for _, value := range values {
+		sb.WriteString(value)
+	}
+	return sb.String()
 }
 ```
 
@@ -55,18 +55,18 @@ If you know the total size ahead of time, call `Grow` to allocate the buffer onc
 
 ```go
 func concat(values []string) string {
- total := 0
- for _, value := range values {
- total += len(value)
- }
+	total := 0
+	for _, value := range values {
+		total += len(value)
+	}
 
- var sb strings.Builder
- sb.Grow(total)
+	var sb strings.Builder
+	sb.Grow(total)
 
- for _, value := range values {
- sb.WriteString(value)
- }
- return sb.String()
+	for _, value := range values {
+		sb.WriteString(value)
+	}
+	return sb.String()
 }
 ```
 
@@ -89,8 +89,8 @@ Strings support slicing with the same `s[i:j]` syntax as slices:
 ```go
 s := "hello world"
 greeting := s[:5] // "hello"
-world := s[6:] // "world"
-mid := s[1:4] // "ell"
+world := s[6:]    // "world"
+mid := s[1:4]     // "ell"
 ```
 
 Slicing a string does **not** allocate it creates a new header pointing into the same backing array. This is O(1) and cheap.
@@ -106,7 +106,7 @@ Convert between them:
 
 ```go
 b := []byte("hello") // string → []byte (allocates)
-s := string(b) // []byte → string (allocates)
+s := string(b)       // []byte → string (allocates)
 ```
 
 Both conversions allocate because `[]byte` is mutable and `string` must remain immutable Go copies the data to break the reference.
@@ -127,10 +127,10 @@ Both conversions allocate because `[]byte` is mutable and `string` must remain i
 
 ```go
 s := " hello, world! "
-strings.Contains(s, "world") // true
+strings.Contains(s, "world")         // true
 strings.Replace(s, "hello", "hi", 1) // " hi, world! "
-strings.Trim(s, " ") // "hello, world!"
-strings.Fields(s) // ["hello,", "world!"]
+strings.Trim(s, " ")                 // "hello, world!"
+strings.Fields(s)                    // ["hello,", "world!"]
 ```
 
 ## Runes and UTF-8
@@ -139,11 +139,11 @@ A Go string is a byte sequence, not a character sequence. One Unicode character 
 
 ```go
 s := "hello"
-len(s) // 5 count of bytes
+len(s)                    // 5 count of bytes
 utf8.RuneCountInString(s) // 5 count of runes (same here, ASCII)
 
 emoji := "🚀"
-len(emoji) // 4 four bytes
+len(emoji)                    // 4 four bytes
 utf8.RuneCountInString(emoji) // 1 one rune
 ```
 
@@ -151,7 +151,7 @@ Range over a string yields runes automatically:
 
 ```go
 for i, r := range "hello 🚀" {
- fmt.Printf("%d: %c\n", i, r)
+	fmt.Printf("%d: %c\n", i, r)
 }
 // 0: h
 // 1: e

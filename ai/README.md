@@ -27,9 +27,9 @@ Suggested reading order. Each file lists its prerequisites — follow this chain
 |---|---|---|---|
 | 5 | [`quantization.md`](llm/quantization.md) | Quantization math (affine formula, calibration, group size), formats (AWQ, GPTQ, GGUF, FP8), accuracy impact, vLLM support | `neural-network-fundamentals.md` |
 | 6 | [`fine-tuning.md`](llm/fine-tuning.md) | LoRA, QLoRA, PEFT methods, dataset curation, hyperparameters, Axolotl/Unsloth/TRL workflow | `neural-network-fundamentals.md` |
-| 7 | [`ai-infra.md`](llm/ai-infra.md) | vLLM, continuous batching, PagedAttention, prefix caching, speculative decoding, parallelism strategies, HuggingFace Hub | `neural-network-fundamentals.md` |
-| 8 | [`inference-engines.md`](llm/inference-engines.md) | vLLM vs SGLang vs TensorRT-LLM vs TGI vs Ollama vs llama.cpp — comparison and decision guide | `ai-infra.md` |
-| 9 | [`modal-gemma4-h200.md`](modal-gemma4-h200.md) | Concrete deployment on Modal + H200: cold starts, GPU memory snapshots, vLLM config, cost model | `llm/ai-infra.md` |
+| 7 | [`llm-deployment.md`](llm/llm-deployment.md) | vLLM, continuous batching, PagedAttention, prefix caching, speculative decoding, parallelism strategies, HuggingFace Hub | `neural-network-fundamentals.md` |
+| 8 | [`inference-engines.md`](llm/inference-engines.md) | vLLM vs SGLang vs TensorRT-LLM vs TGI vs Ollama vs llama.cpp — comparison and decision guide | `llm-deployment.md` |
+| 9 | [`modal-gemma4-h200.md`](modal-gemma4-h200.md) | Concrete deployment on Modal + H200: cold starts, GPU memory snapshots, vLLM config, cost model | `llm/llm-deployment.md` |
 
 ## Advanced Architecture
 
@@ -51,7 +51,7 @@ ai/
 ├── modal-gemma4-h200.md      Gemma 4 on Modal deployment case study
 ├── deepseek-v4-flash.md      DeepSeek V4-Flash (architecture + infra + benchmarks)
 ├── llm/                      LLM-specific content
-│   ├── ai-infra.md           vLLM & deployment infrastructure
+│   ├── llm-deployment.md    vLLM & deployment infrastructure
 │   ├── evaluation.md         Model evaluation & benchmarks
 │   ├── fine-tuning.md        Fine-tuning practical guide
 │   ├── inference-engines.md  Inference engine comparison

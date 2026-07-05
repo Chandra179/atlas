@@ -10,13 +10,12 @@ created: 2026-06-29
 | **Economy** | Full | Moderate | 30 | Depth varies across subtopics |
 | **Distributed Systems (etcd/Raft, Syncthing)** | Narrow | Deep | 2 | Other consensus protocols (Paxos, VSR, EPaxXos), gossip protocol, CRDTs |
 | **System Design** | Narrow | Deep | 3 | Consistent hashing, ID generation (Snowflake), rate limiting, distributed cache, notification system, real-time chat, URL shortener, rate limiter design |
-| **Math** | Broad | Deep (trig/lin alg) | 7 | Integral calculus, multivariable calculus, differential equations, probability/statistics, discrete math, numerical methods, information theory, optimization, proof techniques |
+| **Math** | Broad | Deep (trig/lin alg) | 6 | Integral calculus, multivariable calculus, differential equations, probability/statistics, discrete math, numerical methods, information theory, optimization, proof techniques |
 | **AI/ML** | Broad | Moderate | 10 | Transformer architecture, attention mechanism, training fundamentals, RLHF, prompt engineering |
 | **RAG** | Narrow (one system) | Deep | 1 | Search engine internals, alternative retrieval strategies (ColBERT, late interaction) |
 | **React** | Broad | Deep | 1 | Server Components hands-on, Next.js, state management libraries, testing |
 | **Go** | Narrow | Deep goroutines, Shallow strings | 2 | Interfaces, errors, generics, testing, modules, HTTP/net, reflection, context, memory model, GC, profiling, embedding, structs/methods, type system, standard library |
-| **Fundamentals** | Moderate | Deep | 7 | Operating systems, compilers/interpreters, data structures & algorithms, design patterns, testing strategies, CI/CD, containerization, security (beyond OAuth) |
-| **Data Pipeline** | Narrow | Practitioner | 5 | Stream processing engines, CDC patterns beyond Debezium, data lakehouse (Iceberg, Delta Lake) |
+| **Backend Engineering** | Moderate | Deep | 7 | Operating systems, compilers/interpreters, data structures & algorithms, design patterns, testing strategies, CI/CD, containerization, security (beyond OAuth) |
 | **Psychometric System** | Narrow | Architecture spec | 1 | — |
 | **Lattice Work** | Placeholder | — | 0 | Charlie Munger mental models — no content yet |
 
@@ -25,17 +24,16 @@ created: 2026-06-29
 | Priority | Domain | Core/Foundation Status | Action |
 |----------|--------|----------------------|--------|
 | 1 | **Go** | ❌ Terrible — 2 files for primary language, no interfaces/errors/testing/http/context/GC/profiling | Build from scratch — this hurts daily work |
-| 2 | **Fundamentals / CS** | ❌ Missing — no OS, no DSA, no compilers, no security, no CI/CD, no design patterns | Build universal gaps |
+| 2 | **Backend Engineering / CS** | ❌ Missing — no OS, no DSA, no compilers, no security, no CI/CD, no design patterns | Build universal gaps |
 | 3 | **Distributed Systems** | ⚠️ Weak — only Raft and Syncthing. No Paxos, no consensus theory overview, no failure detectors, no distributed transaction protocols | Build foundation before advanced |
 | 4 | **System Design** | ⚠️ Weak — 2 specialized topics only, missing building blocks (consistent hashing, rate limiting, ID gen, CDN, DNS) | Build fundamentals first |
 | 5 | **Math** | ❌ Weak — calculus is one concept, no stats/probability, no discrete math, no proof techniques | Build core before advanced math |
 | 6 | **AI/ML** | ⚠️ Partial — applied ML/LLM (infra, quantization, eval) but no transformer fundamentals, no training core | Foundation needed for ML-engineering roles |
-| 7 | **Data Pipeline** | ✅ Good foundation — ingestion, idempotency, retrieval, infrastructure covered | Ready for Flink/Iceberg/streaming extensions |
-| 8 | **RAG** | ✅ Good foundation — full pipeline top to bottom for one system | Ready for ColBERT, search internals |
-| 9 | **Database** | ✅ Solid foundation — taxonomy, indexing, engines, MVCC, WAL, consensus, 8 engine deep dives | Ready for cloud-native, HTAP |
-| 10 | **Economy** | ✅ Solid foundation — micro, macro, global, behavioral all structured | Ready for deeper individual files |
-| 11 | **React** | ✅ Good foundation — model, lifecycle, hooks, concurrent, server components, error boundaries | Complete |
-| 12 | **Psychometric** | ⚠️ Architecture spec only, no implementation | Low priority |
+| 7 | **RAG** | ✅ Good foundation — full pipeline top to bottom for one system | Ready for ColBERT, search internals |
+| 8 | **Database** | ✅ Solid foundation — taxonomy, indexing, engines, MVCC, WAL, consensus, 8 engine deep dives | Ready for cloud-native, HTAP |
+| 9 | **Economy** | ✅ Solid foundation — micro, macro, global, behavioral all structured | Ready for deeper individual files |
+| 10 | **React** | ✅ Good foundation — model, lifecycle, hooks, concurrent, server components, error boundaries | Complete |
+| 11 | **Psychometric** | ⚠️ Architecture spec only, no implementation | Low priority |
 
 # Future Topics
 
@@ -380,15 +378,6 @@ created: 2026-06-29
 - Golden file testing — for large structured outputs
 - Property-based testing — quickcheck, rapid (Go library)
 - Behavior-driven testing — godog (Cucumber in Go)
-
-## Data Pipeline
-- Stream processing engines: Apache Flink (exactly-once, stateful, event time, watermarks), Kafka Streams, Samza
-- CDC patterns: Debezium (PostgreSQL pgoutput, MySQL binlog, MongoDB oplog), Maxwell
-- Data lakehouse: Apache Iceberg (table format, snapshot isolation, time travel), Delta Lake, Apache Hudi
-- File format internals: Parquet (columnar, RLE, dictionary encoding, min/max stats, predicate pushdown), ORC, Arrow
-- Batch processing: Spark (shuffle, RDD, DAG scheduler, Catalyst optimizer, Tungsten), MapReduce
-- Data quality: Great Expectations, dbt, data contracts, schema registry, schema evolution
-- Streaming SQL: Flink SQL, ksqlDB, RisingWave — materialized views on streams
 
 ## Architecture & Meta
 - ADRs (Architecture Decision Records) — format, examples, trade-off catalog

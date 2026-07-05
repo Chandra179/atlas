@@ -70,9 +70,11 @@ created: 2026-06-29
 - `linear-algebra.md` — vectors, dot product, cosine similarity, matrix multiplication, Gaussian elimination, LU/QR decomposition, SVD, rank/nullspace
 - `summary.md` — trigonometry + algebra synthesis
 
-## AI/ML (8 files)
+## AI/ML (10 files)
 - `neural-network-fundamentals.md` — perceptron, activation functions, loss functions, gradient descent, backpropagation, MLP, batch normalization, layer norm, bias-variance, training pipeline, optimizers (Adam, AdamW), scaling laws, RLHF, DPO, prompting (CoT, ToT, ReAct), frontier training, **embeddings** (training, models, similarity, dimensionality, Matryoshka, chunking), **evaluation** (perplexity, BLEU, ROUGE, BERTScore, LLM-as-judge, MT-Bench, Chatbot Arena, Elo, MMLU, HumanEval, SWE-bench, GSM8K, human eval)
-- `ai-infra.md` — vLLM, continuous batching, PagedAttention, prefix caching, speculative decoding, tensor/pipeline/data/expert parallelism, TTFT/TPOT metrics, HuggingFace Hub
+- `embeddings.md` — embedding training objectives (Word2Vec, GloVe, BERT), similarity metrics (cosine, dot product), dimensionality reduction (PCA, t-SNE, UMAP), Matryoshka embeddings, chunking strategies, model selection
+- `llm/evaluation.md` — perplexity, BLEU, ROUGE, BERTScore, LLM-as-judge, MT-Bench, Chatbot Arena, Elo rating, MMLU, HumanEval, SWE-bench, GSM8K, human evaluation protocols
+- `llm-deployment.md` — vLLM, continuous batching, PagedAttention, prefix caching, speculative decoding, tensor/pipeline/data/expert parallelism, TTFT/TPOT metrics, HuggingFace Hub
 - `fine-tuning.md` — full fine-tuning, LoRA, QLoRA, prefix tuning, prompt tuning, IA3, dataset curation, catastrophic forgetting, Axolotl, Unsloth, TRL
 - `inference-engines.md` — vLLM vs SGLang vs TensorRT-LLM vs TGI vs Ollama vs llama.cpp comparison, decision table
 - `quantization.md` — PTQ vs QAT, AWQ, GPTQ, bitsandbytes (NF4), GGUF, FP8, groupsize, perplexity impact, vLLM quantization support
@@ -90,7 +92,7 @@ created: 2026-06-29
 - `goroutine.md` — GPM scheduler, work stealing, channels (hchan internals), select, closure capture, Mutex/RWMutex, WaitGroup, atomic, worker pool, errgroup, goroutine leak detection
 - `strings.md` — string concatenation, strings.Builder, strings.Join, substring slicing, runes & UTF-8, strings package
 
-## Fundamentals (7 files)
+## Backend Engineering (7 files)
 - `networking.md` — DNS resolution, TCP handshake, TLS, HTTP/1.1/2/3, caching, cookies/sessions/JWT, CORS, CDNs, load balancers, NAT (STUN/TURN/ICE)
 - `computing.md` — CPU architecture, memory hierarchy, virtual memory, stack vs heap, VRAM vs RAM
 - `kafka.md` — broker architecture, topics/partitions, log segments, ISR, replication, ZooKeeper vs KRaft, producer acks, consumer groups, rebalancing, retention, compression
@@ -99,37 +101,8 @@ created: 2026-06-29
 - `api-design-guidelines.md` — data integrity, rate limiting, cursor pagination, idempotency keys, circuit breakers, RBAC/ABAC, HTTP semantics, versioning
 - `software-architecture.md` — architecture characteristics, modularity, governance, fitness functions, fallacies of distributed computing
 
-## Data Pipeline (5 files)
-- `index.md` — pipeline architecture overview, constraints, stages
-- `ingestion.md` — data collection, CDC (Debezium/WAL), priority queue, DLQ, retry
-- `idempotency.md` — optimistic locking, state machine, worker claim flow, at-least-once, hot-spot keys
-- `infrastructure.md` — semantic caching, hot state offload (Redis), horizontal partitioning, guaranteed queue partitioning
-- `retrieval.md` — metadata filtering, hybrid search (dense + sparse + RRF), cross-encoder reranking, evaluation
-
 ## Psychometric System (1 file)
 - `psycho.md` — architecture spec, Big Five (OCEAN), Regulatory Focus, Need for Cognition, LIWC dictionary, module boundaries (ingest/analyze/profile), SQLite storage, implementation phases
 
 ## Personal / Experience (1 file)
 - `introduction.md` — work experience (BookCabin itinerary system, BFI finance multi-collateral loan, M+ payment integration), projects (Golang SDK, Golang template, RAG Nadir), tech stack (Golang, Temporal, SolidJS, Docker, GCP, Redis, RabbitMQ, Nats, Python, SqlServer, AWS)
-
-# Lattice Work (Charlie Munger Mental Models) — Unexplored
-
-Mental models from other disciplines not yet studied. To fill the latticework.
-
-**Psychology / Cognitive Biases**
-- Incentive super-response tendency, Pavlovian association, social proof, Kantian fairness, admiration/jealousy, reciprocation, influence-from-mere-association, love of precision, hate of uncertainty, consistency/commitment, deprivation-superreaction, B.F. Skinner operant conditioning, contrast-misreaction, stress-induced mental changes, availability/misweighing, anchoring, confirmation bias, overconfidence, Dunning-Kruger, hindsight bias, fundamental attribution error, curse of knowledge, planning fallacy, status quo bias, framing effect, sunk cost, hyperbolic discounting
-
-**Business / Microeconomics**
-- Porter's Five Forces, barriers to entry, switching costs, moats (brand, patent, network effect, cost, scale), pricing power, commoditization, competitive advantage period, value chain analysis, flywheel effect, survivorship bias in investing, circle of competence, margin of safety, Mr. Market allegory
-
-**Physics & Engineering**
-- Critical mass, tipping point, feedback loops (reinforcing vs balancing), leverage, breakpoints, redundancy, backup systems, margin of safety, inversion principle, multiplicative vs additive systems, all-twos-and-no-aces principle, man-with-a-hammer tendency
-
-**Biology / Evolution**
-- Natural selection, adaptation, extinction, Red Queen effect, competitive exclusion principle, niche specialization, punctuated equilibrium, replication (genes, memes), ecosystem dynamics, coevolution
-
-**Mathematics / Statistics**
-- Compound interest, regression to the mean, normal distribution vs power law (Pareto), law of large numbers, central limit theorem, Bayesian updating, base rates, sampling bias, multiplying by zero (catastrophic failure), independence vs dependence of events, permutation vs combination, expected value, asymmetric payoffs (Pascal's wager, ergodicity)
-
-**History / Systems Thinking**
-- Multi-disciplinary approach (avoid man-with-a-hammer), lollapalooza effects (multiple forces combining), inversion (solve backwards), first principles reasoning, second-order effects, emergent behavior, path dependence, lock-in, counterfactual reasoning

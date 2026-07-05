@@ -5,7 +5,7 @@ audience: "Engineers deploying LLMs on GPU infrastructure. Knows basic ML concep
 style: reference
 prerequisites:
   - ../neural-network-fundamentals.md
-  - ai-infra.md
+  - llm-deployment.md
 difficulty: advanced
 created: "2026-07-04"
 ---
@@ -14,7 +14,7 @@ created: "2026-07-04"
 
 A 70B-parameter model at FP16 precision needs ~140 GiB of GPU memory — more than any single consumer GPU. Quantize it to 4-bit, and it fits on an RTX 4090 (24 GiB, with CPU offloading). Quantization is the primary knob for trading precision for deployment cost.
 
-**Prerequisites**: [`neural-network-fundamentals.md`](../neural-network-fundamentals.md) model architectures, training vs inference. [`ai-infra.md`](ai-infra.md) model serving on GPUs, vLLM startup.
+**Prerequisites**: [`neural-network-fundamentals.md`](../neural-network-fundamentals.md) model architectures, training vs inference. [`llm-deployment.md`](llm-deployment.md) model serving on GPUs, vLLM startup.
 
 ---
 

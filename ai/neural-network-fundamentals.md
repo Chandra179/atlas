@@ -431,7 +431,7 @@ See [evaluation.md](llm/evaluation.md) — perplexity, generation metrics, LLM-a
 
 | Path | Start With |
 |------|-----------|
-| **ML infrastructure** | [AI infra](llm/ai-infra.md) vLLM, HuggingFace, scaling. [Use case: Gemma 4 on Modal](modal-gemma4-h200.md) GPU pricing, cold starts, storage |
+| **ML infrastructure** | [LLM deployment infrastructure](llm/llm-deployment.md) vLLM, HuggingFace, scaling. [Use case: Gemma 4 on Modal](modal-gemma4-h200.md) GPU pricing, cold starts, storage |
 | **Architectures** | See [transformer-inference.md](transformer-inference.md) for Transformer, [embeddings.md](embeddings.md) for embeddings |
 | **Embeddings** | [embeddings.md](embeddings.md) embedding models, similarity, vector DBs. [Specialized Databases](../database/specialized-databases.md) for pgvector/Pinecone/Milvus |
 | **Evaluation** | [evaluation.md](llm/evaluation.md) perplexity, benchmarks, LLM-as-Judge, human eval |

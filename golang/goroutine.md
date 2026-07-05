@@ -79,15 +79,15 @@ Channels are the primary mechanism for communication between goroutines. Underst
 
 ```go
 ch := make(chan string) // unbuffered
-ch <- "apple" // ❌ blocks immediately (no receiver)
+ch <- "apple"           // ❌ blocks immediately (no receiver)
 ```
 
 ```go
 ch := make(chan string)
 
 go func() {
- msg := <-ch
- fmt.Println("received:", msg)
+	msg := <-ch
+	fmt.Println("received:", msg)
 }()
 
 ch <- "apple" // blocks until receiver is ready
@@ -97,11 +97,11 @@ ch <- "apple" // blocks until receiver is ready
 
 ```go
 func main() {
- ch := make(chan string, 2)
+	ch := make(chan string, 2)
 
- ch <- "apple"
- ch <- "banana"
- ch <- "cherry" // blocks (buffer full)
+	ch <- "apple"
+	ch <- "banana"
+	ch <- "cherry" // blocks (buffer full)
 }
 ```
 
@@ -109,9 +109,9 @@ func main() {
 ch := make(chan string, 2)
 
 go func() {
- for v := range ch {
- fmt.Println("received:", v)
- }
+	for v := range ch {
+		fmt.Println("received:", v)
+	}
 }()
 
 ch <- "apple"
@@ -162,11 +162,11 @@ When you need to wait on multiple channels at once or add timeouts and cancellat
 ```go
 select {
 case msg := <-ch1:
- fmt.Println("Received from ch1:", msg)
+	fmt.Println("Received from ch1:", msg)
 case ch2 <- "ping":
- fmt.Println("Sent ping to ch2")
+	fmt.Println("Sent ping to ch2")
 default:
- fmt.Println("No channel ready")
+	fmt.Println("No channel ready")
 }
 ```
 
@@ -176,38 +176,38 @@ default:
 // Wait on multiple channels
 select {
 case msg := <-ch1:
- fmt.Println("ch1 said", msg)
+	fmt.Println("ch1 said", msg)
 case msg := <-ch2:
- fmt.Println("ch2 said", msg)
+	fmt.Println("ch2 said", msg)
 }
 
 // Using timeout
 select {
 case result := <-dbResponse:
- fmt.Println("Got data:", result)
+	fmt.Println("Got data:", result)
 case <-time.After(3 * time.Second):
- fmt.Println("Timeout waiting for DB")
+	fmt.Println("Timeout waiting for DB")
 }
 
 // Graceful shutdown
 func worker(ctx context.Context, ch <-chan int) {
- for {
- select {
- case val := <-ch:
- fmt.Println("got", val)
- case <-ctx.Done():
- fmt.Println("worker stopped")
- return
- }
- }
+	for {
+	select {
+	case val := <-ch:
+	fmt.Println("got", val)
+	case <-ctx.Done():
+	fmt.Println("worker stopped")
+	return
+	}
+	}
 }
 
 // Non blocking send
 select {
 case ch <- 1:
- fmt.Println("sent")
+	fmt.Println("sent")
 default:
- fmt.Println("channel is full, skipping")
+	fmt.Println("channel is full, skipping")
 }
 ```
 
@@ -220,26 +220,26 @@ Without `select`, you’d need manual checks, polling, or additional goroutines.
 ```go
 // Without select
 for {
- if len(ch1) > 0 {
- msg := <-ch1
- fmt.Println("Got from ch1:", msg)
- }
+	if len(ch1) > 0 {
+		msg := <-ch1
+		fmt.Println("Got from ch1:", msg)
+	}
 
- if len(ch2) > 0 {
- msg := <-ch2
- fmt.Println("Got from ch2:", msg)
- }
+	if len(ch2) > 0 {
+		msg := <-ch2
+		fmt.Println("Got from ch2:", msg)
+	}
 
- time.Sleep(1 * time.Millisecond) // avoid CPU burn
+	time.Sleep(1 * time.Millisecond) // avoid CPU burn
 }
 
 // With select
 select {
 case msg := <-ch1:
- fmt.Println("Got from ch1:", msg)
+	fmt.Println("Got from ch1:", msg)
 
 case msg := <-ch2:
- fmt.Println("Got from ch2:", msg)
+	fmt.Println("Got from ch2:", msg)
 }
 ```
 
@@ -260,10 +260,10 @@ The closure captures the reference (memory address) of the loop variable `n`. Si
 numbers := []int{1, 2, 3}
 
 for _, n := range numbers {
- // Each G holds a pointer to the SAME 'n'
- go func() {
- fmt.Println(n)
- }()
+	// Each G holds a pointer to the SAME 'n'
+	go func() {
+		fmt.Println(n)
+	}()
 }
 // Likely output: 3, 3, 3
 ```
@@ -280,10 +280,10 @@ The Go team changed the language semantics so that the loop variable `n` is inst
 
 ```go
 for _, n := range numbers {
- // By passing 'n' as 'val', we copy the current value immediately
- go func(val int) {
- fmt.Println(val)
- }(n)
+	// By passing 'n' as 'val', we copy the current value immediately
+	go func(val int) {
+		fmt.Println(val)
+	}(n)
 }
 ```
 
@@ -301,20 +301,20 @@ Use Mutexes when you need high-performance access to shared state (maps, structs
 
 ```go
 type SafeCounter struct {
- mu sync.RWMutex
- v map[string]int
+	mu sync.RWMutex
+	v  map[string]int
 }
 
 func (c *SafeCounter) Inc(key string) {
- c.mu.Lock() // 🔒 Write Lock: No one else can read or write
- defer c.mu.Unlock()
- c.v[key]++
+	c.mu.Lock() // 🔒 Write Lock: No one else can read or write
+	defer c.mu.Unlock()
+	c.v[key]++
 }
 
 func (c *SafeCounter) Value(key string) int {
- c.mu.RLock() // 🔓 Read Lock: Others can read, but no one can write
- defer c.mu.RUnlock()
- return c.v[key]
+	c.mu.RLock() // 🔓 Read Lock: Others can read, but no one can write
+	defer c.mu.RUnlock()
+	return c.v[key]
 }
 ```
 
@@ -326,11 +326,11 @@ Calling `Add(1)` _inside_ the goroutine. This creates a race condition where `Wa
 var wg sync.WaitGroup
 
 for i := 0; i < 3; i++ {
- wg.Add(1) // ✅ Correct: Add BEFORE starting goroutine
- go func(id int) {
- defer wg.Done()
- fmt.Printf("Worker %d starting\n", id)
- }(i)
+	wg.Add(1) // ✅ Correct: Add BEFORE starting goroutine
+	go func(id int) {
+		defer wg.Done()
+		fmt.Printf("Worker %d starting\n", id)
+	}(i)
 }
 
 wg.Wait() // Blocks until counter is 0
@@ -358,35 +358,35 @@ Spawning `go func()` for every HTTP then you will get Out-Of-Memory (OOM) errors
 
 ```go
 func worker(id int, jobs <-chan int, results chan<- int) {
- for j := range jobs {
- fmt.Printf("worker %d processing job %d\n", id, j)
- time.Sleep(time.Second) // Simulate work
- results <- j * 2
- }
+	for j := range jobs {
+		fmt.Printf("worker %d processing job %d\n", id, j)
+		time.Sleep(time.Second) // Simulate work
+		results <- j * 2
+	}
 }
 
 func main() {
- const numJobs = 100
- const numWorkers = 5
+	const numJobs = 100
+	const numWorkers = 5
 
- jobs := make(chan int, numJobs)
- results := make(chan int, numJobs)
+	jobs := make(chan int, numJobs)
+	results := make(chan int, numJobs)
 
- // Start fixed number of workers
- for w := 1; w <= numWorkers; w++ {
- go worker(w, jobs, results)
- }
+	// Start fixed number of workers
+	for w := 1; w <= numWorkers; w++ {
+		go worker(w, jobs, results)
+	}
 
- // Send jobs
- for j := 1; j <= numJobs; j++ {
- jobs <- j
- }
- close(jobs) // Signal workers that no more jobs are coming
+	// Send jobs
+	for j := 1; j <= numJobs; j++ {
+		jobs <- j
+	}
+	close(jobs) // Signal workers that no more jobs are coming
 
- // Collect results
- for a := 1; a <= numJobs; a++ {
- <-results
- }
+	// Collect results
+	for a := 1; a <= numJobs; a++ {
+		<-results
+	}
 }
 ```
 
@@ -402,29 +402,29 @@ The modern "Senior" alternative to `sync.WaitGroup`. It handles:
 import "golang.org/x/sync/errgroup"
 
 func main() {
- g, ctx := errgroup.WithContext(context.Background())
- urls := []string{"http://google.com", "http://bad-url.com", "http://bing.com"}
+	g, ctx := errgroup.WithContext(context.Background())
+	urls := []string{"http://google.com", "http://bad-url.com", "http://bing.com"}
 
- for _, url := range urls {
- url := url // Capture loop var (standard in Go < 1.22)
- g.Go(func() error {
- // Check context before working
- if ctx.Err() != nil {
- return ctx.Err()
- }
- resp, err := http.Get(url)
- if err == nil {
- resp.Body.Close()
- }
- return err // If this returns error, all other Gs get cancelled via ctx
- })
- }
+	for _, url := range urls {
+		url := url // Capture loop var (standard in Go < 1.22)
+		g.Go(func() error {
+			// Check context before working
+			if ctx.Err() != nil {
+				return ctx.Err()
+			}
+			resp, err := http.Get(url)
+			if err == nil {
+				resp.Body.Close()
+			}
+			return err // If this returns error, all other Gs get cancelled via ctx
+		})
+	}
 
- if err := g.Wait(); err != nil {
- fmt.Println("Error encountered:", err)
- } else {
- fmt.Println("All fetches successful")
- }
+	if err := g.Wait(); err != nil {
+		fmt.Println("Error encountered:", err)
+	} else {
+		fmt.Println("All fetches successful")
+	}
 }
 ```
 
@@ -444,51 +444,53 @@ Leaked goroutines cause:
 ```go
 // Lost goroutine due to async operations not tied to context
 func handler(w http.ResponseWriter, r *http.Request) {
- go func() {
- // do db operation / send notification
- // BUG: ignores r.Context()
- }()
+	go func() {
+		// do db operation / send notification
+		// BUG: ignores r.Context()
+	}()
 }
+
 // Fix ✅
 func handler(w http.ResponseWriter, r *http.Request) {
- ctx := r.Context()
+	ctx := r.Context()
 
- go func() {
- select {
- case <-time.After(time.Second):
- // finish work
- case <-ctx.Done(): // client disconnected → abort
- return
- }
- }()
+	go func() {
+		select {
+		case <-time.After(time.Second):
+		// finish work
+		case <-ctx.Done(): // client disconnected → abort
+			return
+		}
+	}()
 }
 ```
 
 ```go
 // Forgetting to stop goroutines when using select + channels
 func doWork(ch chan int) {
- go func() {
- for {
- select {
- case <-ch:
- // do something
- }
- // BUG: no default / no cancel path
- }
- }()
+	go func() {
+		for {
+			select {
+			case <-ch:
+				// do something
+			}
+			// BUG: no default / no cancel path
+		}
+	}()
 }
+
 // Fix ✅
 func doWork(ctx context.Context, ch chan int) {
- go func() {
- for {
- select {
- case <-ch:
- // do something
- case <-ctx.Done(): // required exit
- return
- }
- }
- }()
+	go func() {
+		for {
+			select {
+			case <-ch:
+			// do something
+			case <-ctx.Done(): // required exit
+				return
+			}
+		}
+	}()
 }
 ```
 
@@ -496,52 +498,54 @@ func doWork(ctx context.Context, ch chan int) {
 // Goroutine waiting forever on a channel (blocked read/write)
 // If ch stops receiving values or is never closed, worker() blocks forever.
 func worker(ch <-chan int) {
- for {
- v := <-ch // blocked forever if no one sends to ch
- fmt.Println(v)
- }
+	for {
+		v := <-ch // blocked forever if no one sends to ch
+		fmt.Println(v)
+	}
 }
+
 // Fix ✅
 func worker(ctx context.Context, ch <-chan int) {
- for {
- select {
- case v, ok := <-ch:
- if !ok { // channel closed → exit goroutine
- return
- }
- fmt.Println(v)
- case <-ctx.Done(): // cancellation → exit goroutine
- return
- }
- }
+	for {
+		select {
+		case v, ok := <-ch:
+			if !ok { // channel closed → exit goroutine
+				return
+			}
+			fmt.Println(v)
+		case <-ctx.Done(): // cancellation → exit goroutine
+			return
+		}
+	}
 }
 ```
 
 ```go
 // Deadlock inside goroutine due to mutual channel dependency
 func main() {
- ch1 := make(chan int)
- ch2 := make(chan int)
+	ch1 := make(chan int)
+	ch2 := make(chan int)
 
- go func() {
- <-ch1
- ch2 <- 1 // waits forever if main never reads ch2
- }()
+	go func() {
+		<-ch1
+		ch2 <- 1 // waits forever if main never reads ch2
+	}()
 
- <-ch2 // waits forever if goroutine never writes to ch2
+	<-ch2 // waits forever if goroutine never writes to ch2
 }
+
 // Fix ✅
 func main() {
- ch1 := make(chan int)
- ch2 := make(chan int, 1) // buffered channel prevents deadlock
+	ch1 := make(chan int)
+	ch2 := make(chan int, 1) // buffered channel prevents deadlock
 
- go func() {
- <-ch1
- ch2 <- 1
- }()
+	go func() {
+		<-ch1
+		ch2 <- 1
+	}()
 
- ch1 <- 1
- fmt.Println(<-ch2)
+	ch1 <- 1
+	fmt.Println(<-ch2)
 }
 ```
 

@@ -7,7 +7,7 @@ created: "2026-06-13"
 
 # Computing
 
-*Purpose: For software engineers who need a mental model of how CPU, memory, and addressing work from physical hardware through OS abstractions to the bit level.*
+***Purpose**: For software engineers who need a mental model of how CPU, memory, and addressing work from physical hardware through OS abstractions to the bit level.*
 
 ## Physical Hardware
 

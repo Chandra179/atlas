@@ -1,11 +1,11 @@
 ---
-title: "Fundamentals"
-aliases: []
-tags: [cs]
+title: "Backend Engineering"
+aliases: [fundamentals]
+tags: [cs, backend]
 created: "2026-06-13"
 ---
 
-# Fundamentals
+# Backend Engineering
 
 Core computer science and backend engineering concepts every software engineer should know.
 

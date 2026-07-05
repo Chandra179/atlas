@@ -33,7 +33,7 @@ created: "2026-06-13"
 
 ## Core Features
 
-\[Features without which the app is useless. Must ship in MVP.]
+\[Features without which the app cannot run. Must ship in MVP.]
 
 #### Feature 1: \[Name]
 
@@ -108,13 +108,12 @@ config/ # YAML loader + config.yaml
 
 #### **Dependencies**
 
-programming language standard library, open source packages, sidecar pattern, etc.)
+programming language standard library, open source packages, etc...
 
 #### Abstraction Depth per Modules
 
 * use interfaces for swappable implementation
 * do not over abstract
-* add why we abstract it (the functions) why the module export this function to be usable to outside world
 
 ***
 
@@ -146,7 +145,7 @@ tests should be done after each phase implementation, we should breakdown the sy
 
 #### Unit Tests
 
-**What:** Domain logic. Core functionalities
+**What:** Domain logic. Only covered core functionalities
 
 **Example:**
 
@@ -155,11 +154,4 @@ tests should be done after each phase implementation, we should breakdown the sy
 
 #### Integration Tests
 
-**What:** Database interactions. Broker interactions. The poll-and-claim loop with real PostgreSQL. End-to-end claim → dispatch → worker acknowledgment.
-
-**Example:**
-
-* "Two concurrent schedulers claiming from same PENDING pool: exactly N tasks claimed, no duplicates"
-* "Visibility timeout cleanup resets IN\_PROGRESS tasks stuck longer than timeout"
-* "Worker idempotency: submitting the same task\_id twice results in single execution"
-* use test-container if applicable
+**What:** End to end flow tested  either using test container or real DB and api call, reduce manual testing
