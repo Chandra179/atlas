@@ -12,7 +12,7 @@ created: '2026-06-13'
 
 **Real number**
 
-![Real number line with integers and fractions marked at regular intervals](../../assets/linear_number_line.png)
+![Real number line with integers and fractions marked at regular intervals](<../../.gitbook/assets/linear_number_line (1).png>)
 
 there is no real number that, when multiplied by itself, results in a negative number. The expression $\sqrt{-9}$ asks the question: What real number, when multiplied by itself (squared), equals $-9$?
 
@@ -32,7 +32,7 @@ Since there is no way to multiply a real number by itself and get a negative res
 
 **Natural number** positive number
 
-**Irrational number** Any real number that cannot be written as a ratio of two integers ($p/q$) like $\mathbf{\sqrt{2}}$, $\mathbf{\pi}$, $\mathbf{e}$ (Euler's number)
+**Irrational number** Any real number that cannot be written as a ratio of two integers ($p/q$) like $\mathbf{\sqrt{2\}}$, $\mathbf{\pi}$, $\mathbf{e}$ (Euler's number)
 
 **Variables** (like $x$ or $y$)
 
@@ -86,13 +86,13 @@ Total Cost = $50 + 30 + 10 + 6 = \mathbf{96}$ dollars
 
 #### Fractions
 
-![Properties of fractions: addition, subtraction, multiplication, and division rules](../../assets/prop_of_fractions.png)
+![Properties of fractions: addition, subtraction, multiplication, and division rules](<../../.gitbook/assets/prop_of_fractions (1).png>)
 
 ***
 
 ### **Integer Exponents**
 
-![Laws of exponents: product, quotient, power, and zero exponent rules](../../assets/laws_of_exponent.png)
+![Laws of exponents: product, quotient, power, and zero exponent rules](<../../.gitbook/assets/laws_of_exponent (1).png>)
 
 A product of identical numbers is usually written in exponential notation
 
@@ -108,38 +108,38 @@ A product of identical numbers is usually written in exponential notation
 
 ### **Radicals**
 
-![Properties of nth roots: product, quotient, and power rules for radicals](../../assets/prop_of_roots.png)
+![Properties of nth roots: product, quotient, and power rules for radicals](<../../.gitbook/assets/prop_of_roots (1).png>)
 
 The number inside the root _must_ be a result of something being raised to the power of $n$
 
-The expression to simplify is $\sqrt[4]{81x^8y^4}$.
+The expression to simplify is $\sqrt\[4]{81x^8y^4}$.
 
-$\sqrt[4]{81x^8y^4} = \sqrt[4]{81}\sqrt[4]{x^8}\sqrt[4]{y^4}$ This step uses Property 1 ($\sqrt[n]{ab} = \sqrt[n]{a} \cdot \sqrt[n]{b}$) to separate the single radical into a product of three individual radicals.
+$\sqrt\[4]{81x^8y^4} = \sqrt\[4]{81}\sqrt\[4]{x^8}\sqrt\[4]{y^4}$ This step uses Property 1 ($\sqrt\[n]{ab} = \sqrt\[n]{a} \cdot \sqrt\[n]{b}$) to separate the single radical into a product of three individual radicals.
 
 $$= 3\sqrt[4]{(x^2)^4}|y|$$
 
 This step simplifies each of the three terms separately:
 
-1. Simplifying $\sqrt[4]{81}$ Since $3^4 = 3 \times 3 \times 3 \times 3 = 81$, the fourth root of 81 is 3.
-2. Simplifying $\sqrt[4]{x^8}$:
+1. Simplifying $\sqrt\[4]{81}$ Since $3^4 = 3 \times 3 \times 3 \times 3 = 81$, the fourth root of 81 is 3.
+2. Simplifying $\sqrt\[4]{x^8}$:
 
 * This is rewritten by expressing $x^8$ as a power of 4: $x^8 = (x^2)^4$.
-* The term becomes $\sqrt[4]{(x^2)^4}$.
+* The term becomes $\sqrt\[4]{(x^2)^4}$.
 
-3. Simplifying $\sqrt[4]{y^4}$
+3. Simplifying $\sqrt\[4]{y^4}$
 
-* This uses Property 5 ($\sqrt[n]{a^n} = |a|$, if $n$ is even). Since $n=4$ (even), the fourth root of $y^4$ must be the absolute value of $y$, or $|y|$.
+* This uses Property 5 ($\sqrt\[n]{a^n} = |a|$, if $n$ is even). Since $n=4$ (even), the fourth root of $y^4$ must be the absolute value of $y$, or $|y|$.
 
 $$= 3x^2|y|$$
 
-Simplifying $\sqrt[4]{(x^2)^4}$
+Simplifying $\sqrt\[4]{(x^2)^4}$
 
-* This uses Property 5 again. The $n$th root cancels the $n$th power, and since $n=4$ is even, we use the absolute value: $\sqrt[4]{(x^2)^4} = |x^2|$.
+* This uses Property 5 again. The $n$th root cancels the $n$th power, and since $n=4$ is even, we use the absolute value: $\sqrt\[4]{(x^2)^4} = |x^2|$.
 * However, because any real number squared ($x^2$) is always non-negative, the absolute value signs are not necessary. So, $|x^2|$ simplifies to just $x^2$.
 
 The final simplified expression is $3x^2|y|$.
 
-The key takeaway is that the absolute value signs are essential when simplifying an even root of a variable raised to the same power (like $\sqrt[4]{y^4}$), unless you are certain the result is non-negative (like in the case of $x^2$).
+The key takeaway is that the absolute value signs are essential when simplifying an even root of a variable raised to the same power (like $\sqrt\[4]{y^4}$), unless you are certain the result is non-negative (like in the case of $x^2$).
 
 ***
 
@@ -147,11 +147,11 @@ The key takeaway is that the absolute value signs are essential when simplifying
 
 $$a^{\frac{m}{n}} = \sqrt[n]{a^m} = (\sqrt[n]{a})^m$$
 
-$8^{\frac{2}{3}} =(\sqrt[3]{8})^2$ = $2^2$ = $4$
+$8^{\frac{2}{3\}} =(\sqrt\[3]{8})^2$ = $2^2$ = $4$
 
 ### Product Formulas
 
-![Special product formulas: difference of squares, perfect square trinomials, cube of binomials](../../assets/product_formulas.png)
+![Special product formulas: difference of squares, perfect square trinomials, cube of binomials](<../../.gitbook/assets/product_formulas (1).png>)
 
 $$(3x + 4)(3x - 4) = (3x)^2 - (4)^2$$
 
@@ -266,7 +266,7 @@ Used for two terms that are perfect cubes.
 
 ### Equations
 
-![Properties of equality: additive, multiplicative, reflexive, symmetric, and transitive](../../assets/prop_equality.png)
+![Properties of equality: additive, multiplicative, reflexive, symmetric, and transitive](<../../.gitbook/assets/prop_equality (1).png>)
 
 A linear equation has degree 1 its graph is always a straight line.
 
@@ -302,7 +302,7 @@ The Real Part ($a$): These are normal numbers like $5$, $-3$
 
 The Imaginary Part ($bi$): This is a real number multiplied by $i$
 
-![Complex number representation in standard form a+bi with real and imaginary parts](../../assets/complex_number_table.png)
+![Complex number representation in standard form a+bi with real and imaginary parts](<../../.gitbook/assets/complex_number_table (1).png>)
 
 Imagine you are controlling a drone.
 
@@ -338,7 +338,7 @@ If you want to tell that drone to "turn 90 degrees," you don't need a complicate
 | $i^3$ | $-i$       | Remainder of 3                |
 | $i^4$ | $1$        | Remainder of 0 (no remainder) |
 
-<img src="../../assets/flip_imaginary.png" alt="90-degree rotation of a complex number on the complex plane after multiplying by i" width="375">
+<img src="../../.gitbook/assets/flip_imaginary (1).png" alt="90-degree rotation of a complex number on the complex plane after multiplying by i" width="375">
 
 **The 180-Degree "Flip"**
 
@@ -360,18 +360,18 @@ If "multiplying by $-1$" is a 180-degree turn, then "multiplying by $i$" must be
 4. Solve the Equation and Check Your Answer. Solve the equation, check your answer, and state your answer as a sentence.
 
 A car rental company charges 30 dollar a day and 15¢ a mile for renting a car. A tourist rents\
-a car for two days, and the bill comes to \$108. How many miles was the car driven?
+a car for two days, and the bill comes to $108. How many miles was the car driven?
 
 * Let $x$ = the number of miles driven.
-* Daily cost: The company charges \$30 per day. Since the car was rented for 2 days, the cost is $2 \times 30 = 60$.
-* Mileage cost: The company charges 15¢ (or \$0.15) per mile. For $x$ miles, the cost is $0.15x$.
-* Total Bill: The problem states the final bill comes to \$108.
+* Daily cost: The company charges $30 per day. Since the car was rented for 2 days, the cost is $2 \times 30 = 60$.
+* Mileage cost: The company charges 15¢ (or $0.15) per mile. For $x$ miles, the cost is $0.15x$.
+* Total Bill: The problem states the final bill comes to $108.
 * $\text{Daily Cost} + \text{Mileage Cost} = \text{Total Bill}$
 * $60 + 0.15x = 108$
 
 ### Inequalities
 
-![Rules for solving inequalities: multiplying by a negative flips the inequality sign](../../assets/inequalities_rules.png)
+![Rules for solving inequalities: multiplying by a negative flips the inequality sign](<../../.gitbook/assets/inequalities_rules (1).png>)
 
 A linear inequality is one where the variable has a power of 1. When you graph these, they always form a straight line that divides the plane into two regions.
 
@@ -395,15 +395,15 @@ Test the intervals:
 
 ### **Intervals**
 
-![Interval notation: open, closed, and half-open intervals with bracket and parenthesis notation](../../assets/interval_notation.png)
+![Interval notation: open, closed, and half-open intervals with bracket and parenthesis notation](<../../.gitbook/assets/interval_notation (1).png>)
 
 ### **Absolute Value**
 
-![Properties of absolute value: definition, distance interpretation, and inequality rules](../../assets/prop_absolute_value.png)
+![Properties of absolute value: definition, distance interpretation, and inequality rules](<../../.gitbook/assets/prop_absolute_value (1).png>)
 
 ### Coordinate Plane, Graphs of Equations, Line, Circles
 
-<img src="../../assets/coordinate_plane.png" alt="Coordinate plane with x-axis, y-axis, quadrants I through IV, and origin" width="563">
+<img src="../../.gitbook/assets/coordinate_plane (1).png" alt="Coordinate plane with x-axis, y-axis, quadrants I through IV, and origin" width="563">
 
 **Distance formula** $d = \sqrt{(x\_2 - x\_1)^2 + (y\_2 - y\_1)^2}$
 
@@ -414,7 +414,7 @@ Test the intervals:
 
 **Example**
 
-<img src="../../assets/coorplane_example.png" alt="Coordinate plane with points A(5,3), P(1,-2), and Q(8,9) to compare distances" width="375">
+<img src="../../.gitbook/assets/coorplane_example (1).png" alt="Coordinate plane with points A(5,3), P(1,-2), and Q(8,9) to compare distances" width="375">
 
 The goal is to find which point is closer to $A(5, 3)$. To do that, we find the distance to $P(1, -2)$ and the distance to $Q(8, 9)$.
 
@@ -436,7 +436,7 @@ Since $\sqrt{41}$ is a smaller number than $\sqrt{45}$, Point $P$ is closer to $
 
 ***
 
-<img src="../../assets/midpoint_distance.png" alt="Line segment with midpoint labeled between two points on a coordinate plane" width="563">
+<img src="../../.gitbook/assets/midpoint_distance (1).png" alt="Line segment with midpoint labeled between two points on a coordinate plane" width="563">
 
 **Midpoint formula** finds the coordinates of the point that lies exactly halfway between two endpoints.
 
@@ -454,7 +454,7 @@ $$(x - h)^2 + (y - k)^2 = r^2$$
 
 #### **Intercept**
 
-![X-intercept and y-intercept of a line crossing the axes on a graph](../../assets/intercept.png)
+![X-intercept and y-intercept of a line crossing the axes on a graph](<../../.gitbook/assets/intercept (1).png>)
 
 #### Lines
 
@@ -467,11 +467,11 @@ $$m = \frac{y_2 - y_1}{x_2 - x_1}$$
 * Numerator ($y\_2 - y\_1$): This is the Rise. It tells you how much the line goes up or down.
 * Denominator ($x\_2 - x\_1$): This is the Run. It tells you how much the line goes left or right.
 
-![Slope of a line as rise over run with positive, negative, zero, and undefined slopes](../../assets/slope_of_line.png)
+![Slope of a line as rise over run with positive, negative, zero, and undefined slopes](<../../.gitbook/assets/slope_of_line (1).png>)
 
 #### Circle Equation
 
-![Equation of a circle in standard form with center (h,k) and radius r graphed on axes](../../assets/circle_eq.png)
+![Equation of a circle in standard form with center (h,k) and radius r graphed on axes](<../../.gitbook/assets/circle_eq (1).png>)
 
 point-slope equation: $y - y\_1 = m(x - x\_1)$
 
@@ -506,7 +506,7 @@ $$f(x) = \frac{5}{x-3}$$
 
 If $f$ is a function with domain $A$, then the graph of $f$ is the set of ordered pairs: ${(x, f(x)) \mid x \in A}$ plotted in a coordinate plane. In other words, the graph of $f$ is the set of all points $(x, y)$ such that $y = f(x)$
 
-<img src="../../assets/domain_and_range_of_graph.png" alt="Graph of a function with domain and range labeled on x and y axes" width="563">
+<img src="../../.gitbook/assets/domain_and_range_of_graph (1).png" alt="Graph of a function with domain and range labeled on x and y axes" width="563">
 
 ### Average Rate of Change of a Function
 
@@ -595,7 +595,7 @@ notice from + to minus 3 and from multiplication of 2x become x/2
 
 #### Bird Flight
 
-<img src="../../assets/bird_problem.png" alt="Geometry diagram of a bird flying from an island to a point on the shoreline and then along the coast" width="375">
+<img src="../../.gitbook/assets/bird_problem (1).png" alt="Geometry diagram of a bird flying from an island to a point on the shoreline and then along the coast" width="375">
 
 A bird is released from point A on an island, 5 miles from the nearest point B\
 on a straight shoreline. The bird flies to a point C on the shoreline and then flies along the\
@@ -681,7 +681,7 @@ A polynomial of degree $n$ can have up to $n-1$ turning points and can have loca
 
 **Polynomial**
 
-Question: Current: \$20 price, $60$ units sold. Change: $+1$ dollar price $\rightarrow$ $-2$ units sold.
+Question: Current: $20 price, $60$ units sold. Change: $+1$ dollar price $\rightarrow$ $-2$ units sold.
 
 Find $x$ (price increases) for Max Revenue ($R$)
 
@@ -711,11 +711,11 @@ $$R_{max} = 25 \times 50 = 1250 \text{ dollars}$$
 
 #### Long Division Polynomial
 
-<img src="../../assets/long_div_polynomial.png" alt="Step-by-step long division of polynomials with quotient and remainder" width="563">
+<img src="../../.gitbook/assets/long_div_polynomial (1).png" alt="Step-by-step long division of polynomials with quotient and remainder" width="563">
 
 #### Synthetic Division
 
-<img src="../../assets/sythetic_division.png" alt="Synthetic division of a polynomial by a linear factor (x - c)" width="375">
+<img src="../../.gitbook/assets/sythetic_division (1).png" alt="Synthetic division of a polynomial by a linear factor (x - c)" width="375">
 
 #### Factor Theorem
 
@@ -751,7 +751,7 @@ $$(x - 1)(x + 1)(x - 4) = 0$$
 
 Critical values are: $x = -1, 1, 4$.
 
-These roots create four intervals on the number line: $(-\infty, -1]$, $[-1, 1]$, $[1, 4]$, and $[4, \infty)$. (We use brackets because the inequality is $\leq$).
+These roots create four intervals on the number line: $(-\infty, -1]$, $\[-1, 1]$, $\[1, 4]$, and $\[4, \infty)$. (We use brackets because the inequality is $\leq$).
 
 * Test $x = -2$: $(-)(-)(-) = \text{negative}$ (Matches $\leq 0$)
 * Test $x = 0$: $(-)(+)(-) = \text{positive}$
@@ -780,7 +780,7 @@ $$A(x) = \frac{5000 + 30x}{x}$$
 
 * Horizontal Asymptote ($y=30$): As production increases to very large numbers, the $5,000 fixed cost is spread so thin that it becomes negligible. The average cost "levels off" toward the variable cost of $30.
 
-![Graph of a rational function with vertical and horizontal asymptotes marked](../../assets/vertical_horizontal_asymptote.png)
+![Graph of a rational function with vertical and horizontal asymptotes marked](<../../.gitbook/assets/vertical_horizontal_asymptote (1).png>)
 
 #### **Factor Theorem for Rational Functions**
 
@@ -844,7 +844,7 @@ We want the intervals where the result is $\geq 0$ (Positive).
 * We include $5$ because it makes the numerator zero (and the inequality allows $\geq$).
 * We exclude $-1$ because it makes the denominator zero (undefined).
 
-Solution: $(-\infty, -1) \cup [5, \infty)$
+Solution: $(-\infty, -1) \cup \[5, \infty)$
 
 ## Exponential & Logarithmic Functions
 
@@ -871,7 +871,7 @@ $$f(x) = e^x$$
 
 $$e \approx 2.71828$$
 
-It was discovered by studying compound interest. If you had \$1 and a bank gave you 100% interest, but they compounded it every single tiny fraction of a second (continuously), you wouldn't get infinite money—you would end up with exactly \$2.718... ($e$) at the end of the year
+It was discovered by studying compound interest. If you had $1 and a bank gave you 100% interest, but they compounded it every single tiny fraction of a second (continuously), you wouldn't get infinite money—you would end up with exactly $2.718... ($e$) at the end of the year
 
 ### Logarithmic
 

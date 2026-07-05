@@ -1,8 +1,9 @@
 ---
-title: "Kafka"
+title: Kafka
 aliases: []
-tags: [cs, cs/kafka]
-created: "2026-06-13"
+created: '2026-06-13'
+tags:
+  - cs
 ---
 
 # Kafka
@@ -31,15 +32,15 @@ The partition is the unit of parallelism in Kafka. More partitions = more throug
 
 On disk, a partition is a directory. Each segment is a pair of files:
 
-- `.log` raw message data, appended sequentially
-- `.index` sparse offset-to-byte-offset mapping (one entry per ~4096 bytes)
-- `.timeindex` timestamp-to-offset mapping
+* `.log` raw message data, appended sequentially
+* `.index` sparse offset-to-byte-offset mapping (one entry per \~4096 bytes)
+* `.timeindex` timestamp-to-offset mapping
 
 Segments are:
 
-- **Rolled** when they hit `segment.bytes` (default 1 GB) or `segment.ms` (default 7 days)
-- **Active segment** the one currently being written to
-- **Older segments** immutable, read-only, candidates for compaction/deletion
+* **Rolled** when they hit `segment.bytes` (default 1 GB) or `segment.ms` (default 7 days)
+* **Active segment** the one currently being written to
+* **Older segments** immutable, read-only, candidates for compaction/deletion
 
 Sequential I/O on the `.log` file makes Kafka fast writes are pure appends.
 
@@ -49,25 +50,25 @@ Sequential I/O on the `.log` file makes Kafka fast writes are pure appends.
 
 A partition leader maintains a set of replicas that are "caught up" the ISR. A follower is in the ISR if it has fully replicated all messages up to the last committed offset. If a follower falls behind (replication lag > `replica.lag.time.max.ms`, default 30s), it is removed from ISR.
 
-- `min.insync.replicas` minimum number of in-sync replicas required for the leader to accept writes
-- If ISR size drops below this threshold, the broker rejects writes with `NotEnoughReplicasException`
-- Tradeoff: higher value = stronger durability, lower availability (fewer brokers able to write)
+* `min.insync.replicas` minimum number of in-sync replicas required for the leader to accept writes
+* If ISR size drops below this threshold, the broker rejects writes with `NotEnoughReplicasException`
+* Tradeoff: higher value = stronger durability, lower availability (fewer brokers able to write)
 
 ### High Watermark (HW)
 
 The offset up to which all ISR replicas have committed. Consumers can only read up to HW not the Log End Offset (LEO).
 
-- When a leader receives a write, it advances LEO immediately but HW only advances once all in-sync followers have replicated the message.
-- During leader failover, the new leader truncates to the HW of the old leader to guarantee consistency across replicas.
-- Messages between HW and LEO are not visible to consumers they exist on the leader but aren't fully replicated yet.
+* When a leader receives a write, it advances LEO immediately but HW only advances once all in-sync followers have replicated the message.
+* During leader failover, the new leader truncates to the HW of the old leader to guarantee consistency across replicas.
+* Messages between HW and LEO are not visible to consumers they exist on the leader but aren't fully replicated yet.
 
 ### Controller Broker
 
 Every cluster has one Controller broker. It manages partition leadership across the cluster:
 
-- Monitors broker heartbeats (via ZK ephemeral nodes or KRaft quorum)
-- Assigns partition leaders when a broker fails or a new partition is created
-- Manages partition reassignments (e.g., adding replicas, migrating to new brokers)
+* Monitors broker heartbeats (via ZK ephemeral nodes or KRaft quorum)
+* Assigns partition leaders when a broker fails or a new partition is created
+* Manages partition reassignments (e.g., adding replicas, migrating to new brokers)
 
 If the Controller fails, a new one is elected automatically via ZooKeeper or the KRaft quorum.
 
@@ -75,8 +76,8 @@ If the Controller fails, a new one is elected automatically via ZooKeeper or the
 
 Kafka uses a metadata store to track cluster state:
 
-- **ZooKeeper** (legacy): Stores broker membership, topic configs, ACLs, quotas, and Controller election. Kafka ≤ 2.8 required ZK. Deprecated as of KIP-833, targeted for removal in Kafka 4.0.
-- **KRaft** (Kafka Raft): Self-managed metadata quorum introduced in 2.8 (GA in 3.3+). No external dependency Kafka runs as a single binary with internal Raft-based consensus for metadata. Replaces ZK entirely. The Raft consensus mechanism is covered in detail in [etcd-raft.md](../etcd-raft.md).
+* **ZooKeeper** (legacy): Stores broker membership, topic configs, ACLs, quotas, and Controller election. Kafka ≤ 2.8 required ZK. Deprecated as of KIP-833, targeted for removal in Kafka 4.0.
+* **KRaft** (Kafka Raft): Self-managed metadata quorum introduced in 2.8 (GA in 3.3+). No external dependency Kafka runs as a single binary with internal Raft-based consensus for metadata. Replaces ZK entirely. The Raft consensus mechanism is covered in detail in [etcd-raft.md](../).
 
 ## Producer
 
@@ -86,9 +87,9 @@ Each message contains a **Key** (optional, partition routing), **Value** (payloa
 
 When a topic has multiple partitions, the producer decides where each message lands:
 
-- **Key-based hash** same key always goes to the same partition. Enables ordering per key.
-- **Round-robin** spreads messages evenly across partitions.
-- **Custom partitioner** application-defined placement logic.
+* **Key-based hash** same key always goes to the same partition. Enables ordering per key.
+* **Round-robin** spreads messages evenly across partitions.
+* **Custom partitioner** application-defined placement logic.
 
 ### Acks Levels
 
@@ -119,11 +120,11 @@ client, _ = kgo.NewClient(
 )
 ```
 
-| Acks | Durability | Throughput (1 KB, 3 brokers) | Risk |
-|---|---|---|---|
-| 0 | None | ~1.5M msg/s | Silent data loss on leader crash |
-| 1 | Single node | ~1M msg/s | Data loss if leader crashes before followers replicate |
-| all | Strong | ~300K msg/s | Highest safety, 5× slower than acks=0 |
+| Acks | Durability  | Throughput (1 KB, 3 brokers) | Risk                                                   |
+| ---- | ----------- | ---------------------------- | ------------------------------------------------------ |
+| 0    | None        | \~1.5M msg/s                 | Silent data loss on leader crash                       |
+| 1    | Single node | \~1M msg/s                   | Data loss if leader crashes before followers replicate |
+| all  | Strong      | \~300K msg/s                 | Highest safety, 5× slower than acks=0                  |
 
 ### Idempotent Producer
 
@@ -218,7 +219,7 @@ On restart:
 
 The difference between the latest partition offset and the consumer's committed offset a measure of how "behind" a consumer is.
 
-- If you have 1 partition and 2 consumers in the same group, Kafka gives the partition to Consumer A and leaves Consumer B idle. A single partition is only ever assigned to one consumer at a time.
+* If you have 1 partition and 2 consumers in the same group, Kafka gives the partition to Consumer A and leaves Consumer B idle. A single partition is only ever assigned to one consumer at a time.
 
 ### Group Coordinator
 
@@ -228,23 +229,23 @@ $$Partition = | \text{Hash(group.id)} | \pmod{N}$$
 
 A specific broker responsible for a consumer group:
 
-- Tracks heartbeats from consumers to make sure they are still alive.
-- Triggers a rebalance if a consumer joins or leaves.
-- Stores the committed offsets for that group.
+* Tracks heartbeats from consumers to make sure they are still alive.
+* Triggers a rebalance if a consumer joins or leaves.
+* Stores the committed offsets for that group.
 
 ### Rebalancing
 
 When a consumer joins or leaves a group, Kafka redistributes partitions across the remaining consumers. This is called a rebalance.
 
-- **Eager rebalancing** (old protocol): All consumers stop consuming, revoke all partitions, then rejoin and get reassigned. A "stop-the-world" event no progress during rebalance.
-- **Cooperative sticky rebalancing** (modern, Kafka ≥ 2.4): Consumers only revoke a subset of partitions, letting the rest continue processing. Fewer pauses, smoother transitions.
+* **Eager rebalancing** (old protocol): All consumers stop consuming, revoke all partitions, then rejoin and get reassigned. A "stop-the-world" event no progress during rebalance.
+* **Cooperative sticky rebalancing** (modern, Kafka ≥ 2.4): Consumers only revoke a subset of partitions, letting the rest continue processing. Fewer pauses, smoother transitions.
 
 ### Consumer Commit Strategies
 
-- `enable.auto.commit=true` (default): Offsets auto-committed every `auto.commit.interval.ms` (default 5s). If the consumer crashes between processing and auto-commit, messages are reprocessed at-least-once semantics.
-- Manual commit: Disable auto-commit, call `commitSync()` or `commitAsync()` explicitly.
- - `commitSync()` blocking, retries on failure. Call after processing each batch.
- - `commitAsync()` non-blocking, callback on failure. Higher throughput but no retry.
+* `enable.auto.commit=true` (default): Offsets auto-committed every `auto.commit.interval.ms` (default 5s). If the consumer crashes between processing and auto-commit, messages are reprocessed at-least-once semantics.
+* Manual commit: Disable auto-commit, call `commitSync()` or `commitAsync()` explicitly.
+* `commitSync()` blocking, retries on failure. Call after processing each batch.
+* `commitAsync()` non-blocking, callback on failure. Higher throughput but no retry.
 
 Process → commit = at-least-once. Commit → process = at-most-once (messages lost on crash).
 
@@ -255,9 +256,10 @@ Process → commit = at-least-once. Commit → process = at-most-once (messages 
 Add more partitions and use larger batches. Measured in MB/s or msg/s.
 
 On a 3-broker cluster with 1 KB messages:
-- `acks=0`: ~1.5M msg/s
-- `acks=1`: ~1M msg/s
-- `acks=all`: ~300K msg/s
+
+* `acks=0`: \~1.5M msg/s
+* `acks=1`: \~1M msg/s
+* `acks=all`: \~300K msg/s
 
 LinkedIn processes 7 trillion messages per day through Kafka. At this scale, partition count is a first-order concern they run tens of thousands of partitions across thousands of brokers.
 
@@ -269,9 +271,9 @@ The trade-off: reducing latency (making it "real-time") often requires lowering 
 
 ### Bottlenecks
 
-- **Producer Bottleneck**: The network or CPU can't keep up with the data your app is generating.
-- **Partition Bottleneck**: A single partition is overwhelmed by too many messages (often caused by a "Hot Key"). The fix is either more partitions or key design changes.
-- **Consumer Bottleneck**: The most common clog. Business logic (database writes, API calls) is slower than the incoming message rate. Requires scaling consumers or optimizing processing.
+* **Producer Bottleneck**: The network or CPU can't keep up with the data your app is generating.
+* **Partition Bottleneck**: A single partition is overwhelmed by too many messages (often caused by a "Hot Key"). The fix is either more partitions or key design changes.
+* **Consumer Bottleneck**: The most common clog. Business logic (database writes, API calls) is slower than the incoming message rate. Requires scaling consumers or optimizing processing.
 
 If your system hits a bottleneck, do not try to make a single thread faster. Increase throughput by adding more partitions and consumers to process data in parallel.
 
@@ -279,12 +281,12 @@ If your system hits a bottleneck, do not try to make a single thread faster. Inc
 
 Adding partitions increases throughput but carries tradeoffs:
 
-- More open file handles on each broker (each partition = a directory + 3 files)
-- Longer controller failover time (the controller must reconcile more partition leaders)
-- Higher end-to-end latency (producer connections distribute across more leaders)
-- More memory for replica fetchers
+* More open file handles on each broker (each partition = a directory + 3 files)
+* Longer controller failover time (the controller must reconcile more partition leaders)
+* Higher end-to-end latency (producer connections distribute across more leaders)
+* More memory for replica fetchers
 
-Keep partition count to ~100 per broker unless you have a specific throughput requirement that justifies more.
+Keep partition count to \~100 per broker unless you have a specific throughput requirement that justifies more.
 
 ## Retention & Compression
 
@@ -292,40 +294,40 @@ Keep partition count to ~100 per broker unless you have a specific throughput re
 
 How Kafka decides which data to delete:
 
-- **Delete** (default): Remove old segments based on time (`retention.ms`, default 7 days) or total size (`retention.bytes`, default infinite). Oldest segments are deleted first.
-- **Compact**: Keep only the latest message for each key. Useful for keyed data (e.g., user profile changes) where you only care about the current state. Log compaction runs in the background on inactive segments.
+* **Delete** (default): Remove old segments based on time (`retention.ms`, default 7 days) or total size (`retention.bytes`, default infinite). Oldest segments are deleted first.
+* **Compact**: Keep only the latest message for each key. Useful for keyed data (e.g., user profile changes) where you only care about the current state. Log compaction runs in the background on inactive segments.
 
 ### Compression
 
 Producers can compress message batches before sending:
 
-- Supported codecs: `gzip`, `snappy`, `lz4`, `zstd`
-- Typical ratios on JSON payloads: gzip 5–10× reduction, snappy 2–4×, zstd 3–6×
-- Benefits: smaller network transfer, less disk usage
-- Cost: producer CPU for compression, consumer CPU for decompression
-- Configurable on the producer side; Kafka stores and serves compressed batches as-is decompression only happens on the consumer
+* Supported codecs: `gzip`, `snappy`, `lz4`, `zstd`
+* Typical ratios on JSON payloads: gzip 5–10× reduction, snappy 2–4×, zstd 3–6×
+* Benefits: smaller network transfer, less disk usage
+* Cost: producer CPU for compression, consumer CPU for decompression
+* Configurable on the producer side; Kafka stores and serves compressed batches as-is decompression only happens on the consumer
 
-| Codec | Compression Ratio (JSON) | CPU Cost | Latency Impact |
-|---|---|---|---|
-| snappy | 2–4× | Low | Minimal |
-| lz4 | 2–4× | Low | Minimal |
-| zstd | 3–6× | Medium | Slight |
-| gzip | 5–10× | High | Noticeable at high volume |
+| Codec  | Compression Ratio (JSON) | CPU Cost | Latency Impact            |
+| ------ | ------------------------ | -------- | ------------------------- |
+| snappy | 2–4×                     | Low      | Minimal                   |
+| lz4    | 2–4×                     | Low      | Minimal                   |
+| zstd   | 3–6×                     | Medium   | Slight                    |
+| gzip   | 5–10×                    | High     | Noticeable at high volume |
 
 For most use cases, snappy offers the best balance of compression and speed. Use zstd when network bandwidth is the constraint. Use gzip only when storage costs dominate.
 
 ## Kafka vs. RabbitMQ vs. NATS
 
-| Dimension | Kafka | RabbitMQ | NATS |
-|---|---|---|---|
-| Model | Distributed commit log | Message broker (AMQP) | Lightweight pub/sub |
-| Throughput | 1M+ msg/s | 100K msg/s | 1M+ msg/s |
-| Latency | 10–100ms | <1ms | <1ms |
-| Message replay | Yes by offset | No (after ack, message is gone) | No |
-| Ordering | Per-partition, strict | Per-queue, strict | Per-subject, best-effort |
-| Routing | Topic-based partition routing | Complex exchanges, bindings | Subject-based with wildcards |
-| Persistence | Durable, configurable retention | Durable, auto-delete on ack | Optional (JetStream) |
-| Operational complexity | High (brokers, ZK/KRaft, rebalancing) | Medium | Low |
+| Dimension              | Kafka                                 | RabbitMQ                        | NATS                         |
+| ---------------------- | ------------------------------------- | ------------------------------- | ---------------------------- |
+| Model                  | Distributed commit log                | Message broker (AMQP)           | Lightweight pub/sub          |
+| Throughput             | 1M+ msg/s                             | 100K msg/s                      | 1M+ msg/s                    |
+| Latency                | 10–100ms                              | <1ms                            | <1ms                         |
+| Message replay         | Yes by offset                         | No (after ack, message is gone) | No                           |
+| Ordering               | Per-partition, strict                 | Per-queue, strict               | Per-subject, best-effort     |
+| Routing                | Topic-based partition routing         | Complex exchanges, bindings     | Subject-based with wildcards |
+| Persistence            | Durable, configurable retention       | Durable, auto-delete on ack     | Optional (JetStream)         |
+| Operational complexity | High (brokers, ZK/KRaft, rebalancing) | Medium                          | Low                          |
 
 **Reach for Kafka when:** you need high throughput, message replay, strong ordering within a partition, or retention for batch processing.
 
@@ -335,8 +337,8 @@ For most use cases, snappy offers the best balance of compression and speed. Use
 
 ## Reference
 
-- [Apache Kafka Documentation](https://kafka.apache.org/documentation/) official configs, protocol, and design
-- [KRaft (KIP-833)](https://cwiki.apache.org/confluence/display/KAFKA/KIP-833+Mark+KRaft+as+Production+Ready) self-managed metadata quorum
-- [Confluent Documentation](https://docs.confluent.io/kafka/) practical guides and best practices
-- "Kafka: The Definitive Guide" (O'Reilly) Neha Narkhede, Gwen Shapira, Todd Palino
-- [franz-go](https://github.com/twmb/franz-go) Go client used in this document
+* [Apache Kafka Documentation](https://kafka.apache.org/documentation/) official configs, protocol, and design
+* [KRaft (KIP-833)](https://cwiki.apache.org/confluence/display/KAFKA/KIP-833+Mark+KRaft+as+Production+Ready) self-managed metadata quorum
+* [Confluent Documentation](https://docs.confluent.io/kafka/) practical guides and best practices
+* "Kafka: The Definitive Guide" (O'Reilly) Neha Narkhede, Gwen Shapira, Todd Palino
+* [franz-go](https://github.com/twmb/franz-go) Go client used in this document
