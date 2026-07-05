@@ -22,7 +22,7 @@ Imagine you are walking away from a lamp.
 
 At $x = 10$ feet away from the lamp:
 
-The Total (Where is the shadow?): Use the original formula. $$2(10)^2 = 2 \times 100 = \mathbf{200 \text{ feet}}$$The Jump Rate (How fast is it moving?): Use the derivative.
+The Total (Where is the shadow?): Use the original formula. $$2(10)^2 = 2 \times 100 = \mathbf{200 \text{ feet}}$$ The Jump Rate (How fast is it moving?): Use the derivative.
 $$4(10) = \mathbf{40}$$
 Meaning: At this exact spot, for every 1 inch you move, the shadow jumps 40 inches.
 

@@ -16,11 +16,11 @@ $$Ax = b$$
 
 **Left Hand Side**
 
-The Left Hand Side ($\mathbf{A}\mathbf{x}$) represents the transformation. It’s the combination of your variables ($x\_1, x\_2, \dots$) and your coefficients. In geometry, this side describes the "span" or the space you are working in \[4.1].
+The Left Hand Side ($\mathbf{A}\mathbf{x}$) represents the transformation. It’s the combination of your variables ($x\_1, x\_2, \dots$) and your coefficients. In geometry, this side describes the "span" or the space you are working in [4.1].
 
 **Right Hand Side**
 
-The Right Hand Side ($\mathbf{b}$) represents the target. It is a fixed vector or constant. To find a solution, the target vector must land somewhere within the space described by the LHS \[4.1].
+The Right Hand Side ($\mathbf{b}$) represents the target. It is a fixed vector or constant. To find a solution, the target vector must land somewhere within the space described by the LHS [4.1].
 
 ***
 

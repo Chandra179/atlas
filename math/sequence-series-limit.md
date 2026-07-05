@@ -77,7 +77,7 @@ $$S_4 = 100 \left( \frac{1 - 1.10^4}{1 - 1.10} \right) = 100 \times 4.641 = \mat
 
 **Infinite Geometric Series**
 
-This is the "Limit" part of your heading. If a geometric sequence gets smaller and smaller ($|r| < 1$), the total sum doesn't go to infinityit hits a "wall" or a Limit.
+This is the "Limit" part of your heading. If a geometric sequence gets smaller and smaller ($|r| < 1$), the total sum doesn't go to infinity. It hits a "wall" or a Limit.
 
 $$S_\infty = \frac{a_1}{1 - r}$$
 

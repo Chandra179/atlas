@@ -112,34 +112,34 @@ A product of identical numbers is usually written in exponential notation
 
 The number inside the root _must_ be a result of something being raised to the power of $n$
 
-The expression to simplify is $\sqrt\[4]{81x^8y^4}$.
+The expression to simplify is $\sqrt[4]{81x^8y^4}$.
 
-$\sqrt\[4]{81x^8y^4} = \sqrt\[4]{81}\sqrt\[4]{x^8}\sqrt\[4]{y^4}$ This step uses Property 1 ($\sqrt\[n]{ab} = \sqrt\[n]{a} \cdot \sqrt\[n]{b}$) to separate the single radical into a product of three individual radicals.
+$\sqrt[4]{81x^8y^4} = \sqrt[4]{81}\sqrt[4]{x^8}\sqrt[4]{y^4}$ This step uses Property 1 ($\sqrt[n]{ab} = \sqrt[n]{a} \cdot \sqrt[n]{b}$) to separate the single radical into a product of three individual radicals.
 
 $$= 3\sqrt[4]{(x^2)^4}|y|$$
 
 This step simplifies each of the three terms separately:
 
-1. Simplifying $\sqrt\[4]{81}$ Since $3^4 = 3 \times 3 \times 3 \times 3 = 81$, the fourth root of 81 is 3.
-2. Simplifying $\sqrt\[4]{x^8}$:
+1. Simplifying $\sqrt[4]{81}$ Since $3^4 = 3 \times 3 \times 3 \times 3 = 81$, the fourth root of 81 is 3.
+2. Simplifying $\sqrt[4]{x^8}$:
 
 * This is rewritten by expressing $x^8$ as a power of 4: $x^8 = (x^2)^4$.
-* The term becomes $\sqrt\[4]{(x^2)^4}$.
+* The term becomes $\sqrt[4]{(x^2)^4}$.
 
-3. Simplifying $\sqrt\[4]{y^4}$
+3. Simplifying $\sqrt[4]{y^4}$
 
-* This uses Property 5 ($\sqrt\[n]{a^n} = |a|$, if $n$ is even). Since $n=4$ (even), the fourth root of $y^4$ must be the absolute value of $y$, or $|y|$.
+* This uses Property 5 ($\sqrt[n]{a^n} = |a|$, if $n$ is even). Since $n=4$ (even), the fourth root of $y^4$ must be the absolute value of $y$, or $|y|$.
 
 $$= 3x^2|y|$$
 
-Simplifying $\sqrt\[4]{(x^2)^4}$
+Simplifying $\sqrt[4]{(x^2)^4}$
 
-* This uses Property 5 again. The $n$th root cancels the $n$th power, and since $n=4$ is even, we use the absolute value: $\sqrt\[4]{(x^2)^4} = |x^2|$.
+* This uses Property 5 again. The $n$th root cancels the $n$th power, and since $n=4$ is even, we use the absolute value: $\sqrt[4]{(x^2)^4} = |x^2|$.
 * However, because any real number squared ($x^2$) is always non-negative, the absolute value signs are not necessary. So, $|x^2|$ simplifies to just $x^2$.
 
 The final simplified expression is $3x^2|y|$.
 
-The key takeaway is that the absolute value signs are essential when simplifying an even root of a variable raised to the same power (like $\sqrt\[4]{y^4}$), unless you are certain the result is non-negative (like in the case of $x^2$).
+The key takeaway is that the absolute value signs are essential when simplifying an even root of a variable raised to the same power (like $\sqrt[4]{y^4}$), unless you are certain the result is non-negative (like in the case of $x^2$).
 
 ***
 
@@ -147,7 +147,7 @@ The key takeaway is that the absolute value signs are essential when simplifying
 
 $$a^{\frac{m}{n}} = \sqrt[n]{a^m} = (\sqrt[n]{a})^m$$
 
-$8^{\frac{2}{3\}} =(\sqrt\[3]{8})^2$ = $2^2$ = $4$
+$8^{\frac{2}{3}} =(\sqrt[3]{8})^2$ = $2^2$ = $4$
 
 ### Product Formulas
 
@@ -751,7 +751,7 @@ $$(x - 1)(x + 1)(x - 4) = 0$$
 
 Critical values are: $x = -1, 1, 4$.
 
-These roots create four intervals on the number line: $(-\infty, -1]$, $\[-1, 1]$, $\[1, 4]$, and $\[4, \infty)$. (We use brackets because the inequality is $\leq$).
+These roots create four intervals on the number line: $(-\infty, -1]$, $[-1, 1]$, $[1, 4]$, and $[4, \infty)$. (We use brackets because the inequality is $\leq$).
 
 * Test $x = -2$: $(-)(-)(-) = \text{negative}$ (Matches $\leq 0$)
 * Test $x = 0$: $(-)(+)(-) = \text{positive}$
@@ -844,7 +844,7 @@ We want the intervals where the result is $\geq 0$ (Positive).
 * We include $5$ because it makes the numerator zero (and the inequality allows $\geq$).
 * We exclude $-1$ because it makes the denominator zero (undefined).
 
-Solution: $(-\infty, -1) \cup \[5, \infty)$
+Solution: $(-\infty, -1) \cup [5, \infty)$
 
 ## Exponential & Logarithmic Functions
 
