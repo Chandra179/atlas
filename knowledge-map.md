@@ -141,7 +141,7 @@ created: 2026-06-29
 - ~~Testing: table-driven tests, subtests, test helpers, golden files, fuzzing, benchmark comparison (benchstat), mock interfaces~~
 - Standard library: net/http (handler, middleware, ServeMux), encoding/json (streaming, decoder), database/sql (connection pool), context (deadline, cancellation tree, value carry)
 - Memory model: happens-before, channel synchronization, atomic ordering, data race detection (race detector deep dive)
-- GC: GC cycle, STW, concurrent mark-sweep, GC tuning (GOGC, GOMEMLIMIT), allocation profiler
+- ~~GC: GC cycle, STW, concurrent mark-sweep, GC tuning (GOGC, GOMEMLIMIT), allocation profiler~~
 - Concurrency patterns beyond basics: fan-out/fan-in, pipeline cancellation, graceful shutdown with signal.NotifyContext, rate limiting with x/time/rate, singleflight
 - Profiling: pprof (CPU, heap, goroutine, mutex, block), trace viewer, flame graph, continuous profiling (Pyroscope, Parca)
 - Module system: go.mod, replace directive, workspace, version resolution, vendoring, proxy

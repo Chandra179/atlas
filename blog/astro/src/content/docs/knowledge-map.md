@@ -140,10 +140,9 @@ modified: "2026-07-05"
 - LLM Ops: eval-driven development, regression test suites, canary deployment
 
 ## Go
-- Interfaces: type assertion, type switch, empty interface, structural typing, why they're not classes
-- Error handling: sentinel errors, error types, error wrapping (fmt.Errorf %w), errors.Is, errors.As
-- Generics: constraints, type inference, when to use, comparison with interfaces
-- Testing: table-driven tests, subtests, test helpers, golden files, fuzzing, benchmark comparison (benchstat), mock interfaces
+- ~~Interfaces: type assertion, type switch, empty interface, structural typing, why they're not classes~~
+- ~~Error handling: sentinel errors, error types, error wrapping (fmt.Errorf %w), errors.Is, errors.As~~
+- ~~Testing: table-driven tests, subtests, test helpers, golden files, fuzzing, benchmark comparison (benchstat), mock interfaces~~
 - Standard library: net/http (handler, middleware, ServeMux), encoding/json (streaming, decoder), database/sql (connection pool), context (deadline, cancellation tree, value carry)
 - Memory model: happens-before, channel synchronization, atomic ordering, data race detection (race detector deep dive)
 - GC: GC cycle, STW, concurrent mark-sweep, GC tuning (GOGC, GOMEMLIMIT), allocation profiler
