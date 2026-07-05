@@ -113,24 +113,46 @@ const { prev, next } = getPrevNext(flat, url);
 
   <main class="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden transition-all duration-300 pt-16 lg:ml-64 xl:mr-64">
     <div class="mx-auto px-4 sm:px-6 py-8 lg:py-12 max-w-3xl">
-      <nav aria-label="Breadcrumb" class="mb-6 text-sm">
-        <ol class="flex flex-wrap items-center gap-1 text-gray-400 dark:text-gray-500">
-          {crumbNames.map((name, i) => (
-            <li class="flex items-center gap-1">
-              {i < crumbNames.length - 1 ? (
-                <a href={crumbUrls[i]} class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">{name}</a>
-              ) : (
-                <span class="text-gray-700 dark:text-gray-300 font-medium">{name}</span>
-              )}
-              {i < crumbNames.length - 1 && (
-                <svg class="w-3 h-3 mx-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              )}
-            </li>
-          ))}
-        </ol>
-      </nav>
+      <div class="flex justify-between items-center mb-6 gap-4">
+        <nav aria-label="Breadcrumb" class="text-sm">
+          <ol class="flex flex-wrap items-center gap-1 text-gray-400 dark:text-gray-500">
+            {crumbNames.map((name, i) => (
+              <li class="flex items-center gap-1">
+                {i < crumbNames.length - 1 ? (
+                  <a href={crumbUrls[i]} class="hover:text-gray-700 dark:hover:text-gray-300 transition-colors">{name}</a>
+                ) : (
+                  <span class="text-gray-700 dark:text-gray-300 font-medium">{name}</span>
+                )}
+                {i < crumbNames.length - 1 && (
+                  <svg class="w-3 h-3 mx-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                )}
+              </li>
+            ))}
+          </ol>
+        </nav>
+        {body && (
+          <div
+            x-data={`{ copied: false, body: ${JSON.stringify(body)}, async copy() { await navigator.clipboard.writeText(this.body); this.copied = true; setTimeout(() => this.copied = false, 2000); } }`}
+            class="shrink-0"
+          >
+            <button
+              @click="copy"
+              aria-label="Copy as Markdown"
+              class="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400"
+            >
+              <svg x-show="!copied" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
+                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+              </svg>
+              <svg x-show="copied" class="w-4 h-4 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+            </button>
+          </div>
+        )}
+      </div>
 
       <article id="content" class="prose prose-lg prose-blue max-w-none">
         <slot />

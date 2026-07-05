@@ -1,7 +1,7 @@
 ---
 created: 2026-06-29
 ---
-
+	
 # Knowledge Map
 
 | Domain | Breadth Level | Depth | Files | Missing |

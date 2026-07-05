@@ -19,7 +19,7 @@ modified: "2026-07-05"
 
 * QPS: \_\_\_\_\_\_
 * Storage: \_\_\_\_\_\_ / year
-* Latency target: \_\_\_\_\_\_
+* Latency target: \_\_\_\_\_\_  
 
 ## Constraints
 

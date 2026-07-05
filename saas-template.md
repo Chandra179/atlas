@@ -18,7 +18,7 @@ created: "2026-06-13"
 
 * QPS: \_\_\_\_\_\_
 * Storage: \_\_\_\_\_\_ / year
-* Latency target: \_\_\_\_\_\_
+* Latency target: \_\_\_\_\_\_  
 
 ## Constraints
 

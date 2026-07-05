@@ -428,6 +428,47 @@ func main() {
 }
 ```
 
+### First-Responder Pattern (Replicated Databases)
+
+Query multiple identical replicas and use the fastest response.
+
+```go
+// BUG: unbuffered channel + non-blocking send can drop every result
+func QueryReplicas(query string, conns []DBConn) Result {
+	ch := make(chan Result) // unbuffered
+
+	for _, c := range conns {
+		go func(c DBConn) {
+			select {
+			case ch <- c.DoQuery(query):
+			default: // non-blocking send — exits if ch isn't ready
+			}
+		}(c)
+	}
+
+	return <-ch // blocks forever if all goroutines hit default
+}
+```
+
+If all goroutines reach `ch <-` before the main goroutine reaches `<-ch`, every send hits `default` and exits. The main goroutine then blocks forever at `<-ch` — a classic race condition.
+
+```go
+// Fix ✅
+func QueryReplicas(query string, conns []DBConn) Result {
+	ch := make(chan Result, len(conns)) // buffer decouples send from receive
+
+	for _, c := range conns {
+		go func(c DBConn) {
+			ch <- c.DoQuery(query) // blocking send; always succeeds
+		}(c)
+	}
+
+	return <-ch // return the first result; others are GC'd
+}
+```
+
+With a buffered channel sized to `len(conns)`, every goroutine drops its result immediately and exits. The main goroutine reads the first one; the rest stay in the buffer and are cleaned up when the channel goes out of scope.
+
 ## Goroutine Leak
 
 Real world goroutine leak
