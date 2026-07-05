@@ -22,7 +22,6 @@ Study notes on economics microeconomics, macroeconomics, global finance, and beh
 ### Start here
 
 * [Overview](https://github.com/Chandra179/gitbook/blob/main/economy/overview.md) mermaid diagram showing how topics connect
-* [SUMMARY.md](/broken/pages/A1RnhQPD4vjcmR0cyyNb) full table of contents
 
 ## Dashboard
 

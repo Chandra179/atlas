@@ -24,7 +24,7 @@ Variable Breakdown:
 
 You start a job at \$50,000 ($a_1$). You get a guaranteed raise of \$3,000 ($d$) every year. What is your salary in Year 10 ($n$)?
 
-$$a_{10} = 50,000 + (10 - 1)3,000 = \mathbf{\$77,000}$$
+$$a_{10} = 50,000 + (10 - 1)3,000 = \mathbf{77,000}$$
 
 **Series**
 
@@ -73,7 +73,7 @@ Variable Breakdown:
 
 You save \$100 this month. Every month you increase your savings by 10% ($r=1.10$). How much total have you saved after 4 months ($n$)?
 
-$$S_4 = 100 \left( \frac{1 - 1.10^4}{1 - 1.10} \right) = 100 \times 4.641 = \mathbf{\$464.10}$$
+$$S_4 = 100 \left( \frac{1 - 1.10^4}{1 - 1.10} \right) = 100 \times 4.641 = \mathbf{464.10}$$
 
 **Infinite Geometric Series**
 

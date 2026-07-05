@@ -10,7 +10,7 @@ tags:
 
 1D Vector: A single value (a scalar).
 
-2D Vector: A coordinate pair $\[x, y]$ used to position a pixel on a screen.
+2D Vector: A coordinate pair $[x, y]$ used to position a pixel on a screen.
 
 $$Ax = b$$
 
@@ -30,7 +30,7 @@ The Right Hand Side ($\mathbf{b}$) represents the target. It is a fixed vector o
 
 Scalar Multiplication
 
-$\vec{v} = \begin{bmatrix} 2 \ 3 \end{bmatrix}$ and a scalar $c = 2$.
+$\vec{v} = \begin{bmatrix} 2 \\ 3 \end{bmatrix}$ and a scalar $c = 2$.
 
 The scalar multiplication $c\vec{v}$ would be:
 
@@ -40,7 +40,7 @@ $$2 \times \begin{bmatrix} 2 \\ 3 \end{bmatrix} = \begin{bmatrix} 2 \times 2 \\ 
 
 Vector Addition
 
-$\vec{a} = \begin{bmatrix} 4 \ 6 \end{bmatrix}$ and $\vec{b} = \begin{bmatrix} 1 \ -2 \end{bmatrix}$
+$\vec{a} = \begin{bmatrix} 4 \\ 6 \end{bmatrix}$ and $\vec{b} = \begin{bmatrix} 1 \\ -2 \end{bmatrix}$
 
 The vector addition $\vec{a} + \vec{b}$ would be:
 
@@ -50,7 +50,7 @@ $$\begin{bmatrix} 4 \\ 6 \end{bmatrix} + \begin{bmatrix} 1 \\ -2 \end{bmatrix} =
 
 dot product is a single number that reveals the relationship between two vectors.
 
-$\vec{A} = \[3, 4]$ and $\vec{B} = \[1, 2]$
+$\vec{A} = [3, 4]$ and $\vec{B} = [1, 2]$
 
 $$(3 \times 1) + (4 \times 2) = 3 + 8 = \mathbf{11}$$
 
@@ -99,9 +99,9 @@ we often want to keep the direction of a vector but change its length to 1. This
 
 $$\mathbf{u} = \frac{\mathbf{v}}{\|\mathbf{v}\|}$$
 
-$\vec{A} = \[3, 4]$ and its length is $5$.
+$\vec{A} = [3, 4]$ and its length is $5$.
 
-$\mathbf{u} = \[3/5, 4/5] = \[0.6, 0.8]$.
+$\mathbf{u} = [3/5, 4/5] = [0.6, 0.8]$.
 
 This "normalizes" data so you can compare different vectors fairly, regardless of how big the numbers started.
 
@@ -125,19 +125,19 @@ First, you walk from Home to the Store, then from the Store to the Coffee Shop.
 
 1. Vector $\vec{v}$ (Home to Store): You move 4 units East.
 
-* $\vec{v} = \[4, 0]$
+* $\vec{v} = [4, 0]$
 * Length $|v| = 4$
 
 2. Vector $\vec{w}$ (Store to Coffee): You move 3 units North.
 
-* $\vec{w} = \[0, 3]$
+* $\vec{w} = [0, 3]$
 * Length $|w| = 3$
 
 Total Distance of Path B: $4 + 3 = \mathbf{7}$
 
 If you had walked straight from Home to the Coffee Shop, you are looking for the length of the vector $\vec{v} + \vec{w}$.
 
-* Combined Vector: $\[4+0, 0+3] = \[4, 3]$
+* Combined Vector: $[4+0, 0+3] = [4, 3]$
 * Length $|v+w|$: Using Pythagoras: $\sqrt{4^2 + 3^2} = \sqrt{16 + 9} = \sqrt{25} = \mathbf{5}$
 
 Now we plug these numbers into the inequality:
@@ -324,13 +324,13 @@ This method is like basic algebra. If $ax = b$, then $x = b/a$. In matrices, we 
 
 $$A = \begin{bmatrix} 1 & 2 \\ 3 & 4 \end{bmatrix}, \quad x = \begin{bmatrix} x \\ y \end{bmatrix}, \quad b = \begin{bmatrix} 5 \\ 11 \end{bmatrix}$$
 
-For a $2 \times 2$ matrix $\begin{bmatrix} a & b \ c & d \end{bmatrix}$, the inverse is $\frac{1}{ad-bc} \begin{bmatrix} d & -b \ -c & a \end{bmatrix}$.
+For a $2 \times 2$ matrix $\begin{bmatrix} a & b \\ c & d \end{bmatrix}$, the inverse is $\frac{1}{ad-bc} \begin{bmatrix} d & -b \\ -c & a \end{bmatrix}$.
 
 Determinant: $(1 \times 4) - (2 \times 3) = 4 - 6 = \mathbf{-2}$
 
-Swap and Negate: Swap 1 and 4, make 2 and 3 negative $\to \begin{bmatrix} 4 & -2 \ -3 & 1 \end{bmatrix}$
+Swap and Negate: Swap 1 and 4, make 2 and 3 negative $\to \begin{bmatrix} 4 & -2 \\ -3 & 1 \end{bmatrix}$
 
-Multiply by 1/Det: $A^{-1} = -\frac{1}{2} \begin{bmatrix} 4 & -2 \ -3 & 1 \end{bmatrix} = \begin{bmatrix} -2 & 1 \ 1.5 & -0.5 \end{bmatrix}$
+Multiply by 1/Det: $A^{-1} = -\frac{1}{2} \begin{bmatrix} 4 & -2 \\ -3 & 1 \end{bmatrix} = \begin{bmatrix} -2 & 1 \\ 1.5 & -0.5 \end{bmatrix}$
 
 $$\begin{bmatrix} x \\ y \end{bmatrix} = \begin{bmatrix} -2 & 1 \\ 1.5 & -0.5 \end{bmatrix} \begin{bmatrix} 5 \\ 11 \end{bmatrix} = \begin{bmatrix} (-2 \times 5) + (1 \times 11) \\ (1.5 \times 5) + (-0.5 \times 11) \end{bmatrix} = \mathbf{\begin{bmatrix} 1 \\ 2 \end{bmatrix}}$$
 
@@ -369,7 +369,7 @@ Why is it 0 in the top right? Because we never use Row 2 to eliminate Row 1. We 
 
 Instead of solving $Ax = b$, which is slow, we solve two tiny, easy problems.
 
-Imagine $b = \begin{bmatrix} 7 \ 31 \end{bmatrix}$. We want to find $x$ in $LUx = b$.
+Imagine $b = \begin{bmatrix} 7 \\ 31 \end{bmatrix}$. We want to find $x$ in $LUx = b$.
 
 Step 1: Solve $Ly = b$ (Forward Substitution)
 
@@ -385,7 +385,7 @@ $$\begin{bmatrix} 2 & 3 \\ 0 & 3 \end{bmatrix} \begin{bmatrix} x_1 \\ x_2 \end{b
 * Row 2: $3x\_2 = 3 \implies \mathbf{x\_2 = 1}$
 * Row 1: $2x\_1 + 3x\_2 = 7 \implies 2x\_1 + 3(1) = 7 \implies 2x\_1 = 4 \implies \mathbf{x\_1 = 2}$
 
-Final Answer: $x = \begin{bmatrix} 2 \ 1 \end{bmatrix}$.
+Final Answer: $x = \begin{bmatrix} 2 \\ 1 \end{bmatrix}$.
 
 ***
 
@@ -397,7 +397,7 @@ $$A = \begin{bmatrix} 1 & 1 \\ 1 & 0 \end{bmatrix}$$
 
 1. Find $Q$: We use the Gram-Schmidt process to make the columns of $A$ orthonormal.
 
-After normalizing, we get $Q = \begin{bmatrix} 1/\sqrt{2} & 1/\sqrt{2} \ 1/\sqrt{2} & -1/\sqrt{2} \end{bmatrix}$ 2. Find $R$: $R$ is calculated as $Q^T A$.
+After normalizing, we get $Q = \begin{bmatrix} 1/\sqrt{2} & 1/\sqrt{2} \\ 1/\sqrt{2} & -1/\sqrt{2} \end{bmatrix}$ 2. Find $R$: $R$ is calculated as $Q^T A$.
 
 $$R = \begin{bmatrix} \sqrt{2} & 1/\sqrt{2} \\ 0 & 1/\sqrt{2} \end{bmatrix}$$
 
@@ -428,8 +428,8 @@ Look at this matrix:
 
 $$A = \begin{bmatrix} 1 & 2 \\ 2 & 4 \end{bmatrix}$$
 
-* Row 1: $\[1, 2]$
-* Row 2: $\[2, 4]$
+* Row 1: $[1, 2]$
+* Row 2: $[2, 4]$
 
 Notice that Row 2 is just $2 \times$ Row 1. It adds no new information to the system. Because there is only one unique row, the Rank = 1.
 
@@ -447,11 +447,11 @@ Row 3: Magenta Slot
 
 **The Span & Column Space**
 
-Col 1 (Cyan): $\begin{bmatrix} 1 \ 0 \ 0 \end{bmatrix}$
+Col 1 (Cyan): $\begin{bmatrix} 1 \\ 0 \\ 0 \end{bmatrix}$
 
-Col 2 (Yellow A): $\begin{bmatrix} 0 \ 1 \ 0 \end{bmatrix}$
+Col 2 (Yellow A): $\begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix}$
 
-Col 3 (Yellow B): $\begin{bmatrix} 0 \ 1 \ 0 \end{bmatrix}$ (Oops! A duplicate of Col 2)
+Col 3 (Yellow B): $\begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix}$ (Oops! A duplicate of Col 2)
 
 The Column Space is the Span of these three vectors. It represents every color this printer can make. Since we only have Cyan and Yellow ingredients, the span is "Every mix of Cyan and Yellow."
 
@@ -459,9 +459,9 @@ The Column Space is the Span of these three vectors. It represents every color t
 
 Because we have no Magenta ingredient (the middle row of our result will always be 0 for the first and third components in a different setup, or specifically here, the third row is always 0), we are stuck in a 2D Subspace.
 
-We can make $\begin{bmatrix} 1 \ 1 \ 0 \end{bmatrix}$ (Green).
+We can make $\begin{bmatrix} 1 \\ 1 \\ 0 \end{bmatrix}$ (Green).
 
-We can never make $\begin{bmatrix} 0 \ 0 \ 1 \end{bmatrix}$ (Pure Magenta) because no combination of our columns can put a number in that bottom slot.
+We can never make $\begin{bmatrix} 0 \\ 0 \\ 1 \end{bmatrix}$ (Pure Magenta) because no combination of our columns can put a number in that bottom slot.
 
 **The Rank (The "Unique Info")**
 
@@ -485,7 +485,7 @@ This tells the printer: "Use 0 Cyan, 1 unit of Yellow A, and -1 unit of Yellow B
 
 $$1\begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix} - 1\begin{bmatrix} 0 \\ 1 \\ 0 \end{bmatrix} = \begin{bmatrix} 0 \\ 0 \\ 0 \end{bmatrix}$$
 
-The ink cancels out! This vector $\begin{bmatrix} 0 \ 1 \ -1 \end{bmatrix}$ is in the Nullspace. It represents a redundant command.
+The ink cancels out! This vector $\begin{bmatrix} 0 \\ 1 \\ -1 \end{bmatrix}$ is in the Nullspace. It represents a redundant command.
 
 ***
 

@@ -1,7 +1,7 @@
 ---
-title: "Neural Network Architectures"
-tags: [ml, deep-learning, architectures]
-audience: "Anyone learning neural network architectures. Knows ML fundamentals from ml.md."
+title: "Neural Network"
+tags: [ml, deep-learning]
+audience: "Anyone learning neural network. Knows ML fundamentals from ml.md."
 style: tutorial
 prerequisites:
   - ai/ml.md
@@ -9,9 +9,9 @@ difficulty: intermediate
 created: "2026-07-01"
 ---
 
-# Neural Network Architectures
+# Neural Network
 
-> **Prerequisites**: [Machine Learning](ml.md) — neurons, activation functions, backpropagation, and gradient descent.
+**Prerequisites**: [Machine Learning](ml.md) — neurons, activation functions, backpropagation, and gradient descent.
 
 Why different architectures? Because different data has different structure. A spreadsheet row, an image, and a sentence are fundamentally different shapes of information and the architecture should reflect that structure.
 
@@ -21,7 +21,7 @@ Images have **local** structure. A pixel is related to its neighbors, not to pix
 
 Key operations: convolution (pattern matching), pooling (downsampling, translation invariance), stride (how far the filter moves each step).
 
-> **When not to use CNNs**: Avoid CNNs when global position matters more than local structure e.g., tabular data where column order is arbitrary, or graphs where connectivity is non-Euclidean. For those cases, MLPs (tabular) or GNNs (graphs) are better suited.
+**When not to use CNNs**: Avoid CNNs when global position matters more than local structure e.g., tabular data where column order is arbitrary, or graphs where connectivity is non-Euclidean. For those cases, MLPs (tabular) or GNNs (graphs) are better suited.
 
 ## RNNs & LSTMs For Sequential Data
 
@@ -29,7 +29,7 @@ Text, audio, and time series have **temporal** structure. Order matters. RNNs pr
 
 The problem: vanilla RNNs can't learn long-range dependencies. Gradients vanish across time steps. LSTMs solved this with **gating** learnable forget/input/output gates that control what information is kept, added, and emitted from the hidden state. The gates create shortcuts for gradients to flow unchanged across many time steps.
 
-> **When not to use RNNs**: Skip RNNs for sequences longer than ~512 tokens gradient issues re-emerge and sequential processing becomes a bottleneck. Transformers handle long-range dependencies and parallelize better.
+**When not to use RNNs**: Skip RNNs for sequences longer than ~512 tokens gradient issues re-emerge and sequential processing becomes a bottleneck. Transformers handle long-range dependencies and parallelize better.
 
 ## RNNs/LSTMs vs Transformers: A Comparison
 
@@ -62,9 +62,9 @@ The insight that changed everything: instead of processing tokens one at a time 
 | Cross-Attention | Decoder attends to encoder's output query from decoder, keys/values from encoder |
 | Encoder-Decoder | Bidirectional encoding → autoregressive decoding |
 
-> See [Attention Is All You Need, Figure 2](https://arxiv.org/abs/1706.03762) for the original multi-head attention diagram the parallel structure is much clearer visually than prose can convey. [^1]
+See [Attention Is All You Need, Figure 2](https://arxiv.org/abs/1706.03762) for the original multi-head attention diagram the parallel structure is much clearer visually than prose can convey. [^1]
 
-> **When not to use Transformers**: Not ideal for small datasets (<10K examples) where simpler models (e.g., CNNs, MLPs) generalize better with less compute. Also avoid when latency is critical on low-end hardware the quadratic attention cost over sequence length adds up quickly.
+**When not to use Transformers**: Not ideal for small datasets (<10K examples) where simpler models (e.g., CNNs, MLPs) generalize better with less compute. Also avoid when latency is critical on low-end hardware the quadratic attention cost over sequence length adds up quickly.
 
 ## Generative Models
 
@@ -102,7 +102,7 @@ Each token activates only ~2 of 8 experts. Result: a model can have 1 trillion t
 | Throughput | Slower per token | Faster per token (fewer active params) |
 | Memory bandwidth | Bottlenecked by loading all weights | Same bottleneck all experts must be in VRAM |
 
-> Despite lower active params per token, MoE inference VRAM is still high because all experts must reside in memory. The win is compute speed, not memory savings. DeepSeek-V3 pushes this to extreme: 671B total params, 37B active per token the largest open-weight MoE to date. [^6]
+Despite lower active params per token, MoE inference VRAM is still high because all experts must reside in memory. The win is compute speed, not memory savings. DeepSeek-V3 pushes this to extreme: 671B total params, 37B active per token the largest open-weight MoE to date. [^6]
 
 ## Self-Supervised Learning
 

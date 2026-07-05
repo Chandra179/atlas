@@ -32,7 +32,7 @@ Since there is no way to multiply a real number by itself and get a negative res
 
 **Natural number** positive number
 
-**Irrational number** Any real number that cannot be written as a ratio of two integers ($p/q$) like $\mathbf{\sqrt{2\}}$, $\mathbf{\pi}$, $\mathbf{e}$ (Euler's number)
+**Irrational number** Any real number that cannot be written as a ratio of two integers ($p/q$) like $\mathbf{\sqrt{2}}$, $\mathbf{\pi}$, $\mathbf{e}$ (Euler's number)
 
 **Variables** (like $x$ or $y$)
 
@@ -62,18 +62,18 @@ Imagine you are buying items for a school trip:
 * $b = 2$ teachers.
 * $\mathbf{a+b = 12}$ people.
 * Second Group ($\mathbf{x+y}$): The cost per person.
-* $x = $5$ for lunch.
-* $y = $3$ for a drink/snack.
-* $\mathbf{x+y = $8}$ total cost per person.
+* $x = 5$ dollars for lunch.
+* $y = 3$ dollars for a drink/snack.
+* $\mathbf{x+y = 8}$ dollars total cost per person.
 
 The total cost is the product of the two: $(10 + 2)(5 + 3)$
 
-|                 | Lunch ($5)                   | Snack ($3)                   |
-| --------------- | ---------------------------- | ---------------------------- |
-| Students ($10$) | $10 \times 5 = \mathbf{$50}$ | $10 \times 3 = \mathbf{$30}$ |
-| Teachers ($2$)  | $2 \times 5 = \mathbf{$10}$  | $2 \times 3 = \mathbf{$6}$   |
+|                 | Lunch ($5)                  | Snack ($3)                  |
+| --------------- | --------------------------- | --------------------------- |
+| Students ($10$) | $10 \times 5 = \mathbf{50}$ | $10 \times 3 = \mathbf{30}$ |
+| Teachers ($2$)  | $2 \times 5 = \mathbf{10}$  | $2 \times 3 = \mathbf{6}$   |
 
-Total Cost = \$$50 + $30 + $10 + $6 = \mathbf{$96}$
+Total Cost = $50 + 30 + 10 + 6 = \mathbf{96}$ dollars
 
 ***
 
@@ -112,34 +112,34 @@ The number inside the root _must_ be a result of something being raised to the p
 
 ![Properties of nth roots: product, quotient, and power rules for radicals](../../.gitbook/assets/prop_of_roots.png)
 
-The expression to simplify is $\sqrt\[4]{81x^8y^4}$.
+The expression to simplify is $\sqrt[4]{81x^8y^4}$.
 
-$\sqrt\[4]{81x^8y^4} = \sqrt\[4]{81}\sqrt\[4]{x^8}\sqrt\[4]{y^4}$ This step uses Property 1 ($\sqrt\[n]{ab} = \sqrt\[n]{a} \cdot \sqrt\[n]{b}$) to separate the single radical into a product of three individual radicals.
+$\sqrt[4]{81x^8y^4} = \sqrt[4]{81}\sqrt[4]{x^8}\sqrt[4]{y^4}$ This step uses Property 1 ($\sqrt[n]{ab} = \sqrt[n]{a} \cdot \sqrt[n]{b}$) to separate the single radical into a product of three individual radicals.
 
 $$= 3\sqrt[4]{(x^2)^4}|y|$$
 
 This step simplifies each of the three terms separately:
 
-1. Simplifying $\sqrt\[4]{81}$ Since $3^4 = 3 \times 3 \times 3 \times 3 = 81$, the fourth root of 81 is 3.
-2. Simplifying $\sqrt\[4]{x^8}$:
+1. Simplifying $\sqrt[4]{81}$ Since $3^4 = 3 \times 3 \times 3 \times 3 = 81$, the fourth root of 81 is 3.
+2. Simplifying $\sqrt[4]{x^8}$:
 
 * This is rewritten by expressing $x^8$ as a power of 4: $x^8 = (x^2)^4$.
-* The term becomes $\sqrt\[4]{(x^2)^4}$.
+* The term becomes $\sqrt[4]{(x^2)^4}$.
 
-3. Simplifying $\sqrt\[4]{y^4}$
+3. Simplifying $\sqrt[4]{y^4}$
 
-* This uses Property 5 ($\sqrt\[n]{a^n} = |a|$, if $n$ is even). Since $n=4$ (even), the fourth root of $y^4$ must be the absolute value of $y$, or $|y|$.
+* This uses Property 5 ($\sqrt[n]{a^n} = |a|$, if $n$ is even). Since $n=4$ (even), the fourth root of $y^4$ must be the absolute value of $y$, or $|y|$.
 
 $$= 3x^2|y|$$
 
-Simplifying $\sqrt\[4]{(x^2)^4}$
+Simplifying $\sqrt[4]{(x^2)^4}$
 
-* This uses Property 5 again. The $n$th root cancels the $n$th power, and since $n=4$ is even, we use the absolute value: $\sqrt\[4]{(x^2)^4} = |x^2|$.
+* This uses Property 5 again. The $n$th root cancels the $n$th power, and since $n=4$ is even, we use the absolute value: $\sqrt[4]{(x^2)^4} = |x^2|$.
 * However, because any real number squared ($x^2$) is always non-negative, the absolute value signs are not necessary. So, $|x^2|$ simplifies to just $x^2$.
 
 The final simplified expression is $3x^2|y|$.
 
-The key takeaway is that the absolute value signs are essential when simplifying an even root of a variable raised to the same power (like $\sqrt\[4]{y^4}$), unless you are certain the result is non-negative (like in the case of $x^2$).
+The key takeaway is that the absolute value signs are essential when simplifying an even root of a variable raised to the same power (like $\sqrt[4]{y^4}$), unless you are certain the result is non-negative (like in the case of $x^2$).
 
 ***
 
@@ -147,7 +147,7 @@ The key takeaway is that the absolute value signs are essential when simplifying
 
 $$a^{\frac{m}{n}} = \sqrt[n]{a^m} = (\sqrt[n]{a})^m$$
 
-$8^{\frac{2}{3\}} =(\sqrt\[3]{8})^2$ = $2^2$ = $4$
+$8^{\frac{2}{3}} =(\sqrt[3]{8})^2$ = $2^2$ = $4$
 
 ### Product Formulas
 
@@ -360,12 +360,12 @@ If "multiplying by $-1$" is a 180-degree turn, then "multiplying by $i$" must be
 4. Solve the Equation and Check Your Answer. Solve the equation, check your answer, and state your answer as a sentence.
 
 A car rental company charges 30 dollar a day and 15¢ a mile for renting a car. A tourist rents\
-a car for two days, and the bill comes to $108. How many miles was the car driven?
+a car for two days, and the bill comes to \$108. How many miles was the car driven?
 
 * Let $x$ = the number of miles driven.
-* Daily cost: The company charges \$$30$ per day. Since the car was rented for 2 days, the cost is $2 \times 30 = 60$.
-* Mileage cost: The company charges $15¢$ (or \$$0.15$) per mile. For $x$ miles, the cost is $0.15x$.
-* Total Bill: The problem states the final bill comes to \$$108$.
+* Daily cost: The company charges \$30 per day. Since the car was rented for 2 days, the cost is $2 \times 30 = 60$.
+* Mileage cost: The company charges 15¢ (or \$0.15) per mile. For $x$ miles, the cost is $0.15x$.
+* Total Bill: The problem states the final bill comes to \$108.
 * $\text{Daily Cost} + \text{Mileage Cost} = \text{Total Bill}$
 * $60 + 0.15x = 108$
 
@@ -557,7 +557,7 @@ If I ask for $(f \circ g)(3)$:
 
 A function $f$ is one-to-one (or injective) if it never takes the same value twice:
 
-> If $x\_1 \neq x\_2$, then $f(x\_1) \neq f(x\_2)$
+If $x\_1 \neq x\_2$, then $f(x\_1) \neq f(x\_2)$
 
 **The Horizontal Line Test (HLT)**
 
@@ -681,7 +681,7 @@ A polynomial of degree $n$ can have up to $n-1$ turning points and can have loca
 
 **Polynomial**
 
-Question: Current: \$$20$ price, $60$ units sold. Change: $+$1$ price $\rightarrow$ $-2$ units sold.
+Question: Current: \$20 price, $60$ units sold. Change: $+1$ dollar price $\rightarrow$ $-2$ units sold.
 
 Find $x$ (price increases) for Max Revenue ($R$)
 
@@ -703,11 +703,11 @@ $$x = \frac{-20}{-4}$$
 
 $$x = 5$$
 
-$$\text{Optimal Price} = 20 + 5 = \$25$$
+$$\text{Optimal Price} = 20 + 5 = 25 \text{ dollars}$$
 
 $$\text{Units Sold} = 60 - 2(5) = 50$$
 
-$$R_{max} = 25 \times 50 = \$1,250$$
+$$R_{max} = 25 \times 50 = 1250 \text{ dollars}$$
 
 #### Long Division Polynomial
 
@@ -751,7 +751,7 @@ $$(x - 1)(x + 1)(x - 4) = 0$$
 
 Critical values are: $x = -1, 1, 4$.
 
-These roots create four intervals on the number line: $(-\infty, -1]$, $\[-1, 1]$, $\[1, 4]$, and $\[4, \infty)$. (We use brackets because the inequality is $\leq$).
+These roots create four intervals on the number line: $(-\infty, -1]$, $[-1, 1]$, $[1, 4]$, and $[4, \infty)$. (We use brackets because the inequality is $\leq$).
 
 * Test $x = -2$: $(-)(-)(-) = \text{negative}$ (Matches $\leq 0$)
 * Test $x = 0$: $(-)(+)(-) = \text{positive}$
@@ -845,7 +845,7 @@ We want the intervals where the result is $\geq 0$ (Positive).
 * We include $5$ because it makes the numerator zero (and the inequality allows $\geq$).
 * We exclude $-1$ because it makes the denominator zero (undefined).
 
-Solution: $(-\infty, -1) \cup \[5, \infty)$
+Solution: $(-\infty, -1) \cup [5, \infty)$
 
 ## Exponential & Logarithmic Functions
 
@@ -872,7 +872,7 @@ $$f(x) = e^x$$
 
 $$e \approx 2.71828$$
 
-It was discovered by studying compound interest. If you had $1 and a bank gave you 100% interest, but they compounded it every single tiny fraction of a second (continuously), you wouldn't get infinite moneyyou would end up with exactly $2.718... ($e$) at the end of the year
+It was discovered by studying compound interest. If you had \$1 and a bank gave you 100% interest, but they compounded it every single tiny fraction of a second (continuously), you wouldn't get infinite money—you would end up with exactly \$2.718... ($e$) at the end of the year
 
 ### Logarithmic
 

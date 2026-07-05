@@ -14,7 +14,7 @@ created: "2026-07-04"
 
 A 70B-parameter model at FP16 precision needs ~140 GiB of GPU memory more than any single consumer GPU. Quantize it to 4-bit, and it fits on an RTX 4090 (24 GiB). Quantization is the primary knob for trading precision for deployment cost.
 
-> **Prerequisites**: [`ml.md`](ml.md) model architectures, training vs inference. [`ai-infra.md`](ai-infra.md) model serving on GPUs, vLLM startup.
+**Prerequisites**: [`ml.md`](ml.md) model architectures, training vs inference. [`ai-infra.md`](ai-infra.md) model serving on GPUs, vLLM startup.
 
 ---
 
@@ -37,11 +37,11 @@ Quantization reduces the numerical precision of model weights (and optionally ac
 | INT4 + groupsize 128 | ~4.5 | ~39 GiB | L40S (48 GiB) |
 | INT2 | 2 | ~17.5 GiB | RTX 3090 (24 GiB) significant quality loss |
 
-> Lower bits = more aggressive compression. Below 4-bit, quality degrades steeply. 4-bit with groupsize 128 is the practical sweet spot for most models.
+Lower bits = more aggressive compression. Below 4-bit, quality degrades steeply. 4-bit with groupsize 128 is the practical sweet spot for most models.
 
 ---
 
-> **Skip to [Quantization Formats](#quantization-formats)** if you already understand the math and just need to pick a format for deployment.
+**Skip to [Quantization Formats](#quantization-formats)** if you already understand the math and just need to pick a format for deployment.
 
 ## The Quantization Algorithm
 
@@ -221,7 +221,7 @@ Quantization quality is measured by perplexity on a held-out text corpus (e.g., 
 | GGUF Q4_K_M | 4.15 | -0.23 |
 | GGUF Q2_K | 6.84 | -2.92 |
 
-> Numbers are illustrative actual values depend on model, dataset, and calibration. Always benchmark your specific model and workload. 4-bit formats typically lose 1-3% on benchmark scores (MMLU, GSM8K) acceptable for most chat and summarization tasks. 2-bit is reserved for when memory is the hard constraint and quality is secondary.
+Numbers are illustrative actual values depend on model, dataset, and calibration. Always benchmark your specific model and workload. 4-bit formats typically lose 1-3% on benchmark scores (MMLU, GSM8K) acceptable for most chat and summarization tasks. 2-bit is reserved for when memory is the hard constraint and quality is secondary.
 
 **When quality loss matters:**
 - Coding tasks (HumanEval, SWE-bench): 4-bit loss is noticeable (~3-5% drop on pass@1).

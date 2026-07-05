@@ -21,8 +21,8 @@ The system has three pieces:
 
 A **cold start** is what happens when Modal boots a container from scratch for the first time. The container image must be pulled, model weights loaded into GPU memory, GPU kernels compiled, and the model initialized. This document measures each phase and explains how to optimize it.
 
-> **Who this is for** Engineers deploying LLMs on serverless GPUs. Familiarity with Python assumed; no prior Modal, vLLM, or GPU serving experience needed.
-> **Prerequisites** [Modal account](https://modal.com), [HuggingFace account](https://huggingface.co) (with Gemma 4 license accepted), Python basics.
+**Who this is for** Engineers deploying LLMs on serverless GPUs. Familiarity with Python assumed; no prior Modal, vLLM, or GPU serving experience needed.
+**Prerequisites** [Modal account](https://modal.com), [HuggingFace account](https://huggingface.co) (with Gemma 4 license accepted), Python basics.
 
 ---
 
@@ -86,7 +86,7 @@ Phases explained in plain language:
 | Warm-up query | ~7s | ~10s | Absorbs JIT kernel compilation spikes |
 | **Total** | **~182s** | **10-15 min** | |
 
-> Phase durations are not strictly additive some phases overlap, and orchestration overhead (scheduling, health checks) is not broken out.^[See [Modal cold start docs](https://modal.com/docs/guide/cold-start) for more on container lifecycle.]
+Phase durations are not strictly additive some phases overlap, and orchestration overhead (scheduling, health checks) is not broken out.^[See [Modal cold start docs](https://modal.com/docs/guide/cold-start) for more on container lifecycle.]
 
 ### Key things
 - Cached cold start: ~182s (~3 min). Fresh (no cached volumes): 10-15 min.

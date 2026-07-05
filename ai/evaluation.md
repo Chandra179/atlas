@@ -11,7 +11,7 @@ created: "2026-07-04"
 
 # Model Evaluation & Benchmarks
 
-> **Prerequisites**: [Machine Learning](ml.md) — training pipeline, loss functions, perplexity.
+**Prerequisites**: [Machine Learning](ml.md) — training pipeline, loss functions, perplexity.
 
 "Why does my model look great in the playground but fail in production?" You ran a few prompts, the outputs looked reasonable, and you shipped it. Then users started reporting nonsense answers, biased completions, and confident hallucinations.
 

@@ -12,7 +12,7 @@ created: "2026-06-13"
 
 # Machine Learning
 
-> **Before reading**: you should be comfortable with Python (code blocks assume basic literacy), [partial derivatives and the chain rule](math/calculus.md), and [basic linear algebra](math/linear-algebra.md) (vectors, matrices, tensors). If any of these feel rusty, review them first the later sections build directly on this math.
+**Before reading**: you should be comfortable with Python (code blocks assume basic literacy), [partial derivatives and the chain rule](../math/calculus.md), and [basic linear algebra](../math/linear-algebra.md) (vectors, matrices, tensors). If any of these feel rusty, review them first the later sections build directly on this math.
 
 ## What Is Machine Learning?
 
@@ -84,11 +84,11 @@ The loss is the number the entire training process tries to minimize.
 
 The two values being compared have standard notation: $\hat{y}$ ("y-hat") for the model's prediction and $y$ for the ground truth. The loss function $L(\hat{y}, y)$ measures the distance between them.
 
-**Concrete example — MSE (regression).** Predicting house prices. Expected price $y = \$300,000$, predicted price $\hat{y} = \$280,000$:
+**Concrete example — MSE (regression).** Predicting house prices. Expected price $y = 300{,}000$, predicted price $\hat{y} = 280{,}000$:
 
-$$\text{MSE} = (\hat{y} - y)^2 = (\$280,000 - \$300,000)^2 = 4 \times 10^9$$
+$$\text{MSE} = (\hat{y} - y)^2 = (280{,}000 - 300{,}000)^2 = 4 \times 10^9$$
 
-The magnitude tells the network it was far off — and squaring means a $\$40,000$ error hurts four times as much as a $\$20,000$ error.
+The magnitude tells the network it was far off — and squaring means a $40{,}000$ error hurts four times as much as a $20{,}000$ error.
 
 **Concrete example — Cross-Entropy (classification).** Classifying an image as cat vs dog. Output layer produces probabilities: cat = 0.85, dog = 0.15. The true label is cat: $y = [1.0, 0.0]$. Cross-entropy penalizes the distance between the predicted distribution $[0.85, 0.15]$ and the true distribution $[1.0, 0.0]$:
 
@@ -340,7 +340,7 @@ Beyond architecture choices, these techniques directly combat overfitting:
 
 Distribution shift is the silent killer of deployed models. Covariate shift (input distribution changes) and concept drift (the relationship between input and output changes) degrade performance without any code change or error message.
 
-> **Practical note**: For fine-tuning large models, the sweet spot is often 1–3 epochs. Beyond that, you transition from generalizing to memorizing, especially when the fine-tuning dataset is small.
+**Practical note**: For fine-tuning large models, the sweet spot is often 1–3 epochs. Beyond that, you transition from generalizing to memorizing, especially when the fine-tuning dataset is small.
 
 ## The Modern LLM Era
 
@@ -369,8 +369,8 @@ Perplexity answers: "How many tokens is the model effectively choosing between a
 | Dimension | Standard Network | LLM |
 |-----------|-----------------|-----|
 | Input | House features (sq ft, bedrooms) | Sequence of text tokens |
-| Output $\hat{y}$ | Single continuous number ($\$350,000$) | Probability distribution over entire vocabulary |
-| Expected $y$ | True selling price ($\$340,000$) | Actual next token in training text |
+| Output $\hat{y}$ | Single continuous number ($350{,}000$) | Probability distribution over entire vocabulary |
+| Expected $y$ | True selling price ($340{,}000$) | Actual next token in training text |
 | Loss function | MSE | Cross-Entropy (per token) |
 
 ### How Knowledge and Context Are Stored
@@ -475,12 +475,12 @@ See [evaluation.md](evaluation.md) — perplexity, generation metrics, LLM-as-Ju
 | Path | Start With |
 |------|-----------|
 | **ML infrastructure** | [AI infra](ai-infra.md) vLLM, HuggingFace, scaling. [Use case: Gemma 4 on Modal](modal-gemma4-h200.md) GPU pricing, cold starts, storage |
-| **Architectures** | [architectures.md](architectures.md) CNN, RNN, Transformer, MoE, generative models |
+| **Architectures** | `architectures.md` CNN, RNN, Transformer, MoE, generative models |
 | **Embeddings** | [embeddings.md](embeddings.md) embedding models, similarity, vector DBs. [Specialized Databases](../database/specialized-databases.md) for pgvector/Pinecone/Milvus |
 | **Evaluation** | [evaluation.md](evaluation.md) perplexity, benchmarks, LLM-as-Judge, human eval |
 | **Reinforcement Learning** | Sutton & Barto the canonical textbook |
 | **Computer Vision** | CNNs → ResNets → ViTs |
-| **NLP / LLMs** | Transformer paper → BERT → GPT → LLaMA. See [architectures.md](architectures.md) for the full architecture deep-dive. [^18] |
+| **NLP / LLMs** | Transformer paper → BERT → GPT → LLaMA. See `architectures.md` for the full architecture deep-dive. [^18] |
 | **MLOps** | Production pipelines, monitoring, CI/CD for models |
 | **Generative AI** | Diffusion → GANs → autoregressive models |
 

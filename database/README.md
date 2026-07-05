@@ -19,7 +19,6 @@ Comprehensive reference on database internals: taxonomy, indexing, storage engin
 * [storage-engines.md](storage-engines.md) B-Tree, LSM-Tree, Heap, and Columnar: the fundamental storage structures with comparison table, page layout, tree topology, search/insert algorithms, and practical implications (fill factor, bloat, PK choice, columnar advantages)
 * [algorithms.md](algorithms.md) Cross-cutting algorithms: MVCC, Write-Ahead Log, Merkle Trees, Bloom Filters (with pseudocode)
 * [concurrency-and-scaling.md](concurrency-and-scaling.md) Transactions, isolation, locking, replication, scaling, distributed transactions, distributed consensus (Raft, Paxos, VSR), gossip protocol, consistent hashing
-* [query-and-optimization.md](/broken/pages/NjPmsFQoDN8Jyet6UaA3) Query pipeline, scan methods, join algorithms, parallel execution, cost estimation theory, optimization heuristics
 * [specialized-databases.md](specialized-databases.md) Vector databases (pgvector, Pinecone, Milvus), Search engines (Elasticsearch), Embedded (SQLite, DuckDB), Streaming, Time-Series internals
 
 ### Deep Dives (per database)

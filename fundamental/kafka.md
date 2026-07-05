@@ -41,7 +41,7 @@ Segments are:
 - **Active segment** the one currently being written to
 - **Older segments** immutable, read-only, candidates for compaction/deletion
 
-> Sequential I/O on the `.log` file makes Kafka fast writes are pure appends.
+Sequential I/O on the `.log` file makes Kafka fast writes are pure appends.
 
 ## Replication
 
@@ -246,7 +246,7 @@ When a consumer joins or leaves a group, Kafka redistributes partitions across t
  - `commitSync()` blocking, retries on failure. Call after processing each batch.
  - `commitAsync()` non-blocking, callback on failure. Higher throughput but no retry.
 
-> Process → commit = at-least-once. Commit → process = at-most-once (messages lost on crash).
+Process → commit = at-least-once. Commit → process = at-most-once (messages lost on crash).
 
 ## Performance
 
@@ -273,7 +273,7 @@ The trade-off: reducing latency (making it "real-time") often requires lowering 
 - **Partition Bottleneck**: A single partition is overwhelmed by too many messages (often caused by a "Hot Key"). The fix is either more partitions or key design changes.
 - **Consumer Bottleneck**: The most common clog. Business logic (database writes, API calls) is slower than the incoming message rate. Requires scaling consumers or optimizing processing.
 
-> If your system hits a bottleneck, do not try to make a single thread faster. Increase throughput by adding more partitions and consumers to process data in parallel.
+If your system hits a bottleneck, do not try to make a single thread faster. Increase throughput by adding more partitions and consumers to process data in parallel.
 
 ### The Cost of More Partitions
 

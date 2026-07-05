@@ -7,9 +7,7 @@ created: "2026-06-13"
 
 # RAG
 
-Documents flow through a RAG pipeline in eight stages. Six are implemented (ingest, chunk, embed, retrieve, generate, evaluate); test coverage is minimal (unit tests only); monitor is scaffolded but broken on `main`. This note documents the `nadir` implementation as of `main` config defaults, exact mechanics, and where the code has gaps.
-
-> **Before reading:** `nadir` is a separate Go repo (github.com/Chandra179/nadir); this vault note documents it. Retrieval-quality concepts (recall@k, MRR, NDCG, faithfulness, LLM-as-judge) live in `ai/ml.md` § Model Evaluation & Benchmarks.
+Documents flow through a RAG pipeline in eight stages. Six are implemented (ingest, chunk, embed, retrieve, generate, evaluate); test coverage is minimal (unit tests only); monitor is scaffolded but broken on `main`. This note documents the `nadir` implementation as of `main` config defaults, exact mechanics, and where the code has gaps. Go repo (github.com/Chandra179/nadir)
 
 ## Ingestion
 
@@ -60,9 +58,7 @@ Qdrant stores dense vectors alongside payload metadata:
 
 **Distance metric:** Cosine, exclusively (dense collection and semantic cache).
 
-**Server-side vs client-side hybrid.** The store supports both, selected at query time:
-* **Client-side (active)** dense `searchWithFilter` + BM25 `Scroll` + client SPLADE rescore + manual RRF. This is the only path wired in `server.go` today.
-* **Server-side (exists, not wired)** `QueryPoints` with dense+sparse prefetch legs and Qdrant-native `Fusion_RRF` in a single round-trip. Gated on `store.WithSparseEmbedder(...)`, which `server.go` never calls, so sparse vectors are never stored at ingest and this branch is unreachable in the current build.
+**Server-side vs client-side hybrid.** The store supports both, selected at query time.
 
 ***
 
@@ -102,15 +98,17 @@ A dedicated Qdrant collection (`search_cache`) caches results keyed by query-emb
 
 * **TTL** default 24h; `0` disables expiry.
 * **Threshold** (cosine):
- * `0.85–0.90`: high recall, allows paraphrased queries
- * `0.90–0.95`: balanced (default `0.90`)
- * `>0.95`: near-identical only
+  * `0.85–0.90`: high recall, allows paraphrased queries
+  * `0.90–0.95`: balanced (default `0.90`)
+  * `>0.95`: near-identical only
 
 ### Hybrid Search
 
 Hybrid search fuses a dense leg and a sparse (BM25) leg. The client-side path fetches `topK × prefetch_mul` (default ×5) candidates per leg, then fuses via RRF (k=60).
 
-> **Multi-fragment queries.** `SearchService.multiSearch` splits the query on `[.?;]+\s*`, runs `HybridSearch` per fragment, dedups by chunk key (keeping the best score), and re-sorts. The `topK` passed into the store is already `topK × candidate_mul` when a reranker is wired, so total candidates per leg scale as `topK × candidate_mul × prefetch_mul`.
+#### Multi-fragment queries
+
+`SearchService.multiSearch` splits the query on `[.?;]+\s*`, runs `HybridSearch` per fragment, dedups by chunk key (keeping the best score), and re-sorts. The `topK` passed into the store is already `topK × candidate_mul` when a reranker is wired, so total candidates per leg scale as `topK × candidate_mul × prefetch_mul`.
 
 ### Payload Filtering
 
@@ -132,7 +130,8 @@ A cross-encoder re-ranks candidates from vector search using the chunk's Window 
 
 `OllamaGenerator` streams an answer grounded in retrieved chunks via Ollama `/api/chat`.
 
-**Prompt construction:**
+#### Prompt construction
+
 * **Lost in the Middle** ordering (Liu et al. 2023) highest-scored chunk at position `[1]`, lowest in the middle, second-highest at the end. Reduces LLM degradation on long context.
 * **Token budget** chunks truncated at roughly 1 token ≈ 4 chars; default `max_context_tokens: 2800` (~70% of a 4k context window).
 * **Citation** the prompt instructs the model to cite inline as `[1]`, `[2]`, etc. This instruction lives in a single `user`-role message; no separate `system` message is sent.
@@ -150,11 +149,13 @@ generator:
 
 ## Evaluate
 
-> **Status: implemented (`internal/eval/` + `cmd/eval/`).**
+**Status: implemented (`internal/eval/` + `cmd/eval/`).**
 
 Two eval modes, both driven by a golden set YAML and run through the `cmd/eval` CLI. Place ground truth files in `golden/`; a reusable template with field docs is at `golden/template.yaml`. Sample golden set at `golden/samples.yaml` matches the `samples/` data.
 
-**Retrieval eval** (`-mode retrieval`) `eval.Runner` runs each golden query through a `SearchService` (rebuilt with the same reranker/chunk-filter wiring as the server, minus semantic cache and generator) and `eval.Aggregate` scores the ranked list:
+#### Retrieval eval
+
+`eval.Runner` runs each golden query through a `SearchService` (rebuilt with the same reranker/chunk-filter wiring as the server, minus semantic cache and generator) and `eval.Aggregate` scores the ranked list:
 
 | Metric | Notes |
 |---|---|
@@ -168,7 +169,9 @@ Two eval modes, both driven by a golden set YAML and run through the `cmd/eval` 
 
 Graded relevance: `relevance: {file: grade}` with 0=irrelevant, 1=marginal, 2=relevant, 3=highly; `expected_files` is the binary special case (grade=1). Path matching is suffix-based (`MatchFile`), so `math/trigonometry.md` matches `gitbook/math/trigonometry.md`. **Bootstrap 95% CIs** are printed for Recall@5, Recall@10, NDCG@10, and MAP (1000 resamples, fixed seed). `-granularity chunk` scores at passage level (paper-comparable); default is `file` (deduped).
 
-**RAG eval** (`-mode rag`) `eval.RAGASEvaluator` runs the full RAG loop per query (retrieve → `GeneratorAdapter` generates → `OllamaJudge` scores) and reports four RAGAS metrics (Es et al. 2023, arxiv 2309.15217):
+#### RAG eval
+
+`eval.RAGASEvaluator` runs the full RAG loop per query (retrieve → `GeneratorAdapter` generates → `OllamaJudge` scores) and reports four RAGAS metrics (Es et al. 2023, arxiv 2309.15217):
 
 | Metric | Method |
 |---|---|
@@ -179,13 +182,33 @@ Graded relevance: `relevance: {file: grade}` with 0=irrelevant, 1=marginal, 2=re
 
 The judge calls Ollama's OpenAI-compatible `/v1/chat/completions`; the judge model defaults to `generator.model` (override with `-judge-model`). `-mode both` runs retrieval then RAGAS in one pass.
 
-**CLI:** `go run ./cmd/eval -golden my-golden.yaml -fetch-k 10 -mode retrieval` (Make targets: `eval`, `eval-rag`, `eval-both`, `eval-chunk`, each requiring `golden=my-golden.yaml`). Flags: `-config` (default `config/config.yaml`), `-golden` (required), `-fetch-k` (default 10), `-mode` (retrieval|rag|both), `-granularity` (file|chunk), `-judge-model`. A warning is printed when `n < 50` (BEIR min ~1k).
+#### CLI
 
-**Results persistence:** every run saves a timestamped JSON file to `results/` with meta (timestamp, golden path, mode, config), aggregate metrics, and per-query breakdowns including latency, retrieved files with scores, and generated answer (RAG mode). Results dir is gitignored.
+```sh
+go run ./cmd/eval -golden my-golden.yaml -fetch-k 10 -mode retrieval
+```
 
-**Tests:** `internal/eval/{metrics,ragas,runner}_test.go` metric math, RAGAS scoring with a stub judge, and runner aggregation. No integration tests against live Qdrant/Ollama.
+**Make targets:** `eval`, `eval-rag`, `eval-both`, `eval-chunk` (each requires `golden=my-golden.yaml`)
 
-> The `EVAL_LLM_BASE_URL` / `EVAL_LLM_MODEL` / `EVAL_HISTORY_PATH` entries were removed from `.env.example` they were never read by any code.
+**Flags:**
+* `-config` (default `config/config.yaml`)
+* `-golden` (required)
+* `-fetch-k` (default 10)
+* `-mode` (retrieval | rag | both)
+* `-granularity` (file | chunk)
+* `-judge-model`
+
+A warning is printed when `n < 50` (BEIR min ~1k).
+
+#### Results persistence
+
+Every run saves a timestamped JSON file to `results/` with meta (timestamp, golden path, mode, config), aggregate metrics, and per-query breakdowns including latency, retrieved files with scores, and generated answer (RAG mode). Results dir is gitignored.
+
+#### Tests
+
+`internal/eval/{metrics,ragas,runner}_test.go` metric math, RAGAS scoring with a stub judge, and runner aggregation. No integration tests against live Qdrant/Ollama.
+
+The `EVAL_LLM_BASE_URL` / `EVAL_LLM_MODEL` / `EVAL_HISTORY_PATH` entries were removed from `.env.example` they were never read by any code.
 
 For the conceptual basis perplexity, BLEU/ROUGE/METEOR/BERTScore, LLM-as-judge, benchmarks see `ai/ml.md` § Model Evaluation & Benchmarks.
 
@@ -193,7 +216,7 @@ For the conceptual basis perplexity, BLEU/ROUGE/METEOR/BERTScore, LLM-as-judge, 
 
 ## Test
 
-> **Status: minimal (unit tests only, no Docker/Qdrant required).**
+**Status: minimal (unit tests only, no Docker/Qdrant required).**
 
 * `make test` `go test -short -count=1 ./...`
 * `make test-all` `go test -count=1 ./...`

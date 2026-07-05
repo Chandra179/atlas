@@ -14,7 +14,7 @@ created: "2026-07-04"
 
 The inference engine you pick determines your throughput, latency, hardware compatibility, and operational complexity. vLLM is the default for a reason but it's not always the best choice. This file compares the six major engines and when to pick each.
 
-> **Prerequisites**: [`modal-gemma4-h200.md`](modal-gemma4-h200.md) Modal setup, cold starts, vLLM flags. [`ai-infra.md`](ai-infra.md) vLLM concepts (batching, caching, decoding). [`ml.md`](ml.md) model architectures, Transformer attention.
+**Prerequisites**: [`modal-gemma4-h200.md`](modal-gemma4-h200.md) Modal setup, cold starts, vLLM flags. [`ai-infra.md`](ai-infra.md) vLLM concepts (batching, caching, decoding). [`ml.md`](ml.md) model architectures, Transformer attention.
 
 ---
 

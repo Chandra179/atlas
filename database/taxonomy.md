@@ -24,7 +24,7 @@ created: "2026-06-13"
 | SQL Server | B+Tree (clustered/non-clustered) | Read Committed | Enterprise features, SQL Server Agent, SSIS |
 | Oracle | B+Tree + undo segments | Read Committed | High-end enterprise, RAC clustering |
 
-> **Deep Dive**: [PostgreSQL Internals](./deep-dives/postgresql.md)
+**Deep Dive**: [PostgreSQL Internals](./deep-dives/postgresql.md)
 
 ---
 
@@ -38,7 +38,7 @@ created: "2026-06-13"
 
 **Use Case**: Content management, catalogs, gaming, rapid prototyping.
 
-> **Deep Dive**: [MongoDB Internals](./deep-dives/mongodb.md)
+**Deep Dive**: [MongoDB Internals](./deep-dives/mongodb.md)
 
 ---
 
@@ -52,7 +52,7 @@ created: "2026-06-13"
 
 **Use Case**: Caching, session store, real-time leaderboards, shopping carts.
 
-> **Deep Dive**: [Redis Internals](./deep-dives/redis.md)
+**Deep Dive**: [Redis Internals](./deep-dives/redis.md)
 
 ---
 
@@ -76,7 +76,7 @@ flowchart LR
  end
 ```
 
-> **Deep Dive**: [Cassandra Internals](./deep-dives/cassandra.md)
+**Deep Dive**: [Cassandra Internals](./deep-dives/cassandra.md)
 
 ---
 
@@ -189,4 +189,4 @@ graph TD
 | Spanner | Paxos per shard | Directory-based | TrueTime (GPS + atomic clocks) |
 | TiDB | Raft (multi-raft) | Range-based (region) | PD timestamp oracle |
 
-> **Deep Dive**: [Google Spanner Internals](./deep-dives/spanner.md)
+**Deep Dive**: [Google Spanner Internals](./deep-dives/spanner.md)

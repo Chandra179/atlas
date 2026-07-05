@@ -281,7 +281,7 @@ Syncthing finds the remote device's IP address by trying four methods in paralle
 
 **Address Cache:** Previously successful addresses are saved to disk. On restart, Syncthing tries these cached addresses immediately for a fast reconnect before waiting for discovery.
 
-> All four methods run simultaneously. The first one to produce a working address wins.
+All four methods run simultaneously. The first one to produce a working address wins.
 
 ```mermaid
 sequenceDiagram

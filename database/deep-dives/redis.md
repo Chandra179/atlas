@@ -7,8 +7,8 @@ created: "2026-06-13"
 
 # Redis Architecture
 
-> For the underlying mechanics of B-Trees, LSM-Trees, and WAL,
-> see [Storage Engines](../storage-engines.md) and [Database Algorithms](../algorithms.md).
+For the underlying mechanics of B-Trees, LSM-Trees, and WAL,
+see [Storage Engines](../storage-engines.md) and [Database Algorithms](../algorithms.md).
 
 This deep dive examines Redis's internal architecture, storage model, and indexing design. Understanding these trade-offs helps data engineers and platform teams select the right database for pipeline workloads and avoid the sharp edges that bite production deployments.
 

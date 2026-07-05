@@ -163,6 +163,66 @@
     padding-left: 1em;
 }
 
+/* ========== Callouts / Admonitions ========== */
+.prose .callout {
+    margin-top: 1.6em;
+    margin-bottom: 1.6em;
+    padding: 1em 1.25em;
+    border-left-width: 0.25rem;
+    border-left-style: solid;
+    border-radius: 0 0.375rem 0.375rem 0;
+    font-weight: 400;
+    font-style: normal;
+    color: #4b5563;
+}
+
+.prose .callout-title {
+    font-weight: 500;
+    font-size: 0.9375em;
+    margin-bottom: 0.5em;
+    color: #111827;
+}
+
+.prose .callout strong {
+    font-weight: 500;
+    color: inherit;
+}
+
+.prose .callout--note {
+    border-left-color: #3b82f6;
+    background: #eff6ff;
+}
+.prose .callout--note .callout-title { color: #1d4ed8; }
+
+.prose .callout--warning {
+    border-left-color: #f59e0b;
+    background: #fffbeb;
+}
+.prose .callout--warning .callout-title { color: #b45309; }
+
+.prose .callout--danger {
+    border-left-color: #ef4444;
+    background: #fef2f2;
+}
+.prose .callout--danger .callout-title { color: #b91c1c; }
+
+.prose .callout--tip {
+    border-left-color: #10b981;
+    background: #ecfdf5;
+}
+.prose .callout--tip .callout-title { color: #047857; }
+
+.prose .callout p {
+    margin-top: 0.5em;
+    margin-bottom: 0.5em;
+}
+.prose .callout p:first-child {
+    margin-top: 0;
+}
+.prose .callout p:last-child {
+    margin-bottom: 0;
+}
+
 /* ========== Tables ========== */
 .prose table {
     width: 100%;

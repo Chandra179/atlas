@@ -65,7 +65,13 @@ $$\theta = \arctan\left(\frac{\text{Opposite}}{\text{Adjacent}}\right)$$
 
 * It finds the Angle of elevation or depression.
 * Use this when you have the width and height, but no diagonal.
-* Example: You are building a wheelchair ramp. The ramp must rise 2 feet (Opposite) over a horizontal distance of 24 feet (Adjacent). What is the angle of the ramp? $$\tan(\theta) = \frac{2}{24} = 0.0833$$$$\theta = \arctan(0.0833)$$$$\theta \approx \mathbf{4.76^\circ}$$
+* Example: You are building a wheelchair ramp. The ramp must rise 2 feet (Opposite) over a horizontal distance of 24 feet (Adjacent). What is the angle of the ramp?
+
+$$\tan(\theta) = \frac{2}{24} = 0.0833$$
+
+$$\theta = \arctan(0.0833)$$
+
+$$\theta \approx \mathbf{4.76^\circ}$$
 
 ***
 
@@ -160,11 +166,11 @@ imagine a "laser pointer" rotating from the center of the circle, there are two 
 
 | Function  | Domain (Input)                                                  | Range (Output)                    |
 | --------- | --------------------------------------------------------------- | --------------------------------- |
-| $\sin(x)$ | All Real Numbers $(-\infty, \infty)$                            | $\[-1, 1]$                        |
-| $\cos(x)$ | All Real Numbers $(-\infty, \infty)$                            | $\[-1, 1]$                        |
+| $\sin(x)$ | All Real Numbers $(-\infty, \infty)$                            | $[-1, 1]$                        |
+| $\cos(x)$ | All Real Numbers $(-\infty, \infty)$                            | $[-1, 1]$                        |
 | $\tan(x)$ | All $x \neq \frac{\pi}{2} + n\pi$ (Odd multiples of $90^\circ$) | $(-\infty, \infty)$               |
-| $\csc(x)$ | All $x \neq n\pi$ (Multiples of $180^\circ$)                    | $(-\infty, -1] \cup \[1, \infty)$ |
-| $\sec(x)$ | All $x \neq \frac{\pi}{2} + n\pi$ (Odd multiples of $90^\circ$) | $(-\infty, -1] \cup \[1, \infty)$ |
+| $\csc(x)$ | All $x \neq n\pi$ (Multiples of $180^\circ$)                    | $(-\infty, -1] \cup [1, \infty)$ |
+| $\sec(x)$ | All $x \neq \frac{\pi}{2} + n\pi$ (Odd multiples of $90^\circ$) | $(-\infty, -1] \cup [1, \infty)$ |
 | $\cot(x)$ | All $x \neq n\pi$ (Multiples of $180^\circ$)                    | $(-\infty, \infty)$               |
 
 Remember that Tangent is the ratio of Vertical ($y$) to Horizontal ($x$):
@@ -189,7 +195,13 @@ $$\csc(\theta) = \frac{\text{Hypotenuse}}{\text{Opposite}}$$ (The flip of Sine)
 
 * What it finds: The Diagonal length.
 * Use this when you know how high you need to go and want to find the diagonal path.
-* Real World Example: You want to build a zip-line. The platform is 20 feet high. You want the line at a $30^\circ$ angle. How much cable do you need to buy?$$\text{Cable} = 20 \times \csc(30^\circ)$$ (Note: $\csc$ is $1/0.5 = 2$) $$20 \times 2 = \mathbf{40 \text{ feet of cable}}$$
+* Real World Example: You want to build a zip-line. The platform is 20 feet high. You want the line at a $30^\circ$ angle. How much cable do you need to buy?
+
+$$\text{Cable} = 20 \times \csc(30^\circ)$$
+
+(Note: $\csc$ is $1/0.5 = 2$)
+
+$$20 \times 2 = \mathbf{40 \text{ feet of cable}}$$
 
 ***
 
@@ -199,13 +211,17 @@ $$\sec(\theta) = \frac{\text{Hypotenuse}}{\text{Adjacent}}$$ (The flip of Cosine
 
 * What it finds: The Diagonal length.
 * Use this when you know the flat distance and need to find the diagonal.
-* Real World Example: An architect is designing a bridge. The gap to cross is 100 feet wide. The support beam must be at a $30^\circ$ angle. How long is the beam? $$\text{Beam} = 100 \times \sec(30^\circ)$$$$100 \times 1.15 = \mathbf{115 \text{ feet long}}$$
+* Real World Example: An architect is designing a bridge. The gap to cross is 100 feet wide. The support beam must be at a $30^\circ$ angle. How long is the beam?
+
+$$\text{Beam} = 100 \times \sec(30^\circ)$$
+
+$$100 \times 1.15 = \mathbf{115 \text{ feet long}}$$
 
 ***
 
 ## Cotangent
 
-$\cot(\theta) = \frac{\text{Adjacent\}}{\text{Opposite\}}$ (The flip of Tangent)
+$\cot(\theta) = \frac{\text{Adjacent}}{\text{Opposite}}$ (The flip of Tangent)
 
 * What it finds: The Flat distance.
 * Use this when you know the Height and want to find the ground distance.
@@ -268,7 +284,7 @@ Two fire towers are 10 miles apart. Tower A spots a fire at a $40^\circ$ angle. 
 
 1. Find the third angle: $180^\circ - 40^\circ - 60^\circ = 80^\circ$ (Angle C).
 2. Set up the ratio: $\frac{x}{\sin(60^\circ)} = \frac{10}{\sin(80^\circ)}$
-3. Solve: $x = \frac{10 \times 0.866}{0.985} \approx \mathbf{8.79 \text{ miles\}}$.
+3. Solve: $x = \frac{10 \times 0.866}{0.985} \approx \mathbf{8.79 \text{ miles}}$.
 
 #### The Law of Cosines
 
@@ -288,7 +304,23 @@ Use identities to rewrite complex expressions in a simpler form
 
 These define how the six functions relate to one another:
 
-Quotient: $$\tan(\theta) = \frac{\sin(\theta)}{\cos(\theta)}$$ and $$\cot(\theta) = \frac{\cos(\theta)}{\sin(\theta)}$$ Reciprocal: $$\csc(\theta) = \frac{1}{\sin(\theta)}$$$$\sec(\theta) = \frac{1}{\cos(\theta)}$$and $$\cot(\theta) = \frac{1}{\tan(\theta)}$$
+Quotient:
+
+$$\tan(\theta) = \frac{\sin(\theta)}{\cos(\theta)}$$
+
+and
+
+$$\cot(\theta) = \frac{\cos(\theta)}{\sin(\theta)}$$
+
+Reciprocal:
+
+$$\csc(\theta) = \frac{1}{\sin(\theta)}$$
+
+$$\sec(\theta) = \frac{1}{\cos(\theta)}$$
+
+and
+
+$$\cot(\theta) = \frac{1}{\tan(\theta)}$$
 
 **Pythagorean Identities**
 

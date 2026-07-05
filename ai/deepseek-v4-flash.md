@@ -18,7 +18,7 @@ difficulty: advanced
 This document assumes you understand the Transformer architecture. If you need a refresher:
 - **[ai/ml.md](ml.md)** — ML fundamentals, RNN vs Transformer comparison.
 - **[ai/transformer-inference.md](transformer-inference.md)** — How Transformers generate text, KV cache, attention mechanics.
-- **[ai/architectures.md](architectures.md)** — MoE, attention mechanisms, architectural patterns.
+- **ai/architectures.md** — MoE, attention mechanisms, architectural patterns.
 
 ---
 

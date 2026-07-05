@@ -3,9 +3,11 @@
 // are unified as element nodes with tagName='img'. This catches both.
 import fs from 'node:fs';
 import path from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { visit } from 'unist-util-visit';
 
 const MANIFEST_PATH = path.resolve('public/assets/optimized-manifest.json');
+const CONTENT_ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../content/docs');
 const CONTENT_MAX_WIDTH = 768;
 
 let _manifestCache = null;
@@ -62,8 +64,9 @@ function applyOptimizedSrc(img) {
  */
 export function rehypeRewriteAssets() {
   return (tree, vfile) => {
-    const path = vfile?.path || vfile?.history?.[0] || '';
-    const fileDir = path ? path.replace(/[/\\][^/\\]+$/, '') : '';
+    const filePath = vfile?.path || vfile?.history?.[0] || '';
+    const fileDir = filePath ? path.dirname(filePath) : '';
+    const relDir = fileDir ? toPosix(path.relative(CONTENT_ROOT, fileDir)) : '';
 
     let isFirstImage = true;
 
@@ -78,7 +81,7 @@ export function rehypeRewriteAssets() {
         return;
       }
 
-      const resolved = resolveRelative(src, fileDir);
+      const resolved = resolveRelative(src, relDir);
       node.properties.src = resolved.replace(/^.*\/assets\//, '/assets/');
       applyOptimizedSrc(node);
       applyLoading(node);
@@ -97,10 +100,16 @@ export function rehypeRewriteAssets() {
   };
 }
 
-function resolveRelative(relPath, baseDir) {
+function toPosix(p) {
+  return p.replace(/\\/g, '/');
+}
+
+function resolveRelative(relPath, relDir) {
   if (!relPath) return '';
   if (relPath.startsWith('/')) return relPath;
-  const segments = (baseDir + '/' + relPath).split('/');
+  const base = relDir || '';
+  const combined = base ? `${base}/${relPath}` : relPath;
+  const segments = combined.split('/');
   const out = [];
   for (const seg of segments) {
     if (seg === '' || seg === '.') continue;

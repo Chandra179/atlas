@@ -1,5 +1,5 @@
 ---
-title: "AI Infrastructure Learnings"
+title: "AI Infrastructure"
 tags: [ml, ai, infrastructure, ml-infra, vllm]
 audience: "Engineers deploying LLMs on serverless GPUs. Python basics assumed."
 style: reference
@@ -9,7 +9,7 @@ difficulty: intermediate
 created: "2026-07-04"
 ---
 
-# AI Infrastructure Learnings
+# AI Infrastructure
 
 This document covers general concepts for deploying large language models (LLMs) on serverless GPU infrastructure using **vLLM**.
 
@@ -19,8 +19,8 @@ The overall system has three pieces:
 - **vLLM** an open-source library that serves LLMs. It loads model weights into GPU memory, manages the key-value cache, handles request batching, and generates text.
 - **HuggingFace Hub** a model repository where pre-trained weights are stored and downloaded.
 
-> **Who this is for** Engineers deploying LLMs on serverless GPUs. Familiarity with Python assumed; no prior vLLM or GPU serving experience needed.
-> **Prerequisites** Python basics. Start with the [`modal-gemma4-h200.md`](modal-gemma4-h200.md) case study for a concrete deployment walkthrough, then return here for deeper concepts.
+Engineers deploying LLMs on serverless GPUs. Familiarity with Python assumed; no prior vLLM or GPU serving experience needed.
+Python basics. Start with the [`modal-gemma4-h200.md`](modal-gemma4-h200.md) case study for a concrete deployment walkthrough, then return here for deeper concepts.
 
 ---
 

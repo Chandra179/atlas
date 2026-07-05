@@ -7,7 +7,7 @@ Suggested reading order. Each file lists its prerequisites — follow this chain
 | Order | File | What you'll learn | Prerequisites |
 |---|---|---|---|
 | 1 | [`ml.md`](ml.md) | Neurons, activation functions, gradient descent, backpropagation, training pipeline, optimizers, overfitting, transfer learning, scaling laws, alignment, prompting | Calculus, linear algebra |
-| 2 | [`architectures.md`](architectures.md) | CNN, RNN/LSTM, Transformer (self-attention, multi-head, cross-attention), generative models (GANs, VAE, diffusion), Mixture of Experts, self-supervised learning | `ml.md` |
+| 2 | `architectures.md` | CNN, RNN/LSTM, Transformer (self-attention, multi-head, cross-attention), generative models (GANs, VAE, diffusion), Mixture of Experts, self-supervised learning | `ml.md` |
 
 ## How Models Generate Text
 
@@ -47,7 +47,7 @@ ai/
 ├── _template.md              ← template for new files (with contribution guidelines)
 ├── diagrams/                 ← architecture diagrams
 ├── ml.md                     ML fundamentals
-├── architectures.md          Neural network architectures
+├── neural-network.md         Neural network
 ├── transformer-inference.md  How Transformers generate text
 ├── embeddings.md             Embedding models, similarity, vector databases
 ├── evaluation.md             Model evaluation & benchmarks
@@ -61,7 +61,7 @@ ai/
 
 ## Contributing
 
-See [`_template.md`](_template.md) for full contribution guidelines.
+See `_template.md` for full contribution guidelines.
 
 Quick rules:
 - **New topic?** Create a new file with standardized frontmatter (copy `_template.md`).

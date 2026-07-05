@@ -6,8 +6,10 @@ import tailwindcss from '@tailwindcss/vite';
 import { rewriteLinks } from './src/lib/remark-rewrite-links.js';
 import { gitbookEmbed } from './src/lib/remark-gitbook-embed.js';
 import { remarkMermaidPreserve } from './src/lib/remark-mermaid-preserve.js';
+import { remarkCallouts } from './src/lib/remark-callouts.js';
 import { rehypeRewriteAssets } from './src/lib/rehype-rewrite-assets.js';
 import remarkMath from 'remark-math';
+import remarkDirective from 'remark-directive';
 import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
 import rehypeMermaid from 'rehype-mermaid';
@@ -33,6 +35,8 @@ export default defineConfig({
       [gitbookEmbed, {}],
       [rewriteLinks, {}],
       remarkMermaidPreserve,
+      remarkDirective,
+      remarkCallouts,
     ],
     rehypePlugins: [
       rehypeRaw,
