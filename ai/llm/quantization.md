@@ -1,11 +1,11 @@
 ---
 title: "Quantization for LLM Deployment"
 tags: [ml, ai, infrastructure, ml-infra, quantization]
-audience: "Engineers deploying LLMs on GPU infrastructure. Knows basic ML concepts from ml.md."
+audience: "Engineers deploying LLMs on GPU infrastructure. Knows basic ML concepts from neural-network-fundamentals.md."
 style: reference
 prerequisites:
-  - ai/ml.md
-  - ai/ai-infra.md
+  - ../neural-network-fundamentals.md
+  - ai-infra.md
 difficulty: advanced
 created: "2026-07-04"
 ---
@@ -14,7 +14,7 @@ created: "2026-07-04"
 
 A 70B-parameter model at FP16 precision needs ~140 GiB of GPU memory — more than any single consumer GPU. Quantize it to 4-bit, and it fits on an RTX 4090 (24 GiB, with CPU offloading). Quantization is the primary knob for trading precision for deployment cost.
 
-**Prerequisites**: [`ml.md`](ml.md) model architectures, training vs inference. [`ai-infra.md`](ai-infra.md) model serving on GPUs, vLLM startup.
+**Prerequisites**: [`neural-network-fundamentals.md`](../neural-network-fundamentals.md) model architectures, training vs inference. [`ai-infra.md`](ai-infra.md) model serving on GPUs, vLLM startup.
 
 ---
 
@@ -162,7 +162,7 @@ Quantized weights never return to full FP16 storage — that would defeat the me
 
 - **Software formats (INT4, INT2):** No GPU has INT4 tensor cores. The runtime loads INT4 weights, multiplies by the per-group scale, promotes to FP16, and feeds the result to FP16 tensor cores. This happens in a **fused dequantization kernel** that overlaps the conversion with the matrix multiply — the GPU does not stall.
 
-- **FP8** is a true floating-point format, not integer quantization (see [`deepseek-v4-flash.md`](deepseek-v4-flash.md) §9 for E4M3 vs E5M2). H100 tensor cores accept FP8 natively — dequantization is free.
+- **FP8** is a true floating-point format, not integer quantization (see [`deepseek-v4-flash.md`](../deepseek-v4-flash.md) §9 for E4M3 vs E5M2). H100 tensor cores accept FP8 natively — dequantization is free.
 
 ---
 

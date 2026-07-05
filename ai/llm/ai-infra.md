@@ -4,7 +4,7 @@ tags: [ml, ai, infrastructure, ml-infra, vllm]
 audience: "Engineers deploying LLMs on serverless GPUs. Python basics assumed."
 style: reference
 prerequisites:
-  - ai/ml.md
+  - ../neural-network-fundamentals.md
 difficulty: intermediate
 created: "2026-07-04"
 ---
@@ -15,12 +15,12 @@ This document covers general concepts for deploying large language models (LLMs)
 
 The overall system has three pieces:
 
-- **Modal** the serverless GPU platform that provisions hardware and manages containers. See [`modal-gemma4-h200.md`](modal-gemma4-h200.md) for a full deployment case study.
+- **Modal** the serverless GPU platform that provisions hardware and manages containers. See [`modal-gemma4-h200.md`](../modal-gemma4-h200.md) for a full deployment case study.
 - **vLLM** an open-source library that serves LLMs. It loads model weights into GPU memory, manages the key-value cache, handles request batching, and generates text.
 - **HuggingFace Hub** a model repository where pre-trained weights are stored and downloaded.
 
 Engineers deploying LLMs on serverless GPUs. Familiarity with Python assumed; no prior vLLM or GPU serving experience needed.
-Python basics. Start with the [`modal-gemma4-h200.md`](modal-gemma4-h200.md) case study for a concrete deployment walkthrough, then return here for deeper concepts.
+Python basics. Start with the [`modal-gemma4-h200.md`](../modal-gemma4-h200.md) case study for a concrete deployment walkthrough, then return here for deeper concepts.
 
 ---
 
@@ -135,7 +135,7 @@ Embedding model serving is fundamentally different from generative model serving
 
 For production embedding serving, a mid-range GPU handles thousands of requests per second. High-end generative GPUs are overkill for embeddings alone.
 
-**See also:** [`ml.md`](ml.md) Embeddings & Vector Representations — vector representations, similarity measures, training.
+**See also:** [`neural-network-fundamentals.md`](../neural-network-fundamentals.md) Embeddings & Vector Representations — vector representations, similarity measures, training.
 
 ---
 
@@ -237,7 +237,7 @@ For MoE models: each GPU holds a subset of experts. Tokens routed to the GPU hos
 [^6]: Safetensors documentation. [huggingface.co/docs/safetensors](https://huggingface.co/docs/safetensors).
 
 ### Further Reading
-- [`modal-gemma4-h200.md`](modal-gemma4-h200.md) concrete deployment: Gemma 4 31B on H200 via Modal.
-- [`ml.md`](ml.md) ML concepts and training infrastructure referenced by this file.
+- [`modal-gemma4-h200.md`](../modal-gemma4-h200.md) concrete deployment: Gemma 4 31B on H200 via Modal.
+- [`neural-network-fundamentals.md`](../neural-network-fundamentals.md) ML concepts and training infrastructure referenced by this file.
 - [vLLM documentation](https://docs.vllm.ai) startup flags, CUDA graph profiling, model architecture.
 - [HuggingFace Hub docs](https://huggingface.co/docs/hub/) token auth, gated models, model identity.

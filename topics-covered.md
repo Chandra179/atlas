@@ -70,15 +70,14 @@ created: 2026-06-29
 - `linear-algebra.md` — vectors, dot product, cosine similarity, matrix multiplication, Gaussian elimination, LU/QR decomposition, SVD, rank/nullspace
 - `summary.md` — trigonometry + algebra synthesis
 
-## AI/ML (9 files)
-- `ml.md` — perceptron, activation functions, loss functions, gradient descent, backpropagation, MLP, batch normalization, layer norm, bias-variance, training pipeline, optimizers (Adam, AdamW), scaling laws, RLHF, DPO, prompting (CoT, ToT, ReAct), frontier training, **embeddings** (training, models, similarity, dimensionality, Matryoshka, chunking), **evaluation** (perplexity, BLEU, ROUGE, BERTScore, LLM-as-judge, MT-Bench, Chatbot Arena, Elo, MMLU, HumanEval, SWE-bench, GSM8K, human eval)
-- `architectures.md` — CNNs, RNNs/LSTMs, Transformers (self-attention, multi-head, cross-attention), generative models (GANs, VAEs, diffusion), MoE, self-supervised learning
+## AI/ML (8 files)
+- `neural-network-fundamentals.md` — perceptron, activation functions, loss functions, gradient descent, backpropagation, MLP, batch normalization, layer norm, bias-variance, training pipeline, optimizers (Adam, AdamW), scaling laws, RLHF, DPO, prompting (CoT, ToT, ReAct), frontier training, **embeddings** (training, models, similarity, dimensionality, Matryoshka, chunking), **evaluation** (perplexity, BLEU, ROUGE, BERTScore, LLM-as-judge, MT-Bench, Chatbot Arena, Elo, MMLU, HumanEval, SWE-bench, GSM8K, human eval)
 - `ai-infra.md` — vLLM, continuous batching, PagedAttention, prefix caching, speculative decoding, tensor/pipeline/data/expert parallelism, TTFT/TPOT metrics, HuggingFace Hub
 - `fine-tuning.md` — full fine-tuning, LoRA, QLoRA, prefix tuning, prompt tuning, IA3, dataset curation, catastrophic forgetting, Axolotl, Unsloth, TRL
 - `inference-engines.md` — vLLM vs SGLang vs TensorRT-LLM vs TGI vs Ollama vs llama.cpp comparison, decision table
 - `quantization.md` — PTQ vs QAT, AWQ, GPTQ, bitsandbytes (NF4), GGUF, FP8, groupsize, perplexity impact, vLLM quantization support
 - `deepseek-v4-flash.md` — Transformer foundations, MLA (Multi-Head Latent Attention), KV compression, MoE with 256 experts, auxiliary-loss-free load balancing, MTP (Multi-Token Prediction), GRPO, FP8 training, synthetic data pipeline, test-time compute, DualPipe parallelism, FlashMLA, DeepGEMM, serving architecture, benchmarks
-- `transformer-inference.md` — autoregressive decoding, KV cache, BPE tokenization, softmax/temperature, positional encodings, multi-head attention mechanics
+- `transformer-inference.md` — Transformer architecture (scaled dot-product attention, QKV projections, multi-head, layer flow, residuals, layer norm), autoregressive decoding, KV cache, BPE tokenization, softmax/temperature
 - `modal-gemma4-h200.md` — Modal serverless, vLLM config, cold start anatomy, GPU memory snapshots, H200 deployment, CUDA graphs, cost model, API auth, rate limiting
 
 ## RAG (1 file)

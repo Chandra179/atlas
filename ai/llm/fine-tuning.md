@@ -1,17 +1,17 @@
 ---
 title: "Fine-Tuning Large Language Models"
 tags: [ml, ai, deep-learning, fine-tuning]
-audience: "Engineers fine-tuning LLMs for domain adaptation. Knows ML training pipeline and VRAM constraints from ml.md."
+audience: "Engineers fine-tuning LLMs for domain adaptation. Knows ML training pipeline and VRAM constraints from neural-network-fundamentals.md."
 style: tutorial
 prerequisites:
-  - ai/ml.md
+  - ../neural-network-fundamentals.md
 difficulty: intermediate
 created: "2026-06-16"
 ---
 
 # Fine-Tuning Large Language Models
 
-**Before reading**: understand the training pipeline, transfer learning, VRAM constraints, quantization, and QLoRA all covered in [Machine Learning](ml.md).
+**Before reading**: understand the training pipeline, transfer learning, VRAM constraints, quantization, and QLoRA all covered in [Machine Learning](../neural-network-fundamentals.md).
 
 You've been prompting GPT-4 to classify customer support tickets: "urgent," "billing," "technical," "general." It works on 95% of tickets. But the other 5% tickets with unusual phrasing, edge-case topics, or mixed intent consistently misclassify. You've tried elaborate system prompts, few-shot examples, chain-of-thought. The edge cases persist.
 

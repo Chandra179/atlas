@@ -4,8 +4,8 @@ tags: [ml, ai, infrastructure, ml-infra, inference]
 audience: "Engineers choosing a serving engine for LLM deployment. Knows vLLM basics from ai-infra.md."
 style: comparison
 prerequisites:
-  - ai/ai-infra.md
-  - ai/ml.md
+  - ai-infra.md
+  - ../neural-network-fundamentals.md
 difficulty: intermediate
 created: "2026-07-04"
 ---
@@ -14,20 +14,20 @@ created: "2026-07-04"
 
 The inference engine you pick determines your throughput, latency, hardware compatibility, and operational complexity. vLLM is the default for a reason but it's not always the best choice. This file compares the six major engines and when to pick each.
 
-**Prerequisites**: [`modal-gemma4-h200.md`](modal-gemma4-h200.md) Modal setup, cold starts, vLLM flags. [`ai-infra.md`](ai-infra.md) vLLM concepts (batching, caching, decoding). [`ml.md`](ml.md) model architectures, Transformer attention.
+**Prerequisites**: [`modal-gemma4-h200.md`](../modal-gemma4-h200.md) Modal setup, cold starts, vLLM flags. [`ai-infra.md`](ai-infra.md) vLLM concepts (batching, caching, decoding). [`neural-network-fundamentals.md`](../neural-network-fundamentals.md) model architectures, Transformer attention.
 
 ---
 
 ## Overview
 
-| Engine                       | Maintainer              | Key Innovation                                    | Best For                                | GPU Required         |
-| ---------------------------- | ----------------------- | ------------------------------------------------- | --------------------------------------- | -------------------- |
-| **vLLM** [^1]                | UC Berkeley / community | PagedAttention, continuous batching               | Production serving, broad model support | Yes                  |
-| **SGLang** [^2]              | Stanford / community    | RadixAttention, structured generation             | Low-latency serving, structured outputs | Yes                  |
-| **TensorRT-LLM** [^3]        | NVIDIA                  | Kernel fusion, inflight batching                  | Max throughput on NVIDIA hardware       | NVIDIA only          |
-| **TGI** (Text Generation Inference) [^4] | HuggingFace             | Deep HF integration, watermarking                 | Quick setup from HF Hub                 | Yes                  |
-| **Ollama** [^5]              | Community               | One-command local serving, built-in model library | Local dev, demos, CPU+GPU hybrid        | Optional (CPU works) |
-| **llama.cpp** [^6]           | Community               | CPU-first, GGUF quantization                      | CPU inference, edge, laptop             | No                   |
+| Engine                                   | Maintainer              | Key Innovation                                    | Best For                                | GPU Required         |
+| ---------------------------------------- | ----------------------- | ------------------------------------------------- | --------------------------------------- | -------------------- |
+| **vLLM** [¹](https://arxiv.org/abs/2309.06180)                            | UC Berkeley / community | PagedAttention, continuous batching               | Production serving, broad model support | Yes                  |
+| **SGLang** [²](https://arxiv.org/abs/2312.07104)                          | Stanford / community    | RadixAttention, structured generation             | Low-latency serving, structured outputs | Yes                  |
+| **TensorRT-LLM** [³](https://github.com/NVIDIA/TensorRT-LLM)                    | NVIDIA                  | Kernel fusion, inflight batching                  | Max throughput on NVIDIA hardware       | NVIDIA only          |
+| **TGI** (Text Generation Inference) [⁴](https://github.com/huggingface/text-generation-inference) | HuggingFace             | Deep HF integration, watermarking                 | Quick setup from HF Hub                 | Yes                  |
+| **Ollama** [⁵](https://ollama.com)                          | Community               | One-command local serving, built-in model library | Local dev, demos, CPU+GPU hybrid        | Optional (CPU works) |
+| **llama.cpp** [⁶](https://github.com/ggerganov/llama.cpp)                       | Community               | CPU-first, GGUF quantization                      | CPU inference, edge, laptop             | No                   |
 
 ---
 
@@ -50,7 +50,7 @@ The current standard for production LLM serving. Its key innovation is **PagedAt
 - Guided decoding (JSON mode, regex) is less mature than SGLang.
 - Memory overhead from Python runtime (~1-2 GiB).
 
-**See [`modal-gemma4-h200.md`](modal-gemma4-h200.md) for cold start optimization and [`ai-infra.md`](ai-infra.md) for vLLM concepts.**
+**See [`modal-gemma4-h200.md`](../modal-gemma4-h200.md) for cold start optimization and [`ai-infra.md`](ai-infra.md) for vLLM concepts.**
 
 ---
 

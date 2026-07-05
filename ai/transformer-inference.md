@@ -4,12 +4,87 @@ tags: [ml, ai, transformer, inference, deep-learning]
 audience: "Engineers who want to understand how Transformers generate text — autoregressive decoding, KV caching, vocabulary, and token selection."
 style: tutorial
 prerequisites:
-  - ai/ml.md
+  - ai/neural-network-fundamentals.md
 difficulty: intermediate
 created: "2026-07-04"
 ---
 
 # Transformer Inference: How They Generate Text
+
+A Transformer is a stack of identical layers built around a single core computation: scaled dot-product attention. This document covers how the architecture works and how it runs during inference — from the attention formula through autoregressive decoding to token selection.
+
+---
+
+## Transformer Architecture
+
+### Scaled Dot-Product Attention
+
+Every input token enters a Transformer layer as a vector. The layer multiplies that vector by three learned weight matrices — W_Q, W_K, W_V — to produce three new vectors:
+
+- **Query (Q)**: what is this token looking for?
+- **Key (K)**: what does this token offer?
+- **Value (V)**: what information does this token carry?
+
+The weight matrices are learned during training. They transform the raw input into these three roles. Once Q, K, and V are computed, the attention mechanism follows a single formula:
+
+$$ \text{Attention}(Q, K, V) = \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right) V $$
+
+Four steps:
+
+1. **QK^T** — multiply every Query against every Key. The result is a matrix of raw scores: how much should token i pay attention to token j?
+2. **Scale by √d_k** — divide each score by the square root of the key dimension. Without scaling, large vectors produce enormous dot products that push softmax into extreme territory where gradients vanish. The division pulls scores into a range softmax can handle.
+3. **Softmax** — normalize each row so it sums to 1. Every token now has a probability distribution over all other tokens.
+4. **Multiply by V** — blend the Value vectors according to the attention weights. Tokens with high relevance scores contribute more to the output.
+
+The result: each token's output is a weighted mixture of every token's value, with weights determined by query-key relevance.
+
+### Multi-Head Attention
+
+A single attention computation captures one relationship pattern. Language has many: grammar, coreference, sentiment, factual association. Multi-head attention runs the entire computation multiple times in parallel, each with its own set of W_Q, W_K, W_V matrices.
+
+With h heads (typically 16 to 128), the input vector is split into h segments each of dimension d_k = d_model / h. Each head computes attention independently. The h outputs are concatenated back into a single vector of dimension d_model, then multiplied by a learned output projection matrix W_O.
+
+If 32 attention heads look at "The cat sat on the mat," one head tracks subject-verb agreement (cat → sat), another links the article (The → cat), another follows the prepositional chain (on → mat), and a fourth captures spatial relationships. All 32 perspectives combine into a single enriched representation.
+
+### Positional Encodings
+
+Transformers process all words simultaneously and are blind to word order. "The dog ate my homework" and "My homework ate the dog" look identical because they contain the same words.
+
+The fix: a unique mathematical vector is added to each word embedding based on its position. Word 1 gets a specific position vector, word 2 gets another, and so on. This gives the model a sense of chronology without sequential processing.
+
+### Feed-Forward Networks
+
+After attention gathers information from other tokens, each token's blended representation passes through a Feed-Forward Network (FFN) in every layer. The FFN is a two-layer MLP with GELU activation that processes each token independently.
+
+- **Attention's job**: gather information from other tokens (information retrieval).
+- **FFN's job**: process that information and apply abstract reasoning.
+
+FFNs hold the bulk of the model's parameters. Attention is the eyes; the FFN is the brain.
+
+### Residual Connections and Layer Normalization
+
+Attention and FFN do not sit side by side. They stack in a precise order, connected by two mechanisms: residual connections and layer normalization.
+
+A single Transformer layer runs four steps:
+
+1. **Multi-Head Self-Attention** computes how each token relates to every other token.
+2. **Add & Normalize**: the attention output is added to the layer's input (the residual connection), then layer-normalized.
+3. **Feed-Forward Network** processes each token's representation independently.
+4. **Add & Normalize**: the FFN output is added to the step-2 result, then normalized. This vector becomes the input to the next layer.
+
+The residual connection — adding the input directly to the output — solves a critical problem. Without it, gradients would vanish as they travel backward through 80 or 100 layers. The skip creates a highway: error signals flow backward through the residual path untouched, bypassing the weight matrices entirely. This is what makes training 100-layer Transformers possible.
+
+Layer normalization rescales each token's vector to have a stable mean and variance. Without it, values would grow or shrink uncontrollably as they pass through each layer. The normalization keeps numbers in a range the next layer can work with.
+
+### The Deep Stack
+
+A Transformer is a tower of these four-step blocks stacked 32 to 100+ layers deep:
+
+- **Lower layers**: spelling, grammar, parts of speech.
+- **Middle layers**: logic, sentence structure, immediate context.
+- **Higher layers**: abstract concepts, metaphors, coding logic, overarching intent.
+
+Data travels up through all layers, growing more abstract at each step, before hitting the vocabulary projection layer at the top to predict the next word.
 
 ---
 
@@ -118,6 +193,26 @@ For a 10,000-token sequence:
 - **With cache:** 1 × 10,000 = 10,000 operations per new token
 
 That's a 10,000× reduction — why Transformers stream text instantly rather than slowing down as conversations get longer.
+
+### Why This Works: The Training Objective
+
+The model generates text the way it does because training taught it exactly this skill. The training loop and the inference loop run the same algorithm. One just skips the weight updates.
+
+During training, the model reads a sentence — "The quick brown fox jumps over the lazy dog" — and tries to predict every word from the words before it:
+
+- Given "The" → predict "quick"
+- Given "The quick" → predict "brown"
+- Given "The quick brown" → predict "fox"
+
+Each prediction produces a loss: the gap between the model's guess and the real next word. Backpropagation adjusts every weight to shrink that gap. After trillions of sentences, the weights settle into the patterns we call understanding.
+
+**The Causal Mask**
+
+One constraint makes this work: the model must never peek ahead. At position 5, it sees only positions 1 through 4. The architecture enforces this with a **causal mask** — a triangular matrix of zeros and negative infinity. When attention computes scores, the mask zeroes out every score between a token and any future token. The model literally cannot look ahead.
+
+The causal mask is what makes the model autoregressive. Without it, every token would attend to every other token, including those that come after. The model would cheat: predicting "fox" while looking at "jumps," "over," "the," "lazy," and "dog" — a trivial task. Enforced blindness forces genuine prediction.
+
+**During inference, the same rules apply.** The causal mask is still there. The KV cache simply preserves what the model already saw. The model generates token by token, each step seeing only the past — exactly as it did during training. The sole difference: no loss is calculated, no weights are updated. The trained model runs forward, nothing more.
 
 ---
 
@@ -243,41 +338,6 @@ The system divides work into two phases:
 Modern AI chips have physical **Tensor Cores** or **Matrix Multiply Units (MMUs)** — hardwired silicon blocks that do nothing but take two matrices and spit out dot products at a hardware level. The physics of electricity moving through the chip IS the calculation.
 
 **The speed recipe:** Permanent weights in GPU memory + KV Cache (short-term memory for your chat) + Tensor Cores (hardware math) → a fresh token every ~10–30 milliseconds.
-
----
-
-## Beyond Self-Attention
-
-Three more components complete the engine:
-
-### Multi-Head Attention
-
-A Transformer doesn't run attention once per layer — it runs it multiple times in parallel. If a model has 32 attention heads, it splits the vector space into 32 segments. Head 1 tracks grammar, Head 2 links pronouns to nouns ("she" → "Sarah"), Head 3 tracks factual relationships. All 32 perspectives combine at the end.
-
-### Positional Encodings
-
-Transformers process all words simultaneously and are blind to word order. "The dog ate my homework" and "My homework ate the dog" look identical because they contain the same words.
-
-The fix: a unique mathematical vector is added to each word embedding based on its position. Word 1 gets a specific "position vector," Word 2 gets another, etc. This gives the model a sense of chronology without sequential processing.
-
-### Feed-Forward Networks (The "Thinking" Layers)
-
-After Self-Attention calculates how words relate, that blended data passes into a **Feed-Forward Neural Network (FFN)** in every layer:
-
-- **Attention's job:** Gather information from other words (Information Retrieval).
-- **FFN's job:** Process that information in isolation and apply abstract reasoning (Information Processing).
-
-FFNs hold the bulk of the model's parameters. Attention is the "eyes"; the FFN is the "brain."
-
-### The Deep Stack (Layers)
-
-A Transformer is a tower of Attention + FFN blocks stacked 32 to 100+ layers deep:
-
-- **Lower layers:** Spelling, grammar, parts of speech.
-- **Middle layers:** Logic, sentence structure, immediate context.
-- **Higher layers:** Abstract concepts, metaphors, coding logic, overarching intent.
-
-Data travels up through all layers, getting more conceptually abstract at each step, before hitting the vocabulary layer at the top to predict the next word.
 
 ---
 

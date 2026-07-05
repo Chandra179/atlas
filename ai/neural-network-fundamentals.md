@@ -1,5 +1,5 @@
 ---
-title: "Machine Learning"
+title: "Neural Network Fundamentals"
 tags: [ml, machine-learning, deep-learning]
 audience: "Anyone learning ML from scratch. Comfortable with calculus and linear algebra."
 style: tutorial
@@ -10,7 +10,7 @@ difficulty: beginner
 created: "2026-06-13"
 ---
 
-# Machine Learning
+# Neural Network Fundamentals
 
 **Before reading**: you should be comfortable with Python (code blocks assume basic literacy), [partial derivatives and the chain rule](../math/calculus.md), and [basic linear algebra](../math/linear-algebra.md) (vectors, matrices, tensors). If any of these feel rusty, review them first the later sections build directly on this math.
 
@@ -92,7 +92,7 @@ The magnitude tells the network it was far off — and squaring means a $40{,}00
 
 **Concrete example — Cross-Entropy (classification).** Classifying an image as cat vs dog. Output layer produces probabilities: cat = 0.85, dog = 0.15. The true label is cat: $y = [1.0, 0.0]$. Cross-entropy penalizes the distance between the predicted distribution $[0.85, 0.15]$ and the true distribution $[1.0, 0.0]$:
 
-$$-\sum y_i \ln(\hat{y}_i) = -(1.0 \times \ln(0.85) + 0.0 \times \ln(0.15)) = 0.16$$
+$$\sum y_i \ln(\hat{y}_i) = -(1.0 \times \ln(0.85) + 0.0 \times \ln(0.15)) = 0.16$$
 
 A confident correct prediction (cat = 0.99) gives loss near 0. A confident wrong prediction (dog = 0.99) gives a large loss.
 
@@ -411,49 +411,6 @@ Powerful models need to be steerable:
 | Constitutional AI | Principles (text) | Self-critique + revision | Stable | Principles + few examples |
 | DPO | None (implicit) | Single model, classification loss | Very stable | Preference pairs only |
 
-### Prompting as Programming
-
-In-context learning: the model adapts its behavior based on what's in the prompt, without any weight updates. The prompt is the new programming interface.
-
-**Few-shot learning** Provide examples in the prompt. Zero-shot (no examples) works for simple tasks. One-shot (1 example) anchors format. Few-shot (3–10 examples) improves accuracy on classification, translation, and structured extraction. Performance gains diminish after ~5–8 examples for most tasks.
-
-**Chain-of-Thought (CoT)** Instead of asking for the answer directly, prompt: "Let's think step by step." [^24] The model generates intermediate reasoning steps, which improves accuracy on multi-step math, logic, and planning tasks. Zero-shot CoT ("Let's think step by step") alone boosts GSM8K math scores from ~18% to ~41% on un-fine-tuned models. [^27]
-
-CoT variants:
-- **Tree of Thoughts (ToT)**: explore multiple reasoning branches, evaluate each, backtrack from dead ends. Used when correctness matters more than latency — solves problems GPT-4 with standard prompting can't solve. [^25]
-- **Self-Consistency**: sample multiple reasoning paths, pick the majority answer. Works when CoT alone is unreliable diversity of reasoning compensates for individual errors.
-- **ReAct** (Reason + Act): interleave reasoning with tool calls. "I need the weather → call `get_weather("SF")` → result is 72F → therefore no raincoat needed." [^26] Foundation of agentic workflows.
-
-**System prompt design** The system message sets the model's role, tone, constraints, and output format. A well-designed system prompt is the difference between a model that follows instructions and one that improvises. Include: who the model is, what it should do, what it must never do, and the exact output format.
-
-**Structured output** Force the model to emit valid JSON, XML, or function-call syntax. Techniques: JSON mode (grammar-constrained decoding guarantees valid syntax), function calling (model outputs `{"name": "search", "parameters": {...}}`), and constrained sampling (mask tokens that would produce invalid output).
-
-**Token budget** Every prompt competes for the context window. Strategies: truncate oldest messages first, summarize prior conversation, use prompt compression (LLMLingua [^28]), or chunk long documents into overlapping windows. The context window is a finite resource — treat it like RAM.
-
-| Technique | When to Use | Cost |
-|-----------|-------------|------|
-| Zero-shot | Simple tasks, known formats | 1 prompt |
-| Few-shot | Classification, extraction, domain-specific tasks | 1 prompt + N examples |
-| CoT + few-shot | Multi-step reasoning, math | 1 prompt + N reasoned examples |
-| ToT | Planning, puzzles, hard reasoning | 10–100× CoT cost |
-| Self-Consistency | When CoT is noisy, accuracy > latency | 5–40× CoT cost |
-| ReAct | Tasks requiring tools, search, or environment interaction | Variable per action loop |
-| Structured output | API integration, data extraction | Slight latency increase for constrained decoding |
-
-### Model Differences
-
-Despite all sharing Transformer roots, major models differ in:
-
-| Dimension | GPT | Claude | Gemini |
-|-----------|-----|--------|--------|
-| Training data | Web-scale, broad | Curated, safety-focused | YouTube, Search, proprietary |
-| Alignment | RLHF [^12] | Constitutional AI [^13] | RLHF + internal |
-| Multimodality | Separate vision model | Text + image | Natively multimodal |
-
-### Frontier Training
-
-Training a top-tier model: 3–6 months, tens of thousands of H100/TPU GPUs interconnected with NVLink/InfiniBand. A single chip failure or network loss spike can corrupt a multi-million dollar training run. Checkpoints occur every 100–1000 steps (minutes apart), each writing terabytes of model state to parallel storage a single lost checkpoint can lose days of computation. Fault tolerance is an engineering requirement, not a nice-to-have.
-
 ## Embeddings & Vector Representations
 
 See [embeddings.md](embeddings.md) — embedding models, similarity measures, dimensionality tradeoffs, vector databases, and code/image/multimodal embeddings.
@@ -461,26 +418,26 @@ See [embeddings.md](embeddings.md) — embedding models, similarity measures, di
 ## Practical Deployment
 
 VRAM is the binding constraint: a 7B FP16 model needs ~14 GB for weights alone; training adds optimizer states and gradients → ~56+ GB. For detailed guidance:
-- **[Quantization](quantization.md)** — reduce precision to fit models in limited VRAM (FP16 → INT8 → 4-bit).
-- **[Fine-tuning](fine-tuning.md)** — QLoRA for efficient fine-tuning on consumer GPUs.
+- **[Quantization](llm/quantization.md)** — reduce precision to fit models in limited VRAM (FP16 → INT8 → 4-bit).
+- **[Fine-tuning](llm/fine-tuning.md)** — QLoRA for efficient fine-tuning on consumer GPUs.
 - **Knowledge Distillation**: train a small "student" model to mimic a large "teacher" using the teacher's output distribution (soft labels). [^15]
 - **Model Merging**: combine multiple fine-tuned variants without retraining using SLERP or DARE [^29].
 
 ## Model Evaluation & Benchmarks
 
-See [evaluation.md](evaluation.md) — perplexity, generation metrics, LLM-as-Judge, Elo ratings, benchmark suite, and human evaluation.
+See [evaluation.md](llm/evaluation.md) — perplexity, generation metrics, LLM-as-Judge, Elo ratings, benchmark suite, and human evaluation.
 
 ### Go Deeper
 
 | Path | Start With |
 |------|-----------|
-| **ML infrastructure** | [AI infra](ai-infra.md) vLLM, HuggingFace, scaling. [Use case: Gemma 4 on Modal](modal-gemma4-h200.md) GPU pricing, cold starts, storage |
-| **Architectures** | [neural-network.md](neural-network.md) CNN, RNN, Transformer, MoE, generative models |
+| **ML infrastructure** | [AI infra](llm/ai-infra.md) vLLM, HuggingFace, scaling. [Use case: Gemma 4 on Modal](modal-gemma4-h200.md) GPU pricing, cold starts, storage |
+| **Architectures** | See [transformer-inference.md](transformer-inference.md) for Transformer, [embeddings.md](embeddings.md) for embeddings |
 | **Embeddings** | [embeddings.md](embeddings.md) embedding models, similarity, vector DBs. [Specialized Databases](../database/specialized-databases.md) for pgvector/Pinecone/Milvus |
-| **Evaluation** | [evaluation.md](evaluation.md) perplexity, benchmarks, LLM-as-Judge, human eval |
+| **Evaluation** | [evaluation.md](llm/evaluation.md) perplexity, benchmarks, LLM-as-Judge, human eval |
 | **Reinforcement Learning** | Sutton & Barto — the canonical textbook |
 | **Computer Vision** | CNNs → ResNets → ViTs |
-| **NLP / LLMs** | Transformer paper → BERT → GPT → LLaMA. See [neural-network.md](neural-network.md) for the full architecture deep-dive. [^18] |
+| **NLP / LLMs** | Transformer paper → BERT → GPT → LLaMA. See [transformer-inference.md](transformer-inference.md) for the full architecture deep-dive. [^18] |
 | **MLOps** | Production pipelines, monitoring, CI/CD for models |
 | **Generative AI** | Diffusion → GANs → autoregressive models |
 
@@ -502,9 +459,4 @@ See [evaluation.md](evaluation.md) — perplexity, generation metrics, LLM-as-Ju
 [^18]: Touvron et al., 2023 *LLaMA: Open and Efficient Foundation Language Models* [arXiv](https://arxiv.org/abs/2302.13971)
 [^19]: Rafailov et al., 2023 *Direct Preference Optimization: Your Language Model is Secretly a Reward Model* [arXiv](https://arxiv.org/abs/2305.18290)
 [^20]: Xu et al., 2024 *When is DPO Better than PPO?* comparison of offline vs online preference optimization [arXiv](https://arxiv.org/abs/2404.10719)
-[^24]: Wei et al., 2022 *Chain-of-Thought Prompting Elicits Reasoning in Large Language Models* [arXiv](https://arxiv.org/abs/2201.11903)
-[^25]: Yao et al., 2023 *Tree of Thoughts: Deliberate Problem Solving with Large Language Models* [arXiv](https://arxiv.org/abs/2305.10601)
-[^26]: Yao et al., 2022 *ReAct: Synergizing Reasoning and Acting in Language Models* [arXiv](https://arxiv.org/abs/2210.03629)
-[^27]: Kojima et al., 2022 *Large Language Models are Zero-Shot Reasoners* [arXiv](https://arxiv.org/abs/2205.11916)
-[^28]: Jiang et al., 2023 *LLMLingua: Compressing Prompts for Accelerated Inference of Large Language Models* [arXiv](https://arxiv.org/abs/2310.05736)
 [^29]: Yadav et al., 2024 *DARE: Diverse Activation Re-Weighting for Model Merging* [arXiv](https://arxiv.org/abs/2311.03099)

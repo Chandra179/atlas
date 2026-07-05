@@ -5,9 +5,8 @@ created: "2026-07-01"
 audience: "Engineers who want to understand the DeepSeek V4-Flash model — architecture, training infrastructure, and serving."
 style: deep-dive
 prerequisites:
-  - ai/ml.md
+  - ai/neural-network-fundamentals.md
   - ai/transformer-inference.md
-  - ai/architectures.md
 difficulty: advanced
 ---
 
@@ -16,9 +15,9 @@ difficulty: advanced
 ## Prerequisites
 
 This document assumes you understand the Transformer architecture. If you need a refresher:
-- **[ai/ml.md](ml.md)** — ML fundamentals, RNN vs Transformer comparison.
+- **[ai/neural-network-fundamentals.md](neural-network-fundamentals.md)** — ML fundamentals, RNN vs Transformer comparison.
 - **[ai/transformer-inference.md](transformer-inference.md)** — How Transformers generate text, KV cache, attention mechanics.
-- **ai/architectures.md** — MoE, attention mechanisms, architectural patterns.
+- **ai/transformer-inference.md** — attention mechanisms, architectural patterns.
 
 ---
 
@@ -821,7 +820,7 @@ For each decode iteration:
 
 ## 14. From MLP to V4-Flash
 
-If you're coming from the [MLP fundamentals](ml.md), here is how each core concept scales to V4-Flash:
+If you're coming from the [MLP fundamentals](neural-network-fundamentals.md), here is how each core concept scales to V4-Flash:
 
 ### 14.1 Fully Connected → Mixture of Experts
 
@@ -854,7 +853,7 @@ In an MLP, every input passes through the same layers at the same cost. V4-Flash
 
 ### 14.4 Summary
 
-| Dimension | MLP (from ml.md) | V4-Flash |
+| Dimension | MLP (from neural-network-fundamentals.md) | V4-Flash |
 |-----------|------------------|----------|
 | Connectivity | Fully connected (every neuron fires per input) | MoE (6 of 256 experts active per token) |
 | Memory | None — processes input in isolation | Hybrid attention (CSA+HCA), 1M-token context |

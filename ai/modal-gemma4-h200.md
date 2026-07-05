@@ -4,7 +4,7 @@ tags: [ml, ai, infrastructure, modal, gemma4, h200, ml-infra]
 audience: "Engineers deploying Gemma 4 31B on H200 via Modal. Python basics assumed."
 style: case-study
 prerequisites:
-  - ai/ai-infra.md
+  - llm/ai-infra.md
 difficulty: advanced
 created: "2026-07-04"
 ---
@@ -284,7 +284,7 @@ Timings below are from a separate measurement run. Differences vs. the [Cold Sta
 
 CUDA graph profiling (v0.21.0+) reduces effective GPU memory by ~0.55pp; bump `--gpu-memory-utilization` to 0.9255 to compensate, or disable with `VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0`. Weight loading from `huggingface-cache` volume takes ~27.65s for the model (2 safetensors shards). 9P filesystem disables auto-prefetch; use `--safetensors-load-strategy` if needed.
 
-For general vLLM concepts (continuous batching, prefix caching, speculative decoding, KV cache mechanics), see [AI infra](ai-infra.md).
+For general vLLM concepts (continuous batching, prefix caching, speculative decoding, KV cache mechanics), see [AI infra](llm/ai-infra.md).
 
 ---
 
@@ -364,6 +364,6 @@ The simplest effective defense: use the chat template for system/user separation
 [^5]: Modal H200 pricing: [$0.001261/sec (~$4.54/hr)](https://modal.com/pricing).
 
 ### Further Reading
-- [`ai-infra.md`](../ai/ai-infra.md) general vLLM concepts (batching, caching, decoding, observability).
+- [`ai-infra.md`](llm/ai-infra.md) general vLLM concepts (batching, caching, decoding, observability).
 - [Modal documentation](https://modal.com/docs) container lifecycle, volumes, GPU snapshots.
 - [vLLM documentation](https://docs.vllm.ai) startup flags, CUDA graph profiling, model architecture.

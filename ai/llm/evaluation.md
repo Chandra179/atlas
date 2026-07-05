@@ -1,17 +1,17 @@
 ---
 title: "Model Evaluation & Benchmarks"
 tags: [ml, ai, evaluation, benchmarks, llm-eval]
-audience: "Engineers evaluating LLM quality and tracking regressions. Knows ML fundamentals from ml.md."
+audience: "Engineers evaluating LLM quality and tracking regressions. Knows ML fundamentals from neural-network-fundamentals.md."
 style: reference
 prerequisites:
-  - ai/ml.md
+  - ../neural-network-fundamentals.md
 difficulty: intermediate
 created: "2026-07-04"
 ---
 
 # Model Evaluation & Benchmarks
 
-**Prerequisites**: [Machine Learning](ml.md) — training pipeline, loss functions, perplexity.
+**Prerequisites**: [Machine Learning](../neural-network-fundamentals.md) — training pipeline, loss functions, perplexity.
 
 "Why does my model look great in the playground but fail in production?" You ran a few prompts, the outputs looked reasonable, and you shipped it. Then users started reporting nonsense answers, biased completions, and confident hallucinations.
 

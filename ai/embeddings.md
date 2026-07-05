@@ -1,17 +1,17 @@
 ---
 title: "Embeddings & Vector Representations"
 tags: [ml, ai, embeddings, vector-search, nlp]
-audience: "Engineers building semantic search, RAG, or recommendation systems. Knows ML fundamentals from ml.md."
+audience: "Engineers building semantic search, RAG, or recommendation systems. Knows ML fundamentals from neural-network-fundamentals.md."
 style: reference
 prerequisites:
-  - ai/ml.md
+  - neural-network-fundamentals.md
 difficulty: intermediate
 created: "2026-07-04"
 ---
 
 # Embeddings & Vector Representations
 
-**Prerequisites**: [Machine Learning](ml.md) — training pipeline, transfer learning, Transformer basics.
+**Prerequisites**: [Machine Learning](neural-network-fundamentals.md) — training pipeline, transfer learning, Transformer basics.
 
 You search for "fast Python web framework" and get the Flask docs. Not because the page contains those exact words — it doesn't — but because an embedding model understood that "Flask" is a fast Python web framework and placed its vector near that query in semantic space.
 
