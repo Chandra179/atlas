@@ -12,7 +12,7 @@ created: '2026-06-13'
 
 **Real number**
 
-![Real number line with integers and fractions marked at regular intervals](<../../.gitbook/assets/linear_number_line (1).png>)
+![Real number line with integers and fractions marked at regular intervals](<../../assets/linear_number_line.png>)
 
 there is no real number that, when multiplied by itself, results in a negative number. The expression $\sqrt{-9}$ asks the question: What real number, when multiplied by itself (squared), equals $-9$?
 
@@ -86,13 +86,13 @@ Total Cost = $50 + 30 + 10 + 6 = \mathbf{96}$ dollars
 
 #### Fractions
 
-![Properties of fractions: addition, subtraction, multiplication, and division rules](<../../.gitbook/assets/prop_of_fractions (1).png>)
+![Properties of fractions: addition, subtraction, multiplication, and division rules](<../../assets/prop_of_fractions.png>)
 
 ***
 
 ### **Integer Exponents**
 
-![Laws of exponents: product, quotient, power, and zero exponent rules](<../../.gitbook/assets/laws_of_exponent (1).png>)
+![Laws of exponents: product, quotient, power, and zero exponent rules](<../../assets/laws_of_exponent.png>)
 
 A product of identical numbers is usually written in exponential notation
 
@@ -108,7 +108,7 @@ A product of identical numbers is usually written in exponential notation
 
 ### **Radicals**
 
-![Properties of nth roots: product, quotient, and power rules for radicals](<../../.gitbook/assets/prop_of_roots (1).png>)
+![Properties of nth roots: product, quotient, and power rules for radicals](<../../assets/prop_of_roots.png>)
 
 The number inside the root _must_ be a result of something being raised to the power of $n$
 
@@ -151,7 +151,7 @@ $8^{\frac{2}{3\}} =(\sqrt\[3]{8})^2$ = $2^2$ = $4$
 
 ### Product Formulas
 
-![Special product formulas: difference of squares, perfect square trinomials, cube of binomials](<../../.gitbook/assets/product_formulas (1).png>)
+![Special product formulas: difference of squares, perfect square trinomials, cube of binomials](<../../assets/product_formulas.png>)
 
 $$(3x + 4)(3x - 4) = (3x)^2 - (4)^2$$
 
@@ -266,7 +266,7 @@ Used for two terms that are perfect cubes.
 
 ### Equations
 
-![Properties of equality: additive, multiplicative, reflexive, symmetric, and transitive](<../../.gitbook/assets/prop_equality (1).png>)
+![Properties of equality: additive, multiplicative, reflexive, symmetric, and transitive](<../../assets/prop_equality.png>)
 
 A linear equation has degree 1 its graph is always a straight line.
 
@@ -302,7 +302,7 @@ The Real Part ($a$): These are normal numbers like $5$, $-3$
 
 The Imaginary Part ($bi$): This is a real number multiplied by $i$
 
-![Complex number representation in standard form a+bi with real and imaginary parts](<../../.gitbook/assets/complex_number_table (1).png>)
+![Complex number representation in standard form a+bi with real and imaginary parts](<../../assets/complex_number_table.png>)
 
 Imagine you are controlling a drone.
 
@@ -338,7 +338,7 @@ If you want to tell that drone to "turn 90 degrees," you don't need a complicate
 | $i^3$ | $-i$       | Remainder of 3                |
 | $i^4$ | $1$        | Remainder of 0 (no remainder) |
 
-<img src="../../.gitbook/assets/flip_imaginary (1).png" alt="90-degree rotation of a complex number on the complex plane after multiplying by i" width="375">
+<img src="../../assets/flip_imaginary.png" alt="90-degree rotation of a complex number on the complex plane after multiplying by i" width="375">
 
 **The 180-Degree "Flip"**
 
@@ -371,7 +371,7 @@ a car for two days, and the bill comes to $108. How many miles was the car drive
 
 ### Inequalities
 
-![Rules for solving inequalities: multiplying by a negative flips the inequality sign](<../../.gitbook/assets/inequalities_rules (1).png>)
+![Rules for solving inequalities: multiplying by a negative flips the inequality sign](<../../assets/inequalities_rules.png>)
 
 A linear inequality is one where the variable has a power of 1. When you graph these, they always form a straight line that divides the plane into two regions.
 
@@ -395,15 +395,15 @@ Test the intervals:
 
 ### **Intervals**
 
-![Interval notation: open, closed, and half-open intervals with bracket and parenthesis notation](<../../.gitbook/assets/interval_notation (1).png>)
+![Interval notation: open, closed, and half-open intervals with bracket and parenthesis notation](<../../assets/interval_notation.png>)
 
 ### **Absolute Value**
 
-![Properties of absolute value: definition, distance interpretation, and inequality rules](<../../.gitbook/assets/prop_absolute_value (1).png>)
+![Properties of absolute value: definition, distance interpretation, and inequality rules](<../../assets/prop_absolute_value.png>)
 
 ### Coordinate Plane, Graphs of Equations, Line, Circles
 
-<img src="../../.gitbook/assets/coordinate_plane (1).png" alt="Coordinate plane with x-axis, y-axis, quadrants I through IV, and origin" width="563">
+<img src="../../assets/coordinate_plane.png" alt="Coordinate plane with x-axis, y-axis, quadrants I through IV, and origin" width="563">
 
 **Distance formula** $d = \sqrt{(x\_2 - x\_1)^2 + (y\_2 - y\_1)^2}$
 
@@ -414,7 +414,7 @@ Test the intervals:
 
 **Example**
 
-<img src="../../.gitbook/assets/coorplane_example (1).png" alt="Coordinate plane with points A(5,3), P(1,-2), and Q(8,9) to compare distances" width="375">
+<img src="../../assets/coorplane_example.png" alt="Coordinate plane with points A(5,3), P(1,-2), and Q(8,9) to compare distances" width="375">
 
 The goal is to find which point is closer to $A(5, 3)$. To do that, we find the distance to $P(1, -2)$ and the distance to $Q(8, 9)$.
 
@@ -436,7 +436,7 @@ Since $\sqrt{41}$ is a smaller number than $\sqrt{45}$, Point $P$ is closer to $
 
 ***
 
-<img src="../../.gitbook/assets/midpoint_distance (1).png" alt="Line segment with midpoint labeled between two points on a coordinate plane" width="563">
+<img src="../../assets/midpoint_distance.png" alt="Line segment with midpoint labeled between two points on a coordinate plane" width="563">
 
 **Midpoint formula** finds the coordinates of the point that lies exactly halfway between two endpoints.
 
@@ -454,7 +454,7 @@ $$(x - h)^2 + (y - k)^2 = r^2$$
 
 #### **Intercept**
 
-![X-intercept and y-intercept of a line crossing the axes on a graph](<../../.gitbook/assets/intercept (1).png>)
+![X-intercept and y-intercept of a line crossing the axes on a graph](<../../assets/intercept.png>)
 
 #### Lines
 
@@ -467,11 +467,11 @@ $$m = \frac{y_2 - y_1}{x_2 - x_1}$$
 * Numerator ($y\_2 - y\_1$): This is the Rise. It tells you how much the line goes up or down.
 * Denominator ($x\_2 - x\_1$): This is the Run. It tells you how much the line goes left or right.
 
-![Slope of a line as rise over run with positive, negative, zero, and undefined slopes](<../../.gitbook/assets/slope_of_line (1).png>)
+![Slope of a line as rise over run with positive, negative, zero, and undefined slopes](<../../assets/slope_of_line.png>)
 
 #### Circle Equation
 
-![Equation of a circle in standard form with center (h,k) and radius r graphed on axes](<../../.gitbook/assets/circle_eq (1).png>)
+![Equation of a circle in standard form with center (h,k) and radius r graphed on axes](<../../assets/circle_eq.png>)
 
 point-slope equation: $y - y\_1 = m(x - x\_1)$
 
@@ -506,7 +506,7 @@ $$f(x) = \frac{5}{x-3}$$
 
 If $f$ is a function with domain $A$, then the graph of $f$ is the set of ordered pairs: ${(x, f(x)) \mid x \in A}$ plotted in a coordinate plane. In other words, the graph of $f$ is the set of all points $(x, y)$ such that $y = f(x)$
 
-<img src="../../.gitbook/assets/domain_and_range_of_graph (1).png" alt="Graph of a function with domain and range labeled on x and y axes" width="563">
+<img src="../../assets/domain_and_range_of_graph.png" alt="Graph of a function with domain and range labeled on x and y axes" width="563">
 
 ### Average Rate of Change of a Function
 
@@ -595,7 +595,7 @@ notice from + to minus 3 and from multiplication of 2x become x/2
 
 #### Bird Flight
 
-<img src="../../.gitbook/assets/bird_problem (1).png" alt="Geometry diagram of a bird flying from an island to a point on the shoreline and then along the coast" width="375">
+<img src="../../assets/bird_problem.png" alt="Geometry diagram of a bird flying from an island to a point on the shoreline and then along the coast" width="375">
 
 A bird is released from point A on an island, 5 miles from the nearest point B\
 on a straight shoreline. The bird flies to a point C on the shoreline and then flies along the\
@@ -711,11 +711,11 @@ $$R_{max} = 25 \times 50 = 1250 \text{ dollars}$$
 
 #### Long Division Polynomial
 
-<img src="../../.gitbook/assets/long_div_polynomial (1).png" alt="Step-by-step long division of polynomials with quotient and remainder" width="563">
+<img src="../../assets/long_div_polynomial.png" alt="Step-by-step long division of polynomials with quotient and remainder" width="563">
 
 #### Synthetic Division
 
-<img src="../../.gitbook/assets/sythetic_division (1).png" alt="Synthetic division of a polynomial by a linear factor (x - c)" width="375">
+<img src="../../assets/sythetic_division.png" alt="Synthetic division of a polynomial by a linear factor (x - c)" width="375">
 
 #### Factor Theorem
 
@@ -780,7 +780,7 @@ $$A(x) = \frac{5000 + 30x}{x}$$
 
 * Horizontal Asymptote ($y=30$): As production increases to very large numbers, the $5,000 fixed cost is spread so thin that it becomes negligible. The average cost "levels off" toward the variable cost of $30.
 
-![Graph of a rational function with vertical and horizontal asymptotes marked](<../../.gitbook/assets/vertical_horizontal_asymptote (1).png>)
+![Graph of a rational function with vertical and horizontal asymptotes marked](<../../assets/vertical_horizontal_asymptote.png>)
 
 #### **Factor Theorem for Rational Functions**
 
