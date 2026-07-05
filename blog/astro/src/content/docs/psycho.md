@@ -3,6 +3,7 @@ title: "Psycho"
 aliases: []
 tags: [psychology]
 created: "2026-06-13"
+modified: "2026-07-05"
 ---
 
 # Psyhco

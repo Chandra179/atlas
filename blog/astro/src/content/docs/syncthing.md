@@ -3,9 +3,10 @@ title: "Syncthing"
 aliases: []
 tags: [distributed-systems, distributed-systems/syncthing]
 created: "2026-06-13"
+modified: "2026-07-05"
 ---
 
- # Syncthing
+# Syncthing
 
 [syncthing/syncthing](https://github.com/syncthing/syncthing)
 

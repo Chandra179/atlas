@@ -1,5 +1,6 @@
 ---
 created: 2026-06-21
+modified: "2026-07-05"
 ---
 
 # Experience
@@ -7,20 +8,16 @@ created: 2026-06-21
 4 years experience in Fintech, distributed system, workflow automation
 
 ### BookCabin
-
-* Led a Rewrite Order Service from .NET to Go, establishing domain boundaries, reduced memory footprint and response latency.
-* Establish domain boundaries for order
-
+* Led the rewrite core itinerary service: revamping database schema, business logic, new endpoint, legacy integration, pdf templating engine  
+* API integration to Order: Reschedule, Refund, Esim, TravelFair
+* Establish domain boundaries in order, covering status management, data consistency
 ### BFI finance
-
 * Design API integration architecture with high reliability and fault tolerance
 * Revamp loan application system from single to multi-collateral loan architecture, allowing multiple product under 1 order
 * Design authentication & authorization system (cookie and RBAC)
 * Automated manual loan approval workflows into a data-driven orchestrated system, reducing operational effort and failure rates.
 * Enabling distributed tracing and structured logging for service level (Otel + Datadog) for easier debugging and monitoring
-
 ### M+ Software
-
 * Integrated multiple payment options to streamline transaction processing and improve system stability
 * Managed ERP version migration to ensure smooth system compatibility and feature continuity
 * Maintained ERP order dashboard and client landing pages to enhance user experience and operational efficiency.
