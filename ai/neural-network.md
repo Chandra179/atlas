@@ -1,7 +1,7 @@
 ---
 title: "Neural Network"
 tags: [ml, deep-learning]
-audience: "Anyone learning neural network. Knows ML fundamentals from ml.md."
+audience: "Anyone learning neural networks. Knows ML fundamentals from ml.md."
 style: tutorial
 prerequisites:
   - ai/ml.md
@@ -39,7 +39,7 @@ The training bottleneck distinguishes them even more sharply than the algorithmi
 |---|---|---|
 | Processing Style | Sequential (one token at a time) | Parallel (all tokens at once) |
 | Core Algorithm | Recurrence & Gating Mechanisms | Self-Attention Matrix Calculations |
-| Long-Range Memory | Weak; degrades over distance | Perfect; direct connections across any distance |
+| Long-Range Memory | Weak; degrades over distance | Strong; direct connections across any distance (attenuated by positional encoding in practice) |
 | Training Efficiency | Low (blocked by sequential steps) | Extremely High (ideal for massive GPU scaling) |
 | Context Window Limit | Limited by memory degradation | Limited by O(N²) compute cost |
 
@@ -59,7 +59,7 @@ The insight that changed everything: instead of processing tokens one at a time 
 |-----------|---------|
 | Self-Attention | Each token attends to every other token in the same sequence |
 | Multi-Head Attention | Multiple parallel attention views, each capturing different relationships |
-| Cross-Attention | Decoder attends to encoder's output query from decoder, keys/values from encoder |
+| Cross-Attention | Decoder attends to encoder's output — query from decoder, keys/values from encoder |
 | Encoder-Decoder | Bidirectional encoding → autoregressive decoding |
 
 See [Attention Is All You Need, Figure 2](https://arxiv.org/abs/1706.03762) for the original multi-head attention diagram the parallel structure is much clearer visually than prose can convey. [^1]
@@ -85,11 +85,11 @@ Instead of one massive FFN, a layer contains multiple smaller "expert" FFNs (e.g
 - When the token "the" comes through, the router says "This is grammar, go to Expert 1 and 2."
 - When the token `return x` comes through, the router says "This is Python code, go to Expert 7 and 8."
 
-Each token activates only ~2 of 8 experts. Result: a model can have 1 trillion total parameters, but for any single token it only activates ~100 billion. This makes massive models drastically cheaper and faster to run. Used in Mixtral, GPT-4, DeepSeek-V3. [^3][^4]
+Each token activates only ~2 of 8 experts. Result: a model can have 1 trillion total parameters, but for any single token it only activates ~100 billion. This makes massive models drastically cheaper and faster to run. Used in Mixtral, reportedly GPT-4 (unofficially rumored), DeepSeek-V3. [^3][^4]
 
 **How routing works** For each token, the router computes a softmax over all experts and selects the top-k (typically k=2). The token is then processed only by the selected experts. This keeps FLOPs per token roughly constant while scaling total parameters.
 
-**Load balancing** Naive top-k routing causes expert collapse: the router learns to send most tokens to 1–2 experts, starving the rest. The fix: an auxiliary loss that penalizes imbalanced expert usage. [^5] Without this, MoE training fails experts that never receive tokens stop receiving gradients and die permanently.
+**Load balancing** Naive top-k routing causes expert collapse: the router learns to send most tokens to 1–2 experts, starving the rest. The fix: an auxiliary loss that penalizes imbalanced expert usage. [^5] Without this, MoE training fails: experts that never receive tokens stop receiving gradients and die permanently.
 
 **Tradeoffs vs dense models:**
 
@@ -97,7 +97,7 @@ Each token activates only ~2 of 8 experts. Result: a model can have 1 trillion t
 |-----------|---------------------------|---------------------------|
 | Total params | 70B | ~46B (but 8×7B experts) |
 | Active params per token | 70B | ~12B (2 of 8 experts) |
-| VRAM (inference) | ~140 GB (FP16) | ~92 GB (FP16, all experts loaded) |
+| VRAM (inference) | ~140 GB (FP16) | ~93 GB (FP16, all experts loaded) |
 | Training stability | Stable | Requires auxiliary loss, expert balancing |
 | Throughput | Slower per token | Faster per token (fewer active params) |
 | Memory bandwidth | Bottlenecked by loading all weights | Same bottleneck all experts must be in VRAM |

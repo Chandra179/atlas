@@ -13,7 +13,7 @@ created: "2026-07-04"
 
 **Prerequisites**: [Machine Learning](ml.md) — training pipeline, transfer learning, Transformer basics.
 
-You search for "fast Python web framework" and get the Flask docs. Not because the page contains those exact words it doesn't but because an embedding model understood that "Flask" is a fast Python web framework and placed its vector near that query in semantic space.
+You search for "fast Python web framework" and get the Flask docs. Not because the page contains those exact words — it doesn't — but because an embedding model understood that "Flask" is a fast Python web framework and placed its vector near that query in semantic space.
 
 This is the power of embeddings: they capture meaning, not just text matching. And they're the backbone of every modern search, recommendation, and RAG system.
 
@@ -25,9 +25,9 @@ Embeddings are the bridge between discrete symbols (words, tokens) and continuou
 
 ## How Embeddings Are Trained
 
-Modern text embedding models use a dual-encoder architecture:
+Modern text embedding models use a single Transformer encoder applied independently to each text (shared weights):
 
-1. Two identical Transformer encoders process a pair of texts (query/document, sentence/sentence, or text/image).
+1. The encoder processes a pair of texts (query/document, sentence/sentence, or text/image) in separate forward passes.
 2. The final hidden state is pooled (mean, CLS token, or last token) into a single embedding vector.
 3. A contrastive loss function pulls similar pairs closer in vector space and pushes dissimilar pairs apart.
 
@@ -38,7 +38,7 @@ The training data creates the signal. For search embeddings: (query, relevant do
 | Model | Dimensions | Max Tokens | Strengths | Weaknesses |
 |-------|------------|------------|-----------|------------|
 | **OpenAI text-embedding-3-small** | 512/1536 | 8191 | Cheap, easy, Matryoshka-compatible | Closed-source, tied to OpenAI API |
-| **OpenAI text-embedding-3-large** | 256–3072 | 8191 | Best-in-class on MTEB, Matryoshka [^37] | Expensive (~$0.13/1M tokens) |
+| **OpenAI text-embedding-3-large** | 256–3072 | 8191 | Best-in-class on MTEB [^37], Matryoshka [^40] | Expensive (~$0.13/1M tokens) |
 | **Voyage voyage-3** | 1024 | 32000 | Long context, strong retrieval | Closed-source, fewer dimensions |
 | **Jina embeddings v3** | 1024 | 8192 | Task-specific LoRA adapters, multilingual [^41] | Newer, smaller community |
 | **BGE-M3 (BAAI)** | 1024 | 8192 | Dense + sparse + ColBERT, multilingual, open-weight [^38][^39] | Needs careful batching for throughput |
@@ -75,7 +75,7 @@ Higher-dimensional embeddings capture more nuance but cost more:
 
 Storage in a vector database isn't just the raw vectors — add index overhead (HNSW graphs, IVF clusters) and metadata. Budget 1.5–2× the raw vector size for the full index. For 10M vectors at 1536 dimensions: ~60 GB raw + ~30 GB index = ~90 GB total.
 
-**Matryoshka embeddings** Train once, use at any dimension. A Matryoshka embedding model produces a single 3072-dim vector, but you can truncate it to 1536, 768, or 256 and keep strong performance. text-embedding-3 and voyage-3 use this technique. [^40] This means you can store full-dim embeddings in cold storage and truncate to 256 dims for a fast approximate index no separate model or re-embedding needed.
+**Matryoshka embeddings** Train once, use at any dimension. A Matryoshka embedding model produces a single 3072-dim vector, but you can truncate it to 1536, 768, or 256 and keep strong performance. [^40] text-embedding-3 and voyage-3 support variable-dimension output, similar to the Matryoshka technique. This means you can store full-dim embeddings in cold storage and truncate to 256 dims for a fast approximate index no separate model or re-embedding needed.
 
 ## Practical: Storing and Querying
 

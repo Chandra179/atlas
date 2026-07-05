@@ -15,7 +15,7 @@ created: "2026-07-04"
 
 "Why does my model look great in the playground but fail in production?" You ran a few prompts, the outputs looked reasonable, and you shipped it. Then users started reporting nonsense answers, biased completions, and confident hallucinations.
 
-Evaluation is the difference between "looks good to me" and knowing your model works. Without it, every change a new fine-tune, a different prompt format, a bigger model is a coin flip.
+Evaluation is the difference between "looks good to me" and knowing your model works. Without it, every change — a new fine-tune, a different prompt format, a bigger model — is a coin flip.
 
 ## Perplexity
 
@@ -27,7 +27,7 @@ Perplexity = exp(-1/N * Σ log P(token_i | token_1...token_{i-1}))
 
 Lower perplexity = the model assigns higher probability to the correct next token = it better predicts the test data. A perplexity of 10 means the model is as uncertain as if choosing uniformly among 10 equally likely options at each step.
 
-Perplexity is fast, automatic, and reproducible no human needed. It's the standard metric during pre-training and fine-tuning for tracking whether loss is still decreasing.
+Perplexity is fast, automatic, and reproducible — no human needed. It's the standard metric during pre-training and fine-tuning for tracking whether loss is still decreasing.
 
 **But it's insufficient alone.** Perplexity rewards a model for being good at next-token prediction on its training distribution. It does not capture factual accuracy, reasoning ability, helpfulness, safety, or instruction following. A model can have low perplexity and still generate confident nonsense. Use perplexity to monitor training, not to evaluate quality.
 
@@ -50,7 +50,7 @@ Instead of n-gram overlap, use a strong LLM to score outputs. The judge model ra
 
 **MT-Bench** A multi-turn benchmark where GPT-4 scores model responses on a 1–10 scale across 80 questions in 8 categories (writing, reasoning, math, coding, extraction, STEM, humanities, roleplay). GPT-4 judgments correlate well with human preference rankings. [^30]
 
-**Chatbot Arena (LMSYS)** Users submit a prompt, two anonymous models respond, the user votes for the better response. Over 1 million human preference votes collected. Models are ranked using Elo scores the same system used in chess. [^31]
+**Chatbot Arena (LMSYS)** Users submit a prompt, two anonymous models respond, the user votes for the better response. Over 1 million human preference votes collected. Models are ranked using Elo scores — the same system used in chess. [^31]
 
 The key insight: strong LLMs are decent evaluators, but they have biases. They prefer longer responses, responses from their own model family, and responses that appear confident. Always validate judge-model evaluations against human judgments on a subset of your data.
 
@@ -63,22 +63,22 @@ Elo ratings convert pairwise preference data (A beats B) into a global ranking:
 3. A model expected to win (higher Elo) gains few points for winning and loses many for losing.
 4. Over thousands of comparisons, scores stabilize and reflect relative strength.
 
-Chatbot Arena maintains the most widely used LLM Elo leaderboard. It's not perfect different user populations (developer vs general public) produce different rankings but it's the closest thing to a ground-truth leaderboard we have.
+Chatbot Arena maintains the most widely used LLM Elo leaderboard. It's not perfect — different user populations (developer vs general public) produce different rankings — but it's the closest thing to a ground-truth leaderboard we have.
 
 ## Benchmark Suite
 
 | Benchmark | Task | Format | Metric | Why It Matters |
 |-----------|------|--------|--------|----------------|
-| **MMLU** | 57 subjects (law, medicine, math, history) [^32] | Multiple choice | Accuracy | Broad knowledge the SAT for LLMs |
+| **MMLU** | 57 subjects (law, medicine, math, history) [^32] | Multiple choice | Accuracy | Broad knowledge — the SAT for LLMs |
 | **HumanEval** | Python function completion from docstring [^33] | Code generation | pass@k | Measures coding ability, not recall |
 | **SWE-bench** | Real GitHub issue → fix + PR [^34] | Software engineering | % resolved | Closest to real-world SWE work |
 | **GSM8K** | Grade-school math word problems [^35] | Step-by-step reasoning | Final answer accuracy | Multi-step reasoning, easy to verify |
-| **HellaSwag** | Pick the most plausible sentence ending | Multiple choice | Accuracy | Commonsense reasoning, hard for models |
-| **MATH** | Competition-level math (AMC/AIME) | Step-by-step reasoning | Final answer accuracy | Frontier reasoning ability |
-| **ARC-Challenge** | Grade-school science questions | Multiple choice | Accuracy | Tests reasoning, not retrieval |
+| **HellaSwag** | Pick the most plausible sentence ending [^37] | Multiple choice | Accuracy | Commonsense reasoning, hard for models |
+| **MATH** | Competition-level math (AMC/AIME) [^38] | Step-by-step reasoning | Final answer accuracy | Frontier reasoning ability |
+| **ARC-Challenge** | Grade-school science questions [^39] | Multiple choice | Accuracy | Tests reasoning, not retrieval |
 | **TruthfulQA** | Questions designed to trigger false beliefs [^36] | Free-text generation | Truthfulness (judge-model) | Measures hallucination resistance |
 
-Benchmarks measure specific capabilities, not overall quality. A model can ace HumanEval and still generate terrible code review feedback. Aggregate scores hide weakness in domains you care about. Pick benchmarks that match your use case don't chase leaderboard position.
+Benchmarks measure specific capabilities, not overall quality. A model can ace HumanEval and still generate terrible code review feedback. Aggregate scores hide weakness in domains you care about. Pick benchmarks that match your use case; don't chase leaderboard position.
 
 ## Human Evaluation
 
@@ -104,3 +104,6 @@ Human evaluation is expensive, slow, and noisy. It does not scale. Use it to val
 [^34]: Jimenez et al., 2024 *SWE-bench: Can Language Models Resolve Real-World GitHub Issues?* [arXiv](https://arxiv.org/abs/2310.06770)
 [^35]: Cobbe et al., 2021 *Training Verifiers to Solve Math Word Problems* [arXiv](https://arxiv.org/abs/2110.14168)
 [^36]: Lin et al., 2021 *TruthfulQA: Measuring How Models Mimic Human Falsehoods* [arXiv](https://arxiv.org/abs/2109.07958)
+[^37]: Zellers et al., 2019 *HellaSwag: Can a Machine Really Finish Your Sentence?* [arXiv](https://arxiv.org/abs/1905.07830)
+[^38]: Hendrycks et al., 2021 *Measuring Mathematical Problem Solving With the MATH Dataset* [arXiv](https://arxiv.org/abs/2103.03874)
+[^39]: Clark et al., 2018 *Think you have Solved Question Answering? Try ARC, the AI2 Reasoning Challenge* [arXiv](https://arxiv.org/abs/1803.05457)

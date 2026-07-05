@@ -12,7 +12,7 @@ created: "2026-07-04"
 
 # Quantization for LLM Deployment
 
-A 70B-parameter model at FP16 precision needs ~140 GiB of GPU memory more than any single consumer GPU. Quantize it to 4-bit, and it fits on an RTX 4090 (24 GiB). Quantization is the primary knob for trading precision for deployment cost.
+A 70B-parameter model at FP16 precision needs ~140 GiB of GPU memory — more than any single consumer GPU. Quantize it to 4-bit, and it fits on an RTX 4090 (24 GiB, with CPU offloading). Quantization is the primary knob for trading precision for deployment cost.
 
 **Prerequisites**: [`ml.md`](ml.md) model architectures, training vs inference. [`ai-infra.md`](ai-infra.md) model serving on GPUs, vLLM startup.
 
@@ -22,7 +22,7 @@ A 70B-parameter model at FP16 precision needs ~140 GiB of GPU memory more than a
 
 Quantization reduces the numerical precision of model weights (and optionally activations) from 16-bit floating point (FP16/BF16) down to 8-bit, 4-bit, or even 2-bit integers. Fewer bits per weight = less memory and faster computation.
 
-**Weight-only quantization**: only model weights are quantized. Activations (intermediate values during inference) stay in FP16/BF16. This is the most common approach it captures the bulk of memory savings while preserving accuracy well.
+**Weight-only quantization**: only model weights are quantized. Activations (intermediate values during inference) stay in FP16/BF16. This is the most common approach — it captures the bulk of memory savings while preserving accuracy well.
 
 **Weight + activation quantization (W8A8, W4A8)**: both weights and activations are quantized. Saves memory bandwidth for activations during inference but causes larger accuracy drops. Less common, mostly used on hardware with native INT8 matrix multiplication (e.g., H100 FP8).
 
@@ -34,7 +34,7 @@ Quantization reduces the numerical precision of model weights (and optionally ac
 | FP16/BF16 | 16 | ~140 GiB | H200, A100 80GB × 2 |
 | INT8 | 8 | ~70 GiB | A100 80GB × 1 |
 | INT4 | 4 | ~35 GiB | RTX 4090 (24 GiB) with offloading |
-| INT4 + groupsize 128 | ~4.5 | ~39 GiB | L40S (48 GiB) |
+| INT4 + groupsize 128 | ~4.125 | ~36 GiB | L40S (48 GiB) |
 | INT2 | 2 | ~17.5 GiB | RTX 3090 (24 GiB) significant quality loss |
 
 Lower bits = more aggressive compression. Below 4-bit, quality degrades steeply. 4-bit with groupsize 128 is the practical sweet spot for most models.
@@ -88,7 +88,7 @@ w_q[2] = round(0.08 / 0.416)   = round(0.19)  = 0
 w_q[3] = round(2.91 / 0.416)   = round(7.00)  = 7
 ```
 
-Result: `w_q = [1, -3, 0, 7]` — 4 values × 4 bits = 16 bits, plus one FP16 scale (16 bits). Original: 4 × 16 = 64 bits. **4× compression.**
+Result: `w_q = [1, -3, 0, 7]` — 4 values × 4 bits = 16 bits, plus one FP16 scale (16 bits). Original: 4 × 16 = 64 bits. For this group of 4 weights: 64 / 32 = **2× compression** (approaches 4× as group size grows and scale overhead becomes negligible).
 
 **Step 3 — Dequantize to see the error:**
 
@@ -133,12 +133,12 @@ A single scale for a whole 70B-parameter matrix would be useless — the weights
 
 **Why groupsize 128 is standard:** Each FP16 scale adds 16 bits of overhead. With groupsize 128, that is 16 / (128 × 4) = 3.1% overhead — the scale is negligible compared to the data. Dropping to groupsize 32 quadruples the scales to ~12% overhead, which eats into the memory savings.
 
-**Concrete comparison:**
+**Concrete comparison** (two weight vectors from different layers, each quantized separately):
 
-| Scenario | Scale | Weight 0.01 | Weight 2.50 |
-|---|---|---|---|
-| Global scale | 2.50 / 7 = 0.357 | Quantizes to 0. Error = 100% | Quantizes to 7. Error ≈ 0% |
-| Group scale (size 4) | 0.02 / 7 = 0.0029 | Quantizes to 3. Error = 13% | Quantizes to 7. Error ≈ 0% |
+| Scenario | Group A (small weights) | Group B (large weights) |
+|---|---|---|
+| Global scale (one scale for both groups) | Scale = 2.50/7 = 0.357. Weight 0.01 → quantizes to 0, error = 100% | Scale = 0.357. Weight 2.50 → quantizes to 7, error ≈ 0% |
+| Per-group scale (each group has its own scale) | Scale = 0.02/7 = 0.0029. Weight 0.01 → quantizes to 3, error = 13% | Scale = 2.50/7 = 0.357. Weight 2.50 → quantizes to 7, error ≈ 0% |
 
 A small weight that would be erased by a global scale becomes representable with a local scale.
 
@@ -188,7 +188,7 @@ Simulates quantization noise during training so the model learns to compensate. 
 
 ### Key Terms
 
-- **Groupsize**: number of weights that share a scaling factor. Smaller groupsize = more scaling factors = better accuracy but higher memory overhead. Groupsize 128 = one float16 scale per 128 weights. Groupsize 32 = higher accuracy, ~2% more memory.
+**Smaller groupsize** = more scaling factors = better accuracy but higher memory overhead. Groupsize 128 = one float16 scale per 128 weights (3.1% overhead). Groupsize 32 = ~12% overhead.
 - **Symmetric vs asymmetric**: symmetric centers values around zero (range [-127, 127]). Asymmetric uses the full range ([0, 255]) higher accuracy, slightly more complex dequantization.
 - **Per-channel vs per-tensor**: per-channel assigns a separate scale factor to each output channel (row of a weight matrix). Per-tensor uses one scale for the whole matrix. Per-channel is standard for weight quantization.
 
@@ -247,9 +247,9 @@ vllm serve neuralmagic/Llama-3-8B-FP8 --quantization fp8
 vllm serve meta-llama/Llama-3-8B --quantization bitsandbytes --load-format bitsandbytes
 ```
 
-vLLM handles dequantization automatically no code changes to your application. The `--quantization` flag selects the format. Models must be pre-quantized (download quantized weights from HuggingFace) vLLM does not quantize on the fly.
+vLLM handles dequantization automatically — no code changes to your application. The `--quantization` flag selects the format. Models must be pre-quantized (download quantized weights from HuggingFace) — vLLM does not quantize on the fly.
 
-**Performance note:** AWQ and GPTQ use fused dequantization kernels that overlap dequant with matrix multiplication. bitsandbytes uses a separate dequant step lower throughput in vLLM. For production serving, prefer AWQ or GPTQ over bitsandbytes.
+**Performance note:** AWQ and GPTQ use fused dequantization kernels that overlap dequant with matrix multiplication. bitsandbytes uses a separate dequant step — lower throughput in vLLM. For production serving, prefer AWQ or GPTQ over bitsandbytes.
 
 ---
 
@@ -265,8 +265,8 @@ vLLM handles dequantization automatically no code changes to your application. T
 ## Key Things
 
 - 4-bit quantization is the sweet spot: ~75% memory reduction with 1-3% quality loss.
-- AWQ and GPTQ are the production formats fused dequant kernels for throughput. bitsandbytes is for prototyping and QLoRA fine-tuning.
-- FP8 on H100/H200 is near-lossless use it if your hardware supports it.
+- AWQ and GPTQ are the production formats — fused dequant kernels for throughput. bitsandbytes is for prototyping and QLoRA fine-tuning.
+- FP8 on H100/H200 is near-lossless — use it if your hardware supports it.
 - Groupsize 128 is standard; smaller groupsizes (32, 64) trade memory for accuracy.
 - Quantization preserves training (FP32/BF16) precision for accumulations only weights are stored in low precision, computations happen in higher precision.
 - Always benchmark on your specific task. Degradation varies by model, format, and use case. Creative writing tolerates 4-bit well; coding tasks lose more.

@@ -5,7 +5,6 @@ audience: "Engineers who want to understand how Transformers generate text — a
 style: tutorial
 prerequisites:
   - ai/ml.md
-  - ai/architectures.md
 difficulty: intermediate
 created: "2026-07-04"
 ---
@@ -187,7 +186,7 @@ Over trillions of sentences, these weights tune themselves into "semantic filter
 
 ## Vocabulary as Vectors: The Dot Product Lookup
 
-The vocabulary is a collection of vectors. The final output weight matrix is a giant spreadsheet where every row is the vector for a specific token.
+The vocabulary is a collection of vectors. The final output weight matrix stores the vector for each token as a column (shape `[d_model × vocab_size]`). Each column is the embedding vector for a specific token.
 
 ### The Vocabulary is an Embedding Space
 
@@ -282,7 +281,7 @@ Data travels up through all layers, getting more conceptually abstract at each s
 
 ---
 
-## References
+## Further Reading
 
 - Vaswani et al., 2017 *Attention Is All You Need* [arXiv](https://arxiv.org/abs/1706.03762)
 - Brown et al., 2020 *Language Models are Few-Shot Learners* [arXiv](https://arxiv.org/abs/2005.14165)

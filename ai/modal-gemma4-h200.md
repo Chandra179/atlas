@@ -30,7 +30,7 @@ A **cold start** is what happens when Modal boots a container from scratch for t
 
 ### Step 1: Image Building
 
-Everything your app needs Python packages, environment variables, config files must be baked into the container image before it starts. If you miss a dependency, the container fails at runtime, not at build time.
+Everything your app needs — Python packages, environment variables, config files — must be baked into the container image before it starts. If you miss a dependency, the container fails at runtime, not at build time.
 
 - **Dependencies**: use `.uv_pip_install("package==version")` on the image chain. Prefer this over raw `pip_install` for consistency with the project's `uv` tooling.
 - **Build/Runtime env vars**: use `.env_var("KEY", "value")` on the image chain. Observed in practice: `HF_XET_HIGH_PERFORMANCE=1` (speeds up HuggingFace Xet-backed downloads) and `VLLM_LOG_STATS_INTERVAL=1` (enables periodic vLLM throughput logging).
@@ -53,13 +53,13 @@ for path in (Path("/opt/config.yaml"), Path(__file__).resolve().parent.parent.pa
 
 ### Step 3: Deploying to Modal
 
-Understanding the deploy lifecycle prevents confusion when your code changes do not take effect running containers keep using the old deployment.
+Understanding the deploy lifecycle prevents confusion when your code changes do not take effect — running containers keep using the old deployment.
 
 - **`modal deploy`** pushes a new immutable deployment with the current code + image. Existing live containers continue running the OLD deployment.
 - **Killing a container** (`modal app stop`) restarts it from the same old deployment. Code/image changes require `modal deploy` to take effect.
 - **Modal endpoints are public HTTPS URLs** with no built-in auth layer. The backend class must skip API key validation (unlike HuggingFace or OpenRouter).
 - **Endpoint URL pattern**: `https://{username}--{app-name}--{function-name}.modal.run` (e.g., `chandrafirst67--modal-gemma-serve-dev.modal.run`).
-- **Mount paths at deploy**: Modal logs show which local files are mounted useful for confirming config files are picked up (e.g., `🔨 Created mount /home/.../config.yaml`).
+- **Mount paths at deploy**: Modal logs show which local files are mounted — useful for confirming config files are picked up (e.g., `🔨 Created mount /home/.../config.yaml`).
 
 ---
 
@@ -184,11 +184,11 @@ These are the startup flags that matter for Gemma 4 on a single H200.
 | `--async-scheduling` | enabled | Improves throughput for single-request scenarios. |
 | `--tool-call-parser` | `gemma4` | Model-specific. Needed for structured output / tool calling. |
 | `--reasoning-parser` | `gemma4` | Model-specific. Parses chain-of-thought in responses. |
-| `--limit-mm-per-prompt` | `{"image":0,"video":0,"audio":0}` | Force text-only mode. Reduces memory overhead. |
+| `--limit-mm-per-prompt` | `image=0 video=0 audio=0` | Force text-only mode. Reduces memory overhead. |
 | `--enable-auto-tool-choice` | enabled | Allows the model to decide when to use tools. |
 | `--max-model-len` | auto | vLLM auto-detects. Gemma 4 → 262144. |
 | `--gpu-memory-utilization` | 0.92 | Leaves headroom for CUDA graphs and KV cache. |
-| `--safetensors-load-strategy` | `prefetch` | Can speed up weight loading on network FS; omitted when on 9P (Modal default). |
+| `--safetensors-load-strategy` | `flat` | `prefetch` can speed up weight loading on some network FS; omitted when on 9P (Modal default). |
 | `--generation-config` | `vllm` | Override model's `generation_config.json` sampling defaults (see Sampling Defaults below). |
 
 ### Gemma4-Specific Architecture Notes
@@ -265,7 +265,7 @@ Timings below are from a separate measurement run. Differences vs. the [Cold Sta
 - Always send a warm-up query to absorb JIT compilation latency.
 - Two Triton kernels still compile at runtime extend warm-up if tail latency is critical.
 - CUDA graph profiling (v0.21.0+) reduces effective GPU memory by ~0.55pp.
-- 9P filesystem disables auto-prefetch; force with `--safetensors-load-strategy=prefetch` if needed.
+- 9P filesystem disables auto-prefetch; use `--safetensors-load-strategy` if needed.
 
 ---
 
@@ -282,7 +282,7 @@ Timings below are from a separate measurement run. Differences vs. the [Cold Sta
 | KV cache capacity | 639,184 tokens |
 | Max concurrency (262k-token reqs) | ~2.44x |
 
-CUDA graph profiling (v0.21.0+) reduces effective GPU memory by ~0.55pp; bump `--gpu-memory-utilization` to 0.9255 to compensate, or disable with `VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0`. Weight loading from `huggingface-cache` volume takes ~27.65s for a 58.25 GiB model (2 safetensors shards). 9P filesystem disables auto-prefetch; force with `--safetensors-load-strategy=prefetch` if needed.
+CUDA graph profiling (v0.21.0+) reduces effective GPU memory by ~0.55pp; bump `--gpu-memory-utilization` to 0.9255 to compensate, or disable with `VLLM_MEMORY_PROFILER_ESTIMATE_CUDAGRAPHS=0`. Weight loading from `huggingface-cache` volume takes ~27.65s for the model (2 safetensors shards). 9P filesystem disables auto-prefetch; use `--safetensors-load-strategy` if needed.
 
 For general vLLM concepts (continuous batching, prefix caching, speculative decoding, KV cache mechanics), see [AI infra](ai-infra.md).
 

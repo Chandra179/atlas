@@ -149,7 +149,7 @@ Are the forward and backward functions the same? No. The forward pass uses the a
 |----------|----------------------------------|----------------------------------|
 | ReLU | $f(x) = \max(0, x)$ | $f'(x) = 1$ if $x > 0$, else $0$ |
 | Sigmoid | $f(x) = \frac{1}{1 + e^{-x}}$ | $f'(x) = f(x) \times (1 - f(x))$; max value $0.25$ |
-| GELU | $f(x) \approx 0.5x(1 + \tanh(\sqrt{2/\pi}(x + 0.044715x^3)))$ | $f'(x) \approx 1$ for $x \gg 0$, ~$0.1$ for $x \ll 0$ |
+| GELU | $f(x) \approx 0.5x(1 + \tanh(\sqrt{2/\pi}(x + 0.044715x^3)))$ | $f'(x) \approx 1$ for $x \gg 0$, approaches $0$ for $x \ll 0$ |
 
 The derivative tells the network how **sensitive** the output is to changes in the input. A steep slope (ReLU for $x > 0$): changing this weight will have a large impact on the final error. A flat slope (ReLU for $x < 0$): don't bother — changing the weight won't change the output at all. This is why dead ReLUs freeze permanently: the derivative is $0$, so the gradient is $0$, so the weight never updates: $w_{\text{new}} = w_{\text{old}} - 0$.
 
@@ -178,7 +178,7 @@ The same cycle applies to LLMs, with the concrete steps specialized for text:
 
 ### Multilayer Perceptron (MLP)
 
-Stack perceptrons into layers. The output of one layer becomes the input of the next. With enough layers and neurons, an MLP is a **universal function approximator** it can represent any continuous function on a compact domain to arbitrary precision, provided it has a non-linear activation and sufficient width. [^2]
+Stack perceptrons into layers. The output of one layer becomes the input of the next. With enough layers and neurons, an MLP is a **universal function approximator**: it can represent any continuous function on a compact domain to arbitrary precision, provided it has a non-linear activation and sufficient width. [^2]
 
 The magic isn't in any single neuron. It's in the composition: each layer learns progressively more abstract features. Layer 1 detects edges. Layer 2 detects shapes. Layer 3 detects objects.
 
@@ -218,7 +218,7 @@ The activation function's derivative acts as a **gatekeeper** for the gradient s
 
 - **Sigmoid**: derivative caps at $0.25$. Multiply $0.25 \times 0.25 \times 0.25$ backward through three layers and the signal nearly vanishes. Through 100 layers it's effectively zero — early layers stop learning.
 - **ReLU**: derivative is $1$ for positive inputs (passes gradient perfectly), $0$ for negative inputs (blocks it entirely — the dead ReLU problem).
-- **GELU**: derivative is ~$1$ for positive inputs and a small non-zero value (~$0.1$) for negative inputs. A fraction of gradient leaks through even negative neurons, keeping all layers trainable.
+- **GELU**: derivative is ~$1$ for positive inputs and a small non-zero value for negative inputs. A fraction of gradient leaks through even negative neurons, keeping all layers trainable.
 
 **Depth multiplies the effect.** Every added layer means one more multiplication by the activation derivative via the chain rule. Three Sigmoid layers multiply three fractions ($0.2 \times 0.2 \times 0.2 = 0.008$) — learning is slow but possible. 100 Sigmoid layers produce a gradient so tiny that early-layer weights never change. This is why deep networks require ReLU or GELU.
 
@@ -417,10 +417,10 @@ In-context learning: the model adapts its behavior based on what's in the prompt
 
 **Few-shot learning** Provide examples in the prompt. Zero-shot (no examples) works for simple tasks. One-shot (1 example) anchors format. Few-shot (3–10 examples) improves accuracy on classification, translation, and structured extraction. Performance gains diminish after ~5–8 examples for most tasks.
 
-**Chain-of-Thought (CoT)** Instead of asking for the answer directly, prompt: "Let's think step by step." [^24] The model generates intermediate reasoning steps, which improves accuracy on multi-step math, logic, and planning tasks. Zero-shot CoT ("Let's think step by step") alone boosts GSM8K math scores from ~18% to ~41% on un-fine-tuned models.
+**Chain-of-Thought (CoT)** Instead of asking for the answer directly, prompt: "Let's think step by step." [^24] The model generates intermediate reasoning steps, which improves accuracy on multi-step math, logic, and planning tasks. Zero-shot CoT ("Let's think step by step") alone boosts GSM8K math scores from ~18% to ~41% on un-fine-tuned models. [^27]
 
 CoT variants:
-- **Tree of Thoughts (ToT)**: explore multiple reasoning branches, evaluate each, backtrack from dead ends. Used when correctness matters more than latency solves problems GPT-4 with standard prompting can't. [^25]
+- **Tree of Thoughts (ToT)**: explore multiple reasoning branches, evaluate each, backtrack from dead ends. Used when correctness matters more than latency — solves problems GPT-4 with standard prompting can't solve. [^25]
 - **Self-Consistency**: sample multiple reasoning paths, pick the majority answer. Works when CoT alone is unreliable diversity of reasoning compensates for individual errors.
 - **ReAct** (Reason + Act): interleave reasoning with tool calls. "I need the weather → call `get_weather("SF")` → result is 72F → therefore no raincoat needed." [^26] Foundation of agentic workflows.
 
@@ -428,7 +428,7 @@ CoT variants:
 
 **Structured output** Force the model to emit valid JSON, XML, or function-call syntax. Techniques: JSON mode (grammar-constrained decoding guarantees valid syntax), function calling (model outputs `{"name": "search", "parameters": {...}}`), and constrained sampling (mask tokens that would produce invalid output).
 
-**Token budget** Every prompt competes for the context window. Strategies: truncate oldest messages first, summarize prior conversation, use prompt compression (LLMLingua), or chunk long documents into overlapping windows. The context window is a finite resource treat it like RAM.
+**Token budget** Every prompt competes for the context window. Strategies: truncate oldest messages first, summarize prior conversation, use prompt compression (LLMLingua [^28]), or chunk long documents into overlapping windows. The context window is a finite resource — treat it like RAM.
 
 | Technique | When to Use | Cost |
 |-----------|-------------|------|
@@ -464,7 +464,7 @@ VRAM is the binding constraint: a 7B FP16 model needs ~14 GB for weights alone; 
 - **[Quantization](quantization.md)** — reduce precision to fit models in limited VRAM (FP16 → INT8 → 4-bit).
 - **[Fine-tuning](fine-tuning.md)** — QLoRA for efficient fine-tuning on consumer GPUs.
 - **Knowledge Distillation**: train a small "student" model to mimic a large "teacher" using the teacher's output distribution (soft labels). [^15]
-- **Model Merging**: combine multiple fine-tuned variants without retraining using SLERP or DARE.
+- **Model Merging**: combine multiple fine-tuned variants without retraining using SLERP or DARE [^29].
 
 ## Model Evaluation & Benchmarks
 
@@ -475,12 +475,12 @@ See [evaluation.md](evaluation.md) — perplexity, generation metrics, LLM-as-Ju
 | Path | Start With |
 |------|-----------|
 | **ML infrastructure** | [AI infra](ai-infra.md) vLLM, HuggingFace, scaling. [Use case: Gemma 4 on Modal](modal-gemma4-h200.md) GPU pricing, cold starts, storage |
-| **Architectures** | `architectures.md` CNN, RNN, Transformer, MoE, generative models |
+| **Architectures** | [neural-network.md](neural-network.md) CNN, RNN, Transformer, MoE, generative models |
 | **Embeddings** | [embeddings.md](embeddings.md) embedding models, similarity, vector DBs. [Specialized Databases](../database/specialized-databases.md) for pgvector/Pinecone/Milvus |
 | **Evaluation** | [evaluation.md](evaluation.md) perplexity, benchmarks, LLM-as-Judge, human eval |
-| **Reinforcement Learning** | Sutton & Barto the canonical textbook |
+| **Reinforcement Learning** | Sutton & Barto — the canonical textbook |
 | **Computer Vision** | CNNs → ResNets → ViTs |
-| **NLP / LLMs** | Transformer paper → BERT → GPT → LLaMA. See `architectures.md` for the full architecture deep-dive. [^18] |
+| **NLP / LLMs** | Transformer paper → BERT → GPT → LLaMA. See [neural-network.md](neural-network.md) for the full architecture deep-dive. [^18] |
 | **MLOps** | Production pipelines, monitoring, CI/CD for models |
 | **Generative AI** | Diffusion → GANs → autoregressive models |
 
@@ -505,3 +505,6 @@ See [evaluation.md](evaluation.md) — perplexity, generation metrics, LLM-as-Ju
 [^24]: Wei et al., 2022 *Chain-of-Thought Prompting Elicits Reasoning in Large Language Models* [arXiv](https://arxiv.org/abs/2201.11903)
 [^25]: Yao et al., 2023 *Tree of Thoughts: Deliberate Problem Solving with Large Language Models* [arXiv](https://arxiv.org/abs/2305.10601)
 [^26]: Yao et al., 2022 *ReAct: Synergizing Reasoning and Acting in Language Models* [arXiv](https://arxiv.org/abs/2210.03629)
+[^27]: Kojima et al., 2022 *Large Language Models are Zero-Shot Reasoners* [arXiv](https://arxiv.org/abs/2205.11916)
+[^28]: Jiang et al., 2023 *LLMLingua: Compressing Prompts for Accelerated Inference of Large Language Models* [arXiv](https://arxiv.org/abs/2310.05736)
+[^29]: Yadav et al., 2024 *DARE: Diverse Activation Re-Weighting for Model Merging* [arXiv](https://arxiv.org/abs/2311.03099)

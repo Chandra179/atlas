@@ -22,7 +22,7 @@ This is when you fine-tune. Prompt engineering shifts the distribution; fine-tun
 | Factor | Favor Prompt Engineering | Favor Fine-Tuning |
 |--------|-------------------------|-------------------|
 | Task complexity | Simple, well-defined | Nuanced, domain-specific |
-| Latency requirements | Tougher model = better prompt | Smaller fine-tuned model beats big prompted model |
+| Latency requirements | Bigger model = better prompt | Smaller fine-tuned model beats big prompted model |
 | Cost per inference | Big model pricing | Small model, many calls |
 | Data availability | <10 examples | 50–1000+ examples |
 | Need for constant iteration | Re-deploy prompts instantly | Train → evaluate → deploy cycle |
@@ -32,7 +32,7 @@ Decision rule: start with prompt engineering. If you've hit diminishing returns 
 
 ## Full Fine-Tuning
 
-Full fine-tuning updates every parameter of the model. For a 7B model at FP16: 14 GB weights + 14 GB gradients + 28 GB optimizer states (Adam) = ~56 GB VRAM. For a 70B model: ~560 GB you need 8× H100s or a high-end cluster.
+Full fine-tuning updates every parameter of the model. For a 7B model at FP16: 14 GB weights + 14 GB gradients + 28 GB optimizer states (Adam, assuming FP16 moments; FP32 moments would require ~84 GB) = ~56 GB VRAM. For a 70B model: ~560 GB — you need 8× H100s or a high-end cluster.
 
 Full fine-tuning is the most expressive method every weight adapts. It's worth the cost when:
 - You're adapting to a fundamentally different domain (code → medical knowledge).
@@ -57,15 +57,15 @@ The math: original output is `h = W·x`. With LoRA: `h = W·x + (B·A)·x` where
 
 ## QLoRA (Quantized LoRA)
 
-QLoRA quantizes the base model to 4-bit (NF4 format) and adds LoRA adapters on top. The base model's 4-bit weights are dequantized to BF16 on the fly during the forward pass you never store the full-precision weights in memory.
+QLoRA quantizes the base model to 4-bit (NF4 format) and adds LoRA adapters on top. The base model's 4-bit weights are dequantized to BF16 on the fly during the forward pass; you never store the full-precision weights in memory.
 
 **VRAM comparison for fine-tuning**:
 
 | Model | Full FT (BF16) | LoRA (BF16) | QLoRA (4-bit, r=16) |
 |-------|---------------|-------------|----------------------|
 | LLaMA 3 7B | ~56 GB | ~17 GB | ~9 GB |
-| LLaMA 3 13B | ~104 GB | ~28 GB | ~14 GB |
-| LLaMA 3 34B | ~272 GB | ~60 GB | ~24 GB |
+| LLaMA 2 13B | ~104 GB | ~28 GB | ~14 GB |
+| LLaMA 2 34B | ~272 GB | ~60 GB | ~24 GB |
 | LLaMA 3 70B | ~560 GB | ~120 GB | ~40 GB |
 
 QLoRA on a 7B model fits on a $300 consumer GPU. QLoRA on a 70B model fits on a single A100 (80 GB). The quality gap between QLoRA and full fine-tuning is typically 0–3% on downstream task metrics negligible for most applications.
@@ -86,7 +86,7 @@ LoRA is the safe default. QLoRA when VRAM-constrained. Prompt tuning when you ne
 
 ## Dataset Curation
 
-Quality trumps quantity. The LIMA paper showed that 1,000 carefully curated examples can produce a fine-tune that matches models trained on 50× more data.
+Quality trumps quantity. The LIMA paper showed that 1,000 carefully curated examples can produce a fine-tune that approaches the quality of models trained on substantially more data — the paper compared against Alpaca (52K examples), suggesting roughly 50× less data with careful curation.
 
 **Format** Each example should match your deployment prompt format exactly:
 
@@ -128,11 +128,11 @@ Quality trumps quantity. The LIMA paper showed that 1,000 carefully curated exam
 
 Fine-tuning on a narrow task can overwrite general capabilities. The model becomes great at classifying support tickets but forgets how to summarize text or write code.
 
-**Detection**: run a small benchmark (MMLU subset, HumanEval subset, or a custom eval) before and after fine-tuning. A >5% drop in general capabilities means catastrophic forgetting is happening.
+**Detection**: run a small benchmark (MMLU subset, HumanEval subset, or a custom eval) before and after fine-tuning. A drop of more than 5% in general capabilities suggests catastrophic forgetting is happening.
 
 **Mitigation**:
 - **Data mixing**: add 5–10% general-domain examples to your fine-tuning dataset. The model stays anchored to its original distribution.
-- **Lower learning rate**: 1e-5 instead of 5e-5 gentler updates preserve more of the base model.
+- **Lower learning rate**: 1e-5 instead of 5e-5 — gentler updates preserve more of the base model.
 - **Early stopping**: stop training the moment task accuracy plateaus, not when training loss reaches zero.
 - **LoRA implicit regularization**: LoRA naturally resists catastrophic forgetting because it only updates a tiny fraction of parameters. This is an underappreciated advantage of PEFT methods.
 

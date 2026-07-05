@@ -27,12 +27,12 @@ React takes the opposite approach. You write a function that returns a descripti
 ```javascript
 // React element tree (Virtual DOM)
 {
- type: "div",
- props: { className: "container" },
- children: [
- { type: "h1", props: {}, children: ["Hello"] },
- { type: "p", props: {}, children: ["World"] }
- ]
+  type: "div",
+  props: { className: "container" },
+  children: [
+    { type: "h1", props: {}, children: ["Hello"] },
+    { type: "p", props: {}, children: ["World"] }
+  ]
 }
 ```
 
@@ -106,13 +106,13 @@ React reduces this to O(n) with three heuristics grounded in real UI behavior: [
 
 ```javascript
 function List({ items }) {
- return (
- <ul>
- {items.map((item) => (
- <li key={item.id}>{item.name}</li>
- ))}
- </ul>
- );
+  return (
+    <ul>
+      {items.map((item) => (
+        <li key={item.id}>{item.name}</li>
+      ))}
+    </ul>
+  );
 }
 ```
 
@@ -131,10 +131,10 @@ React collects all state updates from the same event handler and flushes them in
 ```javascript
 // React 18 all contexts batched
 fetch("/data").then(() => {
- setCount(c => c + 1);
- setFlag(f => !f);
- setStatus("loaded");
- // 1 render pass, not 3
+  setCount(c => c + 1);
+  setFlag(f => !f);
+  setStatus("loaded");
+  // 1 render pass, not 3
 });
 ```
 
@@ -160,20 +160,20 @@ Hooks let you extract stateful logic into composable functions that live inside 
 
 ```javascript
 function useOnlineStatus() {
- const [isOnline, setIsOnline] = useState(navigator.onLine);
- useEffect(() => {
- const on = () => setIsOnline(true);
- const off = () => setIsOnline(false);
- window.addEventListener("online", on);
- window.addEventListener("offline", off);
- return () => { window.removeEventListener("online", on); window.removeEventListener("offline", off); };
- }, []);
- return isOnline;
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  useEffect(() => {
+    const on = () => setIsOnline(true);
+    const off = () => setIsOnline(false);
+    window.addEventListener("online", on);
+    window.addEventListener("offline", off);
+    return () => { window.removeEventListener("online", on); window.removeEventListener("offline", off); };
+  }, []);
+  return isOnline;
 }
 
 function StatusBar() {
- const isOnline = useOnlineStatus();
- return <div>{isOnline ? "Online" : "Offline"}</div>;
+  const isOnline = useOnlineStatus();
+  return <div>{isOnline ? "Online" : "Offline"}</div>;
 }
 ```
 
@@ -183,10 +183,10 @@ React matches state to hooks by their **call order** across renders, not by name
 
 ```javascript
 function MyComponent({ flag }) {
- if (flag) {
- const [a] = useState(0); // Called only when flag is true
- }
- const [b, setB] = useState(0); // Position 1 when flag=false, position 2 when flag=true
+  if (flag) {
+    const [a] = useState(0); // Called only when flag is true
+  }
+  const [b, setB] = useState(0); // Position 1 when flag=false, position 2 when flag=true
 }
 ```
 
@@ -221,16 +221,16 @@ Multiple state variables that change together, or transitions where the next sta
 
 ```javascript
 function reducer(state, action) {
- switch (action.type) {
- case "increment": return { count: state.count + 1 };
- case "decrement": return { count: state.count - 1 };
- default: return state;
- }
+  switch (action.type) {
+    case "increment": return { count: state.count + 1 };
+    case "decrement": return { count: state.count - 1 };
+    default: return state;
+  }
 }
 
 function Counter() {
- const [state, dispatch] = useReducer(reducer, { count: 0 });
- return <button onClick={() => dispatch({ type: "increment" })}>{state.count}</button>;
+  const [state, dispatch] = useReducer(reducer, { count: 0 });
+  return <button onClick={() => dispatch({ type: "increment" })}>{state.count}</button>;
 }
 ```
 
@@ -246,15 +246,15 @@ Sometimes you need a mutable value that survives re-renders but *doesn't cause a
 
 ```javascript
 function VideoPlayer({ src }) {
- const videoRef = useRef(null);
- const intervalRef = useRef(null);
+  const videoRef = useRef(null);
+  const intervalRef = useRef(null);
 
- const start = () => { intervalRef.current = setInterval(tick, 1000); };
- const stop = () => { clearInterval(intervalRef.current); };
+  const start = () => { intervalRef.current = setInterval(tick, 1000); };
+  const stop = () => { clearInterval(intervalRef.current); };
 
- useEffect(() => { videoRef.current?.play(); }, [src]);
+  useEffect(() => { videoRef.current?.play(); }, [src]);
 
- return <video ref={videoRef} src={src} />;
+  return <video ref={videoRef} src={src} />;
 }
 ```
 
@@ -283,20 +283,20 @@ Side effects (data fetching, subscriptions, DOM measurement, timers, analytics) 
 `useEffect` registers a callback that runs after the browser paints. [^12] The return value is a cleanup function that runs before the next effect (or on unmount). The dependency array tells React when to re-run: missing deps means after every render; empty deps `[]` means once on mount; `[a, b]` means when `a` or `b` changes.
 
 ```javascript
-useEffect(() => {
- // effect
- return () => { /* cleanup */ };
-}, [dependencies]);
+  useEffect(() => {
+    // effect
+    return () => { /* cleanup */ };
+  }, [dependencies]);
 ```
 
 ```javascript
 function Profile({ userId }) {
- useEffect(() => {
- fetchProfile(userId);
- return () => { /* cleanup runs before next effect or unmount */ };
- }, [userId]);
+  useEffect(() => {
+    fetchProfile(userId);
+    return () => { /* cleanup runs before next effect or unmount */ };
+  }, [userId]);
 
- return <div>{userId}</div>;
+  return <div>{userId}</div>;
 }
 ```
 
@@ -324,10 +324,10 @@ Subscribing to an event bus in `useEffect` without a cleanup function leaks subs
 
 ```javascript
 function DevCounter() {
- const [count, setCount] = useState(0);
- // count: 0 → 1 → 0 → 1 during mount in development
- // If your initializer has a side effect (e.g., logging, pushing to an array),
- // Strict Mode reveals it immediately
+  const [count, setCount] = useState(0);
+  // count: 0 → 1 → 0 → 1 during mount in development
+  // If your initializer has a side effect (e.g., logging, pushing to an array),
+  // Strict Mode reveals it immediately
 }
 ```
 
@@ -345,14 +345,14 @@ Context broadcasts a value to all descendants without threading it through every
 const ThemeContext = createContext("light");
 
 function App() {
- const [theme, setTheme] = useState("light");
- const value = useMemo(() => ({ theme, setTheme }), [theme]);
+  const [theme, setTheme] = useState("light");
+  const value = useMemo(() => ({ theme, setTheme }), [theme]);
 
- return (
- <ThemeContext.Provider value={value}>
- <ThemedButton />
- </ThemeContext.Provider>
- );
+  return (
+    <ThemeContext.Provider value={value}>
+      <ThemedButton />
+    </ThemeContext.Provider>
+  );
 }
 ```
 
@@ -371,14 +371,14 @@ const TodoContext = createContext(null);
 const TodoDispatchContext = createContext(null);
 
 function TodoProvider({ children }) {
- const [todos, dispatch] = useReducer(todoReducer, []);
- return (
- <TodoContext.Provider value={todos}>
- <TodoDispatchContext.Provider value={dispatch}>
- {children}
- </TodoDispatchContext.Provider>
- </TodoContext.Provider>
- );
+  const [todos, dispatch] = useReducer(todoReducer, []);
+  return (
+    <TodoContext.Provider value={todos}>
+      <TodoDispatchContext.Provider value={dispatch}>
+        {children}
+      </TodoDispatchContext.Provider>
+    </TodoContext.Provider>
+  );
 }
 ```
 
@@ -405,7 +405,7 @@ function TodoProvider({ children }) {
 
 ```javascript
 const MemoizedChild = React.memo(function Child({ name }) {
- return <div>{name}</div>;
+  return <div>{name}</div>;
 });
 ```
 
@@ -417,7 +417,7 @@ Memoizes computed values so expensive recomputation only runs when dependencies 
 
 ```javascript
 const sortedItems = useMemo(() => {
- return [...items].sort((a, b) => a.date - b.date);
+  return [...items].sort((a, b) => a.date - b.date);
 }, [items]);
 ```
 
@@ -427,7 +427,7 @@ Stabilizes function references across renders so memoized children don't re-rend
 
 ```javascript
 const onSelect = useCallback((id) => {
- selectItem(id);
+  selectItem(id);
 }, [selectItem]);
 ```
 
@@ -445,11 +445,11 @@ Wrapping every function and computed value in `useMemo` and `useCallback` "just 
 const HeavyComponent = lazy(() => import("./HeavyComponent"));
 
 function App() {
- return (
- <Suspense fallback={<Spinner />}>
- <HeavyComponent />
- </Suspense>
- );
+  return (
+    <Suspense fallback={<Spinner />}>
+      <HeavyComponent />
+    </Suspense>
+  );
 }
 ```
 
@@ -463,11 +463,11 @@ Render only visible rows for long lists:
 import { FixedSizeList } from "react-window";
 
 function VirtualList({ items }) {
- return (
- <FixedSizeList height={400} itemCount={items.length} itemSize={35}>
- {({ index, style }) => <div style={style}>{items[index].name}</div>}
- </FixedSizeList>
- );
+  return (
+    <FixedSizeList height={400} itemCount={items.length} itemSize={35}>
+      {({ index, style }) => <div style={style}>{items[index].name}</div>}
+    </FixedSizeList>
+  );
 }
 ```
 
@@ -485,23 +485,23 @@ React 18 introduced concurrent features that let you distinguish urgent updates 
 
 ```javascript
 function SearchPage() {
- const [query, setQuery] = useState("");
- const [isPending, startTransition] = useTransition();
+  const [query, setQuery] = useState("");
+  const [isPending, startTransition] = useTransition();
 
- function handleChange(e) {
- setQuery(e.target.value); // Urgent: update input
- startTransition(() => {
- setSearchQuery(e.target.value); // Non-urgent: filter results
- });
- }
+  function handleChange(e) {
+    setQuery(e.target.value); // Urgent: update input
+    startTransition(() => {
+      setSearchQuery(e.target.value); // Non-urgent: filter results
+    });
+  }
 
- return (
- <>
- <input value={query} onChange={handleChange} />
- {isPending && <Spinner />}
- <SearchResults query={searchQuery} />
- </>
- );
+  return (
+    <>
+      <input value={query} onChange={handleChange} />
+      {isPending && <Spinner />}
+      <SearchResults query={searchQuery} />
+    </>
+  );
 }
 ```
 
@@ -515,15 +515,15 @@ When the value comes from outside (parent props, external store, URL params), yo
 
 ```javascript
 function SearchPage({ query }) {
- const deferredQuery = useDeferredValue(query);
- const isStale = query !== deferredQuery;
+  const deferredQuery = useDeferredValue(query);
+  const isStale = query !== deferredQuery;
 
- return (
- <>
- <SearchResults query={deferredQuery} />
- {isStale && <div>Updating...</div>}
- </>
- );
+  return (
+    <>
+      <SearchResults query={deferredQuery} />
+      {isStale && <div>Updating...</div>}
+    </>
+  );
 }
 ```
 
@@ -535,14 +535,14 @@ Suspense lets each component declare its data dependency declaratively, and Reac
 
 ```javascript
 function ProfilePage() {
- return (
- <Suspense fallback={<Spinner />}>
- <ProfileDetails />
- <Suspense fallback={<Spinner />}>
- <ProfilePosts />
- </Suspense>
- </Suspense>
- );
+  return (
+    <Suspense fallback={<Spinner />}>
+      <ProfileDetails />
+      <Suspense fallback={<Spinner />}>
+        <ProfilePosts />
+      </Suspense>
+    </Suspense>
+  );
 }
 ```
 
@@ -559,19 +559,19 @@ Server Components run **on the server**, never on the client: [^27] They can dir
 ```javascript
 // NoteList.server.js never shipped to the browser
 async function NoteList() {
- const notes = await db.query("SELECT * FROM notes WHERE public = true");
- return (
- <ul>
- {notes.map(note => <li key={note.id}>{note.title}</li>)}
- </ul>
- );
+  const notes = await db.query("SELECT * FROM notes WHERE public = true");
+  return (
+    <ul>
+      {notes.map(note => <li key={note.id}>{note.title}</li>)}
+    </ul>
+  );
 }
 
 // LikeButton.client.js interactive, shipped to browser
 "use client";
 function LikeButton({ noteId }) {
- const [liked, setLiked] = useState(false);
- return <button onClick={() => setLiked(!liked)}>{liked ? "❤️" : "🤍"}</button>;
+  const [liked, setLiked] = useState(false);
+  return <button onClick={() => setLiked(!liked)}>{liked ? "❤️" : "🤍"}</button>;
 }
 ```
 
@@ -589,11 +589,11 @@ Modals, tooltips, dropdowns, and toasts need to render outside their parent's CS
 import { createPortal } from "react-dom";
 
 function Modal({ children, open }) {
- if (!open) return null;
- return createPortal(
- <div className="modal-backdrop">{children}</div>,
- document.getElementById("modal-root")
- );
+  if (!open) return null;
+  return createPortal(
+    <div className="modal-backdrop">{children}</div>,
+    document.getElementById("modal-root")
+  );
 }
 ```
 
@@ -617,22 +617,22 @@ Error boundaries are class components that catch errors thrown during render, in
 
 ```javascript
 class ErrorBoundary extends React.Component {
- state = { hasError: null };
+  state = { hasError: null };
 
- static getDerivedStateFromError(error) {
- return { hasError: error };
- }
+  static getDerivedStateFromError(error) {
+    return { hasError: error };
+  }
 
- componentDidCatch(error, info) {
- logErrorToService(error, info.componentStack);
- }
+  componentDidCatch(error, info) {
+    logErrorToService(error, info.componentStack);
+  }
 
- render() {
- if (this.state.hasError) {
- return this.props.fallback || <h1>Something went wrong</h1>;
- }
- return this.props.children;
- }
+  render() {
+    if (this.state.hasError) {
+      return this.props.fallback || <h1>Something went wrong</h1>;
+    }
+    return this.props.children;
+  }
 }
 ```
 

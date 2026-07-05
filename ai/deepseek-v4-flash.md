@@ -52,7 +52,7 @@ V4-Flash is not strictly a larger model than V3. The "Flash" designation signals
 
 ### 1.3 Design Philosophy
 
-V4-Flash's architecture rests on four axioms:
+V4-Flash's architecture rests on five axioms:
 
 1. **Attention must be sub-quadratic.** Not merely optimized, but structurally incapable of O(N²) cost.
 2. **Most parameters should stay silent.** Each token needs specialists, not generalists. MoE is not optional.
@@ -60,12 +60,6 @@ V4-Flash's architecture rests on four axioms:
 4. **Residual paths must be stable.** mHC constrains residual mappings to prevent signal degradation across deep layers.
 5. **Precision is a lever, not a ceiling.** FP4 QAT for experts, FP8 elsewhere — bit-width is a resource to allocate, not a constraint to accept.
 
-### 1.4 Document Structure
-
-- **Sections 2-9** — Model architecture: specification, MLA, mHC, attention composition, MoE, MTP, GRPO, data pipeline, FP4 QAT & training.
-- **Sections 10-13** — Infrastructure and serving: inference-time compute, parallelism, custom kernels, serving architecture, benchmarks.
-
----
 
 ## 2. Model Specification
 
@@ -132,7 +126,7 @@ V4-Flash's architecture rests on four axioms:
 
 MLA is the single most important architectural innovation in the DeepSeek family. It achieves better-than-MHA quality with a fraction of the KV cache.
 
-### 3.1 Refresher: Standard Multi-Head Attention (MHA)
+### 3.1 Standard Multi-Head Attention (MHA)
 
 Given input hidden state **h**ₜ ∈ ℝ^d for token t:
 
@@ -174,7 +168,7 @@ MLA's core insight: the keys and values live in a high-dimensional space (d_h·n
 c_t^{KV} = W_{DKV} · h_t    where c_t^{KV} ∈ ℝ^{d_c}, d_c << d_h·n_h
 ```
 
-For a typical MLA configuration: d_c = 512. The input dimension d = 7168 is compressed to 512 — a 14:1 reduction.
+For a typical MLA configuration: d_c = 512. The input dimension d = 4096 is compressed to 512 — an 8:1 reduction.
 
 **Step 2: Up-project keys and values from the same latent.**
 
@@ -253,7 +247,7 @@ c_t^Q = W_{DQ} · h_t          ∈ ℝ^{d_c'}
 q_t^C = W_{UQ} · c_t^Q        ∈ ℝ^{d_h·n_h}
 ```
 
-d_c' = 1536 for V4-Flash — a 4.7:1 compression ratio.
+d_c' = 1024 for V4-Flash — a 4:1 compression ratio.
 
 ### 3.6 MLA vs Alternatives
 
@@ -270,12 +264,12 @@ Source: DeepSeek-V2 Appendix D.2. On the MMLU benchmark, MLA (with KV compressio
 ### 3.7 MLA Forward Pass (Inference, Autoregressive Decoding)
 
 ```
-Given: h_t ∈ ℝ^{7168}  (current token hidden state)
+Given: h_t ∈ ℝ^{4096}  (current token hidden state)
 
-1. Compress KV:   c_t^{KV} = W_{DKV} · h_t              (7168 → 512)
-2. Compress Q:    c_t^Q    = W_{DQ} · h_t                (7168 → 1536)
-3. Decoupled K:   k_t^R    = RoPE(W_{KR} · h_t)          (7168 → 64)
-4. Decoupled Q:   q_t^R    = RoPE(W_{QR} · c_t^Q)        (1536 → 64·64)
+1. Compress KV:   c_t^{KV} = W_{DKV} · h_t              (4096 → 512)
+2. Compress Q:    c_t^Q    = W_{DQ} · h_t                (4096 → 1024)
+3. Decoupled K:   k_t^R    = RoPE(W_{KR} · h_t)          (4096 → 64)
+4. Decoupled Q:   q_t^R    = RoPE(W_{QR} · c_t^Q)        (1024 → 64·64)
 
 5. Cache:  append (c_t^{KV}, k_t^R) to running KV cache
 
@@ -292,7 +286,7 @@ Given: h_t ∈ ℝ^{7168}  (current token hidden state)
 
 V4 series introduce mHC [^7] to strengthen the residual connections between Transformer blocks. Standard residual connections add the layer's output directly to its input. mHC expands the residual stream width by a factor of n_hc (set to 4 for V4-Flash) and constrains the residual mapping to the manifold of doubly stochastic matrices via the Sinkhorn-Knopp algorithm.
 
-**Why it matters:** The doubly stochastic constraint ensures the spectral norm of the residual mapping is bounded by 1, making the transformation non-expansive. This prevents signal explosion or vanishing across 43 layers while preserving expressivity. Training stability improves without sacrificing model quality.
+The doubly stochastic constraint keeps the spectral norm of the residual mapping bounded by 1, making the transformation non-expansive. This prevents signal explosion or vanishing across 43 layers while preserving expressivity. Training stability improves without sacrificing model quality.
 
 The mHC parameters are dynamically generated per layer: an input-dependent component (computed from the current hidden state) plus a static bias. The three transformations (input mapping, residual transformation, output mapping) are constrained via Sigmoid (for non-negativity) and the Birkhoff polytope projection (for the residual matrix).
 
@@ -309,7 +303,7 @@ V4-Flash assigns each layer a specific attention role based on depth, mixing Sli
 | Layer Range | Attention Type | Effective Window | Cost per Token |
 |---|---|---|---|---|
 | 1-2 | SWA (Sliding Window) | 128 tokens | O(W) = O(128) |
-| 3-43 | Interleaved CSA + HCA | CSA: 4:1 compression, Top-K=512; HCA: 128:1 compression | See below |
+| 3-43 | Interleaved CSA + HCA | CSA: 4:1 compression, Top-K=512; HCA: 128:1 compression | See §4.3–4.4 |
 
 ### 4.2 Sliding Window Attention (SWA) — Layers 1-2
 
@@ -370,8 +364,8 @@ While MLA makes attention efficient, DeepSeekMoE makes the feed-forward network 
 DeepSeekMoE(x) = Σ_{i∈Shared} FFN_i(x) + Σ_{j∈Routed} g_j · FFN_j(x)
 ```
 
-- **Shared experts** (2): always activated. Capture universally useful knowledge.
-- **Routed experts** (256): selectively activated. Router picks 8 per token.
+- **Shared experts** (1): always activated. Captures universally useful knowledge.
+- **Routed experts** (256): selectively activated. Router picks 6 per token.
 
 ### 5.2 The Router
 
@@ -382,7 +376,7 @@ The router learns which experts to assign to which tokens entirely through backp
    s(x) = softmax(W_gate · x + b)    ∈ ℝ^{256}
 
 2. Select Top-K experts:
-   top_k_indices = argsort(s(x))[:K]              K=8
+   top_k_indices = argsort(s(x))[:K]              K=6
 
 3. Gating weights: g_j = s(x)_j for j in top_k_indices
 ```
@@ -424,14 +418,14 @@ During training with expert parallelism, first select the Top-M nodes (M=4 out o
 ### 5.6 MoE Layer Forward Pass
 
 ```
-Given: x ∈ ℝ^{B × 7168} (B tokens in batch)
+Given: x ∈ ℝ^{B × 4096} (B tokens in batch)
 
 1. Shared experts:
    x_shared = FFN_shared_1(x) + FFN_shared_2(x)
 
 2. Router:
    s = softmax(W_gate · x + b)
-   indices, weights = top_k(s, K=8)
+   indices, weights = top_k(s, K=6)
 
 3. Dispatch:
    x_dispatch = all_to_all(indices, x)
@@ -480,7 +474,7 @@ L = L_main + λ · Σ_{d=1}^{D} L_d
 
 1. Forces planning — biases representations toward syntactic and semantic abstraction.
 2. Improves representation quality — features must be useful across multiple time offsets.
-3. Provides additional gradient signal — D supervision points per token instead of one.
+3. Adds gradient signal — D supervision points per token instead of one.
 
 ### 6.4 MTP During Inference
 
@@ -546,7 +540,7 @@ Final reward: r(y) = α · r_rule(y) + (1-α) · r_model(y)
 | Proofs & formal logic | 10% | Deductive chains |
 | Scientific papers | 5% | Domain-specific vocabulary |
 
-Total corpus: 32T tokens (Flash), 33T tokens (Pro).
+Total corpus: 32T tokens (Flash), 33T tokens (Pro — the larger 1.6T-parameter sibling model).
 
 ### 8.2 Synthetic Data Generation
 
@@ -638,7 +632,7 @@ At 4 bits, the quantization grid has only 16 levels. Without QAT, the model's we
 
 The same model, given more time to "think," can outperform a larger model answering immediately. V4-Flash implements a think-loop at the architecture level.
 
-Think and no-think use the **same neural network** — no separate model is loaded. The controller classifier (section 10.3) decides per-token whether to loop again or output. When the loop runs zero times, the model behaves as a standard single-pass transformer; when it runs, the model generates internal reasoning tokens that never reach the user.
+Think and no-think use the **same neural network** — no separate model is loaded. The controller classifier decides per-token whether to loop again or output. When the loop runs zero times, the model behaves as a standard single-pass transformer; when it runs, the model generates internal reasoning tokens that never reach the user.
 
 ### 10.1 The Looping Mechanism
 
@@ -663,7 +657,7 @@ Think and no-think use the **same neural network** — no separate model is load
 
 ### 10.3 Implementation
 
-The controller is a small classifier trained on data where the model's initial answer was wrong but later self-corrected:
+A small classifier decides when to loop. It trains on data where the model's initial answer was wrong but later self-corrected:
 
 ```
 Controller: f(h_last) = σ(W_controller · h_last)
@@ -713,7 +707,7 @@ This design avoids the all-to-all attention communication cost that naive sequen
 
 ### 11.4 TileLang Custom Kernels
 
-V4 uses TileLang [^13], a Domain-Specific Language (DSL) for tensor computations, to develop fused GPU kernels:
+V4 uses TileLang [^15], a Domain-Specific Language (DSL) for tensor computations, to develop fused GPU kernels:
 
 - **Fused MoE kernel:** single launch for dispatch, expert FFN computation, and combine.
 - **MLA fused kernel:** KV cache compression, up-projection, and attention in one kernel.
@@ -748,7 +742,7 @@ V4 supports heterogeneous KV cache management:
 
 **Prefill:** Process entire prompt in parallel. Full MLA attention. Batch multiple prompts.
 
-**Decode:** One token at a time. MLA's compressed KV cache (512 elements per token) keeps memory low. Expert dispatch routes to the 8 GPUs hosting selected experts.
+**Decode:** One token at a time. MLA's compressed KV cache (512 elements per token) keeps memory low. Expert dispatch routes to the 6 GPUs hosting selected experts.
 
 ### 12.3 Expert Dynamic Loading
 
@@ -877,7 +871,7 @@ V4-Flash's 284B parameters are not all the same — they are divided into three 
 
 ### 15.1 Expert Parameters (The Knowledge Base)
 
-The majority of the 284B parameters live here: 256 routed experts + 2 shared experts, each a small feed-forward network. They store domain knowledge — one expert specialized for Python code, another for conversational tone, another for mathematical reasoning. Only 8 of 256 routed experts activate per token (plus the 2 shared experts), selected by the router.
+The majority of the 284B parameters live here: 256 routed experts + 1 shared expert, each a small feed-forward network. They store domain knowledge — one expert specialized for Python code, another for conversational tone, another for mathematical reasoning. Only 6 of 256 routed experts activate per token (plus the 1 shared expert), selected by the router.
 
 ### 15.2 Attention Parameters (The Context & Memory)
 
@@ -919,3 +913,4 @@ This mixed-precision scheme is what makes the model "Flash" — the giant expert
 12. Schulman, John, et al. "Proximal Policy Optimization Algorithms." arXiv:1707.06347, 2017.
 13. Jordan et al. "Muon: An Optimizer for Gradient Compression." 2024.
 14. Liu et al. "Scalable Muon Optimization for Large Language Models." 2025.
+15. Wang et al. "TileLang: A Domain-Specific Language for Tensor Computations." 2025.

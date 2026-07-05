@@ -20,14 +20,14 @@ The inference engine you pick determines your throughput, latency, hardware comp
 
 ## Overview
 
-| Engine | Maintainer | Key Innovation | Best For | GPU Required |
-|---|---|---|---|---|
-| **vLLM** [^1] | UC Berkeley / community | PagedAttention, continuous batching | Production serving, broad model support | Yes |
-| **SGLang** [^2] | Stanford / community | RadixAttention, structured generation | Low-latency serving, structured outputs | Yes |
-| **TensorRT-LLM** [^3] | NVIDIA | Kernel fusion, inflight batching | Max throughput on NVIDIA hardware | NVIDIA only |
-| **TGI** (Text Gen Inf.) [^4] | HuggingFace | Deep HF integration, watermarking | Quick setup from HF Hub | Yes |
-| **Ollama** [^5] | Community | One-command local serving, built-in model library | Local dev, demos, CPU+GPU hybrid | Optional (CPU works) |
-| **llama.cpp** [^6] | Community | CPU-first, GGUF quantization | CPU inference, edge, laptop | No |
+| Engine                       | Maintainer              | Key Innovation                                    | Best For                                | GPU Required         |
+| ---------------------------- | ----------------------- | ------------------------------------------------- | --------------------------------------- | -------------------- |
+| **vLLM** [^1]                | UC Berkeley / community | PagedAttention, continuous batching               | Production serving, broad model support | Yes                  |
+| **SGLang** [^2]              | Stanford / community    | RadixAttention, structured generation             | Low-latency serving, structured outputs | Yes                  |
+| **TensorRT-LLM** [^3]        | NVIDIA                  | Kernel fusion, inflight batching                  | Max throughput on NVIDIA hardware       | NVIDIA only          |
+| **TGI** (Text Generation Inference) [^4] | HuggingFace             | Deep HF integration, watermarking                 | Quick setup from HF Hub                 | Yes                  |
+| **Ollama** [^5]              | Community               | One-command local serving, built-in model library | Local dev, demos, CPU+GPU hybrid        | Optional (CPU works) |
+| **llama.cpp** [^6]           | Community               | CPU-first, GGUF quantization                      | CPU inference, edge, laptop             | No                   |
 
 ---
 
@@ -45,8 +45,8 @@ The current standard for production LLM serving. Its key innovation is **PagedAt
 - Active development: releases every 2-3 weeks.
 
 **Where it falls short:**
-- Python-based scheduling overhead SGLang and TRT-LLM have lower scheduling latency.
-- No structured generation (constrained decoding) built-in relies on outlines/lm-format-enforcer integrations.
+- Python-based scheduling overhead — SGLang and TRT-LLM have lower scheduling latency.
+- No structured generation (constrained decoding) built-in; relies on outlines/lm-format-enforcer integrations.
 - Guided decoding (JSON mode, regex) is less mature than SGLang.
 - Memory overhead from Python runtime (~1-2 GiB).
 
@@ -79,11 +79,11 @@ Stanford's Structured Generation Language. Built on many of the same ideas as vL
 
 ## TensorRT-LLM (NVIDIA)
 
-NVIDIA's inference engine. The fastest engine on NVIDIA hardware period. Achieved through deep kernel fusion (combining multiple operations into a single GPU kernel) and inflight batching (a more aggressive form of continuous batching that reorders scheduled operations for cache efficiency).
+NVIDIA's inference engine. The fastest engine on NVIDIA hardware, period. Achieved through deep kernel fusion (combining multiple operations into a single GPU kernel) and inflight batching (a more aggressive form of continuous batching that reorders scheduled operations for cache efficiency).
 
 **What it does well:**
 - **Best throughput on NVIDIA GPUs**: 10-30% faster than vLLM on H100 for most model architectures [^3].
-- **Kernel fusion**: merges attention, MLP, layernorm, and residual operations into single GPU kernels fewer kernel launches, less memory bandwidth waste.
+- **Kernel fusion**: merges attention, MLP, layernorm, and residual operations into single GPU kernels — fewer kernel launches, less memory bandwidth waste.
 - **FP8 native support**: hardware-accelerated FP8 on H100/H200 with near-zero accuracy loss.
 - **Multi-node inference**: supports tensor + pipeline parallelism across GPU nodes (DGX, HGX).
 
@@ -103,7 +103,7 @@ NVIDIA's inference engine. The fastest engine on NVIDIA hardware period. Achieve
 
 ## TGI (Text Generation Inference)
 
-HuggingFace's inference server. Tightest integration with the HuggingFace Hub one command to serve any model on the Hub.
+HuggingFace's inference server. Tightest integration with the HuggingFace Hub — one command to serve any model on the Hub.
 
 **What it does well:**
 - **Zero-config from Hub**: `docker run ghcr.io/huggingface/text-generation-inference --model-id <model>` no flag hunting.
@@ -156,7 +156,7 @@ The engine that made local LLM inference possible. Pure C/C++ with minimal depen
 
 **What it does well:**
 - **Runs anywhere**: CPU-only inference on a laptop, Raspberry Pi, or server.
-- **GGUF quantization**: the most flexible quantization ecosystem K-quants, I-quants, arbitrary bit widths.
+- **GGUF quantization**: the most flexible quantization ecosystem: K-quants, I-quants, arbitrary bit widths.
 - **Minimal dependencies**: single binary. No Python, no Docker, no CUDA toolkit needed.
 - **Memory-mapped loading**: model weights are mmap'd multiple processes share the same weights in RAM.
 - **Hardware diversity**: supports CUDA, Metal (Apple Silicon), Vulkan (AMD), ROCm, SYCL (Intel).
@@ -192,7 +192,7 @@ The engine that made local LLM inference possible. Pure C/C++ with minimal depen
 
 ---
 
-## Key Things
+## Key Takeaways
 
 - vLLM is the safest default: broadest model support, best Modal integration, most production stories. Start here unless you have a specific reason not to.
 - SGLang is vLLM's strongest competitor faster scheduling, better structured generation. Worth evaluating if those matter.

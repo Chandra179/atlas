@@ -41,19 +41,17 @@ vLLM uses **iteration-level scheduling**: at each forward pass, it fills the bat
 | Inflight batching (TRT-LLM) | Continuous + scheduling reordering for efficiency | Slightly better than continuous | Lowest in class |
 
 **Configuration knobs:**
-- `--max-num-batched-tokens`: max tokens per forward pass (default 8192). Higher → more parallelism but more memory.
+- `--max-num-batched-tokens`: max tokens per forward pass (default: `max-model-len`, often 8192 or higher on large GPUs). Higher → more parallelism but more memory.
 - `--max-num-seqs`: max concurrent sequences. Caps parallel requests regardless of token count per request.
 - Chunked prefill (`--enable-chunked-prefill`): splits long prompts into chunks so prefill doesn't starve decode.
 
 Continuous batching reduces the "straggler effect" one long generation no longer blocks all other requests. Throughput improvement is biggest under high concurrency with mixed-length generations. `max-num-batched-tokens` is the primary tuning knob set it to the largest value your GPU memory allows after reserving space for model weights and KV cache.
 
-[^1]: Kwon et al., "Efficient Memory Management for Large Language Model Serving with PagedAttention" (vLLM paper), SOSP 2023. [arXiv:2309.06180](https://arxiv.org/abs/2309.06180)
-
 ### Observability & Metrics
 
 Without metrics, you don't know if your model is performing well, if it's close to OOM, or if a deployment change made things worse. vLLM exposes a Prometheus endpoint and logs key statistics.
 
-vLLM serves metrics at `/metrics` in Prometheus format. Enable periodic stats logging with `VLLM_LOG_STATS_INTERVAL=N` (seconds between reports to stdout).
+vLLM serves metrics at `/metrics` in Prometheus format. Enable periodic stats logging with `--log-stats-interval` (CLI flag; the `VLLM_LOG_STATS_INTERVAL` env var works in older versions).
 
 | Metric | What It Measures | Why It Matters |
 |---|---|---|
@@ -71,15 +69,13 @@ vLLM serves metrics at `/metrics` in Prometheus format. Enable periodic stats lo
 - Preemptions (swapped requests) > 0 → memory pressure. Lower `max-num-seqs` or `gpu-memory-utilization`.
 - Generation throughput < 50% of benchmark → backend regression or hardware issue.
 
-[^2]: vLLM metrics. [docs.vllm.ai/en/latest/serving/metrics](https://docs.vllm.ai/en/latest/serving/metrics)
-
 ### Prefix Caching
 
 Many workloads share a common prefix a system prompt, few-shot examples, or shared conversation history. Without prefix caching, the model recomputes the KV cache for this prefix on every request, wasting GPU compute and delaying responses.
 
-vLLM implements **Automatic Prefix Caching (APC)** [^3]: it hashes KV cache blocks by their token sequence and checks whether a block already exists before computing it. If a prefix of the new request matches a cached prefix, those blocks are reused only the divergent suffix is computed fresh.
+vLLM implements **Automatic Prefix Caching (APC)**[^3]: it hashes KV cache blocks by their token sequence and checks whether a block already exists before computing it. If a prefix of the new request matches a cached prefix, those blocks are reused — only the divergent suffix is computed fresh.
 
-Enable with: `--enable-prefix-caching`
+Enable with `--enable-prefix-caching`.
 
 | Workload | Prefix Shared? | Cache Hit Rate | Speedup |
 |---|---|---|---|
@@ -96,13 +92,11 @@ Enable with: `--enable-prefix-caching`
 
 **When to skip:** unique, non-repeating prompts; extremely memory-constrained deployments; prefixes shorter than 16 tokens.
 
-[^3]: vLLM Automatic Prefix Caching. [docs.vllm.ai/en/latest/automatic_prefix_caching](https://docs.vllm.ai/en/latest/automatic_prefix_caching)
-
 ### Speculative Decoding
 
 Autoregressive decoding generates one token per forward pass. Each forward pass reads all model weights from GPU memory weight bandwidth, not compute, is the bottleneck. Speculative decoding produces multiple tokens per forward pass by using a small draft model to guess ahead, then verifying with a single target model pass.
 
-**How it works [^4]:**
+**How it works**[^4]:**
 1. A small **draft model** (e.g., 0.5B params) generates K candidate tokens cheaply.
 2. The **target model** runs a single forward pass on the concatenated (prefix + K candidates) sequence to verify.
 3. Accepted tokens are appended. The first rejected token is resampled from the target's distribution.
@@ -119,8 +113,6 @@ Autoregressive decoding generates one token per forward pass. Each forward pass 
 **vLLM support:** `--speculative-model <model-id>` and `--num-speculative-tokens <K>`. Draft and target must share the tokenizer. vLLM also supports **ngram speculative decoding** (uses previously generated tokens as candidates no separate draft model needed) and **Medusa heads** (additional prediction heads trained on the target model).
 
 **When to use:** latency-bound workloads (TTFT improvement via parallel prefill verification), throughput-bound workloads (higher tokens-per-pass), or small-batch single-user scenarios (ngram/Medusa avoids draft memory). Skip if memory-constrained or draft model acceptance <50%.
-
-[^4]: Leviathan et al., "Fast Inference from Transformers via Speculative Decoding," ICML 2023. [arXiv:2211.17192](https://arxiv.org/abs/2211.17192)
 
 ---
 
@@ -143,7 +135,7 @@ Embedding model serving is fundamentally different from generative model serving
 
 For production embedding serving, a mid-range GPU handles thousands of requests per second. High-end generative GPUs are overkill for embeddings alone.
 
-**See also:** [`ml.md`](ml.md) § Embeddings & Vector Representations — vector representations, similarity measures, training.
+**See also:** [`ml.md`](ml.md) Embeddings & Vector Representations — vector representations, similarity measures, training.
 
 ---
 
@@ -165,7 +157,7 @@ Many popular models require an **accepted license agreement** on HuggingFace bef
 
 - Model IDs follow `org/model-name` format (e.g., `google/gemma-4-31b-it`).
 - **Revisions**: optional branch/tag/commit hash pin. An invalid revision causes a 404 from the HF Hub. When in doubt, omit it and use the default (`main`).
-- Checkpoint format: safetensors^[A safe file format for storing model weights. Unlike Python's pickle, safetensors cannot execute arbitrary code during loading, making it the standard for distributing models.] (one or more shards).
+- Checkpoint format: safetensors (one or more shards).
 
 ---
 
@@ -202,14 +194,12 @@ For MoE models: each GPU holds a subset of experts. Tokens routed to the GPU hos
 
 ### Choosing a Strategy
 
-| Goal | Strategy | vLLM Flag | Best When |
-|---|---|---|---|
-| Fit a large model | TP | `--tensor-parallel-size=N` | Single model > GPU memory, low latency needed |
-| Max throughput | DP (multi-instance) | Run N instances + LB | Model fits per GPU, many concurrent users |
-| Both (3D parallelism) | TP + PP + DP | Combine flags | Largest models (70B+), production scale |
-| MoE models | EP (automatic) | None needed | Mixtral, DeepSeek-V3, etc. |
-
-[^5]: Narayanan et al., "Efficient Large-Scale Language Model Training on GPU Clusters Using Megatron-LM," SC 2021. [arXiv:2104.04473](https://arxiv.org/abs/2104.04473)
+| Goal                  | Strategy            | vLLM Flag                  | Best When                                     |
+| --------------------- | ------------------- | -------------------------- | --------------------------------------------- |
+| Fit a large model     | TP                  | `--tensor-parallel-size=N` | Single model > GPU memory, low latency needed |
+| Max throughput        | DP (multi-instance) | Run N instances + LB       | Model fits per GPU, many concurrent users     |
+| Both (3D parallelism) | TP + PP + DP        | Combine flags              | Largest models (70B+), production scale       |
+| MoE models            | EP (automatic)      | None needed                | Mixtral, DeepSeek-V3, etc.                    |
 
 ---
 
@@ -244,6 +234,7 @@ For MoE models: each GPU holds a subset of experts. Tokens routed to the GPU hos
 [^3]: vLLM Automatic Prefix Caching. [docs.vllm.ai/en/latest/automatic_prefix_caching](https://docs.vllm.ai/en/latest/automatic_prefix_caching).
 [^4]: Leviathan et al., "Fast Inference from Transformers via Speculative Decoding," ICML 2023. [arXiv:2211.17192](https://arxiv.org/abs/2211.17192).
 [^5]: Narayanan et al., "Efficient Large-Scale Language Model Training on GPU Clusters Using Megatron-LM," SC 2021. [arXiv:2104.04473](https://arxiv.org/abs/2104.04473).
+[^6]: Safetensors documentation. [huggingface.co/docs/safetensors](https://huggingface.co/docs/safetensors).
 
 ### Further Reading
 - [`modal-gemma4-h200.md`](modal-gemma4-h200.md) concrete deployment: Gemma 4 31B on H200 via Modal.
