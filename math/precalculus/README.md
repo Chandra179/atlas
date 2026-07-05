@@ -32,7 +32,7 @@ Since there is no way to multiply a real number by itself and get a negative res
 
 **Natural number** positive number
 
-**Irrational number** Any real number that cannot be written as a ratio of two integers ($p/q$) like $\mathbf{\sqrt{2\}}$, $\mathbf{\pi}$, $\mathbf{e}$ (Euler's number)
+**Irrational number** Any real number that cannot be written as a ratio of two integers ($p/q$) like $\mathbf{\sqrt{2}}$, $\mathbf{\pi}$, $\mathbf{e}$ (Euler's number)
 
 **Variables** (like $x$ or $y$)
 
