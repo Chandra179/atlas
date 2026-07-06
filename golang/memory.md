@@ -87,6 +87,121 @@ A struct containing `[]Object` copied by value only copies the 24-byte slice hea
 
 The GC cares more about the **number of reachable pointers** than the **total heap size**. A 100 MB flat array of integers is near-free for the GC to scan. A 10 MB web of interconnected pointer-heavy structs is expensive [2].
 
+## Struct Alignment & Padding
+
+Fields are aligned to their size: `int32` at multiples of 4, `int64` at multiples of 8, pointers at multiples of 8 [7]. The compiler inserts padding between fields to satisfy alignment. Field order changes struct size:
+
+```go
+type Bad struct {      // 24 bytes
+    A bool    // 1 byte + 7 padding
+    B int64   // 8 bytes
+    C bool    // 1 byte + 7 padding
+}
+
+type Good struct {     // 16 bytes
+    A bool    // 1 byte + 7 padding
+    C bool    // 1 byte
+    B int64   // 8 bytes
+}
+```
+
+`Good` reorders fields to pack the two bools together, saving 8 bytes per instance. For a slice of 1M structs, that is 8 MB of wasted RAM. Use `go vet -fieldalignment` or `golang.org/x/tools/go/analysis/passes/fieldalignment` to detect.
+
+## Empty Struct
+
+`struct{}` occupies zero bytes of storage. Two common uses:
+
+- **Set semantics:** `map[string]struct{}` — values cost nothing, only keys matter.
+- **Signal-only channels:** `chan struct{}` — sends zero bytes, no payload.
+
+`struct{}` arrays/slices are special: the runtime handles them as a single global address (`zerobase`). A `[1000000]struct{}` is 0 bytes.
+
+## Slice Backing Array Traps
+
+**Reslice doesn't copy.** `s[:0]` keeps the backing array alive. Both slices share the same memory — no data is copied, only a new 24-byte header is created. Hanging on to a small slice of a large allocation pins the entire backing array:
+
+```go
+data := make([]byte, 1_000_000)  // backing array: 1 MB
+chunk := data[:100]              // no copy — same backing array, chunk is just a 24-byte header
+                                 // GC sees the entire 1 MB as reachable via chunk
+```
+
+Workaround: copy the portion you need instead of reslicing.
+
+**Append past capacity allocates a new backing array.** Any existing references to the old backing array are not updated — they keep pointing to the old array:
+
+```go
+a := make([]int, 0, 5)           // backing array A (cap=5)
+b := a[:2]                       // b shares backing array A — same memory, no copy
+a = append(a, 1, 2, 3, 4, 5, 6) // cap exceeded, allocates new backing array B
+                                 // a now points to B, b still points to A — they diverge
+```
+
+## Map Memory Never Shrinks
+
+Map memory is **always on the heap** — both the `hmap` header and the bucket array are allocated by `runtime.makemap()` via `newobject`, with no stack allocation code path [9].
+
+Even a pre-defined literal:
+```go
+m := map[string]int{"a": 1}  // compiles to makemap() + inserts — heap
+```
+
+`map[string]int` can have 0 buckets or a million. Stack frames are fixed at compile time, but maps can always grow — so the compiler can never reserve stack space for them. Compare with arrays where `[2]int` and `[100000]int` are different types with known sizes at compile time [14].
+
+Pre-allocating (`make(map[string]int, 10000)`) only pre-sizes the initial buckets to reduce future growth. Buckets are still on the heap [9].
+
+Deleting map entries (`delete(m, k)`, `clear(m)` [8]) removes keys from the hash table but never releases the underlying buckets [9]. A map that grows to 1 GB and then has 99% of entries deleted still uses ~1 GB of RAM [9]. The only way to release memory is to stop referencing the map and let the GC collect it, or re-create the map from scratch.
+
+## `sync.Pool`
+
+Temporary object cache [10]. At each GC cycle, the pool's primary cache moves to a victim cache, and the old victim cache is freed [15]. A pooled object survives up to 2 GC cycles before being reclaimed. Always handle `Get()` returning nil — the pool may have been emptied:
+
+```go
+buf := pool.Get()
+if buf == nil {
+    buf = new(Buffer)
+}
+// use buf
+pool.Put(buf)
+```
+
+Lifetime of a pooled object: `Put()` → 1–2 GC cycles. How long that is depends on allocation rate and GOGC pacing. Do not use for long-lived or connection-pool semantics.
+
+## `runtime.KeepAlive`
+
+Prevents the GC from collecting an object too early, specifically when only an `unsafe.Pointer` references the object [11]:
+
+```go
+p = alloc()
+runtime.KeepAlive(p)  // ensures p is not freed before this line
+```
+
+Needed when passing `&p.field` to C or using `unsafe.Pointer` arithmetic where the GC cannot see the reference. Without `KeepAlive`, the GC can reclaim `p` while your code reads its fields.
+
+## Memory Leak Patterns
+
+| Pattern | Cause | Fix |
+|---|---|---|
+| Goroutine leak | Goroutine blocked on never-sent chan / never-closed chan. Stack+liveness never freed. | Ensure goroutines always terminate. |
+| `time.After` in loop | `time.After` creates a timer that lives until it fires. In a `for` loop, timers accumulate. | Use `time.NewTicker` or `context.WithDeadline`. |
+| Hanging slice reference | Small reslice of large array pins the backing array. | Copy the portion. |
+| `defer` in loop | Deferred resources accumulate until function return. | Move loop body into a closure, or don't `defer` inside loops. |
+| Map growth without shrinking | Map grows large, entries deleted, buckets never freed. | Re-create the map. |
+
+## Diagnostics
+
+**`runtime.ReadMemStats`** dumps all memory stats (HeapAlloc, HeapInuse, NumGC, PauseTotalNs, etc.) [12]. Incurs a small STW pause — fine for debugging, avoid in production hot paths.
+
+**`runtime/metrics`** (Go 1.16+) is the production-safe alternative [13]. Reads pre-computed counters with no STW cost:
+
+```go
+sample := []metrics.Sample{{Name: "/memory/classes/heap/objects:bytes"}}
+metrics.Read(sample)
+fmt.Println(sample[0].Value.Uint64())
+```
+
+Use `go tool pprof` for allocation profiling (see [gc.md](gc.md)).
+
 ## References
 
 [1] Go GC Guide, "Where Go Values Live": https://go.dev/doc/gc-guide#Where_Go_Values_Live
@@ -100,3 +215,21 @@ The GC cares more about the **number of reachable pointers** than the **total he
 [5] Go Spec, "Array types" / "Slice types": https://go.dev/ref/spec#Array_types
 
 [6] Go runtime source, `runtime/string.go`, `runtime/slice.go`: https://go.dev/src/runtime/
+
+[7] Go Spec, "Size and alignment guarantees": https://go.dev/ref/spec#Size_and_alignment_guarantees
+
+[8] Go Spec, "Clear statement": https://go.dev/ref/spec#Clear_statement
+
+[9] Go runtime source, `runtime/map.go` (`makemap` allocates on heap, `mapdelete` does not shrink buckets): https://go.dev/src/runtime/map.go
+
+[10] `sync.Pool` docs: https://pkg.go.dev/sync#Pool
+
+[11] `runtime.KeepAlive` docs: https://pkg.go.dev/runtime#KeepAlive
+
+[12] `runtime.ReadMemStats` docs: https://pkg.go.dev/runtime#ReadMemStats
+
+[13] `runtime/metrics` docs: https://pkg.go.dev/runtime/metrics
+
+[14] Go Spec, "Map types": https://go.dev/ref/spec#Map_types
+
+[15] Go runtime source, `sync/pool.go` (`poolCleanup` runs at the beginning of each GC, moves primary→victim cache): https://go.dev/src/sync/pool.go
