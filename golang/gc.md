@@ -9,17 +9,17 @@ created: "2026-07-05"
 
 A garbage collector finds memory the program no longer needs and gives it back. The programmer never calls `free` or `delete`. Without it, every allocation is either a leak or a chore.
 
-To find dead memory, the GC must freeze the program briefly. If the program kept running while the GC scanned, pointers could change — the GC might miss live memory and free it by mistake. Every garbage-collected language pays this cost: Java, .NET, Python, Go all stop their programs for some amount of time [1].
+To find dead memory, the GC must freeze the program briefly. If the program kept running while the GC scanned, pointers could change — the GC might miss live memory and free it by mistake. Every garbage-collected language pays this cost: Java, .NET, Python, Go all stop their programs for some amount of time [^1].
 
-In 2014, Go froze everything for the entire collection cycle. A single pause could last hundreds of milliseconds [3]. For a server processing hundreds of requests per second, that meant blocking requests mid-flight. Users felt the delay.
+In 2014, Go froze everything for the entire collection cycle. A single pause could last hundreds of milliseconds [^3]. For a server processing hundreds of requests per second, that meant blocking requests mid-flight. Users felt the delay.
 
-The Go team set one priority: shorten the freeze [4]. They made rules:
-- Never stop for more than 10 milliseconds [3].
-- Don't slow down normal code to make GC faster [4].
-- Don't move objects in memory — Go code points into the middle of them, and C code shares memory with Go [1].
-- Track pointer changes only while collecting, not all the time [3].
+The Go team set one priority: shorten the freeze [^4]. They made rules:
+- Never stop for more than 10 milliseconds [^3].
+- Don't slow down normal code to make GC faster [^4].
+- Don't move objects in memory — Go code points into the middle of them, and C code shares memory with Go [^1].
+- Track pointer changes only while collecting, not all the time [^3].
 
-The result: the collector pauses twice, each for a few hundred microseconds [4]. One pause turns on tracking, the other turns it off. Everything else runs while the program keeps working. The price is more CPU and more memory. Two settings — `GOGC` and `GOMEMLIMIT` — let you control this [2].
+The result: the collector pauses twice, each for a few hundred microseconds [^4]. One pause turns on tracking, the other turns it off. Everything else runs while the program keeps working. The price is more CPU and more memory. Two settings — `GOGC` and `GOMEMLIMIT` — let you control this [^2].
 
 ## GC Cycle
 
@@ -119,10 +119,10 @@ The **scavenger** is a background process that slowly returns unused physical me
 
 ## References
 
-[1] Go GC guide: https://go.dev/doc/gc-guide
+[^1]: Go GC guide: https://go.dev/doc/gc-guide
 
-[2] `runtime` package `GOGC` / `GOMEMLIMIT` docs: https://pkg.go.dev/runtime#hdr-Environment_Variables
+[^2]: `runtime` package `GOGC` / `GOMEMLIMIT` docs: https://pkg.go.dev/runtime#hdr-Environment_Variables
 
-[3] Go 1.5 GC announcement: https://go.dev/blog/go15gc
+[^3]: Go 1.5 GC announcement: https://go.dev/blog/go15gc
 
-[4] Getting to Go (ISMM 2018): https://go.dev/blog/ismmkeynote
+[^4]: Getting to Go (ISMM 2018): https://go.dev/blog/ismmkeynote

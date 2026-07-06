@@ -44,8 +44,6 @@ The fastest memory locations in existence, located inside the CPU core.
 
 ## The Execution Cycle (Fetch-Execute)
 
-This is the continuous loop the CPU performs to run a program.
-
 1. **Fetch:** The CPU looks at the **Program Counter**, goes to that address in memory via the Address Bus, and grabs the instruction.
 2. **Decode:** The Control Unit determines what the instruction means (e.g., a `MOV` or `ADD` command).
 3. **Execute:** The ALU (Arithmetic Logic Unit) performs the operation, or data is moved between registers.

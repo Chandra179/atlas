@@ -3,7 +3,7 @@ title: "Knowledge Map"
 description: "Complete analysis of topics mastered, foundation health, and future study roadmap across all domains"
 tags: [meta, roadmap]
 created: "2026-06-29"
-modified: "2026-07-05"
+modified: "2026-07-06"
 ---
 
 # Knowledge Map
@@ -166,7 +166,7 @@ modified: "2026-07-05"
 - `testing.B.Loop` (1.24) — `for b.Loop() { ... }` benchmark standard
 - `sync.WaitGroup.Go` (1.25) — `wg.Go(func() { ... })` convenience method
 - Container-aware GOMAXPROCS (1.25) — respects k8s CPU limits
-- `errors.AsType[T]()` (1.26) — generic `errors.As`
+- ~~`errors.AsType[T]()` (1.26) — generic `errors.As`~~
 - `new(expr)` (1.26) — `new` with initial value
 - `go fix` modernizers (1.26) — automated codebase upgrades
 

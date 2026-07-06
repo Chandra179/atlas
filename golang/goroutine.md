@@ -51,7 +51,7 @@ graph LR
  P1 --> G2["G2 (resumed on M2)"]
 ```
 
-* **G (Goroutine)** → The task itself. **Physically, a `g` struct in RAM** (heap). It contains a private stack (starting at \~2KB [2]) and a "Program Counter" (a bookmark of the next line of code). [1][8]
+* **G (Goroutine)** → The task itself. **Physically, a `g` struct in RAM** (heap). It contains a private stack (starting at \~2KB [^2]) and a "Program Counter" (a bookmark of the next line of code). [^1][^8]
 * **P (Processor)** → The scheduler’s “cooking station.” A logical resource that holds the context for executing Go code.
 * **M (Machine / OS Thread)** → The chef (physical/OS thread) who executes the task.
 
@@ -59,13 +59,13 @@ graph LR
 
 * Each P has a **Local Run Queue** (a list of memory pointers to Goroutines waiting in RAM).
 * If P1 runs out of Gs, it checks the **Global Run Queue**.
-* If empty, it attempts to **steal half** of P2’s local queue. [3]
+* If empty, it attempts to **steal half** of P2’s local queue. [^3]
 * _Result:_ Keeps all CPU cores saturated without expensive OS-level context switches.
 
 **Syscall Handoff (Preventing Blocking)**
 
 * If **G1** makes a blocking syscall (e.g., file I/O), the thread **M1** blocks.
-* The Scheduler detaches **P1** from **M1** and moves it to a new/idle thread (**M2**). [4]
+* The Scheduler detaches **P1** from **M1** and moves it to a new/idle thread (**M2**). [^4]
 * **P1** continues executing other queued goroutines (**G2, G3**) on the new thread.
 * _Result:_ Thousands of blocking syscalls won't starve your CPU.
 
@@ -127,7 +127,7 @@ Each channel maintains:
 
 * **`buf`** → Circular buffer (the actual RAM storage for buffered values).
 * **`sendq` & `recvq`** → Linked lists in RAM storing **pointers** to blocked goroutines.
-* **`lock`** → A mutex ensuring thread-safe access to the channel. [5]
+* **`lock`** → A mutex ensuring thread-safe access to the channel. [^5]
 
 ### **Lifecycle of a Blocked Operation**
 
@@ -254,7 +254,7 @@ The loop is running in the `main` goroutine, which already "owns" an OS Thread (
 
 **In Go 1.21 and older**
 
-The closure captures the reference (memory address) of the loop variable `n`. Since the `main` goroutine usually finishes the loop before the scheduler picks up the new goroutines, they all wake up, look at the same memory address, and see the final value of the loop. [6]
+The closure captures the reference (memory address) of the loop variable `n`. Since the `main` goroutine usually finishes the loop before the scheduler picks up the new goroutines, they all wake up, look at the same memory address, and see the final value of the loop. [^6]
 
 ```go
 numbers := []int{1, 2, 3}
@@ -270,7 +270,7 @@ for _, n := range numbers {
 
 **In Go 1.22 and newer**
 
-The Go team changed the language semantics so that the loop variable `n` is instance-per-iteration. Now, each pass through the loop creates a brand new memory address for `n`. Even if the goroutines are delayed in the queue, they each point to a unique "snapshot" of the value. [6]
+The Go team changed the language semantics so that the loop variable `n` is instance-per-iteration. Now, each pass through the loop creates a brand new memory address for `n`. Even if the goroutines are delayed in the queue, they each point to a unique "snapshot" of the value. [^6]
 
 * Output: `1, 2, 3` (in random order).
 
@@ -396,7 +396,7 @@ The modern "Senior" alternative to `sync.WaitGroup`. It handles:
 
 1. Waiting for goroutines.
 2. Error propagation (returns the first error encountered).
-3. Context cancellation (if one fails, cancel the others). [7]
+3. Context cancellation (if one fails, cancel the others). [^7]
 
 ```go
 import "golang.org/x/sync/errgroup"
@@ -597,26 +597,18 @@ func main() {
 
 ## References
 
-[1] Go runtime source `src/runtime/proc.go` lines 28–31: G, P, M definitions.
- https://go.dev/src/runtime/proc.go
+[^1]: Go runtime source `src/runtime/proc.go` lines 28–31: G, P, M definitions. https://go.dev/src/runtime/proc.go
 
-[2] Go runtime source `src/runtime/stack.go` line 78: `stackMin = 2048` (initial goroutine stack ~2KB).
- https://go.dev/src/runtime/stack.go
+[^2]: Go runtime source `src/runtime/stack.go` line 78: `stackMin = 2048` (initial goroutine stack ~2KB). https://go.dev/src/runtime/stack.go
 
-[3] Go runtime source `src/runtime/proc.go` lines 3837–3909: `stealWork()` function, line 7778: `runqsteal` steals half of another P's run queue.
- https://go.dev/src/runtime/proc.go
+[^3]: Go runtime source `src/runtime/proc.go` lines 3837–3909: `stealWork()` function, line 7778: `runqsteal` steals half of another P's run queue. https://go.dev/src/runtime/proc.go
 
-[4] Go runtime source `src/runtime/proc.go` lines 4859–4869: `entersyscallblock()`: P handoff during blocking syscall via `handoffp(releasep())`.
- https://go.dev/src/runtime/proc.go
+[^4]: Go runtime source `src/runtime/proc.go` lines 4859–4869: `entersyscallblock()`: P handoff during blocking syscall via `handoffp(releasep())`. https://go.dev/src/runtime/proc.go
 
-[5] Go runtime source `src/runtime/chan.go` lines 34–55: `hchan` struct with `buf`, `sendq`/`recvq`, `lock`.
- https://go.dev/src/runtime/chan.go
+[^5]: Go runtime source `src/runtime/chan.go` lines 34–55: `hchan` struct with `buf`, `sendq`/`recvq`, `lock`. https://go.dev/src/runtime/chan.go
 
-[6] Go 1.22 Release Notes "each iteration of the loop creates new variables, to avoid accidental sharing bugs."
- https://go.dev/doc/go1.22#language
+[^6]: Go 1.22 Release Notes "each iteration of the loop creates new variables, to avoid accidental sharing bugs." https://go.dev/doc/go1.22#language
 
-[7] `golang.org/x/sync/errgroup` error propagation and context cancellation on first error.
- https://pkg.go.dev/golang.org/x/sync/errgroup
+[^7]: `golang.org/x/sync/errgroup` error propagation and context cancellation on first error. https://pkg.go.dev/golang.org/x/sync/errgroup
 
-[8] Go scheduler design document.
- https://golang.org/s/go11sched
+[^8]: Go scheduler design document. https://golang.org/s/go11sched
