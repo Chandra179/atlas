@@ -7,9 +7,6 @@ created: "2026-06-13"
 
 # etcd & Raft
 
-[etcd-io/etcd](https://github.com/etcd-io/etcd)
-[etcd-io/raft](https://github.com/etcd-io/raft)
-
 This document explains how etcd uses the Raft consensus algorithm to achieve linearizable writes across a cluster. After reading, you should understand the full write path, leader election mechanics, log structure, WAL durability guarantees, and how the MVCC store applies committed entries and how each layer stays decoupled.
 
 **Reader:** This document assumes familiarity with distributed systems concepts (quorum, CAP, leader election). No prior Raft knowledge is needed.
@@ -143,9 +140,9 @@ sequenceDiagram
 
 ### Stage 1: Propose
 
-The client issues a `Put("foo", "bar")` via gRPC. etcdserver serializes it into a protobuf `mvccpb.KeyValue` and calls `s.r.Propose(ctx, encodedData)`.
+The client issues a `Put("foo", "bar")` via gRPC. etcdserver serializes it into a protobuf `mvccpb.KeyValue` and calls `s.r.Propose(ctx, encodedData)`[^10].
 
-Inside Raft's `RawNode.Propose()`, the data is wrapped in a `Message` of type `MsgProp`, tagged with the current term, and appended to the leader's in-memory unstable log. No disk I/O happens yet.
+Inside Raft's `RawNode.Propose()`[^3], the data is wrapped in a `Message` of type `MsgProp`, tagged with the current term, and appended to the leader's in-memory unstable log. No disk I/O happens yet.
 
 ### Stage 2: Ready (First Cycle)
 
@@ -174,8 +171,8 @@ Each follower receives `MsgApp` and checks whether the entry immediately before 
 ```go
 func (r *raft) handleAppendEntries(m *pb.Message) {
  if r.raftLog.maybeAppend(a) {
- r.send(MsgAppResp{Index: newLastIndex})
- return
+  r.send(MsgAppResp{Index: newLastIndex})
+  return
  }
  // REJECT provide a hint for backtrack
  hintIndex := min(m.GetIndex(), r.raftLog.lastIndex())
@@ -215,12 +212,12 @@ The leader receives the rejection and refines the hint by scanning its own log:
 ```go
 case pb.MsgAppResp:
  if m.GetReject() {
- nextProbeIdx, _ = r.raftLog.findConflictByTerm(
- m.GetRejectHint(), m.GetLogTerm())
- if pr.MaybeDecrTo(m.GetIndex(), nextProbeIdx) {
- pr.BecomeProbe() // Replicate → Probe mode
- r.sendAppend(m.GetFrom()) // Send corrected append immediately
- }
+  nextProbeIdx, _ = r.raftLog.findConflictByTerm(
+   m.GetRejectHint(), m.GetLogTerm())
+  if pr.MaybeDecrTo(m.GetIndex(), nextProbeIdx) {
+   pr.BecomeProbe() // Replicate → Probe mode
+   r.sendAppend(m.GetFrom()) // Send corrected append immediately
+  }
  }
 ```
 
@@ -229,9 +226,9 @@ case pb.MsgAppResp:
 ```go
 func (pr *Progress) MaybeDecrTo(rejected, matchHint uint64) bool {
  if pr.State == StateReplicate {
- if rejected <= pr.Match { return false } // stale rejection
- pr.Next = pr.Match + 1 // restart from known match
- return true
+  if rejected <= pr.Match { return false } // stale rejection
+  pr.Next = pr.Match + 1 // restart from known match
+  return true
  }
  // StateProbe: rejection must be for expected index
  if pr.Next-1 != rejected { return false }
@@ -253,13 +250,13 @@ StateProbe (one at a time, waiting for ack)
 
 ### Commitment
 
-When the leader receives enough `MsgAppResp` acknowledgements to form a quorum (`> N/2`), `maybeCommit()` advances the commit index:
+When the leader receives enough `MsgAppResp` acknowledgements to form a quorum[^7] (`> N/2`), `maybeCommit()` advances the commit index:
 
 ```go
 func (l *raftLog) maybeCommit(maxMatchIdx, term uint64) bool {
  if maxMatchIdx > l.committed && l.zeroTermOnErrCompacted(l.term(maxMatchIdx)) == term {
- l.committed = maxMatchIdx
- return true
+  l.committed = maxMatchIdx
+  return true
  }
  return false
 }
@@ -273,7 +270,7 @@ The MVCC store:
 - Assigns a new monotonically increasing revision (global counter)
 - Writes the key-value pair to the bbolt backend at the new revision
 - Updates the in-memory read buffer (tree index) for fast reads
-- Notifies watchers that this key changed
+- Notifies watchers[^12] that this key changed
 
 ### Stage 5: Response
 
@@ -321,12 +318,12 @@ Key flow in `raft.go`:
 func (r *raft) Step(m pb.Message) error {
  switch m.Type {
  case pb.MsgHup: // local tick → election
- r.campaign(r.preVote)
+  r.campaign(r.preVote)
  case pb.MsgVote: // incoming vote request
- r.handleVoteRequest(m)
+  r.handleVoteRequest(m)
  case pb.MsgVoteResp: // vote response
- r.handleVoteResponse(m)
- ...
+  r.handleVoteResponse(m)
+  ...
  }
 }
 ```
@@ -339,15 +336,15 @@ func (r *raft) campaign(t CampaignType) {
  vs := r.votes
  // send vote requests to all peers
  for _, id := range r.trk.VoterNodes() {
- if id == r.id { continue }
- r.send(pb.Message{To: id, Type: pb.MsgVote, ...})
+  if id == r.id { continue }
+  r.send(pb.Message{To: id, Type: pb.MsgVote, ...})
  }
  // check if we win immediately (single-node cluster)
  r.poll(r.id, pb.VoteRespMsgType(pb.MsgVoteResp), true)
 }
 ```
 
-Votes are tallied in `tracker.ProgressTracker.RecordVote()`. When `TallyVotes()` returns true (majority), `becomeLeader()` is called.
+Votes are tallied in `tracker.ProgressTracker.RecordVote()`[^6]. When `TallyVotes()` returns true (majority), `becomeLeader()` is called.
 
 ### Pre-vote
 
@@ -382,7 +379,7 @@ When pre-vote wins a quorum, the candidate transitions to a real election:
 ```go
 case quorum.VoteWon:
  if r.state == StatePreCandidate {
- r.campaign(campaignElection) // Win pre-vote → start real election
+  r.campaign(campaignElection) // Win pre-vote → start real election
  }
 ```
 
@@ -403,21 +400,17 @@ type Storage interface {
 }
 ```
 
-In plain terms: `InitialState` returns the node's persisted term and vote who it is on restart. `Entries` fetches a range of log entries from durable storage. `Term` looks up the term of a single entry by index. `LastIndex` and `FirstIndex` report the log's boundaries. `Snapshot` returns the most recent snapshot. Raft calls these to decide what's safe, but never reads or writes the log itself.
+In plain terms[^8]: `InitialState` returns the node's persisted term and vote who it is on restart. `Entries` fetches a range of log entries from durable storage. `Term` looks up the term of a single entry by index. `LastIndex` and `FirstIndex` report the log's boundaries. `Snapshot` returns the most recent snapshot. Raft calls these to decide what's safe, but never reads or writes the log itself.
 
-Raft's `raftLog` tracks four pointers:
+Raft's `raftLog` tracks four pointers[^2]:
 
-```
- snapshot
- │ applied committed unstable
- ▼ ▼ ▼ ▼
-────┬────┬────┬────┬────┬────┬────┬────┬────┬────┬────
- │ │ │ │ │ │ │ │ │ │
-────┴────┴────┴────┴────┴────┴────┴────┴────┴────┴────
- Storage (stable) │ unstable (in-memory)
- │
- committed - applied = ready to apply
- unstable - committed = not yet safe
+```mermaid
+flowchart LR
+    subgraph storage["Storage (stable)"]
+        direction LR
+        snapshot["snapshot"] --> applied["applied"] --> committed["committed"]
+    end
+    committed --> unstable["unstable<br/>(in-memory)"]
 ```
 
 - **applied**: applied to state machine (bbolt)
@@ -428,7 +421,7 @@ Raft holds these pointers in memory. The WAL holds entries on disk the durable c
 
 ## WAL (Write-Ahead Log)
 
-The WAL is the source of truth for Raft state on disk. Every entry Raft decides to persist goes here first. On restart, Raft replays the WAL to rebuild its log and state machine.
+The WAL is the source of truth for Raft state on disk[^14]. Every entry Raft decides to persist goes here first. On restart, Raft replays the WAL to rebuild its log and state machine.
 
 ### What the WAL Stores
 
@@ -503,16 +496,16 @@ Every WAL record wraps a serialized Raft entry in a checksummed envelope with a 
 
 ```
 ┌──────────────────────────────────────────────┐
-│ 8 bytes: Length field (uint64 LE) │
-│ bits 0-55 = protobuf Record size │
-│ bit 63 = 1 if padding present (0x80) │
-│ bits 56-58 = padding byte count (0-7) │
+│ 8 bytes: Length field (uint64 LE)            │
+│ bits 0-55 = protobuf Record size             │
+│ bit 63 = 1 if padding present (0x80)         │
+│ bits 56-58 = padding byte count (0-7)        │
 ├──────────────────────────────────────────────┤
-│ N bytes: Protobuf-serialized walpb.Record │
-│ {type: EntryType, crc: 0xABCD, │
-│ data: <protobuf raftpb.Entry>} │
+│ N bytes: Protobuf-serialized walpb.Record    │
+│ {type: EntryType, crc: 0xABCD,               │
+│ data: <protobuf raftpb.Entry>}               │
 ├──────────────────────────────────────────────┤
-│ 0-7 bytes: Zero-padding to 8-byte alignment │
+│ 0-7 bytes: Zero-padding to 8-byte alignment  │
 └──────────────────────────────────────────────┘
 ```
 
@@ -592,12 +585,12 @@ The WAL uses two independent padding mechanisms for different purposes:
 ```
 On disk, the two layers nest:
 
-8-byte aligned: 8-byte aligned: 8-byte aligned:
-┌──────────────┐ ┌──────────────┐ ┌──────────────┐
+ 8-byte aligned:      8-byte aligned:          8-byte aligned:
+┌──────────────┐     ┌──────────────┐         ┌──────────────┐
 │ [8 len][rec] │ pad │ [8 len][rec] │ pad ... │ [8 len][rec] │
-└──────────────┘ └──────────────┘ └──────────────┘
-├──────────── 4096 byte page ──────────────────┤
- ↑
+└──────────────┘     └──────────────┘         └──────────────┘
+├────────────────────── 4096 byte page ──────────────────────┤
+↑
  PageWriter ensures
  pages start here
  (may include trailing
@@ -605,9 +598,9 @@ On disk, the two layers nest:
  previous page)
 
 [8 len][rec][pad][8 len][rec][pad]...[zero-pad to 4096]
-←─── fully written atomically ──→ ↑
- zeros guarantee
- crash detects torn write
+←─── fully written atomically ─────→ ↑
+                                      zeros guarantee
+                                      crash detects torn write
 ```
 
 ### PageWriter
@@ -619,7 +612,7 @@ PageWriter is a buffered writer that solves **torn writes across OS page boundar
 ```
 Page 0 (bytes 0-4095) Page 1 (bytes 4096-8191)
 ┌──────────────────────┐ ┌──────────────────────┐
-│ ...[record starts] ││ [record ends]... │
+│ ...[record starts]   │ │ [record ends]...     │
 └──────────────────────┘ └──────────────────────┘
  ✓ written ✗ crash before written
 ```
@@ -653,7 +646,7 @@ type PageWriter struct {
 func (w *PageWriter) Flush() {
  data := w.buf.Bytes()
  if pad := (w.page - (w.offset+len(data)) % w.page) % w.page; pad > 0 {
- data = append(data, make([]byte, pad)...)
+  data = append(data, make([]byte, pad)...)
  }
  w.file.WriteAt(data, w.offset) // write whole page(s) at once
  w.offset += len(data)
@@ -668,7 +661,7 @@ Small writes (< 128 KB watermark) are buffered. Large records (> 4096 bytes) wri
 ```
 Crash happens mid-write at PageWriter's flush:
 ┌──────────────────────────────────────────────┐
-│ [8 len][rec][pad][zero-padding to align]... │
+│ [8 len][rec][pad][zero-padding to align]...  │
 │ ←── fully written ──→←── unwritten (zeros) → │
 └──────────────────────────────────────────────┘
 ```
@@ -682,9 +675,9 @@ Crash happens mid-write at PageWriter's flush:
 ```go
 func (d *decoder) isTornEntry(data []byte) bool {
  for i := 0; i < len(data); i += 512 {
- if allZeros(data[i : i+512]) {
- return true // ← crash detected here
- }
+  if allZeros(data[i : i+512]) {
+   return true // ← crash detected here
+  }
  }
  return false
 }
@@ -778,8 +771,8 @@ After reading a record, the decoder checks for torn writes:
 ```go
 func (d *decoder) isTornEntry(data []byte) bool {
  for i := 0; i < len(data); i += 512 { // 512-byte sector chunks
- chunk := data[i : i+512]
- if allZeros(chunk) { return true } // crash mid-write left zeros
+  chunk := data[i : i+512]
+  if allZeros(chunk) { return true } // crash mid-write left zeros
  }
  return false
 }
@@ -789,7 +782,7 @@ If a crash happened during the write, the trailing bytes of the record will be z
 
 ## Raft Progress Tracking
 
-The leader maintains a `Progress` for every follower, tracking how far behind each one is:
+The leader maintains a `Progress`[^5] for every follower, tracking how far behind each one is:
 
 ```mermaid
 flowchart TD
@@ -807,7 +800,7 @@ flowchart TD
 
 ## etcdserver Raft Loop + Apply Loop
 
-The connection between Raft and the state machine uses **two separate goroutines** communicating via a channel:
+The connection between Raft and the state machine uses **two separate goroutines**[^9] communicating via a channel:
 
 ### Raft Loop (`server/etcdserver/raft.go`)
 
@@ -815,23 +808,23 @@ The connection between Raft and the state machine uses **two separate goroutines
 // raft.go goroutine started by raftNode.start()
 for {
  select {
- case rd := <-r.Ready():
- // Send committed entries to the apply loop via channel
- r.applyc <- toApply{entries: committedEntries, snapshot: &rd.Snapshot, ...}
+ case rd := <-r.Ready()[^4]:
+  // Send committed entries to the apply loop via channel
+  r.applyc <- toApply{entries: committedEntries, snapshot: &rd.Snapshot, ...}
 
- // Leader sends messages to followers
- if islead {
- r.transport.Send(r.processMessages(ptrMsgs))
- }
+  // Leader sends messages to followers
+  if islead {
+   r.transport.Send(r.processMessages(ptrMsgs))
+  }
 
- // Write entries + HardState to WAL (fsync)
- if err := r.storage.Save(&rd.HardState, ptrEntries); err != nil {
- r.lg.Fatal("failed to save Raft hard state and entries", ...)
- }
+  // Write entries + HardState to WAL (fsync)
+  if err := r.storage.Save(&rd.HardState, ptrEntries); err != nil {
+   r.lg.Fatal("failed to save Raft hard state and entries", ...)
+  }
 
- // Append entries to raft storage, handle snapshots
- r.raftStorage.Append(rd.Entries)
- r.Advance()
+  // Append entries to raft storage, handle snapshots
+  r.raftStorage.Append(rd.Entries)
+  r.Advance()
  }
 }
 ```
@@ -843,17 +836,17 @@ for {
 for {
  select {
  case ap := <-s.r.apply(): // receive committed entries
- s.applyAll(&ep, &ap) // → s.applyEntries(ep, apply)
+  s.applyAll(&ep, &ap) // → s.applyEntries(ep, apply)
  case leases := <-expiredLeaseC:
- s.revokeExpiredLeases(leases)
- ...
+  s.revokeExpiredLeases(leases)[^13]
+  ...
  }
 }
 ```
 
 **Key insight**: The Raft loop handles `Ready()` → WAL + transport + `Advance()`. The apply loop reads committed entries from `r.applyc` and applies them to the MVCC store. They run concurrently, decoupling durability/replication from state machine application.
 
-## The MVCC Store
+## The MVCC Store[^11]
 
 The MVCC store applies each committed `Put` entry:
 
@@ -903,22 +896,20 @@ Eight design decisions in etcd and Raft that apply to any distributed system tha
 
 ## Source Citations
 
-| Component | Repository | File | Key Functions |
-|---|---|---|---|
-| Raft state machine | `go.etcd.io/raft/v3` | `raft.go` | `Step()`, `campaign()`, `becomeLeader()`, `becomeCandidate()`, `stepLeader()`, `bcastAppend()` |
-| Raft log | `go.etcd.io/raft/v3` | `log.go` | `maybeCommit()`, `findConflict()`, `append()`, `nextCommittedEnts()` |
-| RawNode API | `go.etcd.io/raft/v3` | `rawnode.go` | `Ready()`, `Advance()`, `Propose()`, `Step()` |
-| Node API (channel) | `go.etcd.io/raft/v3` | `node.go` | `StartNode()`, `run()`, `Ready()` (channel), `Propose()` |
-| Progress tracking | `go.etcd.io/raft/v3` | `tracker/progress.go` | `MaybeUpdate()`, `MaybeDecrTo()`, `BecomeProbe/Replicate/Snapshot()` |
-| Progress tracker | `go.etcd.io/raft/v3` | `tracker/tracker.go` | `RecordVote()`, `TallyVotes()`, `Committed()` |
-| Quorum math | `go.etcd.io/raft/v3` | `quorum/majority.go` | `MajorityConfig.VoteResult()`, `MajorityConfig.CommittedIndex()` |
-| Storage interface | `go.etcd.io/raft/v3` | `storage.go` | `Storage`, `MemoryStorage` |
-| etcdserver orchestrator | `go.etcd.io/etcd/server/v3` | `server/etcdserver/server.go` | `run()`, `apply()`, `applyAll()`, `applyEntries()` |
-| etcdserver propose | `go.etcd.io/etcd/server/v3` | `server/etcdserver/v3_server.go` | `processInternalRaftRequestOnce()` |
-| MVCC store | `go.etcd.io/etcd/server/v3` | `server/storage/mvcc/kvstore.go` (`store` struct), `kvstore_txn.go` (`Put()`, `Read()`) | revision assignment, tree index |
-| Watcher | `go.etcd.io/etcd/server/v3` | `server/storage/mvcc/watcher.go` | `Watch()`, synced/unsynced event channels |
-| Lease system | `go.etcd.io/etcd/server/v3` | `server/lease/lessor.go` | `Grant()`, `Revoke()`, `Promote()`, expiry check |
-| WAL persistence | `go.etcd.io/etcd/server/v3` | `server/storage/wal/wal.go` | `Save()`, `ReadAll()`, entry serialization |
+[^1]: **Raft state machine** — `go.etcd.io/raft/v3`, `raft.go` — `Step()`, `campaign()`, `becomeLeader()`, `becomeCandidate()`, `stepLeader()`, `bcastAppend()`
+[^2]: **Raft log** — `go.etcd.io/raft/v3`, `log.go` — `maybeCommit()`, `findConflict()`, `append()`, `nextCommittedEnts()`
+[^3]: **RawNode API** — `go.etcd.io/raft/v3`, `rawnode.go` — `Ready()`, `Advance()`, `Propose()`, `Step()`
+[^4]: **Node API (channel)** — `go.etcd.io/raft/v3`, `node.go` — `StartNode()`, `run()`, `Ready()` (channel), `Propose()`
+[^5]: **Progress tracking** — `go.etcd.io/raft/v3`, `tracker/progress.go` — `MaybeUpdate()`, `MaybeDecrTo()`, `BecomeProbe/Replicate/Snapshot()`
+[^6]: **Progress tracker** — `go.etcd.io/raft/v3`, `tracker/tracker.go` — `RecordVote()`, `TallyVotes()`, `Committed()`
+[^7]: **Quorum math** — `go.etcd.io/raft/v3`, `quorum/majority.go` — `MajorityConfig.VoteResult()`, `MajorityConfig.CommittedIndex()`
+[^8]: **Storage interface** — `go.etcd.io/raft/v3`, `storage.go` — `Storage`, `MemoryStorage`
+[^9]: **etcdserver orchestrator** — `go.etcd.io/etcd/server/v3`, `server/etcdserver/server.go` — `run()`, `apply()`, `applyAll()`, `applyEntries()`
+[^10]: **etcdserver propose** — `go.etcd.io/etcd/server/v3`, `server/etcdserver/v3_server.go` — `processInternalRaftRequestOnce()`
+[^11]: **MVCC store** — `go.etcd.io/etcd/server/v3`, `server/storage/mvcc/kvstore.go` (`store` struct), `kvstore_txn.go` (`Put()`, `Read()`) — revision assignment, tree index
+[^12]: **Watcher** — `go.etcd.io/etcd/server/v3`, `server/storage/mvcc/watcher.go` — `Watch()`, synced/unsynced event channels
+[^13]: **Lease system** — `go.etcd.io/etcd/server/v3`, `server/lease/lessor.go` — `Grant()`, `Revoke()`, `Promote()`, expiry check
+[^14]: **WAL persistence** — `go.etcd.io/etcd/server/v3`, `server/storage/wal/wal.go` — `Save()`, `ReadAll()`, entry serialization
 
 **Two separate repositories.** The Raft consensus library (`go.etcd.io/raft/v3`) is a standalone Go module. Historically it was part of etcd but was extracted into its own repo at `github.com/etcd-io/raft`. etcd imports it as a Go module dependency there is no `raft/` directory inside the etcd repository.
 

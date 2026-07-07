@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, existsSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -6,16 +6,11 @@ const DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(DIR, '../../..');
 const BLOG_DIR = path.join(ROOT, 'blog/astro/src/content/docs');
 
-const FILES = [
-  'etcd-raft.md',
-  'introduction.md',
-  'knowledge-map.md',
-  'psycho.md',
-  'rag.md',
-  'reactjs.md',
-  'saas-template.md',
-  'syncthing.md',
-];
+const BLOG_SUBDIRS = new Set(['ai', 'backend-engineering', 'database', 'economy', 'golang', 'math', 'system-design']);
+
+const rootFiles = readdirSync(ROOT, { withFileTypes: true })
+  .filter(e => e.isFile() && e.name.endsWith('.md'))
+  .map(e => e.name);
 
 function titleFromFilename(name) {
   return name
@@ -41,16 +36,11 @@ function extractFrontmatterBlock(content) {
 
 let synced = 0;
 let skipped = 0;
+let cleaned = 0;
 
-for (const file of FILES) {
+for (const file of rootFiles) {
   const rootPath = path.join(ROOT, file);
   const blogPath = path.join(BLOG_DIR, file);
-
-  if (!existsSync(rootPath)) {
-    console.warn(`  ⚠  root file missing: ${file}`);
-    skipped++;
-    continue;
-  }
 
   const rootContent = readFileSync(rootPath, 'utf-8');
   const rootBody = stripFrontmatter(rootContent);
@@ -75,4 +65,15 @@ for (const file of FILES) {
   synced++;
 }
 
-console.log(`\nDone: ${synced} synced, ${skipped} skipped`);
+const blogFiles = readdirSync(BLOG_DIR, { withFileTypes: true })
+  .filter(e => e.isFile() && e.name.endsWith('.md') && e.name !== 'README.md');
+
+for (const entry of blogFiles) {
+  if (!rootFiles.includes(entry.name)) {
+    unlinkSync(path.join(BLOG_DIR, entry.name));
+    console.log(`  ✗ removed: ${entry.name}`);
+    cleaned++;
+  }
+}
+
+console.log(`\nDone: ${synced} synced, ${skipped} skipped, ${cleaned} cleaned`);

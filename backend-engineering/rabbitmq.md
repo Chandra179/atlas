@@ -53,19 +53,14 @@ graph TD
 The topology manager is responsible for declaring and caching the broker-side objects (exchanges, queues, bindings) that the application needs. It guarantees that all required topology exists before any message is published or consumed.
 
 #### Queue Declaration (`queue.declare`)
-
-* **Parameters**
  * `queue` – name of the queue (empty string lets the broker generate a unique name).
  * `durable` – `true` to survive broker restarts.
  * `exclusive` – `true` to restrict the queue to the declaring connection.
  * `auto-delete` – `true` to delete the queue when its last consumer cancels.
  * `arguments` – optional map (e.g., `x-message-ttl`, `x-dead-letter-exchange`).
-* **Behaviour**\
  The manager always calls `queue.declare` idempotently. If the queue already exists with matching parameters the broker returns the current message count and consumer count; otherwise it creates the queue.
 
 #### Exchange Declaration (`exchange.declare`)
-
-* **Parameters**
  * `exchange` – exchange name.
  * `type` – `direct`, `topic`, `fanout`, `headers` or a custom type.
  * `durable` – survive broker restarts.
@@ -74,12 +69,10 @@ The topology manager is responsible for declaring and caching the broker-side ob
  * `arguments` – optional map (e.g., alternate exchange).
 
 #### Binding (`queue.bind` / `exchange.bind`)
-
 * Binds a queue to an exchange (or an exchange to another exchange) with a **routing key** and optional `arguments`.
 * The topology manager can declare multiple bindings per queue.
 
 #### Caching & Re-declaration after Reconnection
-
 * The manager keeps an in-memory cache of all declared objects (queues, exchanges, bindings) together with their exact parameters.
 * On **connection loss** the client reconnects and the topology manager **re-declares every cached object** in the same order (exchanges first, then queues, then bindings).
 * **Idempotency** guarantees that re-declaration is safe – the broker either creates the missing object or confirms its existence.
@@ -106,20 +99,19 @@ After all retries are exhausted (e.g., a `x-death` header shows the message has 
 ## Consumer
 
 The consumer module handles message delivery from a queue, with support for acknowledgement strategies and batch processing.
-
 #### Acknowledgement Modes
 
-* **Auto acknowledgement (`autoAck: true`)**\
+**Auto acknowledgement (`autoAck: true`)**
  The broker considers a message delivered as soon as it sends it over the socket.
  * Fastest, no risk of forgetting to ack.
  * Messages can be lost if the consumer crashes before processing.
-* **Manual acknowledgement (`autoAck: false`)**\
- The application must explicitly call `channel.ack(deliveryTag)` after successful processing.
+ 
+**Manual acknowledgement (`autoAck: false`)**
+The application must explicitly call `channel.ack(deliveryTag)` after successful processing.
  * `nack` (or `reject`) can be used with `requeue=true` to return the message to the queue, or `requeue=false` to dead-letter it (if DLX is configured).
  * Gives full control over at-least-once delivery semantics.
 
 #### Batch Consume
-
 For performance-sensitive scenarios the consumer can fetch and process messages in batches.
 
 * **Prefetch** – set via `basic.qos(prefetchCount)` to limit the number of unacknowledged messages on the channel.
@@ -129,14 +121,13 @@ For performance-sensitive scenarios the consumer can fetch and process messages 
 ***
 
 ## Producer
-
 Producers are responsible for publishing messages to an exchange. The library provides both single and batched publish operations.
-
 #### Publish & Publish Batch
 
-* **`publish(exchange, routingKey, content, properties)`**\
+***`publish(exchange, routingKey, content, properties)`**
  Synchronous wrapper around `basic.publish`. The caller can set mandatory/immediate flags and custom headers.
-* **`publishBatch(messages)`**\
+ 
+***`publishBatch(messages)`**
  Publishes a list of messages on the same channel.
  * Uses a single AMQP channel to avoid per-message overhead.
  * When combined with publisher confirms (see below), the batch can be acknowledged after all messages have been confirmed.
@@ -169,23 +160,22 @@ RabbitMQ connections have a **finite number of channels** (protocol limit \~65,5
 
 #### Design
 
-* **Pool size (`N`)** – configurable. Channels are created when the pool is initialised and placed in an idle queue.
-* **Borrow / Return**
+**Pool size (`N`)** 
+ configurable. Channels are created when the pool is initialised and placed in an idle queue.
+**Borrow / Return**
  * A producer borrows a channel, uses it for one or more publish operations, and returns it to the pool.
  * The pool tracks which channels are in use to prevent concurrent access (an AMQP channel is not thread-safe).
-* **Channel lifecycle**
+**Channel lifecycle**
  * If a channel encounters an error (e.g., `channel.close` from broker), it is discarded and a new channel is created transparently.
  * After connection loss, the pool re-creates all channels on the new connection, resetting any confirm mode state.
 
 #### Interaction with Publisher Confirms
-
 When publisher confirms are enabled, each channel in the pool is put into confirm mode. The producer must ensure that:
 
 * A confirmation callback (or `CompletableFuture`) is registered per publish before returning the channel.
 * The channel is not returned to the pool until all outstanding confirms for that batch have been received (or a timeout occurs). This prevents interleaving of confirms from different producers.
 
 **Simplified flow:**
-
 1. Borrow a channel from the pool.
 2. Enable confirm mode if not already (idempotent).
 3. Publish one or more messages, storing a future for each delivery tag.
@@ -194,11 +184,11 @@ When publisher confirms are enabled, each channel in the pool is put into confir
 
 #### Why a Pool is Necessary
 
-| Approach | Risk |
+| Approach                | Risk                                                                      |
 | ----------------------- | ------------------------------------------------------------------------- |
-| New channel per publish | Channel count exhaustion; excessive TCP teardown/setup overhead. |
-| Single shared channel | Not thread-safe; requires external synchronization, limiting concurrency. |
-| **Pool of N channels** | Bounded parallelism, safe concurrency, resource efficient. |
+| New channel per publish | Channel count exhaustion; excessive TCP teardown/setup overhead.          |
+| Single shared channel   | Not thread-safe; requires external synchronization, limiting concurrency. |
+| **Pool of N channels**  | Bounded parallelism, safe concurrency, resource efficient.                |
 
 The pool ensures that the number of open channels never exceeds the configured `maxChannels`, regardless of the number of concurrent producers.
 

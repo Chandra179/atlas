@@ -469,6 +469,43 @@ func QueryReplicas(query string, conns []DBConn) Result {
 
 With a buffered channel sized to `len(conns)`, every goroutine drops its result immediately and exits. The main goroutine reads the first one; the rest stay in the buffer and are cleaned up when the channel goes out of scope.
 
+### Token-Bucket Rate Limiting (`golang.org/x/time/rate`)
+
+Prevents resource overload by shaping request flow rather than sporadic ticker-based limits.
+
+```go
+func handleRequests() {
+	limiter := rate.NewLimiter(rate.Limit(10), 5) // 10 req/s, burst of 5
+	ctx := context.Background()
+
+	for {
+		if err := limiter.Wait(ctx); err != nil {
+			break
+		}
+		go executeRequest()
+	}
+}
+```
+
+Rate limiters compose naturally with graceful shutdown — replace `context.Background()` with a cancellable context to stop throttled goroutines on SIGTERM.
+
+### Request Coalescing (`golang.org/x/sync/singleflight`)
+
+Prevents a [cache stampede](https://en.wikipedia.org/wiki/Cache_stampede) when thousands of concurrent requests miss cache and hit the DB with the same key.
+
+```go
+var g singleflight.Group
+
+func getArticle(id string) (Article, error) {
+	v, err, _ := g.Do(id, func() (interface{}, error) {
+		return fetchFromDatabase(id) // only one goroutine executes this
+	})
+	return v.(Article), err
+}
+```
+
+Shared (`shared`) flag from `g.Do` is true for all callers except the one that actually ran the function — useful for distinguishing hot vs cold cache in metrics.
+
 ## Goroutine Leak
 
 Real world goroutine leak
