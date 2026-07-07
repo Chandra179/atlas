@@ -135,7 +135,7 @@ created: 2026-06-29
 - Guardrails: content filtering, prompt injection detection, output validation
 - LLM Ops: eval-driven development, regression test suites, canary deployment
 
-**Should know (debugging/senior):**
+## Should know (debugging/senior):
 - Profile-guided optimization / PGO (1.20 experimental, 1.21 stable) — 2–14% perf gain in production
 - Go toolchain management (1.21) — `go.mod` `toolchain` directive, automatic download
 - `min`, `max`, `clear` builtins (1.21) — `clear(m)`, `clear(slice)`
@@ -154,7 +154,7 @@ created: 2026-06-29
 **Nice to know (specialized):**
 - Fuzzing (1.18) — `go test -fuzz`, `(*testing.F).Add`, `(*testing.F).Fuzz`
 - Memory model revision (1.19) — sync.Pool, finalizer guarantees
-- `comparable` constraint fixed (1.20) — allows `==` with proper NaN behavior
+- `comparable` constraint fixed (1.20) — allows double equals with proper NaN behavior
 - Error wrapping multiple errors (1.20) — `fmt.Errorf("%w and %w", e1, e2)`
 - `runtime/arena` (1.20 experimental, removed 1.22) — manual memory allocation
 - `http.ResponseController` (1.20) — per-request deadline, flush
