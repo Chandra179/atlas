@@ -7,32 +7,27 @@ created: "2026-06-13"
 
 # Computing
 
-***Purpose**: For software engineers who need a mental model of how CPU, memory, and addressing work from physical hardware through OS abstractions to the bit level.*
-
-## Physical Hardware
-
-To interact with RAM, the CPU uses a specific set of hardware components to locate and move data.
-
-1. **Address Bus (The "Where"):** The CPU sends a specific location number to RAM. The bus width determines the maximum number of "slots" the CPU is capable of seeing.
-2. **Data Bus (The "What"):** The highway that carries the actual bits. Its width determines how much data can be moved in a single "trip," regardless of how big the address was.
-3. **Memory Controller (The "Gatekeeper"):** The intermediate manager. It takes the CPU's request, finds the physical electrical row in the RAM, and handles the timing of the data transfer.
-
-## Physical Memory Layout
-
-Physical RAM is organized into a hierarchy of structures that determine how addresses map to actual hardware cells.
-
-* **Memory Banks & Ranks:** RAM modules are divided into banks (sets of cells) and ranks (independent sets of chips on a DIMM). The memory controller interleaves accesses across banks to hide latency.
-* **Channels & Interleaving:** Modern CPUs use multiple memory channels (e.g., dual‑channel, quad‑channel). Adjacent addresses are spread across channels to increase bandwidth. For example, address `0x1000` may go to channel 0, `0x1008` to channel 1.
-* **Row, Column, and CAS Latency:** Physically, each bank is a 2D grid of rows and columns. The memory controller first activates a row (RAS – Row Address Strobe), then reads a column (CAS – Column Address Strobe). The time between these steps is the CAS latency.
-* **Physical Address Range:** The number of physical address lines defines the **theoretical maximum** RAM the CPU can address, but actual limits depend on motherboard chipset, BIOS-reserved addresses (PCIe, MMIO), and memory interleaving configuration
-
-## On-Chip Memory
-
-Before reaching out to main memory (RAM), the CPU first checks memory located directly on its own die.
-
 ### CPU Cache (L1, L2, L3)
 
-High-speed buffers that store copies of frequently accessed data from RAM. The CPU checks these first to avoid the time-consuming trip across the Address Bus.
+Your CPU is blindingly fast, but RAM is relatively slow. Every time the CPU has to wait for data to travel across the motherboard from the RAM, it sits idle doing absolutely nothing. This wasted time is called a **latency penalty**.
+
+Ultra-fast pools of memory directly inside the CPU chip itself. These pools are called 
+**Caches**. Instead of using the slow technology found in RAM (DRAM), caches use an expensive, lightning-fast technology called **SRAM (Static RAM)**.
+```
+    [ CPU Core ]
+         /\        
+        /  \    L1 Cache  (Fastest, Smallest, Private)
+       / L1 \      |
+      /___ __\     v
+     /        \    L2 Cache  (Fast, Medium, Usually Private)
+    /    L2    \     |
+   /____ _______\    v
+  /              \   L3 Cache  (Slower, Largest, Shared across all cores)
+ /       L3       \    
+/__________________\   
+         ||
+   [ System RAM ] (Slowest, Massive, Outside the CPU)
+```
 
 ### Registers
 
@@ -44,41 +39,115 @@ The fastest memory locations in existence, located inside the CPU core.
 
 ## The Execution Cycle (Fetch-Execute)
 
-1. **Fetch:** The CPU looks at the **Program Counter**, goes to that address in memory via the Address Bus, and grabs the instruction.
-2. **Decode:** The Control Unit determines what the instruction means (e.g., a `MOV` or `ADD` command).
-3. **Execute:** The ALU (Arithmetic Logic Unit) performs the operation, or data is moved between registers.
-4. **Store (Write-Back):** The result is written back to a register or a specific memory address via the Data Bus.
+```
+       ┌────────────────────────┐
+       │         FETCH          │ ◄─────────────────────────┐
+       │ (Get code from RAM/    │                           │
+       │  using Program Counter)│                           │
+       └───────────┬────────────┘                           │
+                   │                                        │
+                   ▼                                        │
+       ┌────────────────────────┐                           │
+       │         DECODE         │                           │
+       │ (Control Unit breaks   │                           │
+       │  down the binary code) │                           │
+       └───────────┬────────────┘                           │ Loop
+                   │                                        │ Continues
+                   ▼                                        │ Infinitely
+       ┌────────────────────────┐                           │
+       │        EXECUTE         │                           │
+       │ (ALU does the math or  │                           │
+       │  manipulates registers)│                           │
+       └───────────┬────────────┘                           │
+                   │                                        │
+                   ▼                                        │
+       ┌────────────────────────┐                           │
+       │   STORE (WRITE-BACK)   │                           │
+       │ (Save results back to  │───────────────────────────┘
+       │  Registers or RAM)     │
+       └────────────────────────┘
+```
 
-So far we've looked at physical memory. Now we'll see how the OS abstracts it so every program gets its own clean view.
+### FETCH: Grabbing the Instruction
 
-## Virtual Memory and Addressing
+Before the CPU can do anything, it has to fetch the next instruction from the program layout in memory.
 
-The Operating System and CPU work together to provide a simplified view of memory to programs.
+- **Program Counter (PC):** A internal register that holds the exact memory address of the _next_ instruction waiting to be executed.
+    
+    - **Memory Address Register (MAR) & Address Bus:** The staging ground and the physical highway.
+        
+- **The Detailed Process:** 
+1. The CPU looks at the **Program Counter**. Let’s say it says address `#1004`. 
+2. The CPU copies that address into the **MAR**, which drops it onto the physical **Address Bus**. 
+3. The signal travels to the memory (Cache or RAM) to read slot `#1004`. 
+4. The RAM spits out the raw binary code stored in that slot, sends it back across the **Data Bus**, and it gets stored in the **Instruction Register (IR)** inside the CPU. 
+5. **Crucial Next Step:** The instant the fetch is complete, the **Program Counter automatically increments** (changes to `#1005`) so it is already pointing to the next instruction for the next cycle.
 
-* **Virtual Address Space:** Every program is given its own continuous range of addresses (from 0 to Max). It doesn't know where its data is physically stored in the RAM chips; the MMU handles that translation.
-* **Segmentation and Offsets:** The CPU often calculates addresses using a **Base Address** (start of a region) + an **Offset** (distance into that region).
- * _Example:_ If a data block starts at `1000` and you need the 5th item, the CPU accesses `1000 + 5`.
-* **Memory Width:** A 64-bit CPU has a **theoretical** address space of 2^64 bytes, but current x86-64 implementations use **48-bit addresses** (256 TB) or 57-bit with 5-level paging. 32-bit CPUs are limited to 2^32 bytes (4 GB).
+### DECODE: Figuring Out What It Means
+
+At this point, the instruction is just a raw string of 1s and 0s (machine code) sitting in the Instruction Register. The CPU core doesn't know what it means yet.
+### EXECUTE: Doing the Heavy Lifting
+
+Now that the CPU knows exactly what is being asked, it actually performs the command.
+
+- **Arithmetic Logic Unit (ALU):** The internal calculator that performs all mathematical operations (addition, subtraction) and logical comparisons (AND, OR, checking if two numbers are equal).
+
+### STORE (WRITE-BACK): Saving the Results
+
+The operation is complete, but the result is currently just floating output on an internal CPU circuit. It needs a permanent home before the next cycle wipes it out.
+
+- **Registers / System RAM:** The destination options.
+    
+    - **Data Bus:** The highway used if the data needs to leave the CPU chip.
+        
+- **The Detailed Process:** 
+1. The output from the Execution stage is taken and written into its final destination. 
+2. **Register Write:** Most often, it's saved right back into an internal CPU register because the next line of code will probably need it immediately. This happens instantly. 
+3. **Memory Write:** If the code explicitly says to save it back to the computer's memory (like saving a file), the Memory Controller opens the gateway, sends the data out over the **Data Bus**, and saves it to a permanent address in the RAM.
 
 ### Virtual Memory Layout (OS Dependent)
 
 The OS divides a program's virtual address space into specific segments. Each process sees its own private layout, but the structure is defined by the OS kernel.
+```
++-----------------------------------+  High Memory Addresses
+|      Kernel Space                 |  (Reserved for the OS)
++-----------------------------------+
+|      Stack (Grows Downward ↓)     |  (Temporary function data)
+|         |                         |
+|         v                         |
+|                                   |
+|         ^                         |
+|         |                         |
+|      Heap (Grows Upward ↑)        |  (Dynamic, user-managed data)
++-----------------------------------+
+|      BSS Segment                  |  (Uninitialized global variables)
++-----------------------------------+
+|      Data Segment                 |  (Initialized global variables)
++-----------------------------------+
+|      Text (Code) Segment          |  (The actual code instructions)
++-----------------------------------+  Low Memory Addresses
+```
 
-| Segment | Contents | Growth |
-| --------- | --------------------------------------------------- | --------------------------------------- |
-| **Text** | Executable code (read‑only) | Fixed size |
-| **Data** | Initialized global/static variables | Fixed size |
-| **BSS** | Uninitialized global/static variables (zero‑filled) | Fixed size |
-| **Heap** | Dynamic allocations (malloc/Box) | Grows upward (toward higher addresses) |
-| **Stack** | Local variables, call frames | Grows downward (toward lower addresses) |
-| **MMIO** | Memory‑mapped I/O regions | Fixed |
+Kernel Space (The Restricted Zone)
+- **What it's for:** This is the top-secret zone reserved exclusively for the core of the Operating System (the Kernel).
+- **How it works:** Your program lives in the space below it, but the OS map hooks this section up to the absolute highest address numbers. Your program cannot touch or read this zone directly; if it tries, the computer crashes the program for security.
 
-The heap and stack are managed differently and positioned at opposite ends of the address space to maximize room before collision.
+The Stack (The Fast, Automatic Storage)
+- **What it's for:** It stores temporary data used by functions, like local variables or a history of which function called which.
+- **How it connects/works:** It starts at the top and **grows downward** toward the middle. It handles things automatically. When a function finishes running, everything it stored on the Stack is instantly wiped away.
 
-| Feature | The Stack | The Heap |
-| -------------- | -------------------------------------------- | ----------------------------------------- |
-| **Purpose** | Short-term local variables & function calls. | Long-term data & large objects. |
-| **Management** | Automatic (LIFO - Last In, First Out). | Manual (Programmer) or Garbage Collector. |
+The Heap (The Flexible, Manual Storage)
+- **What it's for:** This is the big, open pool of memory used for data that needs to outlive a single function—like a massive list of users or a giant image file.
+- **How it connects/works:** It starts near the bottom and **grows upward** toward the Stack. Unlike the Stack, the Heap is completely manual. The programmer has to explicitly ask for space here and must remember to clean it up when they are done, otherwise it causes a "memory leak."
+
+BSS & Data Segments (The Global Rooms)
+- **What they're for:** They store **Global Variables** (variables that are accessible anywhere in the entire program, not just inside one function).
+- **The difference:** * **Data Segment:** For global variables that _have_ a starting value (e.g., `int score = 100;`).
+-  **BSS Segment:** For global variables that _don't_ have a starting value yet (e.g., `int score;`). The system automatically sets these to zero when the program boots up.
+
+Text / Code Segment (The Instruction Manual)
+- **What it's for:** This contains the literal machine code instructions (the 1s and 0s) compiled from your source code.
+- **How it works:** It sits at the absolute bottom of the layout. To prevent a program from accidentally overwriting its own code while running, this segment is strictly **read-only**.
 
 ## VRAM vs Physical RAM
 

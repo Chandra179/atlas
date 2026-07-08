@@ -284,13 +284,13 @@ Same generic page layout as B-Tree pages:
 
 ```
 ┌──────────────────────────────┐
-│ Page Header │ type, checksum, LSN, free-space pointers
+│ Page Header                  │ type, checksum, LSN, free-space pointers
 ├──────────────────────────────┤
-│ Slot Array │ grows downward; each entry = (offset, length)
+│ Slot Array                   │ grows downward; each entry = (offset, length)
 ├──────────────────────────────┤
-│ Free Space │
+│ Free Space                   │
 ├──────────────────────────────┤
-│ Row Data │ grows upward; tuples with MVCC headers
+│ Row Data                     │ grows upward; tuples with MVCC headers
 └──────────────────────────────┘
 ```
 

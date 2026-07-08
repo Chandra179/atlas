@@ -162,9 +162,11 @@ RabbitMQ connections have a **finite number of channels** (protocol limit \~65,5
 
 **Pool size (`N`)** 
  configurable. Channels are created when the pool is initialised and placed in an idle queue.
+
 **Borrow / Return**
  * A producer borrows a channel, uses it for one or more publish operations, and returns it to the pool.
  * The pool tracks which channels are in use to prevent concurrent access (an AMQP channel is not thread-safe).
+
 **Channel lifecycle**
  * If a channel encounters an error (e.g., `channel.close` from broker), it is discarded and a new channel is created transparently.
  * After connection loss, the pool re-creates all channels on the new connection, resetting any confirm mode state.

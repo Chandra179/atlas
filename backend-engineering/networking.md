@@ -22,7 +22,7 @@ Before any data can flow, your browser needs to know **where** to send it. `api.
 
 The answer: `api.example.com` → `142.250.185.14`. Now the browser knows where to connect.
 
-## TCP: The Reliable Pipe
+## TCP
 
 The browser opens a TCP connection to `142.250.185.14:443` (port 443 = HTTPS). TCP provides a reliable, ordered byte stream over the unreliable IP layer.
 
@@ -31,10 +31,10 @@ The browser opens a TCP connection to `142.250.185.14:443` (port 443 = HTTPS). T
 ```
 Client Server
  | -------- SYN (seq=x) ----------> | "Can we talk?"
- | <-- SYN-ACK (seq=y, ack=x+1) -- | "Yes."
+ | <-- SYN-ACK (seq=y, ack=x+1) --  | "Yes."
  | -------- ACK (ack=y+1) --------> | "Great."
- | |
- | ===== Connection Established ==== |
+ | 
+ | ===== Connection Established ====|
 ```
 
 This exchange establishes sequence numbers on both sides so each byte can be tracked, acknowledged, and retransmitted if lost. Every connection pays this round-trip cost before any application data flows.
@@ -89,7 +89,7 @@ Cache-Control: max-age=3600
 
 The progression is about eliminating blocking at each layer. HTTP/1.1 eliminated per-request connections. HTTP/2 eliminated application-level queuing. HTTP/3 eliminated transport-level head-of-line by moving off TCP entirely to QUIC (UDP-based), where each stream is independent a lost packet on stream A has zero effect on stream B.
 
-### Caching: Don't Fetch What You Already Have
+### Caching
 
 Caching reduces latency and server load:
 
@@ -98,7 +98,7 @@ Caching reduces latency and server load:
 - `Cache-Control: immutable` the resource will never change. Ideal for versioned assets (`app.abc123.js`).
 - **ETag** a unique hash of the resource content. Browser sends `If-None-Match: "abc123"` on subsequent requests. If the hash hasn't changed, server returns `304 Not Modified` with no body. Saves bandwidth, not latency.
 
-### Authentication: Proving Who You Are
+### Authentication
 
 Web authentication follows a spectrum from simple to complex:
 
@@ -121,7 +121,7 @@ Some HTTP methods are safe to retry, others aren't:
 
 This is why browsers warn "are you sure you want to resubmit?" on POST forms, but not on GET links.
 
-## CORS: The Browser's Security Guard
+## CORS
 
 By default, a script on `app.example.com` cannot read the response from `api.other-domain.com` even if the request succeeds. This is the Same-Origin Policy: scripts can only read responses from their own origin (same protocol + domain + port).
 

@@ -74,96 +74,9 @@ the → {1, 2}
 
 Behind the scenes: Term dictionary → posting list (document IDs + positions + offsets). Compressed using delta encoding, bit packing, and skip lists.
 
-### Lucene / Elasticsearch Architecture
-
-```mermaid
-graph TD
- subgraph "Lucene Index"
- D1[Segment 1<br/>in-memory]
- D2[Segment 2<br/>on disk]
- D3[Segment 3<br/>on disk]
- end
- Write[Document] -->|1. Buffer| D1
- D1 -->|2. Flush<br/>(commit)| D2
- D1 & D2 & D3 -->|3. Merge| Merged[(Merged Segment)]
- Query -->|4. Search all segments| Searcher
-```
-
-**Near-real-time**: Documents are searchable almost immediately after indexing (refresh interval, default 1s in Elasticsearch).
-
-**Scoring (BM25)**: The default relevance algorithm:
-
-```
-score(D, Q) = Σ (IDF(t) * TF(t, D) * (k1 + 1)) / (TF(t, D) + k1 * (1 - b + b * |D| / avgdl))
-```
-
-Where:
-- `IDF(t)`: Inverse document frequency of term t
-- `TF(t, D)`: Term frequency in document D
-- `k1`, `b`: Tunable parameters (defaults: k1=1.2, b=0.75)
-- `|D|`: Document length
-- `avgdl`: Average document length
-
-| Database | Engine | Strengths |
-|---|---|---|
-| **Elasticsearch** | Lucene | Full-text, analytics, aggregation, monitoring |
-| **Meilisearch** | Custom (Rust) | Developer-friendly, typo-tolerant, instant |
-| **Typesense** | Custom (C++) | Low-latency, simple deployment, geo-search |
-
-**Use cases**: Site search, log analytics (ELK stack), product search, e-commerce filtering.
-
 ## Embedded Databases
 
 Embedded databases run in-process with the application (no separate server). They sacrifice scalability for simplicity and speed.
-
-### SQLite
-
-The most widely deployed database engine in the world (every smartphone, browser, many embedded systems).
-
-```mermaid
-graph TD
- App[Application<br/>Process] -->|SQL queries| SQLite
- SQLite -->|B-Tree pages| DB[(database.sqlite)]
- SQLite -->|WAL| WAL[(.sqlite-wal)]
- SQLite -->|Rollback journal| RJ[(.sqlite-journal)]
-```
-
-**Page structure**: 4KB pages (default), B-Tree for tables (leaf = data), B+Tree for indexes.
-
-**Journal modes**:
-
-| Mode | Durability | Performance |
-|---|---|---|
-| `DELETE` (default) | Safe (crash = rollback) | Slower (delete journal at end) |
-| `TRUNCATE` | Safe | Faster (truncate journal) |
-| `PERSIST` | Safe | Same as TRUNCATE |
-| `WAL` (Write-Ahead Log) | Safe | Much faster (concurrent reads + write) |
-| `MEMORY` | Not durable (lost on crash) | Fastest |
-| `OFF` | Not durable | Fastest |
-
-**WAL mode**: The write-ahead log allows concurrent readers and a single writer. Readers don't block the writer. The WAL is periodically checkpointed into the main database file.
-
-**Concurrency**: Limited only one writer at a time (table-level locking). MVCC via WAL allows concurrent reads during writes.
-
-**Best for**: Mobile apps, desktop apps, small servers, embedded systems, prototyping.
-
-### DuckDB
-
-DuckDB is an **in-process columnar OLAP database** the SQLite equivalent for analytical workloads.
-
-**Columnar storage**: Data is stored by column, not by row. Enables:
-- Only read relevant columns (skip others)
-- Better compression (same datatype per column)
-- Vectorized execution (SIMD-friendly)
-
-**Vectorized execution**: Operates on batches of 2048 values at a time (vectors), not individual rows. Minimizes function call overhead and exploits CPU cache / SIMD instructions.
-
-**Performance**:
-- Analytical queries: 10-100x faster than SQLite for aggregations
-- Data loading: Millions of rows per second
-- Memory: Efficient compression (run-length, dictionary, constant encoding)
-
-**Use cases**: Data science, analytics, ETL, ad-hoc queries on parquet/CSV files.
 
 ## Streaming Databases
 

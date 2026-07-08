@@ -4,7 +4,6 @@ aliases: []
 tags: [golang]
 created: "2026-07-05"
 ---
-
 # Interfaces
 
 An interface in Go is a contract. If a type has the right methods, it satisfies the contract. No `implements` keyword. No explicit declaration. The compiler checks the method set — not the type name.

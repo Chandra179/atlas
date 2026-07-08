@@ -243,8 +243,7 @@ case msg := <-ch2:
 }
 ```
 
-## Closures
-
+## Closures 
 
 **The Scheduling Delay**
 

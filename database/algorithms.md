@@ -9,34 +9,7 @@ created: "2026-06-13"
 
 ## MVCC (Multi-Version Concurrency Control)
 
-MVCC keeps multiple versions of each row so readers and writers never block each other:
-
-```mermaid
-flowchart LR
- T1[Transaction 1<br/>INSERT] --> V1[Version 1<br/>xmin=100<br/>xmax=null]
- T2[Transaction 2<br/>UPDATE] --> V1
- V1 --> V2[Version 2<br/>xmin=101<br/>xmax=null]
- T3[Transaction 3<br/>UPDATE] --> V2
- V2 --> V3[Version 3<br/>xmin=102<br/>xmax=null]
- subgraph ReadVsn[Transaction 100 reads]
- R[Read] -->|sees xmin=100, xmax=101| V1
- end
- subgraph ReadVsn2[Transaction 101 reads]
- R2[Read] -->|sees xmin=101| V2
- end
- V1 -.->|xmax=101| V2
-```
-
-Each row has hidden metadata:
-- **xmin**: Transaction ID that created this version.
-- **xmax**: Transaction ID that deleted/updated this version (or null if live).
-- A transaction sees a row version if `xmin ≤ tx_id` and `xmax > tx_id OR xmax = null`.
-
-**PostgreSQL**: Versions stored in heap (same page). Dead tuples are cleaned by `VACUUM`. Hot Standby uses a snapshot conflict mechanism.
-
-**MySQL (InnoDB)**: Versions stored in the undo log. The current version is in the clustered index; older versions are reconstructed from undo records. Purge thread cleans obsolete undo entries.
-
-**Cassandra**: Uses `tombstones` for deletes and a timestamp per cell. Compaction reconciles versions—the highest timestamp wins. No VACUUM needed; compaction handles cleanup.
+**Multi-Version Concurrency Control (MVCC)** is a method used by modern databases (like PostgreSQL, MySQL/InnoDB, and Oracle) to handle multiple users reading and writing data at the exact same time without locking each other out.
 
 ---
 
@@ -75,10 +48,6 @@ function RecoverFromCrash()
 
  BuildNewCheckpoint() // new consistent state
 ```
-
-- **MySQL (InnoDB)**: Redo log (`ib_logfile`). Circular, fixed-size. Handles redo (replay). Undo log handles rollback and MVCC.
-- **PostgreSQL**: WAL in `pg_wal/`. Supports full recovery, point-in-time recovery (PITR), and replication streaming.
-- **SQL Server**: Transaction log (`.ldf`). Log records contain the logical operation. Supports point-in-time restore and log shipping.
 
 ### Crash Safety & Write Integrity
 

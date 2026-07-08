@@ -7,9 +7,7 @@ created: "2026-07-05"
 
 # Errors
 
-Errors are values. Go has no exceptions. An operation that can fail returns an error as its last return value, and the caller checks it explicitly — no try-catch, no unchecked propagation.
-
-This guide covers the three error patterns (sentinels, custom types, wrapping) and the standard library tools for building and inspecting them.
+Errors are values. Go has no exceptions. This guide covers the three error patterns (sentinels, custom types, wrapping) and the standard library tools for building and inspecting them.
 
 ## The `error` Interface
 
