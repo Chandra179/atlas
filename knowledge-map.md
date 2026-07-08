@@ -1,40 +1,6 @@
 ---
 created: 2026-06-29
 ---
-	
-# Knowledge Map
-
-| Domain | Breadth Level | Depth | Files | Missing |
-|--------|--------------|-------|-------|---------|
-| **Database** | Full | Deep | 14 | — |
-| **Economy** | Full | Moderate | 30 | Depth varies across subtopics |
-| **Distributed Systems (etcd/Raft, Syncthing)** | Narrow | Deep | 2 | Other consensus protocols (Paxos, VSR, EPaxXos), gossip protocol, CRDTs |
-| **System Design** | Narrow | Deep | 3 | Consistent hashing, ID generation (Snowflake), rate limiting, distributed cache, notification system, real-time chat, URL shortener, rate limiter design |
-| **Math** | Broad | Deep (trig/lin alg) | 6 | Integral calculus, multivariable calculus, differential equations, probability/statistics, discrete math, numerical methods, information theory, optimization, proof techniques |
-| **AI/ML** | Broad | Moderate | 10 | Transformer architecture, attention mechanism, training fundamentals, RLHF, prompt engineering |
-| **RAG** | Narrow (one system) | Deep | 1 | Search engine internals, alternative retrieval strategies (ColBERT, late interaction) |
-| **React** | Broad | Deep | 1 | Server Components hands-on, Next.js, state management libraries, testing |
-| **Go** | Narrow | Deep goroutines, Shallow strings | 2 | Interfaces, errors, generics, testing, modules, HTTP/net, reflection, context, memory model, GC, profiling, embedding, structs/methods, type system, standard library |
-| **Backend Engineering** | Moderate | Deep | 7 | Operating systems, compilers/interpreters, data structures & algorithms, design patterns, testing strategies, CI/CD, containerization, security (beyond OAuth) |
-| **Psychometric System** | Narrow | Architecture spec | 1 | — |
-| **Lattice Work** | Placeholder | — | 0 | Charlie Munger mental models — no content yet |
-
-# Foundation Health
-
-| Priority | Domain | Core/Foundation Status | Action |
-|----------|--------|----------------------|--------|
-| 1 | **Go** | ❌ Terrible — 2 files for primary language, no interfaces/errors/testing/http/context/GC/profiling | Build from scratch — this hurts daily work |
-| 2 | **Backend Engineering / CS** | ❌ Missing — no OS, no DSA, no compilers, no security, no CI/CD, no design patterns | Build universal gaps |
-| 3 | **Distributed Systems** | ⚠️ Weak — only Raft and Syncthing. No Paxos, no consensus theory overview, no failure detectors, no distributed transaction protocols | Build foundation before advanced |
-| 4 | **System Design** | ⚠️ Weak — 2 specialized topics only, missing building blocks (consistent hashing, rate limiting, ID gen, CDN, DNS) | Build fundamentals first |
-| 5 | **Math** | ❌ Weak — calculus is one concept, no stats/probability, no discrete math, no proof techniques | Build core before advanced math |
-| 6 | **AI/ML** | ⚠️ Partial — applied ML/LLM (infra, quantization, eval) but no transformer fundamentals, no training core | Foundation needed for ML-engineering roles |
-| 7 | **RAG** | ✅ Good foundation — full pipeline top to bottom for one system | Ready for ColBERT, search internals |
-| 8 | **Database** | ✅ Solid foundation — taxonomy, indexing, engines, MVCC, WAL, consensus, 8 engine deep dives | Ready for cloud-native, HTAP |
-| 9 | **Economy** | ✅ Solid foundation — micro, macro, global, behavioral all structured | Ready for deeper individual files |
-| 10 | **React** | ✅ Good foundation — model, lifecycle, hooks, concurrent, server components, error boundaries | Complete |
-| 11 | **Psychometric** | ⚠️ Architecture spec only, no implementation | Low priority |
-
 # Future Topics
 
 ## Database
@@ -135,45 +101,6 @@ created: 2026-06-29
 - Guardrails: content filtering, prompt injection detection, output validation
 - LLM Ops: eval-driven development, regression test suites, canary deployment
 
-## Should know (debugging/senior):
-- Profile-guided optimization / PGO (1.20 experimental, 1.21 stable) — 2–14% perf gain in production
-- Go toolchain management (1.21) — `go.mod` `toolchain` directive, automatic download
-- `min`, `max`, `clear` builtins (1.21) — `clear(m)`, `clear(slice)`
-- `slices` and `maps` packages (1.21) — `slices.Sort`, `slices.Compact`, `maps.Clone`, `maps.Keys`
-- Structured routing with `Get("/path")`, `MethodNotAllowed` (1.22)
-- `math/rand/v2` (1.22) — cleaner API, ChaCha8 source
-- `log/slog` (1.21) — structured logging standard library
-- RCU-like map implementation for `sync.Map` (1.24)
-- `http.Server.Protocols` / `Transport.Protocols` (1.24) — HTTP/2 config
-- Green Tea GC (1.26 default) — 10–40% GC overhead reduction
-- Goroutine leak profile (1.26 experimental) — detect leaks via unreachable primitives
-- Trace Flight Recorder (1.25) — ring-buffer execution traces for rare bugs
-- `testing/synctest` (1.25 stable) — virtual time for concurrency tests
-- FIPS 140-3 mode (1.24) — `GOFIPS140` + `fips140` GODEBUG
-
-**Nice to know (specialized):**
-- Fuzzing (1.18) — `go test -fuzz`, `(*testing.F).Add`, `(*testing.F).Fuzz`
-- Memory model revision (1.19) — sync.Pool, finalizer guarantees
-- `comparable` constraint fixed (1.20) — allows double equals with proper NaN behavior
-- Error wrapping multiple errors (1.20) — `fmt.Errorf("%w and %w", e1, e2)`
-- `runtime/arena` (1.20 experimental, removed 1.22) — manual memory allocation
-- `http.ResponseController` (1.20) — per-request deadline, flush
-- `os.Cleanpath` (1.21) — path cleaning
-- Reverse proxy `Rewrite` rule (1.20+) — safe Director alternative
-- `net/http/w3c` (1.22) — W3C trace context
-- Post-quantum TLS: X25519MLKEM768 (1.24), SecP256r1MLKEM768 (1.26 default)
-- `crypto/mlkem` (1.24), `crypto/hpke` (1.26)
-- `os.Root` (1.24) — chroot-like filesystem operations
-- `weak` package (1.24) — weak pointers for canonicalization maps
-- `runtime.AddCleanup` (1.24) — modern `SetFinalizer` replacement
-- `runtime/trace.FlightRecorder` (1.25) — in-memory trace ring buffer
-- `encoding/json/v2` (1.25 experimental) — 2x decode speed
-- `runtime/secret` (1.26 experimental) — secure memory erasure
-- `simd/archsimd` (1.26 experimental) — SIMD operations
-- DWARF5 debug info (1.25) — smaller binaries, faster linking
-- Self-referencing type params (1.26) — `type Adder[A Adder[A]] interface { Add(A) A }`
-- `reflect` iterators for Fields/Methods (1.26) — range without allocation
-
 ## Economy
 
 ### Microeconomics (deepen existing)
@@ -227,14 +154,6 @@ created: 2026-06-29
 - Network security: DDoS mitigation, anycast absorbtion, BGP blackholing, rate limiting at edge, WAF internals
 - Load balancing: L4 vs L7, consistent hashing, Maglev (Google), Rendezvous hashing, chash-ring vs jump hash
 - Service mesh networking: Envoy L7 proxy, sidecar, xDS protocol, EDS/CDS/RDS/LDS, Istio vs Linkerd vs Consul
-
-### Computing (deepen existing)
-- CPU architecture: superscalar, pipelining, branch prediction, out-of-order execution, speculative execution (Spectre/Meltdown context)
-- Memory hierarchy: cache lines, associativity, prefetching, NUMA topology, TLB misses, cache coherence (MESI/MOESI), false sharing
-- Virtual memory: page tables (multi-level), huge pages (2MB/1GB), THP, swap, mmap internals, OOM killer
-- Storage hardware: NVMe vs SATA, IOPS vs throughput, flash translation layer, wear leveling, TRIM
-- Bits & bytes: floating-point representation (IEEE 754), endianness, two's complement, base64/hex encoding, varint encoding (protobuf)
-- Performance counter: perf, Linux PMC, CPI, cache miss rate, branch mispredict rate, stalled cycles
 
 ### OS (new)
 - Processes: PCB, fork/exec, copy-on-write, zombie/orphan processes, process groups, sessions

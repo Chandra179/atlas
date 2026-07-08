@@ -4,8 +4,7 @@ aliases: []
 tags: [distributed-systems, distributed-systems/syncthing]
 created: "2026-06-13"
 ---
-
- # Syncthing
+# Syncthing
 
 [syncthing/syncthing](https://github.com/syncthing/syncthing)
 
