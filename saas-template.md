@@ -102,8 +102,8 @@ config/ # YAML loader + config.yaml
 
 #### **Module boundaries**
 
-\[Package 1] Responsibility\
-\[Package 2] Responsibility\
+\[Package 1] Responsibility
+\[Package 2] Responsibility
 \[Package 3] Responsibility
 
 #### **Dependencies**

@@ -53,6 +53,7 @@ export const IGNORE_FILES = new Set([
 // The glob loader strips .md extension and lowercases all ids.
 export const IGNORE_IDS = new Set([
   'economy/summary', // Obsidian dataview TOC, not content
+  'readme', // root README.md stub, homepage is index.astro instead
 ]);
 
 /**

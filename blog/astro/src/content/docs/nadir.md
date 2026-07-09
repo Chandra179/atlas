@@ -1,6 +1,6 @@
 ---
 title: "Nadir"
-modified: "2026-07-08"
+modified: "2026-07-09"
 ---
 
 # RAG

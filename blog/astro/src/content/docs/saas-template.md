@@ -2,7 +2,7 @@
 title: "SaaS Template"
 aliases: []
 created: "2026-06-13"
-modified: "2026-07-08"
+modified: "2026-07-09"
 ---
 
 # SaaS Template
@@ -103,8 +103,8 @@ config/ # YAML loader + config.yaml
 
 #### **Module boundaries**
 
-\[Package 1] Responsibility\
-\[Package 2] Responsibility\
+\[Package 1] Responsibility
+\[Package 2] Responsibility
 \[Package 3] Responsibility
 
 #### **Dependencies**
