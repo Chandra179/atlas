@@ -239,3 +239,14 @@ When deploying Go applications, it is crucial to understand how concurrency and 
 If you deploy a Go application inside a container (like Docker or Kubernetes), **the application still consumes physical memory from the underlying host Virtual Machine (VM).**
 
 By default, the Go runtime is "container-blind." It looks past the container boundaries and sees the full resource capacity of the host VM. This mismatch can cause major performance and stability issues if you don't configure your limits properly.
+
+```go
+import _ "go.uber.org/automaxprocs" // Automatically matches GOMAXPROCS to the container quota
+```
+
+Also golang Garbage Collector (GC) doesn't know your container has a memory limit. If your container is limited to 512 MB, but the host VM has 16 GB of RAM, Go might let its memory usage balloon past 512 MB before it decides to trigger a garbage collection\
+
+```go
+// In your Dockerfile or Kubernetes YAML (leave ~10% headroom for the OS)
+GOMEMLIMIT=450MiB
+```
