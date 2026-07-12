@@ -114,6 +114,7 @@ categories.forEach((slug, i) => {
 
 // Add system-design as a filterable tag if any cards have it
 const hasSystemDesign = cards.some((c) => c.tags.includes('system-design'));
+const hasGolang = cards.some((c) => c.tags.includes('golang'));
 
 const siteName = 'Chan179';
 const baseDescription = 'Personal blog on software engineering, system design, and mathematics.';
@@ -156,12 +157,16 @@ const homepageJsonLd = [
         {hasSystemDesign && (
           <button data-filter="system-design" class="filter-pill">System Design</button>
         )}
+        {hasGolang && (
+          <button data-filter="golang" class="filter-pill">Golang</button>
+        )}
       </div>
 
       <!-- Card grid (server-rendered for SEO) -->
       <div class="landing-grid" style="--landing-cols: 2;">
         {cards.map((card) => {
           const isSystemDesign = card.tags.includes('system-design');
+          const isGolang = card.tags.includes('golang');
           return (
             <a href={'/' + card.path} class="landing-card" data-category={card.categorySlug || ''} data-tags={card.tags.join(',')}>
               <div class="card-badge-wrapper">
@@ -170,6 +175,9 @@ const homepageJsonLd = [
                 )}
                 {!card.category && isSystemDesign && (
                   <span class="card-badge badge-system-design">System Design</span>
+                )}
+                {!card.category && isGolang && (
+                  <span class="card-badge badge-golang">Golang</span>
                 )}
               </div>
               <h3 class="card-title">{card.title}</h3>
@@ -197,7 +205,8 @@ const homepageJsonLd = [
           const cat = card.getAttribute('data-category');
           const tags = (card.getAttribute('data-tags') || '').split(',');
           const hasSystemDesign = tags.includes('system-design');
-          const matches = filter === 'all' || cat === filter || (filter === 'system-design' && hasSystemDesign);
+          const hasGolang = tags.includes('golang');
+          const matches = filter === 'all' || cat === filter || (filter === 'system-design' && hasSystemDesign) || (filter === 'golang' && hasGolang);
           (card as HTMLElement).style.display = matches ? '' : 'none';
         });
       });

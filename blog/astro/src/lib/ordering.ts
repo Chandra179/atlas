@@ -14,7 +14,7 @@ export const NAME_OVERRIDES: Record<string, string> = {
 export const ROOT_PAGE_ORDER = ['introduction', 'nadir', 'psycho', 'batch-scheduler', 'flash-sale', ];
 
 // Display order for category directories (slugs).
-export const CATEGORY_ORDER = [];
+export const CATEGORY_ORDER = ['golang', 'system-design'];
 
 // Files to exclude from the collection (not content pages).
 // The glob loader lowercases filenames, so we include both cases.
@@ -30,7 +30,7 @@ export const IGNORE_FILES = new Set([
 export const IGNORE_IDS = new Set([
   'economy/summary', // Obsidian dataview TOC, not content
   'readme', // root README.md stub, homepage is index.astro instead
-  'fundamental', 'system-design', 'golang', 'math', 'ai', 'database', 'economy',
+  'fundamental', 'system-design', 'math', 'ai', 'database', 'economy',
 ]);
 
 /**
