@@ -13,6 +13,7 @@ const ALLOWED_FILES = new Set([
   'nadir.md',
   'psycho.md',
   '4-years-golang-notes.md',
+  'swe-journey.md',
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })
