@@ -102,11 +102,12 @@ func main() {
 
 There are ways to handle this properly, like using the Stripe approach. With this method, we use the smallest unit of the currency, like "cents," and use an integer data type. Because integers don't have decimals, there will be absolutely no inaccuracy with decimal points. Ref: https://docs.stripe.com/api/charges/object
 
-|**Actual Amount**|**Value Stored in Database / Code (as Integer)**|
-|---|---|
-|$1.00|`100` (cents)|
-|$10.50|`1050` (cents)|
-|$99.99|`9999` (cents)|
+| **Actual Amount** | **Value Stored in Database / Code (as Integer)** |
+| --- | --- |
+| $1.00 | `100` (cents) |
+| $10.50 | `1050` (cents) |
+| $99.99 | `9999` (cents) |
+
 Next is the return values of the fields in the API. Go has default zero values. For example, an integer defaults to `0`, a float to `0.0`, and a string to `""`.
 
 In finance, `0` might actually mean something. You have to be very careful when deciding how to handle this, because an admin fee of `0` means something entirely different from a missing or unconfigured admin fee.
@@ -121,3 +122,4 @@ type FeeResponse struct {
 Also, check carefully when adding `omitempty` to a struct field. Unlike native data types (like integers or strings), an empty nested struct will **not** be excluded from the JSON payload. Instead, it will return an empty JSON object `{}` filled with its own default zero values.
 
 Go's standard `encoding/json` package determines if a field is "empty" based on a strict list: `false`, `0`, a `nil` pointer, or an array/slice/map/string with a length of 0. An initialized struct value (like `Address{}`) does not fit any of those categories, so Go considers it "not empty" and serializes it as an empty object `{}`.
+
