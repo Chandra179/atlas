@@ -22,4 +22,4 @@ Psycho infers personality traits from text using dictionary-based psycholinguist
 
 ## Reference
 
-**Research foundations:** LIWC2015 (Pennebaker et al., 2015), Yarkoni (2010), Pennebaker & King (1999), Higgins (1997), Cacioppo & Petty (1982), Schwartz (1992), Webster & Kruglanski (1994).
+**Research foundations:** LIWC2015 (Pennebaker et al., 2015), Yarkoni (2010), Pennebaker & King (1999), Higgins (1997), Cacioppo & Petty (1982), Schwartz (1992), Webster & Kruglanski (1994). https://github.com/Chandra179/psycho

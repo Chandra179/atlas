@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -6,10 +6,16 @@ const DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(DIR, '../../..');
 const BLOG_DIR = path.join(ROOT, 'blog/astro/src/content/docs');
 
-const BLOG_SUBDIRS = new Set(['ai', 'backend-engineering', 'database', 'economy', 'golang', 'math', 'system-design']);
+const ALLOWED_FILES = new Set([
+  'introduction.md',
+  'batch-scheduler.md',
+  'flash-sale.md',
+  'nadir.md',
+  'psycho.md',
+]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })
-  .filter(e => e.isFile() && e.name.endsWith('.md'))
+  .filter(e => e.isFile() && e.name.endsWith('.md') && ALLOWED_FILES.has(e.name))
   .map(e => e.name);
 
 function titleFromFilename(name) {
@@ -65,6 +71,7 @@ for (const file of rootFiles) {
   synced++;
 }
 
+// Remove any .md files in blog dir that aren't in allowed list
 const blogFiles = readdirSync(BLOG_DIR, { withFileTypes: true })
   .filter(e => e.isFile() && e.name.endsWith('.md') && e.name !== 'README.md');
 
@@ -74,6 +81,17 @@ for (const entry of blogFiles) {
     console.log(`  ✗ removed: ${entry.name}`);
     cleaned++;
   }
+}
+
+// Remove subdirectories that shouldn't exist (we only want root-level allowed files)
+// Include symlinks to directories
+const blogDirs = readdirSync(BLOG_DIR, { withFileTypes: true })
+  .filter(e => e.isDirectory() || e.isSymbolicLink());
+
+for (const dir of blogDirs) {
+  rmSync(path.join(BLOG_DIR, dir.name), { recursive: true, force: true });
+  console.log(`  ✗ removed dir: ${dir.name}`);
+  cleaned++;
 }
 
 console.log(`\nDone: ${synced} synced, ${skipped} skipped, ${cleaned} cleaned`);

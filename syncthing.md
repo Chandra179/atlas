@@ -8,105 +8,38 @@ created: "2026-06-13"
 
 [syncthing/syncthing](https://github.com/syncthing/syncthing)
 
-## Architecture
+## Introduction
+
+Syncthing is a continuous file synchronization program. It synchronizes files between two or more devices in real time, peer-to-peer, with no central server and no cloud dependency. Everything is encrypted end-to-end using TLS, and trust is established through cryptographic Device IDs rather than a certificate authority. It replaces proprietary sync services like Dropbox or Google Drive with a self-sovereign, privacy-preserving alternative that runs on your own hardware.
+
+## End-to-End Flow
+
+The following diagram shows the complete lifecycle of a Syncthing session, from first launch to shutdown.
 
 ```mermaid
-graph TD
- subgraph UI["User Interface"]
- GUI["GUI"]
- API["REST API"]
- CLI["CLI"]
- end
+sequenceDiagram
+ participant A as Your Device
+ participant B as Friend's Device
 
- subgraph CONFIG["Configuration"]
- CFG["Configuration"]
- end
-
- subgraph MODEL["Orchestration"]
- M["Orchestration"]
- end
-
- subgraph SUBSYSTEMS["Subsystems"]
- direction LR
- C1["Connections"]
- C2["Scanner"]
- C3["Database"]
- C4["File System"]
- end
-
- subgraph PROTO["Protocol"]
- P["Protocol"]
- end
-
- subgraph INFRA["Infrastructure"]
- I1["Discovery"]
- I2["Relay"]
- I3["Upgrade/Crash"]
- end
-
- GUI --> CFG
- API --> CFG
- CLI --> CFG
- CFG --> M
- M --> C1
- M --> C2
- M --> C3
- M --> C4
- C1 --> P
- C2 --> P
- C3 --> P
- C4 --> P
- C1 -.-> I1
- C1 -.-> I2
+ Note over A,B: 1. First Launch (both sides)
+ Note over A,B: 2. Add Device (manual ID exchange)
+ Note over A,B: 3. Share Folder
+ A->>B: 4. Discovery (LAN + Global)
+ A->>B: 5. TCP/QUIC Connect
+ A->>B: 6. Mutual TLS Handshake
+ A->>B: 7. Protocol Hello
+ A->>B: 8. Index Exchange
+ Note over A,B: 9. Compare Indexes
+ A->>B: 10. Block Transfer (parallel)
+ Note over A,B: 11. Finalize (rename, update DB)
+ Note over A,B: 12. Continuous Sync (file watcher)
+ Note over A,B: 13. Connection Loss + Reconnect
+ A->>B: 14. Shutdown (Close message)
 ```
 
-**User Interface**
-
-Add trusted devices, choose folders to sync, and monitor sync status.
-
-**Configuration**
-
-Store the source of truth for who to trust (Device IDs), what to sync (folders), and how to behave (settings). Everything persists to disk so it survives restarts.
-
-**Orchestration**
-
-Make all high-level decisions. Compare local and remote file indexes to figure out what needs syncing. Detect conflicts. Trigger versioning. Coordinate all the subsystems beneath it.
-
-**Connections**
-
-Establish and maintain secure, encrypted channels between devices. Find peers on the network. Keep connections alive or reconnect when they drop.
-
-**Scanner**
-
-Turn files on disk into a compact, hash-based index that devices compare efficiently without sending actual file contents.
-
-**Database**
-
-Persist everything needed to survive crashes and restarts. Remember which files exist, their block hashes, and the state of in-progress transfers so the system never loses data or needlessly re-downloads it.
-
-**File System**
-
-Interact safely with the operating system's file system. Detect changes instantly. Write files atomically so interrupted transfers never corrupt data.
-
-**Protocol**
-
-Define the language that **Syncthing** devices speak to each other, how to encode messages, how to exchange file metadata, how to request and send blocks, and how to verify each other's identity without a central authority.
-
-**Discovery Server**
-
-Help devices find each other's IP addresses on the internet without revealing which files are being synced.
-
-**Relay Server**
-
-Forward encrypted traffic between devices that can't connect directly, without ever being able to read the data. Usually because devices are behind a Network Address Translation (NAT)
-
-**Upgrade/Crash Reporting**
-
-Keep **Syncthing** up to date automatically and help developers fix bugs by collecting crash reports (opt-in).
-
-***
-
 ## Identity Creation
+
+The first time Syncthing starts on a device, it automatically creates a cryptographic identity. No setup, no registration, no cloud dependency.
 
 Create a permanent, self-sovereign cryptographic identity for this device. No central authority, no registration, no cloud dependency.
 
@@ -144,7 +77,7 @@ sequenceDiagram
 * Config: lib/config/config.go (creates config.xml with default folder, GUI on 127.0.0.1:8384, discovery/relay enabled)
 * Security: key.pem never leaves the device; Device ID is cryptographically bound, human-verifiable, QR-code friendly
 
-***
+Once both devices have their identities, they must be configured to trust each other. This is the only manual step in the entire system.
 
 ## Adding a Remote Device (Trust Bootstrapping)
 
@@ -229,11 +162,11 @@ Key things:
 * Friend must accept before syncing begins
 * Acceptance adds the folder to both configurations
 
-***
+At this point the configuration is done. Syncthing takes over automatically.
 
 ## Connection Establishment (Discovery + TLS + Multiplexing)
 
-Find the remote device on the network and establish a secure, authenticated, multiplexed connection.
+Find the remote device on the network and establish a secure, authenticated, multiplexed connection. The listeners — infrastructure that started at boot — are already running. The active connection sequence now begins.
 
 ### Listeners + Discovery
 
@@ -371,7 +304,7 @@ Key things:
 * Up to 4 concurrent files, 16 in-flight blocks per file
 * Blocks written to correct offset regardless of arrival order
 
-***
+With a secure, multiplexed connection established, the devices exchange their file indexes to determine what needs to be synced.
 
 ## File Synchronization
 
@@ -572,6 +505,8 @@ Key things:
 
 ***
 
+Once the initial sync completes, Syncthing monitors the connection and files continuously. If the connection drops, it recovers automatically.
+
 ## Resilience & Error Handling
 
 Handle connection failures, network issues, restarts, and partial transfers without data loss.
@@ -758,6 +693,8 @@ Key things:
 
 ***
 
+When you stop Syncthing, it shuts down gracefully so nothing is lost. On restart, it picks up exactly where it left off.
+
 ## Shutdown & Restart
 
 Gracefully stop all subsystems, flush data to disk, and prepare for clean restart
@@ -834,31 +771,6 @@ Key things:
 * Delta indexes avoid re-sending all metadata
 * Only missing blocks re-requested on interrupted transfers
 * Result: no data loss, minimal re-transfer, fast resume
-
-***
-
-### E2E Data Flow Diagram
-
-```mermaid
-sequenceDiagram
- participant A as Your Device
- participant B as Friend's Device
-
- Note over A,B: 1. First Launch (both sides)
- Note over A,B: 2. Add Device (manual ID exchange)
- Note over A,B: 3. Share Folder
- A->>B: 4. Discovery (LAN + Global)
- A->>B: 5. TCP/QUIC Connect
- A->>B: 6. Mutual TLS Handshake
- A->>B: 7. Protocol Hello
- A->>B: 8. Index Exchange
- Note over A,B: 9. Compare Indexes
- A->>B: 10. Block Transfer (parallel)
- Note over A,B: 11. Finalize (rename, update DB)
- Note over A,B: 12. Continuous Sync (file watcher)
- Note over A,B: 13. Connection Loss + Reconnect
- A->>B: 14. Shutdown (Close message)
-```
 
 ***
 

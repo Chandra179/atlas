@@ -1,6 +1,6 @@
 ---
 title: "Nadir"
-modified: "2026-07-09"
+modified: "2026-07-12"
 ---
 
 # RAG
@@ -29,4 +29,4 @@ Nadir answers questions from a collection of local documents. You point it at a 
 **Contextual prefix vs late interaction.** Prefixing the file path and heading into the embedding anchors meaning cheaply. Late-interaction models (ColBERT) can match more flexibly at search time, but require a different retrieval architecture and more memory.
 
 ## Reference
-**Repo:** <https://github.com/Chandra179/nadir>
+**Repo:** https://github.com/Chandra179/nadir

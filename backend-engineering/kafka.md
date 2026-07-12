@@ -75,7 +75,7 @@ If the Controller fails, a new one is elected automatically via ZooKeeper or the
 Kafka uses a metadata store to track cluster state:
 
 * **ZooKeeper** (legacy): Stores broker membership, topic configs, ACLs, quotas, and Controller election. Kafka ≤ 2.8 required ZK. Deprecated as of KIP-833, targeted for removal in Kafka 4.0.
-* **KRaft** (Kafka Raft): Self-managed metadata quorum introduced in 2.8 (GA in 3.3+). No external dependency Kafka runs as a single binary with internal Raft-based consensus for metadata. Replaces ZK entirely. The Raft consensus mechanism is covered in detail in [etcd-raft.md](../).
+* **KRaft** (Kafka Raft): Self-managed metadata quorum introduced in 2.8 (GA in 3.3+). No external dependency Kafka runs as a single binary with internal Raft-based consensus for metadata. Replaces ZK entirely. The Raft consensus mechanism is covered in detail in [etcd-internals.md](../etcd-internals.md).
 
 ## Producer
 

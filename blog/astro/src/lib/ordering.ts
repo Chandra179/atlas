@@ -2,40 +2,19 @@
 // Name overrides for slugs that don't title-case nicely.
 
 export const NAME_OVERRIDES: Record<string, string> = {
-  'README':                      'Introduction',
-  'p2p-chat':                    'P2P Chat',
-  'etcd-raft':                   'etcd & Raft',
-  'fundamental':                 'Fundamentals',
-  'e2e-production-rag':          'RAG',
-  'golang':                      'Golang',
-  'math':                        'Math',
-  'reactjs':                     'ReactJS',
-  'rabbitmq':                    'RabbitMQ',
-  'ml':                          'ML',
-  'system-design':               'System Design',
-  'web-scraper':                 'Web Scraper',
-  'precalculus':                 'Precalculus',
-  'cpu':                         'CPU',
-  'api-design-guidelines':       'API Best Practices',
-  'oauth2-and-oidc':             'OAuth2 and OIDC',
-  'sequence-series-limit':       'Sequence, Series, Limit',
-  'linear-algebra':              'Linear Algebra',
-  'clock-skew-and-time-sync':    'Clock Skew and Time Sync',
-  'consistent-hashing':          'Consistent Hashing',
-  'id-generator':                'ID Generator',
-  'rate-limit':                  'Rate Limit',
-  'distributed-task-scheduler':  'Distributed Task Scheduler',
-  'distributed-cache':           'Distributed Cache',
-  'notification-system':         'Notification System',
-  'chunking-and-embedding':      'Chunking and Embedding',
-  'garbage-collector':           'Garbage Collector',
+  'README':                 'Introduction',
+  'introduction':           'Introduction',
+  'batch-scheduler':        'Batch Scheduler',
+  'flash-sale':             'Flash Sale',
+  'nadir':                  'Nadir (RAG)',
+  'psycho':                 'Psycho',
 };
 
 // Display order for root-level standalone pages (slugs).
-export const ROOT_PAGE_ORDER = ['README', 'introduction', 'rag', 'psycho', 'ai', 'reactjs', 'etcd-raft', 'syncthing'];
+export const ROOT_PAGE_ORDER = ['introduction', 'batch-scheduler', 'flash-sale', 'nadir', 'psycho'];
 
 // Display order for category directories (slugs).
-export const CATEGORY_ORDER = ['fundamental', 'system-design', 'golang', 'math', 'ai', 'database', 'economy'];
+export const CATEGORY_ORDER = [];
 
 // Files to exclude from the collection (not content pages).
 // The glob loader lowercases filenames, so we include both cases.
@@ -47,6 +26,11 @@ export const IGNORE_FILES = new Set([
   'real-time-chat-discord.md',
   'notification-system.md',
   'distributed-cache.md',
+  'etcd-raft.md',
+  'syncthing.md',
+  'saas-template.md',
+  'knowledge-map.md',
+  'README.md',
 ]);
 
 // Specific entry ids to exclude (GitBook/Obsidian artifacts).
@@ -54,6 +38,7 @@ export const IGNORE_FILES = new Set([
 export const IGNORE_IDS = new Set([
   'economy/summary', // Obsidian dataview TOC, not content
   'readme', // root README.md stub, homepage is index.astro instead
+  'fundamental', 'system-design', 'golang', 'math', 'ai', 'database', 'economy',
 ]);
 
 /**

@@ -4,7 +4,7 @@ aliases: []
 tags: [cs, cs/networking]
 created: "2026-06-13"
 ---
-
+	
 # Networking
 
 For software engineers who want to understand what happens between keystroke and response. Assumes basic programming knowledge but no prior networking experience.
