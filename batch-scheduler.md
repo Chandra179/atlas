@@ -7,11 +7,12 @@ created: "2026-06-13"
 
 # Batch Scheduler
 
-A batch scheduler runs background tasks at a scheduled time — sending emails, processing payments, generating nightly reports, expiring subscriptions. When a system grows to millions of tasks across dozens of tenants, the obvious approach (poll a database table every few seconds) breaks down: concurrent schedulers hammer the database, tasks execute twice, high-priority jobs starve low-priority ones, and crashed workers leave tasks stuck forever.
+A batch scheduler runs background tasks at a scheduled time, sending emails, processing payments, generating nightly reports, expiring subscriptions. When a system grows to millions of tasks across dozens of tenants, the obvious approach (poll a database table every few seconds) breaks down: concurrent schedulers hammer the database, tasks execute twice, high-priority jobs starve low-priority ones, and crashed workers leave tasks stuck forever.
 
 This document designs a distributed batch scheduler that survives that scale. It uses PostgreSQL as both task storage and coordination point, a message broker for resilient dispatch, and a polling loop with optimistic locking to ensure exactly-one claim per task.
 
 **Audience:** Backend engineers building high-traffic systems. Familiarity with PostgreSQL, message queues, and distributed coordination assumed.
+**Repo**: https://github.com/Chandra179/casper
 
 ## Scenario & Requirements
 
@@ -506,4 +507,4 @@ For environments where sub-millisecond claim latency is required or where the da
 * **Disaster recovery procedures:** Point-in-time recovery, cross-region failover, backup schedules — these are operational runbooks, not architecture.
 * **Capacity planning specifics:** Exact instance sizes, connection pool limits, broker cluster topology — these depend on load testing results.
 * **SDK / client library:** How producers enqueue tasks — this is an API design, not core scheduler architecture.
-`
+

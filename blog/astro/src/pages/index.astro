@@ -15,27 +15,32 @@ const cards: Array<{
   category: string | null;
   categorySlug: string | null;
   description: string;
+  tags: string[];
 }> = [];
 
 for (const section of nav) {
   if (section.standalone) {
     const entry = validEntries.find((e) => e.id === section.entryId);
+    const tags = entry?.data.tags || [];
     cards.push({
       title: section.name,
       path: section.url.replace(/^\//, ''),
       category: null,
       categorySlug: null,
       description: entry ? extractDescription(entry.body) : '',
+      tags,
     });
   } else {
     if (section.entryId) {
       const entry = validEntries.find((e) => e.id === section.entryId);
+      const tags = entry?.data.tags || [];
       cards.push({
         title: section.name,
         path: section.url.replace(/^\//, ''),
         category: section.name,
         categorySlug: section.slug,
         description: entry ? extractDescription(entry.body) : '',
+        tags,
       });
     }
 
@@ -44,32 +49,38 @@ for (const section of nav) {
         if (page.isFolder && page.pages) {
           if (page.entryId) {
             const entry = validEntries.find((e) => e.id === page.entryId);
+            const tags = entry?.data.tags || [];
             cards.push({
               title: page.name,
               path: page.url.replace(/^\//, ''),
               category: section.name,
               categorySlug: section.slug,
               description: entry ? extractDescription(entry.body) : '',
+              tags,
             });
           }
           for (const subpage of page.pages) {
             const entry = validEntries.find((e) => e.id === subpage.entryId);
+            const tags = entry?.data.tags || [];
             cards.push({
               title: subpage.name,
               path: subpage.url.replace(/^\//, ''),
               category: section.name,
               categorySlug: section.slug,
               description: entry ? extractDescription(entry.body) : '',
+              tags,
             });
           }
         } else {
           const entry = validEntries.find((e) => e.id === page.entryId);
+          const tags = entry?.data.tags || [];
           cards.push({
             title: page.name,
             path: page.url.replace(/^\//, ''),
             category: section.name,
             categorySlug: section.slug,
             description: entry ? extractDescription(entry.body) : '',
+            tags,
           });
         }
       }
@@ -101,8 +112,11 @@ categories.forEach((slug, i) => {
   CATEGORY_BADGES[slug] = CATEGORY_COLORS[i % CATEGORY_COLORS.length] || 'badge-default';
 });
 
+// Add system-design as a filterable tag if any cards have it
+const hasSystemDesign = cards.some((c) => c.tags.includes('system-design'));
+
 const siteName = 'Chan179';
-const baseDescription = 'Technical notes and learning resources on Math, Golang, System Design, ML, and more.';
+const baseDescription = 'Personal blog on software engineering, system design, and mathematics.';
 
 const homepageJsonLd = [
   {
@@ -132,29 +146,37 @@ const homepageJsonLd = [
 <BaseLayout title={siteName} description={baseDescription} canonical="/" minimal jsonLd={homepageJsonLd}>
   <main class="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden pt-20">
     <div class="mx-auto px-4 sm:px-6 py-8 lg:py-12 max-w-6xl">
-      <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Technical Notes</h1>
-      <p class="text-gray-500 dark:text-gray-400 mb-8">Math, Golang, System Design, ML, and more.</p>
+      <h1 class="text-4xl font-bold text-gray-900 dark:text-white mb-2">Personal Blog</h1>
       <!-- Filter Bar -->
       <div class="flex flex-wrap items-center gap-2 mb-8" id="filter-bar">
         <button data-filter="all" class="filter-pill filter-pill-active">All</button>
         {categories.map((catSlug) => (
           <button data-filter={catSlug} class="filter-pill">{categoryLabels[catSlug]}</button>
         ))}
+        {hasSystemDesign && (
+          <button data-filter="system-design" class="filter-pill">System Design</button>
+        )}
       </div>
 
       <!-- Card grid (server-rendered for SEO) -->
       <div class="landing-grid" style="--landing-cols: 2;">
-        {cards.map((card) => (
-          <a href={'/' + card.path} class="landing-card" data-category={card.categorySlug || ''}>
-            <div class="card-badge-wrapper">
-              {card.category && (
-                <span class={'card-badge ' + (CATEGORY_BADGES[card.categorySlug || ''] || 'badge-default')}>{card.category}</span>
-              )}
-            </div>
-            <h3 class="card-title">{card.title}</h3>
-            <p class="card-desc">{card.description || 'No description available.'}</p>
-          </a>
-        ))}
+        {cards.map((card) => {
+          const isSystemDesign = card.tags.includes('system-design');
+          return (
+            <a href={'/' + card.path} class="landing-card" data-category={card.categorySlug || ''} data-tags={card.tags.join(',')}>
+              <div class="card-badge-wrapper">
+                {card.category && (
+                  <span class={'card-badge ' + (CATEGORY_BADGES[card.categorySlug || ''] || 'badge-default')}>{card.category}</span>
+                )}
+                {!card.category && isSystemDesign && (
+                  <span class="card-badge badge-system-design">System Design</span>
+                )}
+              </div>
+              <h3 class="card-title">{card.title}</h3>
+              <p class="card-desc">{card.description || 'No description available.'}</p>
+            </a>
+          );
+        })}
       </div>
     </div>
   </main>
@@ -173,7 +195,10 @@ const homepageJsonLd = [
         btn.classList.add('filter-pill-active');
         cards.forEach((card) => {
           const cat = card.getAttribute('data-category');
-          (card as HTMLElement).style.display = (filter === 'all' || cat === filter) ? '' : 'none';
+          const tags = (card.getAttribute('data-tags') || '').split(',');
+          const hasSystemDesign = tags.includes('system-design');
+          const matches = filter === 'all' || cat === filter || (filter === 'system-design' && hasSystemDesign);
+          (card as HTMLElement).style.display = matches ? '' : 'none';
         });
       });
     });

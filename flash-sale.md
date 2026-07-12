@@ -7,7 +7,7 @@ created: "2026-06-13"
 
 # Flash Sale
 
-A flash sale is a short-duration event — typically a few minutes — where a limited number of items is sold at a steep discount. During those minutes, millions of people try to buy the same product at the same time. The system that handles this is suddenly asked to do millions of things in parallel, and unless it is designed for that burst, it slows down, errors out, or crashes entirely.
+A flash sale is a short-duration event typically a few minutes where a limited number of items is sold at a steep discount. During those minutes, millions of people try to buy the same product at the same time. The system that handles this is suddenly asked to do millions of things in parallel, and unless it is designed for that burst, it slows down, errors out, or crashes entirely.
 
 This document explains what makes flash sales hard and how to design a system that survives them.
 

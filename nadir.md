@@ -1,12 +1,13 @@
 # RAG
 
-Nadir answers questions from a collection of local documents. You point it at a directory of markdown files, PDFs, or plain text. It ingests them, builds a search index, and answers questions in natural language. You interact through an HTTP API — POST a query, get back ranked passages or a generated answer with citations.
+Nadir answers questions from a collection of local documents. You point it at a directory of markdown files, PDFs, or plain text. It ingests them, builds a search index, and answers questions in natural language. You interact through an HTTP API, POST a query, get back ranked passages or a generated answer with citations.
+**Repo**: https://github.com/Chandra179/nadir
 
 ## Architecture
 
-1. **Ingest & Chunk.** Sentence-chunking splits on sentence boundaries for precise citations. A configurable strategy selects chunk size and overlap.
+1. **Ingest & Chunk.** Sentence-chunking splits on sentence boundaries for precise citations. A configurable strategy selects chunk size and overlap, ex: split chunk on sentence. split per semantic.
 
-2. **Embed.** Each chunk gets prefixed with its file path and heading before embedding. This contextual prefix anchors the vector in document structure without changing the stored text — the same chunk in a different context produces a different embedding.
+2. **Embed.** Each chunk gets prefixed with its file path and heading before embedding. This contextual prefix anchors the vector in document structure without changing the stored text the same chunk in a different context produces a different embedding.
 
 3. **Semantic Cache.** Before search, the query embedding checks cosine similarity against a dedicated Qdrant collection. Above a configurable threshold, cached results return immediately. On a miss, the pipeline writes the result back asynchronously. The cache only activates when the client does not request generation.
 
@@ -22,6 +23,3 @@ Nadir answers questions from a collection of local documents. You point it at a 
 **Hybrid search vs pure dense.** Hybrid catches queries that use different vocabulary than the documents. Pure dense is faster and simpler but misses relevant results when terminology diverges. For out-of-domain queries, hybrid wins. For well-matched vocab, pure dense performs similarly at lower latency.
 
 **Contextual prefix vs late interaction.** Prefixing the file path and heading into the embedding anchors meaning cheaply. Late-interaction models (ColBERT) can match more flexibly at search time, but require a different retrieval architecture and more memory.
-
-## Reference
-**Repo:** https://github.com/Chandra179/nadir

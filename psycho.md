@@ -1,7 +1,8 @@
 # Psycho
 
-Psycho infers personality traits from text using dictionary-based psycholinguistic analysis. You paste text, upload a file, or fetch a URL — it returns Big Five, Regulatory Focus, Need for Cognition, cognitive style, and value orientation scores, each with confidence intervals and traceable evidence. No data leaves your device.
+Psycho infers personality traits from text using dictionary-based psycholinguistic analysis. You paste text, upload a file, or fetch a URL, it returns Big Five, Regulatory Focus, Need for Cognition, cognitive style, and value orientation scores, each with confidence intervals and traceable evidence. No data leaves your device. 
 
+**Repo**: https://github.com/Chandra179/psycho
 ## Architecture
 
 1. **Ingest & Normalize.** Paste/file/URL input is whitespace-normalised, markup stripped, segmented into sentences, and tagged with source metadata (type, date).
@@ -12,7 +13,7 @@ Psycho infers personality traits from text using dictionary-based psycholinguist
 
 4. **Profile.** Aggregate all scores with confidence intervals. Optionally, a user-configured LLM sidecar (Ollama or cloud API, off by default) synthesises a narrative portrait from the structured scores.
 
-## Key Tradeoffs
+## Tradeoffs
 
 **Dictionary-based vs LLM inference.** Dictionary extraction is auditable, deterministic, and costs nothing per query. LLMs produce more fluent narrative but introduce opacity and token cost. Core trait inference is always dictionary-based; LLMs only touch the narrative synthesis step, and only when explicitly enabled.
 
@@ -22,4 +23,4 @@ Psycho infers personality traits from text using dictionary-based psycholinguist
 
 ## Reference
 
-**Research foundations:** LIWC2015 (Pennebaker et al., 2015), Yarkoni (2010), Pennebaker & King (1999), Higgins (1997), Cacioppo & Petty (1982), Schwartz (1992), Webster & Kruglanski (1994). https://github.com/Chandra179/psycho
+**Research foundations:** LIWC2015 (Pennebaker et al., 2015), Yarkoni (2010), Pennebaker & King (1999), Higgins (1997), Cacioppo & Petty (1982), Schwartz (1992), Webster & Kruglanski (1994). 
