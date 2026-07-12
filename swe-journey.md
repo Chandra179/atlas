@@ -1,4 +1,4 @@
-# My Golang Journey
+# Software Engineering Journey
 
 Determine when to use descriptive or short variable names; it really depends on how long the function process is. A long function with short variable names will lose context as we navigate the logic in that function. 
 
