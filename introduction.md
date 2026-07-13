@@ -7,8 +7,9 @@ created: 2026-06-21
 4 years experience in Fintech, distributed system, workflow automation
 
 ### BookCabin
-* Led the rewrite core itinerary service: revamping database schema, business logic, new endpoint, legacy integration, pdf templating engine  
-* API integration to Order: Reschedule, Refund, Esim, TravelFair
+* Led the rewrite core itinerary service: revamping database schema, business logic, new endpoint, legacy integration
+* API integration to Order: Reschedule, Refund, Esim, TravelFair, Reschedule
+* Adding pipeline for: unit test, linter, integration test 
 * Establish domain boundaries in order, covering status management, data consistency
 
 ### BFI finance
@@ -25,10 +26,25 @@ created: 2026-06-21
 
 ### Project
 
-* Golang SDK: [https://github.com/Chandra179/ghost](https://github.com/Chandra179/ghost)
-* Golang Template: [https://github.com/Chandra179/brook](https://github.com/Chandra179/brook)
-* Nadir, RAG: [https://github.com/Chandra179/nadir](https://github.com/Chandra179/nadir)
-* Clover, Internet data aggregation: [https://github.com/Chandra179/clover](https://github.com/Chandra179/clover)
+**Casper**
+Golang SDK: Modular DB client, Redis caching, Apache Kafka producer/consumer (franz-go), RabbitMQ setup, OAuth2 client, i18n
+[https://github.com/Chandra179/ghost](https://github.com/Chandra179/ghost)
+
+**Brook**
+Golang Boilerplate: integration test, modularity, abstraction, middleware
+[https://github.com/Chandra179/brook](https://github.com/Chandra179/brook)
+
+**Nadir**
+Production grade RAG
+[https://github.com/Chandra179/nadir](https://github.com/Chandra179/nadir)
+
+**Clover**
+Internet data aggregation from: Reddit, Wikipedia, Hacker News, Lobsters, RSS, RSSHub, GitHub
+[https://github.com/Chandra179/clover](https://github.com/Chandra179/clover)
+
+**Psycho**
+![Psycho](assets/psycho.png)
+Analyze your personality using dictionary-based psycholinguistic analysis. You paste text, upload a file, or fetch a URL, it returns Big Five, Regulatory Focus, Need for Cognition, cognitive style, and value orientation scores, each with confidence intervals and traceable evidence. No data leaves your device. https://github.com/Chandra179/psycho
 
 ### Tech stack
 
