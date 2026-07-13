@@ -805,6 +805,22 @@
         }
       }
     },
+    "psycho.png": {
+      "width": 1102,
+      "height": 880,
+      "variants": {
+        "400": {
+          "width": 400,
+          "height": 319,
+          "path": "/assets/optimized/psycho-400.webp"
+        },
+        "800": {
+          "width": 800,
+          "height": 639,
+          "path": "/assets/optimized/psycho-800.webp"
+        }
+      }
+    },
     "quadrant_axis.png": {
       "width": 1259,
       "height": 1157,

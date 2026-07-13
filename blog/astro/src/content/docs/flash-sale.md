@@ -8,7 +8,7 @@ modified: "2026-07-13"
 
 # Flash Sale: System Design
 
-> A flash sale is a short-duration event (typically 5 minutes) where a limited number of items are sold at a steep discount. Millions of concurrent users attempt to purchase the same product simultaneously. The system must handle a sudden burst from 0 to 1M+ requests/second without crashing, while guaranteeing every user sees accurate inventory counts.
+A flash sale is a short-duration event (typically 5 minutes) where a limited number of items are sold at a steep discount. Millions of concurrent users attempt to purchase the same product simultaneously. The system must handle a sudden burst from 0 to 1M+ requests/second without crashing, while guaranteeing every user sees accurate inventory counts.
 
 ---
 
@@ -82,7 +82,7 @@ Total QPS      ≈ 1.03M req/s
 │   Client    │────►│  Load        │────►│  App Servers    │────►│  L1 Cache  │
 │  (Mobile/   │     │  Balancer    │     │  (Stateless)    │     │ (sync.Map) │
 │   Web)      │     │  (L4/L7)     │     │  N × processes  │     │  TTL: 1s   │
-└─────────────┘     └──────────────┘     └────────┬────────┘     └──────┬─────┘
+└─────────────┘     └──────────────┘     └─────────┬───────┘     └─────┬──────┘
                                                    │                   │
                                                    │ L1 miss           │ L1 hit
                                                    ▼                   │

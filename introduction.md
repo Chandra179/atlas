@@ -9,7 +9,7 @@ created: 2026-06-21
 ### BookCabin
 * Led the rewrite core itinerary service: revamping database schema, business logic, new endpoint, legacy integration
 * API integration to Order: Reschedule, Refund, Esim, TravelFair, Reschedule
-* Adding pipeline for: unit test, linter, integration test 
+* Adding CI pipeline: unit test, linter, integration test 
 * Establish domain boundaries in order, covering status management, data consistency
 
 ### BFI finance
