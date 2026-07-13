@@ -24,28 +24,39 @@ created: 2026-06-21
 * Managed ERP version migration to ensure smooth system compatibility and feature continuity
 * Maintained ERP order dashboard and client landing pages to enhance user experience and operational efficiency.
 
-### Project
-
-**Casper**
-Golang SDK: Modular DB client, Redis caching, Apache Kafka producer/consumer (franz-go), RabbitMQ setup, OAuth2 client, i18n
-[https://github.com/Chandra179/ghost](https://github.com/Chandra179/ghost)
-
-**Brook**
-Golang Boilerplate: integration test, modularity, abstraction, middleware
-[https://github.com/Chandra179/brook](https://github.com/Chandra179/brook)
-
-**Nadir**
-Production grade RAG
-[https://github.com/Chandra179/nadir](https://github.com/Chandra179/nadir)
-
-**Clover**
-Internet data aggregation from: Reddit, Wikipedia, Hacker News, Lobsters, RSS, RSSHub, GitHub
-[https://github.com/Chandra179/clover](https://github.com/Chandra179/clover)
-
-**Psycho**
-![Psycho](assets/psycho.png)
-Analyze your personality using dictionary-based psycholinguistic analysis. You paste text, upload a file, or fetch a URL, it returns Big Five, Regulatory Focus, Need for Cognition, cognitive style, and value orientation scores, each with confidence intervals and traceable evidence. No data leaves your device. https://github.com/Chandra179/psycho
-
 ### Tech stack
+* Golang, Temporal, SolidJS, Docker, Javascript, GCP
+* Redis, RabbitMQ, Nats, SqlServer, AWS, SQS/SNS
 
-* Golang, Temporal, SolidJS, Docker, Javascript, GCP, Redis, RabbitMQ, Nats, SqlServer, AWS, SQS/SNS
+---
+
+# Project
+
+## Casper
+Golang SDK
+- Modular DB client, Redis caching
+- Apache Kafka producer/consumer (franz-go)
+- RabbitMQ setup, OAuth2 client, i18n
+- [https://github.com/Chandra179/ghost](https://github.com/Chandra179/ghost)
+
+## Brook
+Golang Boilerplate
+- integration test, modularity, abstraction, middleware
+- [https://github.com/Chandra179/brook](https://github.com/Chandra179/brook)
+
+## Nadir
+Production grade RAG
+ - [https://github.com/Chandra179/nadir](https://github.com/Chandra179/nadir)
+
+## Clover
+Internet data aggregation from
+- Reddit, Wikipedia, Hacker News
+- Lobsters, RSS, RSSHub, GitHub
+- [https://github.com/Chandra179/clover](https://github.com/Chandra179/clover)
+
+## Psycho
+Analyze your personality using dictionary-based psycholinguistic analysis.
+- You paste text, upload a file, or fetch a URL, it returns Big Five, Regulatory Focus, Need for Cognition, cognitive style, and value orientation scores
+- each with confidence intervals and traceable evidence. No data leaves your device.
+- https://github.com/Chandra179/psycho
+

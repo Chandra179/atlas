@@ -15,7 +15,6 @@ const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="${W}" height="${H}" 
   <text x="120" y="140" font-family="Inter, sans-serif" font-size="64" font-weight="700" fill="white" text-anchor="middle">C</text>
   <text x="200" y="132" font-family="Inter, sans-serif" font-size="72" font-weight="700" fill="white">Chan179</text>
   <text x="60" y="520" font-family="Inter, sans-serif" font-size="36" fill="rgba(255,255,255,0.85)">
-    Personal Blog
   </text>
   <text x="60" y="570" font-family="Inter, sans-serif" font-size="28" fill="rgba(255,255,255,0.55)">
     System Design · Programming
