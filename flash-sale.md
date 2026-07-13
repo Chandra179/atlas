@@ -286,7 +286,7 @@ func shouldRefresh(ttl, remaining time.Duration) bool {
 
 ### Why Not Synchronous DB Write?
 
-> **Classic trap:** The synchronous `UPDATE inventory SET stock_count = stock_count - 1 WHERE product_id = $1` acquires a row-level exclusive lock on that single product row. PostgreSQL serializes to **~1,000–2,000 TPS per row**. With 20K+ concurrent writers on the hot sneaker, **18K+ connections queue on the lock**, hit `statement_timeout`, retry, and cascade. The DB connection pool exhausts instantly — even if the read path is perfectly shielded.
+**Classic trap:** The synchronous `UPDATE inventory SET stock_count = stock_count - 1 WHERE product_id = $1` acquires a row-level exclusive lock on that single product row. PostgreSQL serializes to **~1,000–2,000 TPS per row**. With 20K+ concurrent writers on the hot sneaker, **18K+ connections queue on the lock**, hit `statement_timeout`, retry, and cascade. The DB connection pool exhausts instantly — even if the read path is perfectly shielded.
 
 ### The Senior Pivot: Shield the DB from the Write Path
 

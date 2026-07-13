@@ -476,7 +476,7 @@ inventory:42:shard-63
 | **Redis Lua + async queue (write path)** | **~20ms** | **None** | **Medium** | **Flash sale write path — eliminates row-lock contention** |
 
 **Production recommendation for flash sale:**
-> **Pre-warming + Multi-tier cache + Request coalescing** for the read path. **Redis Lua atomic reserve + Kafka queue + batch DB workers** for the write path. Add **probabilistic early expiry** for self-sustaining refresh after the initial window. Avoid partitioning unless Redis itself is the bottleneck.
+**Pre-warming + Multi-tier cache + Request coalescing** for the read path. **Redis Lua atomic reserve + Kafka queue + batch DB workers** for the write path. Add **probabilistic early expiry** for self-sustaining refresh after the initial window. Avoid partitioning unless Redis itself is the bottleneck.
 
 ---
 
