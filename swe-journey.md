@@ -191,6 +191,26 @@ I applied a similar approach to some of our external APIs, like our weather data
 
 Why skip a dedicated cache like Redis entirely here? It comes down to **cost and realism**. A company blog isn't going to get millions of visitors overnight. Setting up, paying for, and maintaining a separate infrastructure piece like Redis for a low-traffic service is over-engineering. Local in-memory storage is faster, cheaper, and perfectly sufficient.
 
+## Eager Initialization (Boot-time Singleton)
+
+When the data we depend on is static and predefined, there is no need to use Redis or other cloud storage. Instead, we can fetch it once at startup and keep it in memory as a singleton. However, we must keep in mind the memory footprint, concurrent access, and how to handle a failed API call (e.g., whether to ignore it, throw an error, or panic). It all depends on the system's goals: if it is a non-blocking operation, we can simply ignore the failure or return an empty default; if it is critical, we should throw an error or panic to fail fast.
+
+```go
+var (
+    config     *StaticConfig
+    configOnce sync.Once
+)
+
+// LoadConfig guarantees the heavy fetch runs exactly once, even if multiple
+// goroutines call it concurrently during boot.
+func LoadConfig() *StaticConfig {
+    configOnce.Do(func() {
+        config = fetchFromRemoteAPI()
+    })
+    return config
+}
+```
+
 ## Message Broker Selection
 
 Choosing the right message broker whether it's Kafka, RabbitMQ, NATS, or AWS SNS/SQS depends entirely on your specific use case, scale requirements, and team expertise. While Kafka is fantastic for real-time data streaming and event replayability due to its append-only log architecture, you have to look at your team.
