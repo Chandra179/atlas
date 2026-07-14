@@ -325,3 +325,181 @@ PostgreSQL performs best in High-Volume Catalogs with Heavy Updates:
 SQL Server performs best in Sequential Ledgers and Time-Series Logs:
 - Chronological or auto-incrementing inserts are appended straight to the very last page of the clustered index B-Tree.
 - This sequential fill eliminates the overhead of searching for data placement and completely prevents internal page splits.
+
+## Error Wrapping and Centered Logging
+
+When building layered applications, adding log statements to every layer creates code noise and duplicate logs. A better approach is to wrap errors with contextual information at each layer, letting the error chain move upward naturally. By logging the accumulated error chain once at the presentation layer (such as the HTTP API handler), you eliminate redundant logs while preserving the execution context.
+
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+	"net/http"
+)
+
+// 1. Adapter Layer: Interacts with the database
+func fetchUserFromDB(userID string) error {
+	// Simulate a low-level database connection failure
+	baseErr := fmt.Errorf("connection timed out") 
+	return fmt.Errorf("database adapter failed: %w", baseErr)
+}
+
+// 2. Business Logic Layer: Processes core business rules
+func GetUserProfile(userID string) error {
+	err := fetchUserFromDB(userID)
+	if err != nil {
+		// Wrap the error with high-level business context
+		return fmt.Errorf("failed to retrieve user profile for ID %s: %w", userID, err)
+	}
+	return nil
+}
+
+// 3. Presentation Layer: The entry point (HTTP API)
+func UserHandler(w http.ResponseWriter, r *http.Request) {
+	userID := "user_123"
+
+	err := GetUserProfile(userID)
+	if err != nil {
+		// LOG ONCE: Captures the entire architectural journey of the failure
+		log.Printf("[ERROR] API Request Failed: %v", err)
+		
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+}
+
+func main() {
+	// [ERROR] API Request Failed: failed to retrieve user profile for ID user_123: database adapter failed: connection timed out
+}
+```
+
+## Concurrency Lifecycles and Failure Strategies
+
+When you writing concurrent code, managing how your goroutines live and die is your top priority. You have to check for common traps like deadlocks, operations that hang forever without a timeout, out of memory issues, data races, and accessing corrupted or deleted data. For advanced systems, you also have to consider data modification across distributed environments, which heavily depends on your specific use case.
+
+For instance, if you need to fire off one hundred API calls at once, your approach depends entirely on your design requirements. If you allow partial failures so one bad call does not block the others, you can simply log the errors and let the remaining calls finish. But if a single failure means the whole batch should stop immediately, an error group is the perfect tool to manage the context cancellation.
+
+You also need to evaluate if each API call requires an independent timeout context, and whether they are completely separate or dependent on each other. When API calls depend on the output of previous ones, you can use channels to coordinate it. Just remember to always clean up your resources using defer to cancel your contexts, check for channel closure before processing data, and define default fallback behaviors so your app never sits around doing nothing.
+
+#### Example 1: Handling Partial Failures
+Use this approach when you want to run all API calls to completion, even if some of them fail. A failure in one call does not stop the others.
+
+```go
+package main
+
+import (
+	"context"
+	"fmt"
+	"net/http"
+	"sync"
+	"time"
+)
+
+func fetchWorker(ctx context.Context, url string, wg *sync.WaitGroup) {
+	defer wg.Done()
+
+	req, err := http.NewRequestWithContext(ctx, "GET", url, nil)
+	if err != nil {
+		fmt.Printf("Error creating request for %s: %v\n", url, err)
+		return
+	}
+	
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		// Log the error locally and allow other goroutines to keep running
+		fmt.Printf("Error fetching %s: %v\n", url, err)
+		return
+	}
+	defer resp.Body.Close()
+
+	fmt.Printf("Successfully fetched %s (Status: %d)\n", url, resp.StatusCode)
+}
+
+func main() {
+	urls := []string{
+		"https://httpbin.org/delay/1",
+		"https://invalid-url-that-will-fail.com",
+		"https://httpbin.org/delay/2",
+	}
+
+	var wg sync.WaitGroup
+	
+	// Create a global 5-second timeout so no operation hangs forever
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel() // Resource cleanup to prevent memory leaks
+
+	for _, url := range urls {
+		wg.Add(1)
+		go fetchWorker(ctx, url, &wg)
+	}
+
+	wg.Wait()
+	fmt.Println("All individual workers finished processing.")
+}
+```
+
+#### Example 2: Stop Everything on First Error (Using errgroup.Group)
+
+Use this approach when you want an all-or-nothing operation. If any API call returns an error, the error group automatically cancels the context, which tells all other active workers to abort immediately.
+
+```go
+package main
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"golang.org/x/sync/errgroup"
+)
+
+func fetchCriticalData(ctx context.Context, id int) error {
+	// Simulate an API call that fails specifically on ID 2
+	if id == 2 {
+		time.Sleep(500 * time.Millisecond)
+		return errors.New("critical API dependency failed")
+	}
+
+	// Simulate a successful API call that takes 2 seconds
+	select {
+	case <-time.After(2 * time.Second):
+		fmt.Printf("API call %d completed successfully\n", id)
+		return nil
+	case <-ctx.Done():
+		// This triggers when another worker fails and cancels the context
+		fmt.Printf("API call %d was aborted early\n", id)
+		return ctx.Err()
+	}
+}
+
+func main() {
+	// Derive an error group from a base context
+	g, ctx := errgroup.WithContext(context.Background())
+	
+	// Set a hard absolute timeout for the entire group
+	ctx, cancel := context.WithTimeout(ctx, 5*time.Second)
+	defer cancel()
+
+	for i := 1; i <= 3; i++ {
+		workerID := i
+		// Launch the task inside the error group manager
+		g.Go(func() error {
+			return fetchCriticalData(ctx, workerID)
+		})
+	}
+
+	// Wait blocks until all tasks finish OR the first error occurs
+	if err := g.Wait(); err != nil {
+		fmt.Printf("Batch processing stopped early due to error: %v\n", err)
+		return
+	}
+
+	fmt.Println("Entire batch processing completed successfully.")
+}
+```
