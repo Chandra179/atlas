@@ -270,3 +270,58 @@ Also golang Garbage Collector (GC) doesn't know your container has a memory limi
 // In your Dockerfile or Kubernetes YAML (leave ~10% headroom for the OS)
 GOMEMLIMIT=450MiB
 ```
+
+## Choosing a SQL Database
+
+When choosing an SQL database, it is important to evaluate its storage architecture and indexing mechanics. PostgreSQL uses a heap storage engine, meaning that table data is stored independently of its indexes.
+
+Indexing in Postgres uses a B-Tree structure, so a query lookup requires the engine to find the tuple identifier (CTID) in the index and then perform a secondary lookup in the heap to retrieve the row data.
+
+```mermaid
+graph TD
+    subgraph PostgreSQL Storage Engine
+        subgraph Indexes
+            Idx1[B-Tree Index: User ID 105] -->|Contains Pointer| CTID[CTID: Page 4, Offset 2]
+        end
+        subgraph Table Data
+            Heap[Heap Storage Space]
+            Row1[Row: ID 99, John] --> Heap
+            Row2[Row: ID 105, Alice] --> Heap
+            Row3[Row: ID 42, Bob] --> Heap
+        end
+        CTID -->|Secondary Lookup| Row2
+    end
+    
+    style Heap fill:#f9f,stroke:#333,stroke-width:2px
+    style Indexes fill:#bbf,stroke:#333,stroke-width:1px
+```
+
+For SQL Server, the engine defaults to a clustered index architecture, where the table data itself is physically stored directly inside the B-Tree leaf nodes. As a result, SQL Server performs exceptionally well with sequential primary keys, as new inserts can be cleanly appended to the end of the clustered B-Tree without causing heavy page splits.
+
+```mermaid
+graph TD
+    subgraph SQL Server Storage Engine
+        subgraph Clustered Index B-Tree
+            Root[Root Node] --> Internal[Internal / Intermediate Nodes]
+            Internal --> Leaf1[Leaf Page 1: IDs 101 - 103]
+            Internal --> Leaf2[Leaf Page 2: IDs 104 - 106]
+            
+            subgraph Leaf Nodes Contain Actual Rows
+                RowA[Row 104: Bob] --> Leaf2
+                RowB[Row 105: Alice] --> Leaf2
+                RowC[Row 106: Charlie] --> Leaf2
+            end
+        end
+    end
+    
+    style Leaf2 fill:#dfd,stroke:#333,stroke-width:2px
+    style LeafNodes fill:#eee,stroke:#333,stroke-width:1px
+```
+
+PostgreSQL performs best in High-Volume Catalogs with Heavy Updates:
+- Product updates (like stock or price changes) append a new version of the row directly to the heap space.
+- If the updated column is not indexed, Postgres uses Heap-Only Tuples (HOT) to skip modifying the index entirely, avoiding massive disk write overhead.
+
+SQL Server performs best in Sequential Ledgers and Time-Series Logs:
+- Chronological or auto-incrementing inserts are appended straight to the very last page of the clustered index B-Tree.
+- This sequential fill eliminates the overhead of searching for data placement and completely prevents internal page splits.
