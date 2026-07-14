@@ -60,12 +60,13 @@ Total QPS      ≈ 1.03M req/s
 
 ### Storage
 
-| Data | Size |
-|------|------|
-| Product metadata (10K items × 500 bytes) | ~5 MB |
-| Inventory counter (10K items × 8 bytes) | ~80 KB |
-| Redis overhead (keys + TTL) | ~10 MB |
-| **Total cache footprint** | **< 20 MB** |
+| Data                                     | Size        |
+| ---------------------------------------- | ----------- |
+| Product metadata (10K items × 500 bytes) | ~5 MB       |
+| Inventory counter (10K items × 8 bytes)  | ~80 KB      |
+| Redis overhead (keys + TTL)              | ~10 MB      |
+| **Total cache footprint**                | **< 20 MB** |
+|                                          |             |
 
 ### Bandwidth
 
@@ -149,9 +150,7 @@ Response: { order_id, status: "confirmed" | "reserved" | "failed" }
 
 ---
 
-## Deep Dive — Read Path (The Stampede Problem)
-
-### The Core Problem
+## Deep Dive (Read Path)
 
 When the hot product's cache entry expires, **all 1M concurrent requests miss simultaneously**. Each issues its own `SELECT stock_count FROM inventory`, exhausting the DB connection pool within milliseconds. The DB slows down → cache rebuild takes seconds → more timeouts → more retries → positive feedback loop → cascading failure.
 
@@ -298,13 +297,13 @@ func shouldRefresh(ttl, remaining time.Duration) bool {
 
 ---
 
-## Deep Dive — Write Path (Async Inventory Reservation)
+## Deep Dive (Write Path)
 
 ### Why Not Synchronous DB Write?
 
 **Classic trap:** The synchronous `UPDATE inventory SET stock_count = stock_count - 1 WHERE product_id = $1` acquires a row-level exclusive lock on that single product row. PostgreSQL serializes to **~1,000–2,000 TPS per row**. With 20K+ concurrent writers on the hot sneaker, **18K+ connections queue on the lock**, hit `statement_timeout`, retry, and cascade. The DB connection pool exhausts instantly — even if the read path is perfectly shielded.
 
-### The Senior Pivot: Shield the DB from the Write Path
+### Shield the DB from the Write Path
 
 Move inventory to Redis. Use a Lua script for atomic reservation. Queue the order. Batch-write to DB asynchronously.
 
@@ -475,16 +474,16 @@ graph LR
 
 ## Strategy Decision Matrix
 
-| Strategy | Latency | DB Load | Complexity | Best For |
-|----------|---------|---------|------------|----------|
-| Request coalescing (singleflight) | +blocking | Low | Low | Moderate concurrency (<100K req/s) |
-| Probabilistic early expiry | Low | Low | Medium | Weakly-consistent data, unpredictable traffic |
-| Pre-warming + multi-tier cache | Low | None | High | **Scheduled events with known hot keys** |
-| Single-key partitioning | Low | Varies | Very high | Extreme scale where Redis is bottleneck |
+| Strategy                                 | Latency   | DB Load  | Complexity | Best For                                                   |
+| ---------------------------------------- | --------- | -------- | ---------- | ---------------------------------------------------------- |
+| Request coalescing (singleflight)        | +blocking | Low      | Low        | Moderate concurrency (<100K req/s)                         |
+| Probabilistic early expiry               | Low       | Low      | Medium     | Weakly-consistent data, unpredictable traffic              |
+| Pre-warming + multi-tier cache           | Low       | None     | High       | **Scheduled events with known hot keys**                   |
+| Single-key partitioning                  | Low       | Varies   | Very high  | Extreme scale where Redis is bottleneck                    |
 | **Redis Lua + async queue (write path)** | **~20ms** | **None** | **Medium** | **Flash sale write path — eliminates row-lock contention** |
 
 **Production recommendation for flash sale:**
-> **Pre-warming + Multi-tier cache + Request coalescing** for the read path. **Redis Lua atomic reserve + Kafka queue + batch DB workers** for the write path. Add **probabilistic early expiry** for self-sustaining refresh after the initial window. Avoid partitioning unless Redis itself is the bottleneck.
+**Pre-warming + Multi-tier cache + Request coalescing** for the read path. **Redis Lua atomic reserve + Kafka queue + batch DB workers** for the write path. Add **probabilistic early expiry** for self-sustaining refresh after the initial window. Avoid partitioning unless Redis itself is the bottleneck.
 
 ---
 

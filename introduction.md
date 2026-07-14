@@ -32,30 +32,30 @@ created: 2026-06-21
 
 # Project
 
-## Casper
-Golang SDK
+### Casper
+- Golang SDK
 - Modular DB client, Redis caching
 - Apache Kafka producer/consumer (franz-go)
 - RabbitMQ setup, OAuth2 client, i18n
 - [https://github.com/Chandra179/ghost](https://github.com/Chandra179/ghost)
 
-## Brook
-Golang Boilerplate
+### Brook
+- Golang Boilerplate
 - integration test, modularity, abstraction, middleware
 - [https://github.com/Chandra179/brook](https://github.com/Chandra179/brook)
 
-## Nadir
-Production grade RAG
- - [https://github.com/Chandra179/nadir](https://github.com/Chandra179/nadir)
+### Nadir
+- Production grade RAG
+- [https://github.com/Chandra179/nadir](https://github.com/Chandra179/nadir)
 
 ## Clover
-Internet data aggregation from
+- Internet data aggregation from
 - Reddit, Wikipedia, Hacker News
 - Lobsters, RSS, RSSHub, GitHub
 - [https://github.com/Chandra179/clover](https://github.com/Chandra179/clover)
 
-## Psycho
-Analyze your personality using dictionary-based psycholinguistic analysis.
+### Psycho
+-  Analyze your personality using dictionary-based psycholinguistic analysis.
 - You paste text, upload a file, or fetch a URL, it returns Big Five, Regulatory Focus, Need for Cognition, cognitive style, and value orientation scores
 - each with confidence intervals and traceable evidence. No data leaves your device.
 - https://github.com/Chandra179/psycho

@@ -77,27 +77,16 @@ Total QPS      ≈ 1.03M req/s
 
 ## High-Level Design
 
-```
-┌─────────────┐     ┌──────────────┐     ┌─────────────────┐     ┌────────────┐
-│   Client    │────►│  Load        │────►│  App Servers    │────►│  L1 Cache  │
-│  (Mobile/   │     │  Balancer    │     │  (Stateless)    │     │ (sync.Map) │
-│   Web)      │     │  (L4/L7)     │     │  N × processes  │     │  TTL: 1s   │
-└─────────────┘     └──────────────┘     └─────────┬───────┘     └─────┬──────┘
-                                                   │                   │
-                                                   │ L1 miss           │ L1 hit
-                                                   ▼                   │
-                                          ┌─────────────────┐          │
-                                          │  L2 Cache       │          │
-                                          │  (Redis Cluster)│          │
-                                          │  TTL: 5s        │          │
-                                          └────────┬────────┘          │
-                                                   │ L2 miss
-                                                   ▼
-                                          ┌─────────────────┐
-                                          │  Primary DB     │
-                                          │  (PostgreSQL)   │
-                                          │  Async workers  │
-                                          └─────────────────┘
+```mermaid
+graph LR
+    Client["Client<br/>(Mobile / Web)"] --> LB["Load Balancer<br/>(L4 / L7)"]
+    LB --> AS["App Servers<br/>(Stateless)<br/>N × processes"]
+    AS --> L1["L1 Cache<br/>(sync.Map)<br/>TTL: 1s"]
+
+    AS -. L1 miss .-> L2["L2 Cache<br/>(Redis Cluster)<br/>TTL: 5s"]
+    L1 -. L1 hit .-> AS
+
+    L2 -. L2 miss .-> DB["Primary DB<br/>(PostgreSQL)<br/>Async workers"]
 ```
 
 ### Components
@@ -166,11 +155,26 @@ Response: { order_id, status: "confirmed" | "reserved" | "failed" }
 
 When the hot product's cache entry expires, **all 1M concurrent requests miss simultaneously**. Each issues its own `SELECT stock_count FROM inventory`, exhausting the DB connection pool within milliseconds. The DB slows down → cache rebuild takes seconds → more timeouts → more retries → positive feedback loop → cascading failure.
 
-```
-Client 1 ─┐
-Client 2 ─┤   Cache MISS (TTL expired)
-...       │   ──────────────────────►  1M parallel SELECTs ──► DB pool exhausted
-Client N ─┘
+```mermaid
+graph TD
+    subgraph Clients
+        C1["Client 1"]
+        C2["Client 2"]
+        CN["Client N"]
+    end
+
+    subgraph Cache
+        MISS["Cache MISS<br/>(TTL expired)"]
+    end
+
+    subgraph Database
+        DB["DB pool exhausted<br/>1M parallel SELECTs"]
+    end
+
+    C1 --> MISS
+    C2 --> MISS
+    CN --> MISS
+    MISS --> DB
 ```
 
 ### Strategy 1: Request Coalescing (singleflight)
@@ -205,8 +209,11 @@ func fetchInventory(id string) (int, error) {
 
 Place a fast in-process L1 cache ahead of shared L2 (Redis). L1 absorbs the initial microburst.
 
-```
-Request → L1 (sync.Map, TTL 1s) → L2 (Redis, TTL 5s) → DB
+```mermaid
+graph LR
+    Req["Request"] --> L1["L1 (sync.Map, TTL 1s)"]
+    L1 --> L2["L2 (Redis, TTL 5s)"]
+    L2 --> DB[(DB)]
 ```
 
 | Layer | Latency | TTL | Capacity | Role |
@@ -249,12 +256,21 @@ func (c *Cache) Get(key string) (any, error) {
 
 For scheduled events, populate caches **before** traffic arrives.
 
-```
-Timeline:
-T-120s : Background job → warm L2 with short TTL (10s)
-T-30s  : Background job → refresh L1 + L2 with real TTL (5s)
-T=0    : Flash sale starts → ALL requests hit L1 (zero misses)
-T+X    : Probabilistic early expiry keeps cycle self-sustaining
+```mermaid
+gantt
+    title Pre-Warming Timeline
+    dateFormat HH:mm
+    axisFormat %H:%M
+    tickInterval 30minutes
+
+    section Warm Phase 1
+    Warm L2 with short TTL (10s)    :warm1, 00:00, 1min
+    section Warm Phase 2
+    Refresh L1 + L2 with real TTL (5s) :warm2, 00:00, 1min
+    section Flash Sale
+    Flash sale starts → zero misses  :sale, 00:00, 5min
+    section Sustain
+    Probabilistic early expiry cycle :sustain, 00:00, 5min
 ```
 
 - At T=0, every request hits L1 (primed). L1 serves in <1μs. **Zero L2 lookups, zero DB queries.**
@@ -286,27 +302,19 @@ func shouldRefresh(ttl, remaining time.Duration) bool {
 
 ### Why Not Synchronous DB Write?
 
-> **Classic trap:** The synchronous `UPDATE inventory SET stock_count = stock_count - 1 WHERE product_id = $1` acquires a row-level exclusive lock on that single product row. PostgreSQL serializes to **~1,000–2,000 TPS per row**. With 20K+ concurrent writers on the hot sneaker, **18K+ connections queue on the lock**, hit `statement_timeout`, retry, and cascade. The DB connection pool exhausts instantly — even if the read path is perfectly shielded.
+**Classic trap:** The synchronous `UPDATE inventory SET stock_count = stock_count - 1 WHERE product_id = $1` acquires a row-level exclusive lock on that single product row. PostgreSQL serializes to **~1,000–2,000 TPS per row**. With 20K+ concurrent writers on the hot sneaker, **18K+ connections queue on the lock**, hit `statement_timeout`, retry, and cascade. The DB connection pool exhausts instantly — even if the read path is perfectly shielded.
 
 ### The Senior Pivot: Shield the DB from the Write Path
 
 Move inventory to Redis. Use a Lua script for atomic reservation. Queue the order. Batch-write to DB asynchronously.
 
-```
-┌─────────────┐     ┌──────────────────────┐     ┌──────────────┐     ┌──────────────┐
-│  Client     │────►│  App Server           │────►│  Redis (Lua) │     │  Message     │
-│  POST /order│     │  (validates request)  │     │  ATOMIC:     │────►│  Queue       │
-└─────────────┘     └──────────────────────┘     │  if stock > 0 │     │  (Kafka/SQS) │
-                         │   ~15ms               │    decr stock │     └──────┬───────┘
-                         │                       └──────────────┘            │
-                         ▼                                                    ▼
-                  202 Accepted                                          ┌──────────────┐
-                  { order_id, status: "reserved" }                      │  DB Worker   │
-                                                                        │  Pool (10–20)│
-                                                                        │  ──────────  │
-                                                                        │  Batch INSERT│
-                                                                        │  to PostgreSQL│
-                                                                        └──────────────┘
+```mermaid
+graph LR
+    Client["Client<br/>POST /order"] --> AS["App Server<br/>(validates request)"]
+    AS --> Redis["Redis (Lua)<br/>ATOMIC:<br/>if stock &gt; 0<br/>decr stock"]
+    Redis --> MQ["Message Queue<br/>(Kafka / SQS)"]
+    AS --> Response["202 Accepted<br/>{order_id, status: 'reserved'}"]
+    MQ --> Workers["DB Worker Pool<br/>(10–20)<br/>Batch INSERT<br/>to PostgreSQL"]
 ```
 
 ### Redis Lua Script (Atomic Reserve)
@@ -446,11 +454,11 @@ func orderWorker(consumer *kafka.Consumer, db *sql.DB) {
 
 If 1M req/s on one key exceeds Redis single-threaded capacity (~100–200K ops/s per shard):
 
-```
-inventory:42:shard-0
-inventory:42:shard-1
-...
-inventory:42:shard-63
+```mermaid
+graph LR
+    Key["inventory:42"] --> S0["shard-0"]
+    Key --> S1["shard-1"]
+    Key --> S63["... shard-63"]
 ```
 
 - **Writes:** increment random shard (or all shards for strong consistency)
@@ -476,7 +484,7 @@ inventory:42:shard-63
 | **Redis Lua + async queue (write path)** | **~20ms** | **None** | **Medium** | **Flash sale write path — eliminates row-lock contention** |
 
 **Production recommendation for flash sale:**
-**Pre-warming + Multi-tier cache + Request coalescing** for the read path. **Redis Lua atomic reserve + Kafka queue + batch DB workers** for the write path. Add **probabilistic early expiry** for self-sustaining refresh after the initial window. Avoid partitioning unless Redis itself is the bottleneck.
+> **Pre-warming + Multi-tier cache + Request coalescing** for the read path. **Redis Lua atomic reserve + Kafka queue + batch DB workers** for the write path. Add **probabilistic early expiry** for self-sustaining refresh after the initial window. Avoid partitioning unless Redis itself is the bottleneck.
 
 ---
 
