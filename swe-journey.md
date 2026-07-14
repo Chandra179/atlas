@@ -504,7 +504,7 @@ func main() {
 }
 ```
 
-## Memory  and Pointers
+## Memory and Pointers
 
 If you have a background in C++, you will find familiar mechanics in Go when it comes to memory management. Go uses the exact same symbols for pointer operations: the `&` operator retrieves the memory address of a variable, while the `*` operator dereferences a pointer to access the actual value stored at that specific memory location.
 
@@ -601,7 +601,7 @@ Because strings, slices, and maps are already just lightweight headers or pointe
 Deciding whether to pass a data structure by value or by pointer requires an understanding of how the Go compiler conducts escape analysis to choose between stack and heap distribution:
 
 - **Passing by Value (Stack Allocation):** Copying values keeps data isolated within the local execution stack frame. The moment the function finishes its execution, the entire stack frame is discarded. This releases the memory with zero processing overhead and places no strain on the garbage collector.
-- **Passing by Pointer (Heap Allocation):** When you pass a pointer, the compiler often cannot verify if the memory will be referenced elsewhere after the current function exits. Making the data escapes to the heap. Heap allocations must be actively tracked and cleaned up by the garbage collector.
+- **Passing by Pointer (Heap Allocation):** When you pass a pointer, the compiler often cannot verify if the memory will be referenced elsewhere after the current function exits. This causes the data to escape to the heap. Heap allocations must be actively tracked and cleaned up by the garbage collector.
 
 ```go
 package main
