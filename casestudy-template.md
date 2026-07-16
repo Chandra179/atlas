@@ -1,284 +1,97 @@
-# Case Study Template: Technical Deep-Dive Design Doc
+# [System/Feature Name, e.g., Real-Time Chat System]
 
-## Metadata
-- **Title**: Case Study: How We Solved [The Bottleneck]
-- **Author**: [Name/Handle]
-- **Date**: [YYYY-MM-DD]
-- **Tags**: [performance, database, caching, scaling, distributed-systems, etc.]
-- **Status**: [Draft / In Review / Published]
-- **Repo/Link**: [GitHub PR, internal doc, blog post URL]
+*A realistic, battle-tested system design for handling [specific high-scale challenge, e.g., massive group-chat message spikes] without crashing infrastructure or losing data.*
 
 ---
 
-## 1. Executive Summary (TL;DR)
-**2-3 sentences max.** What broke, what you did, what the outcome was.
-> Example: "Our ticketing API melted at 5k RPS due to row-level locking in Postgres. We moved inventory decrements to atomic Redis operations, achieving 50k RPS with p99 < 20ms—on the same hardware."
+## The Problem & Goals
+
+### Problem
+[Describe a highly specific, painful bottleneck scenario that a standard architecture cannot handle. Use numbers to set the scale.]
+*   **The Scenario:** [e.g., "A celebrity sends a message to a group chat with 100,000 active users at the exact same millisecond."]
+*   **The Technical Failure:** [e.g., "Our WebSocket servers try to broadcast 100,000 payloads simultaneously, exhausting network sockets and spiking CPU to 100%."]
+
+### Goals
+*   **Goal 1 (Functional/Accuracy):** [What is the absolute business rule? e.g., "Messages must be delivered in strict chronological order."]
+*   **Goal 2 (Operational/Resilience):** [How must it fail if it has to? e.g., "If delivery fails, we fail gracefully without crashing the WebSocket node."]
+*   **Goal 3 (Performance):** [A realistic metric target. e.g., "In-room message delivery latency (p99) under 100ms."]
 
 ---
 
-## 2. Context & Background
+## System Constraints
 
-### 2.1 System Overview
-- **Service/Component**: [Name, repo, team ownership]
-- **Architecture Diagram**: [Link to diagram or embed mermaid]
-- **Traffic Profile**: [QPS, peak/avg, read vs write ratio, data volume]
-- **SLA/SLO**: [Latency targets, availability, error budget]
+*Note: Setting physical hardware boundaries forces realistic engineering choices instead of 'infinite cloud' magic.*
 
-### 2.2 The Incident / Trigger
-- **When**: [Date/time, timezone]
-- **Duration**: [How long degraded/outage lasted]
-- **Impact**: [Users affected, revenue lost, error rate, latency degradation]
-- **Alert**: [What fired, how detected]
+### Traffic & Performance Targets
+*   **Peak Load:** [e.g., "50,000 incoming messages per second across all channels."]
+*   **Latency Target:** [e.g., "Message write path completed in < 15ms (p99)."]
+*   **System Lag Budget:** [e.g., "Downstream search indexes must catch up within 2 seconds."]
 
----
-
-## 3. Problem Analysis
-
-### 3.1 What Broke (Symptoms)
-| Metric | Normal | During Incident |
-|--------|--------|-----------------|
-| p99 Latency | 45ms | 30s+ |
-| Error Rate | 0.01% | 12% |
-| DB CPU | 30% | 100% |
-| Queue Depth | 5 | 50,000 |
-
-### 3.2 Root Cause Analysis
-- **Primary Cause**: [e.g., "SELECT FOR UPDATE on inventory table serialized all writes"]
-- **Contributing Factors**:
-  - [Missing index / bad query plan]
-  - [No connection pooling / connection exhaustion]
-  - [Single-threaded bottleneck in application code]
-  - [Cache stampede / thundering herd]
-- **Why It Wasn't Caught Earlier**: [Load test gap, missing alert, staging != prod]
-
-### 3.3 Constraints & Non-Goals
-| Constraint | Detail |
-|------------|--------|
-| **Performance Target** | 10k RPS, p99 < 50ms |
-| **Budget** | No new infra; existing Redis cluster only |
-| **Downtime Window** | Zero-downtime deploy required |
-| **Data Consistency** | Strong consistency for inventory; eventual OK for analytics |
-| **Non-Goals** | [e.g., "Not rewriting the entire checkout flow"] |
+### Resource Constraints (Hardware/Infrastructure)
+*   **Application/Socket Layer:** [e.g., "8 Go-based WebSocket instances (each 4 vCPU, 8GB RAM). Target CPU < 60%."]
+*   **Cache/PubSub Layer:** [e.g., "A single Redis Cluster for pub/sub routing. Max CPU < 75% on any single shard."]
+*   **Database Layer:** [e.g., "A MongoDB replica set (3 nodes, 16 vCPU, 64GB RAM each) for persistent chat history."]
 
 ---
 
-## 4. Solution Design
+## High-Level Design (HLD) & Trade-offs
 
-### 4.1 High-Level Approach
-[One paragraph: the core idea. e.g., "Move hot inventory counters from Postgres to Redis with Lua scripting for atomicity."]
+*Evaluate two competing architectural options. Show that there is no 'perfect' solution, only trade-offs.*
 
-### 4.2 Architecture Diagram (New Flow)
+### Design Option 1: [Option Name, e.g., Direct Pub/Sub Routing]
+
+[Brief 2-3 sentence summary of how this straightforward option works.]
+
 ```mermaid
-sequenceDiagram
-    participant Client
-    participant API
-    participant Redis
-    participant Postgres
-    Client->>API: POST /checkout
-    API->>Redis: EVALSHA decrement_stock (atomic)
-    alt Success
-        Redis-->>API: {ok: true, remaining: 42}
-        API->>Postgres: Async write order + decrement (eventual)
-        API-->>Client: 200 OK
-    else Sold Out
-        Redis-->>API: {ok: false}
-        API-->>Client: 409 Conflict
-    end
+// Insert Sequence or Flow Diagram here
 ```
 
-### 4.3 Component Changes
-| Component | Before | After | Risk |
-|-----------|--------|-------|------|
-| Inventory Check | `SELECT * FROM inventory WHERE id=? FOR UPDATE` | `redis.call('decr', key)` | Low |
-| Order Write | Single transaction | Async via Kafka/CDC | Medium |
-| Read Path | Postgres | Redis (cache-aside) | Low |
+How it Works
+Step 1: [User action...]
 
----
+Step 2: [How the bottleneck is handled...]
 
-## 5. Implementation Deep-Dive
+Step 3: [How data is saved...]
 
-### 5.1 Core Algorithm / Data Structure
-```lua
--- Redis Lua script: atomic decrement with floor at 0
--- KEYS[1] = inventory:{sku}:stock
--- Returns: {success: 1/0, remaining: N}
-local stock = tonumber(redis.call('GET', KEYS[1]) or '0')
-if stock > 0 then
-    redis.call('DECR', KEYS[1])
-    return {1, stock - 1}
-end
-return {0, 0}
-```
+| Pros | Cons |
+|---|---|
+| Simple to Build: [e.g., "Requires no extra queue infrastructure."] | Scalability Limit: [e.g., "Blocks connection threads under heavy fan-out spikes."] |
+| Sub-Millisecond Delivery: [e.g., "No message queues in the path means instant delivery."] | Data Loss Risk: [e.g., "If a client disconnects during the spike, they lose the message entirely."] |
 
-### 5.2 Key Code Changes
-**File**: `services/inventory/redis_inventory.go`
-```go
-func (r *RedisInventory) Reserve(ctx context.Context, sku string, qty int) (bool, error) {
-    key := fmt.Sprintf("inventory:%s:stock", sku)
-    script := redis.NewScript(reserveScript)
-    result, err := script.Run(ctx, r.client, key, qty).Slice()
-    // ...
-}
-```
+### Design Option 2: [Option Name, e.g., Buffered Queue with Pull-Based Sync]
 
-### 5.3 Migration Strategy
-1. **Shadow Mode** (Week 1): Dual-write to Redis + Postgres; compare results
-2. **Canary** (Week 2): 5% traffic to new path; monitor error rate / drift
-3. **Full Cutover** (Week 3): Switch read path to Redis; Postgres becomes async sink
-4. **Cleanup** (Week 4): Remove `FOR UPDATE` logic; add reconciliation job
+[Brief 2-3 sentence summary of how this more advanced option solves the bottleneck.]
 
-### 5.4 Testing Strategy
-- **Unit**: Lua script edge cases (negative stock, key missing, TTL expiry)
-- **Integration**: Jepsen-style concurrent decrement test (10k parallel clients)
-- **Load**: k6 script simulating flash sale (ramp to 50k RPS)
-- **Chaos**: Redis failover during load; verify fallback to Postgres
-
----
-
-## 6. Results & Metrics
-
-### 6.1 Before vs After
-| Metric | Before | After | Improvement |
-|--------|--------|-------|-------------|
-| Peak RPS Handled | 2,000 | 50,000 | **25x** |
-| p99 Latency | 30,000ms | 18ms | **1,666x** |
-| Error Rate (peak) | 12% | 0.001% | **12,000x** |
-| DB CPU (peak) | 100% | 15% | — |
-| Infra Cost | $2,400/mo | $2,400/mo | **0%** |
-
-### 6.2 Dashboards & Alerts Added
-- [Grafana dashboard: Inventory Redis health]
-- [Alert: Redis stock drift > 1% vs Postgres]
-- [Alert: Lua script error rate > 0.1%]
-
----
-
-## 7. Trade-offs & Retrospective
-
-### 7.1 What We Gave Up
-| Trade-off | Decision | Mitigation |
-|-----------|----------|------------|
-| **Strong Consistency** | Eventual consistency for inventory counts | Reconciliation job runs every 60s; admin API for manual correction |
-| **Operational Complexity** | Added Redis as critical path | Runbook: Redis failover < 30s; fallback to Postgres with rate-limit |
-| **Debugging Difficulty** | Distributed trace across Redis + Postgres | OpenTelemetry spans on both paths; correlation IDs |
-
-### 7.2 Failure Scenarios & Handling
-| Scenario | Detection | Fallback |
-|----------|-----------|----------|
-| Redis OOM / Crash | Health check + circuit breaker | Direct Postgres writes with `FOR UPDATE` + token bucket (100 RPS) |
-| Lua Script Bug | Error rate alert | Feature flag to disable new path instantly |
-| Stock Drift | Reconciliation job diff > threshold | Alert + auto-correct from Postgres source of truth |
-
-### 7.3 What We'd Do Differently
-- [e.g., "Start with Redis Cluster from day one; single-instance was a SPOF"]
-- [e.g., "Invest in chaos testing earlier—found the fallback path bug in prod"]
-- [e.g., "Add distributed tracing before the migration, not after"]
-
----
-
-## 8. Operational Runbook
-
-### 8.1 Deploy Checklist
-- [ ] Lua script loaded to all Redis shards (`SCRIPT LOAD`)
-- [ ] Feature flag `use_redis_inventory` default OFF
-- [ ] Canary config: 5% traffic, 30min soak
-- [ ] Rollback plan tested: flag OFF + drain connections
-
-### 8.2 Monitoring Queries
-```promql
-# Redis stock vs Postgres drift
-abs(redis_inventory_stock - pg_inventory_stock) / pg_inventory_stock > 0.01
-
-# Lua script error rate
-rate(redis_lua_errors_total[5m]) > 0.001
-```
-
-### 8.3 Incident Response
-1. **Redis Down**: Flip feature flag → traffic routes to Postgres fallback
-2. **Stock Drift**: Run `make reconcile-inventory`; alert on-call if > 100 SKUs affected
-3. **Latency Spike**: Check `redis_slowlog`; scale read replicas if needed
-
----
-
-## 9. Related Artifacts
-- **PR/Commit**: [Link]
-- **Design Doc**: [Link]
-- **Load Test Results**: [Link to k6/Grafana snapshot]
-- **Postmortem**: [Link]
-- **Runbook**: [Link to internal wiki]
-
----
-
-## 10. Template Usage Guide
-
-### When to Use This Template
-- Production incidents with clear technical root cause
-- Performance optimization projects with measurable outcomes
-- Architecture migrations (DB → cache, sync → async, monolith → service)
-
-### How to Fill It
-1. **Start with Section 3** (Problem) during/after incident
-2. **Fill Section 4-5** during design & implementation
-3. **Complete Section 6-7** after production validation
-4. **Section 8** is living—update as you operate it
-
-### Quality Bar
-- Every claim in Section 6 backed by dashboard screenshot or log link
-- Trade-offs (Section 7) must be honest—no "no downsides"
-- Runbook (Section 8) must be executable by on-call who didn't build it
-
----
-
-## Appendix: Mermaid Diagram Templates
-
-### Sequence Diagram (Request Flow)
 ```mermaid
-sequenceDiagram
-    actor User
-    participant Gateway
-    participant Service
-    participant Cache
-    participant DB
-    User->>Gateway: Request
-    Gateway->>Service: Forward
-    Service->>Cache: Check
-    alt Hit
-        Cache-->>Service: Data
-    else Miss
-        Service->>DB: Query
-        DB-->>Service: Data
-        Service->>Cache: Populate
-    end
-    Service-->>Gateway: Response
-    Gateway-->>User: Response
+// Insert Sequence or Flow Diagram here
 ```
 
-### Architecture Diagram (Component View)
-```mermaid
-graph TB
-    subgraph Client
-        UI[Web/App]
-    end
-    subgraph Edge
-        CDN[Cloudflare]
-        WAF[WAF]
-    end
-    subgraph Platform
-        API[API Gateway]
-        SVC[Service Mesh]
-    end
-    subgraph Data
-        REDIS[(Redis Cluster)]
-        PG[(PostgreSQL)]
-        KAFKA[Kafka]
-    end
-    UI --> CDN --> WAF --> API --> SVC
-    SVC --> REDIS
-    SVC --> PG
-    SVC --> KAFKA
-```
+How it Works
+Step 1: [User action...]
 
----
+Step 2: [How the bottleneck is handled...]
 
-*Template Version: 2.0 | Last Updated: 2026-07-16*
-*Inspired by: Google SRE Book, Netflix Tech Blog, Dan Luu's Postmortems, AWS Well-Architected*
+Step 3: [How data is saved...]
+
+Trade-offs
+
+| Pros | Cons |
+|---|---|
+| Highly Resilient: [e.g., "Queues isolate the database from sudden spikes."] | Increased Complexity: [e.g., "Clients must now handle pulling and reconciling missed history."] |
+| Zero Data Loss: [e.g., "Messages are safely persisted before delivery is attempted."] | Consistency Delay: [e.g., "Slightly higher latency (20-50ms) due to queue hop."] |
+
+### Room for Scalability (Production Hardening)
+
+What additional operational layers prevent catastrophic failure under extreme edge cases?
+
+1. [Safeguard 1, e.g., Backpressure & Rate Limiting]
+   *   **Implementation:** [How is it built?]
+   *   **Action:** [e.g., "If a WebSocket node's memory exceeds 80%, we slow down incoming message reads from the socket to allow downstream databases to catch up."]
+
+2. [Safeguard 2, e.g., Edge Load Balancing]
+   *   **Implementation:** [How is it built?]
+   *   **Action:** [e.g., "Use Geo-DNS to route chat traffic to the nearest regional data center, splitting the global load."]
+
+3. [Safeguard 3, e.g., Degraded Mode / Graceful Degradation]
+   *   **Implementation:** [How is it built?]
+   *   **Action:** [e.g., "Under extreme system load, we disable typing indicators and read receipts to prioritize the delivery of raw message text."]

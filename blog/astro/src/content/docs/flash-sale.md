@@ -6,7 +6,7 @@ created: "2026-06-13"
 modified: "2026-07-16"
 ---
 
-# Flash Sale System
+	# Flash Sale System
 
 This document outlines a realistic, battle-tested system design for managing high-concurrency product drops (flash sales) without crashing infrastructure or overselling inventory.
 
