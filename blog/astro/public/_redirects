@@ -1,5 +1,2 @@
-# Fix the psyhco -> psycho typo (301 permanent redirect)
-/psyhco  /psycho  301
-
 # Trailing-slash redirects: enforce no-trailing-slash (matches canonical)
 # Cloudflare Pages auto-redirects /path/ -> /path when trailingSlash: 'never'

@@ -88,34 +88,6 @@ for (const section of nav) {
   }
 }
 
-const categories = [...new Set(cards.map((c) => c.categorySlug).filter(Boolean))] as string[];
-
-const categoryLabels: Record<string, string> = {};
-const navMap = new Map<string, (typeof nav)[number]>();
-for (const section of nav) navMap.set(section.slug, section);
-for (const catSlug of categories) {
-  categoryLabels[catSlug] = navMap.get(catSlug)?.name || catSlug;
-}
-
-const CATEGORY_COLORS = [
-  'badge-fundamental',
-  'badge-system-design',
-  'badge-golang',
-  'badge-math',
-  'badge-ml',
-  'badge-quant',
-  'badge-economy',
-];
-
-const CATEGORY_BADGES: Record<string, string> = {};
-categories.forEach((slug, i) => {
-  CATEGORY_BADGES[slug] = CATEGORY_COLORS[i % CATEGORY_COLORS.length] || 'badge-default';
-});
-
-// Add system-design as a filterable tag if any cards have it
-const hasSystemDesign = cards.some((c) => c.tags.includes('system-design'));
-const hasGolang = cards.some((c) => c.tags.includes('golang'));
-
 const siteName = 'Chan179';
 const baseDescription = 'Personal blog on software engineering, system design, and mathematics.';
 
@@ -147,68 +119,16 @@ const homepageJsonLd = [
 <BaseLayout title={siteName} description={baseDescription} canonical="/" minimal jsonLd={homepageJsonLd}>
   <main class="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden pt-20">
     <div class="mx-auto px-4 sm:px-6 py-8 lg:py-12 max-w-6xl">
-      <!-- Filter Bar -->
-      <div class="flex flex-wrap items-center gap-2 mb-8" id="filter-bar">
-        <button data-filter="all" class="filter-pill filter-pill-active">All</button>
-        {categories.map((catSlug) => (
-          <button data-filter={catSlug} class="filter-pill">{categoryLabels[catSlug]}</button>
-        ))}
-        {hasSystemDesign && (
-          <button data-filter="system-design" class="filter-pill">System Design</button>
-        )}
-        {hasGolang && (
-          <button data-filter="golang" class="filter-pill">Golang</button>
-        )}
-      </div>
-
       <!-- Card grid (server-rendered for SEO) -->
       <div class="landing-grid" style="--landing-cols: 2;">
-        {cards.map((card) => {
-          const isSystemDesign = card.tags.includes('system-design');
-          const isGolang = card.tags.includes('golang');
-          return (
-            <a href={'/' + card.path} class="landing-card" data-category={card.categorySlug || ''} data-tags={card.tags.join(',')}>
-              <div class="card-badge-wrapper">
-                {card.category && (
-                  <span class={'card-badge ' + (CATEGORY_BADGES[card.categorySlug || ''] || 'badge-default')}>{card.category}</span>
-                )}
-                {!card.category && isSystemDesign && (
-                  <span class="card-badge badge-system-design">System Design</span>
-                )}
-                {!card.category && isGolang && (
-                  <span class="card-badge badge-golang">Golang</span>
-                )}
-              </div>
-              <h3 class="card-title">{card.title}</h3>
-              <p class="card-desc">{card.description || 'No description available.'}</p>
-            </a>
-          );
-        })}
+        {cards.map((card) => (
+          <a href={'/' + card.path} class="landing-card" data-category={card.categorySlug || ''} data-tags={card.tags.join(',')}>
+            <div class="card-badge-wrapper"></div>
+            <h3 class="card-title">{card.title}</h3>
+            <p class="card-desc">{card.description || 'No description available.'}</p>
+          </a>
+        ))}
       </div>
     </div>
   </main>
 </BaseLayout>
-
-<script>
-  // Client-side filter for landing cards
-  const filterBar = document.getElementById('filter-bar');
-  if (filterBar) {
-    const buttons = filterBar.querySelectorAll('.filter-pill');
-    const cards = document.querySelectorAll('.landing-card[data-category]');
-    buttons.forEach((btn) => {
-      btn.addEventListener('click', () => {
-        const filter = btn.getAttribute('data-filter') || 'all';
-        buttons.forEach((b) => b.classList.remove('filter-pill-active'));
-        btn.classList.add('filter-pill-active');
-        cards.forEach((card) => {
-          const cat = card.getAttribute('data-category');
-          const tags = (card.getAttribute('data-tags') || '').split(',');
-          const hasSystemDesign = tags.includes('system-design');
-          const hasGolang = tags.includes('golang');
-          const matches = filter === 'all' || cat === filter || (filter === 'system-design' && hasSystemDesign) || (filter === 'golang' && hasGolang);
-          (card as HTMLElement).style.display = matches ? '' : 'none';
-        });
-      });
-    });
-  }
-</script>

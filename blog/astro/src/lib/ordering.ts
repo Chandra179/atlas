@@ -4,17 +4,14 @@
 export const NAME_OVERRIDES: Record<string, string> = {
   'README':                 'Introduction',
   'introduction':           'Introduction',
-  'batch-scheduler':        'Batch Scheduler',
   'flash-sale':             'Flash Sale',
-  'nadir':                  'Nadir (RAG)',
-  'psycho':                 'Psycho',
 };
 
 // Display order for root-level standalone pages (slugs).
-export const ROOT_PAGE_ORDER = ['introduction', 'nadir', 'psycho', 'batch-scheduler', 'flash-sale', ];
+export const ROOT_PAGE_ORDER = ['introduction', 'swe-journey', 'flash-sale', ];
 
 // Display order for category directories (slugs).
-export const CATEGORY_ORDER = ['golang', 'system-design'];
+export const CATEGORY_ORDER: string[] = [];
 
 // Files to exclude from the collection (not content pages).
 // The glob loader lowercases filenames, so we include both cases.
@@ -28,9 +25,8 @@ export const IGNORE_FILES = new Set([
 // Specific entry ids to exclude (GitBook/Obsidian artifacts).
 // The glob loader strips .md extension and lowercases all ids.
 export const IGNORE_IDS = new Set([
-  'economy/summary', // Obsidian dataview TOC, not content
-  'readme', // root README.md stub, homepage is index.astro instead
-  'fundamental', 'system-design', 'math', 'ai', 'database', 'economy',
+  'economy/summary',
+  'readme',
 ]);
 
 /**

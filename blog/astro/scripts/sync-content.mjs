@@ -8,11 +8,7 @@ const BLOG_DIR = path.join(ROOT, 'blog/astro/src/content/docs');
 
 const ALLOWED_FILES = new Set([
   'introduction.md',
-  'batch-scheduler.md',
   'flash-sale.md',
-  'nadir.md',
-  'psycho.md',
-  '4-years-golang-notes.md',
   'swe-journey.md',
 ]);
 
@@ -43,7 +39,6 @@ function extractFrontmatterBlock(content) {
 }
 
 let synced = 0;
-let skipped = 0;
 let cleaned = 0;
 
 for (const file of rootFiles) {
@@ -96,4 +91,4 @@ for (const dir of blogDirs) {
   cleaned++;
 }
 
-console.log(`\nDone: ${synced} synced, ${skipped} skipped, ${cleaned} cleaned`);
+console.log(`\nDone: ${synced} synced, ${cleaned} cleaned`);

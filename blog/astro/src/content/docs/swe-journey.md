@@ -1,5 +1,5 @@
 ---
-title: "Swe Journey"
+title: "SWE Journey"
 modified: "2026-07-16"
 ---
 
