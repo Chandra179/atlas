@@ -1,528 +1,129 @@
----
-title: "Flash Sale"
-aliases: [cache-stampede, thundering-herd, dog-piling, cache-miss-storm]
-tags: [system-design, system-design/caching]
-created: "2026-06-13"
-modified: "2026-07-13"
----
+# Flash Sale System
 
-# Flash Sale: System Design
-
-A flash sale is a short-duration event (typically 5 minutes) where a limited number of items are sold at a steep discount. Millions of concurrent users attempt to purchase the same product simultaneously. The system must handle a sudden burst from 0 to 1M+ requests/second without crashing, while guaranteeing every user sees accurate inventory counts.
+This document outlines a realistic, battle-tested system design for managing high-concurrency product drops (flash sales) without crashing infrastructure or overselling inventory.
 
 ---
 
-## Requirements
+## The Problem & Goals
 
-### Functional Requirements
-
-| ID | Requirement |
-|----|-------------|
-| FR1 | Users can browse flash-sale product details (name, price, image, description) |
-| FR2 | Users can view real-time remaining inventory count |
-| FR3 | Users can place an order to purchase the item |
-| FR4 | System reserves inventory atomically on successful purchase |
-| FR5 | System returns success/failure response to user within 200ms (P99) |
-
-### Non-Functional Requirements
-
-| ID | Requirement | Target |
-|----|-------------|--------|
-| NFR1 | Read latency (P99) | ≤ 200ms |
-| NFR2 | Write latency (P99) | ≤ 100ms (reservation acknowledgment) |
-| NFR3 | Read consistency | Inventory count reads reflect latest reservation |
-| NFR4 | Availability | 99.99% during sale window |
-| NFR5 | Database protection | Never exceed connection pool; no cascading failures |
-| NFR6 | Stale data tolerance | ≤ 100ms staleness acceptable for product details; inventory must be fresh |
+### Problem
+Consider a high-profile "hype drop" (e.g., a limited-edition sneaker release or a highly discounted electronics sale). 100,000+ users land on a single product page and click "Buy Now" at the exact same second. 
+### Goals
+* **Strict Business Accuracy:** Never oversell the item. If we have 1,000 units, exactly 1,000 orders must be created.
+* **System Resilience:** Prevent cascading failures. Under extreme load, the API must remain responsive and fail gracefully.
+* **Low Latency:** Keep checkout response times (p99) under **50ms** for the user's initial interaction.
 
 ---
 
-## Estimation
+## System Constraints
 
-### Traffic Model
-
-| Dimension | Value |
-|-----------|-------|
-| Concurrent users | 50M |
-| Items on sale | 10,000 |
-| Sale duration | 5 minutes (300s) |
-| Peak traffic | 0 → 1M requests/second in <2s (single hot product) |
-| Read:Write ratio | ~100:1 (reads dominate) |
-| Purchase rate | ~33K writes/sec (10M purchases / 300s) |
-
-### QPS Calculation
-
-```
-Peak read QPS  = 1,000,000 req/s (single hot key)
-Peak write QPS = 33,000 req/s  (heavily skewed: 95% to 1–2 hot products)
-Total QPS      ≈ 1.03M req/s
-```
-
-### Storage
-
-| Data                                     | Size        |
-| ---------------------------------------- | ----------- |
-| Product metadata (10K items × 500 bytes) | ~5 MB       |
-| Inventory counter (10K items × 8 bytes)  | ~80 KB      |
-| Redis overhead (keys + TTL)              | ~10 MB      |
-| **Total cache footprint**                | **< 20 MB** |
-|                                          |             |
-
-### Bandwidth
-
-- Read response: ~500 bytes (product + stock count)
-- Write request: ~200 bytes
-- Peak egress: 1M × 500B = **500 MB/s** (within single AZ capacity)
+### Traffic & Performance Targets
+* **Peak Write Load:** 100,000 concurrent write attempts per second targeting a *single* product ID.
+* **Latency Target:** Initial checkout response (HTTP 202 Accepted) returned in **< 30ms** (p99).
+* **Database Persist Latency:** Actual database writes must catch up within **10 seconds** post-drop.
+### Resource Constraints
+* **Application Layer:** 10 stateless container instances (each allocated 2 vCPU, 4GB RAM).
+  * *Target CPU Usage:* Max 70% under peak load to leave head-room for network I/O.
+  * *Target Memory:* Max 60% (2.4GB) to prevent Out-Of-Memory (OOM) process restarts.
+* **Cache Layer (Redis):** A single 3-node Redis cluster (1 Master, 2 Read Replicas). 
+  * *Target CPU Usage:* Max 80% on the Master node. Since Redis is single-threaded, a single node's CPU is a hard wall.
+* **Database Layer:** A single PostgreSQL master instance (8 vCPU, 32GB RAM). 
+  * *Target Connection Pool:* Capped at 100 persistent connections to protect system memory.
 
 ---
 
-## High-Level Design
+## High-Level Design (HLD) & Trade-offs
+
+We evaluate two architectural patterns to solve the hot-spot problem.
+
+### Design Option 1: Single-Key Redis Decr + Asynchronous DB Queue
+
+This design offloads write serialization from the disk-backed SQL database to an in-memory Redis instance.
 
 ```mermaid
-graph LR
-    Client["Client<br/>(Mobile / Web)"] --> LB["Load Balancer<br/>(L4 / L7)"]
-    LB --> AS["App Servers<br/>(Stateless)<br/>N × processes"]
-    AS --> L1["L1 Cache<br/>(sync.Map)<br/>TTL: 1s"]
+sequenceDiagram
+    autonumber
+    actor Client as User Client
+    participant App as App Node (Go)
+    participant Redis as Redis (Single Key)
+    participant MQ as Kafka Queue
+    participant Worker as DB Batch Worker
+    participant DB as PostgreSQL
 
-    AS -. L1 miss .-> L2["L2 Cache<br/>(Redis Cluster)<br/>TTL: 5s"]
-    L1 -. L1 hit .-> AS
-
-    L2 -. L2 miss .-> DB["Primary DB<br/>(PostgreSQL)<br/>Async workers"]
+    Client->>App: 1. POST /checkout (Submit Order)
+    App->>Redis: 2. Run Lua Script (Check & DECR key)
+    Note over Redis: Atomic evaluation on single thread
+    Redis-->>App: 3. Return Success (New Stock Count)
+    App->>MQ: 4. Publish "OrderCreated" Event
+    App-->>Client: 5. Return HTTP 202 (Accepted)
+    MQ->>Worker: 6. Consume events in batches (e.g., 100 msgs)
+    Worker->>DB: 7. Batch INSERT orders (ON CONFLICT DO NOTHING)
 ```
 
-### Components
+#### How it Works
+1. **Atomic In-Memory Decr:** The application runs a Lua script in Redis. Because Redis runs commands on a single thread, the Lua script safely checks if stock is available and decrements it atomically in a single operation.
+2. **Decoupled Writes:** If Redis succeeds, the user has "reserved" their item. The app posts a message to a Kafka queue, returns an immediate **HTTP 202 (Accepted)**, and lets the client UI poll for the final order confirmation.
+3. **Database Batching:** Background workers consume from Kafka and write to PostgreSQL in optimized batches of 100+ records, avoiding single-row lock contention.
 
-| Component | Role | Scaling |
-|-----------|------|---------|
-| Load Balancer | Distribute traffic, SSL termination | Horizontal (active-active) |
-| App Servers | Stateless request handling, L1 cache | Horizontal (50+ processes) |
-| L1 Cache (sync.Map) | In-process, sub-μs latency, absorbs microburst | Per-process |
-| L2 Cache (Redis) | Shared cache, inventory counters, 5s TTL | Cluster (3+ shards) |
-| Message Queue | Order persistence (Kafka/SQS) | Partitioned by product_id |
-| DB Workers | Batch-write orders to PostgreSQL | 10–20 workers |
-| Primary DB | Source of truth for orders, not live inventory | Vertical (read replicas for non-sale) |
+#### Trade-offs
+
+| Pros | Cons |
+| :--- | :--- |
+| **Simple Implementation:** Relies on standard Redis and Lua features. Very easy to maintain. | **Single-Threaded CPU Wall:** Because all writes hit *one* key (`inventory:product_42`), they must run on *one* Redis node. This limits maximum throughput to ~30k-50k operations/second. |
+| **Excellent Latency:** In-memory operations return in <2ms, keeping application threads highly responsive. | **Eventual Consistency Lag:** Users must wait on a loading screen while background workers finish inserting their orders into the SQL DB. |
 
 ---
 
-## Database Schema
+### Design Option 2: Inventory Sharding (Bucketing)
 
-```sql
--- Inventory counter lives in Redis (not in PostgreSQL)
--- PostgreSQL stores only durable order records
-
--- Orders table (append-only, partitioned by product_id)
-CREATE TABLE orders (
-    order_id      BIGSERIAL PRIMARY KEY,
-    user_id       BIGINT NOT NULL,
-    product_id    BIGINT NOT NULL,
-    quantity      INT NOT NULL DEFAULT 1,
-    status        VARCHAR(20) NOT NULL DEFAULT 'reserved',  -- reserved → confirmed
-    created_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
-    confirmed_at  TIMESTAMPTZ
-) PARTITION BY HASH (product_id);
-
--- 64 partitions for write parallelism
-CREATE TABLE orders_p0 PARTITION OF orders FOR VALUES WITH (MODULUS 64, REMAINDER 0);
--- ... create orders_p1 through orders_p63
-
-CREATE INDEX idx_orders_user ON orders(user_id);
-CREATE INDEX idx_orders_status ON orders(status) WHERE status = 'reserved';
-```
-
----
-
-## API Design
-
-```protobuf
-// Read path
-GET /api/v1/flash-sale/products/{product_id}
-Response: { product_id, name, price, image_url, stock_count, version }
-
-// Write path (async reservation)
-POST /api/v1/flash-sale/orders
-Request:  { user_id, product_id, quantity }
-Response: { order_id, status: "reserved", remaining_stock }
-
-// Optional: poll for confirmation
-GET /api/v1/flash-sale/orders/{order_id}
-Response: { order_id, status: "confirmed" | "reserved" | "failed" }
-```
-
----
-
-## Deep Dive (Read Path)
-
-When the hot product's cache entry expires, **all 1M concurrent requests miss simultaneously**. Each issues its own `SELECT stock_count FROM inventory`, exhausting the DB connection pool within milliseconds. The DB slows down → cache rebuild takes seconds → more timeouts → more retries → positive feedback loop → cascading failure.
+This design solves the Redis single-thread bottleneck by distributing the inventory of the hot item across multiple keys.
 
 ```mermaid
 graph TD
-    subgraph Clients
-        C1["Client 1"]
-        C2["Client 2"]
-        CN["Client N"]
-    end
-
-    subgraph Cache
-        MISS["Cache MISS<br/>(TTL expired)"]
-    end
-
-    subgraph Database
-        DB["DB pool exhausted<br/>1M parallel SELECTs"]
-    end
-
-    C1 --> MISS
-    C2 --> MISS
-    CN --> MISS
-    MISS --> DB
-```
-
-### Strategy 1: Request Coalescing (singleflight)
-
-Serialize cache recomputation so **only one request hits the DB** per key.
-
-```go
-import "golang.org/x/sync/singleflight"
-
-var sf singleflight.Group
-
-func fetchInventory(id string) (int, error) {
-    v, err, _ := sf.Do(id, func() (any, error) {
-        stock, err := queryDB(id)
-        if err != nil { return nil, err }
-        cache.Set("inventory:"+id, stock, 5*time.Second)
-        return stock, nil
-    })
-    return v.(int), err
-}
-```
-
-**Flow:**
-1. First request acquires key-level lock, queries DB, writes to cache, releases lock
-2. Subsequent requests block on lock, then read fresh cache value — **zero DB hits**
-
-**Caveat:** Under 1M req/s, blocking N-1 goroutines ties up resources. In-process locking serializes throughput to one goroutine per key. **Solution: multi-tier cache.**
-
----
-
-### Strategy 2: Multi-Tier Cache (L1 + L2)
-
-Place a fast in-process L1 cache ahead of shared L2 (Redis). L1 absorbs the initial microburst.
-
-```mermaid
-graph LR
-    Req["Request"] --> L1["L1 (sync.Map, TTL 1s)"]
-    L1 --> L2["L2 (Redis, TTL 5s)"]
-    L2 --> DB[(DB)]
-```
-
-| Layer | Latency | TTL | Capacity | Role |
-|-------|---------|-----|----------|------|
-| L1 (sync.Map) | < 1μs | 1s | ~100KB/process | Absorb microburst, deduplicate within process |
-| L2 (Redis) | ~1ms | 5s | ~10MB total | Survive process restarts, shared across fleet |
-| DB | ~5ms | — | — | Source of truth for non-sale data |
-
-**Effect:** 1M req/s → 100K req/process → L1 deduplicates to ~1 actual L2 lookup per process. Combined with singleflight at L2→DB, **1M req/s translates to single-digit DB queries**.
-
-```go
-type Cache struct {
-    l1 *sync.Map // key -> {value, expiry}
-    l2 *redis.Client
-}
-
-func (c *Cache) Get(key string) (any, error) {
-    // L1 hit
-    if v, ok := c.l1.Load(key); ok {
-        return v, nil
-    }
-    // L1 miss — singleflight serializes L2/DB access per key
-    v, err, _ := sf.Do(key, func() (any, error) {
-        val, err := c.l2.Get(key).Result()
-        if err == redis.Nil {
-            val, err = queryDB(key) // cold start
-        }
-        if err == nil {
-            c.l1.Store(key, val) // repopulate L1
-        }
-        return val, err
-    })
-    return v, err
-}
-```
-
----
-
-### Strategy 3: Pre-Warming
-
-For scheduled events, populate caches **before** traffic arrives.
-
-```mermaid
-gantt
-    title Pre-Warming Timeline
-    dateFormat HH:mm
-    axisFormat %H:%M
-    tickInterval 30minutes
-
-    section Warm Phase 1
-    Warm L2 with short TTL (10s)    :warm1, 00:00, 1min
-    section Warm Phase 2
-    Refresh L1 + L2 with real TTL (5s) :warm2, 00:00, 1min
-    section Flash Sale
-    Flash sale starts → zero misses  :sale, 00:00, 5min
-    section Sustain
-    Probabilistic early expiry cycle :sustain, 00:00, 5min
-```
-
-- At T=0, every request hits L1 (primed). L1 serves in <1μs. **Zero L2 lookups, zero DB queries.**
-- L1 TTL expires (~1s later) → first miss goes to L2 (still hot from pre-warm) → L1 repopulated.
-- L2 TTL approaches expiry (~5s) → probabilistic refresh triggers before actual expiry. No miss storm.
-
-**Failure recovery:** If warm jobs crash, first real request hits L1 miss → L2 miss → singleflight serializes **one** DB query. One ~100ms spike, then cache is hot.
-
----
-
-### Strategy 4: Probabilistic Early Expiration (Stay-Ahead)
-
-Refresh the cache **before** TTL expires so stale-but-valid value is never evicted.
-
-```go
-func shouldRefresh(ttl, remaining time.Duration) bool {
-    // Probability grows linearly from 0 (just refreshed) to 1 (at expiry)
-    return rand.Float64() < float64(ttl-remaining)/float64(ttl)
-}
-```
-
-- Each request rolls a random check; "winner" refreshes early while cache serves stale data to others.
-- **Zero miss storms. Flat latency.**
-- **Caveat:** Works for weakly-consistent data (product details). For inventory where every read must show latest count, read directly from Redis counter (source of truth).
-
----
-
-## Deep Dive (Write Path)
-
-### Why Not Synchronous DB Write?
-
-**Classic trap:** The synchronous `UPDATE inventory SET stock_count = stock_count - 1 WHERE product_id = $1` acquires a row-level exclusive lock on that single product row. PostgreSQL serializes to **~1,000–2,000 TPS per row**. With 20K+ concurrent writers on the hot sneaker, **18K+ connections queue on the lock**, hit `statement_timeout`, retry, and cascade. The DB connection pool exhausts instantly — even if the read path is perfectly shielded.
-
-### Shield the DB from the Write Path
-
-Move inventory to Redis. Use a Lua script for atomic reservation. Queue the order. Batch-write to DB asynchronously.
-
-```mermaid
-graph LR
-    Client["Client<br/>POST /order"] --> AS["App Server<br/>(validates request)"]
-    AS --> Redis["Redis (Lua)<br/>ATOMIC:<br/>if stock &gt; 0<br/>decr stock"]
-    Redis --> MQ["Message Queue<br/>(Kafka / SQS)"]
-    AS --> Response["202 Accepted<br/>{order_id, status: 'reserved'}"]
-    MQ --> Workers["DB Worker Pool<br/>(10–20)<br/>Batch INSERT<br/>to PostgreSQL"]
-```
-
-### Redis Lua Script (Atomic Reserve)
-
-```lua
--- KEYS[1] = inventory:{product_id}
--- ARGV[1] = quantity
-local stock = tonumber(redis.call('GET', KEYS[1]))
-if not stock then
-    return -2  -- product not found
-end
-if stock < tonumber(ARGV[1]) then
-    return -1  -- out of stock
-end
-redis.call('DECRBY', KEYS[1], ARGV[1])
-return stock - tonumber(ARGV[1])  -- return remaining stock
-```
-
-```go
-func reserveInventory(productID int64, qty int) (int, error) {
-    script := redis.NewScript(`
-        local stock = tonumber(redis.call('GET', KEYS[1]))
-        if not stock then return -2 end
-        if stock < tonumber(ARGV[1]) then return -1 end
-        redis.call('DECRBY', KEYS[1], ARGV[1])
-        return stock - tonumber(ARGV[1])
-    `)
+    Client[Client Request] --> App[App Node]
+    App -->|Random Hash/Round-Robin| B1[Redis Bucket 1: stock = 200]
+    App -->|Random Hash/Round-Robin| B2[Redis Bucket 2: stock = 200]
+    App -->|Random Hash/Round-Robin| B3[Redis Bucket 3: stock = 200]
     
-    result, err := script.Run(ctx, redisClient, []string{fmt.Sprintf("inventory:%d", productID)}, qty).Int()
-    if err != nil { return 0, err }
-    if result < 0 {
-        if result == -1 { return 0, ErrOutOfStock }
-        return 0, ErrProductNotFound
-    }
-    return result, nil
-}
+    B1 -->|Success| MQ[Kafka Message Queue]
+    B2 -->|Success| MQ
+    B3 -->|Success| MQ
+    
+    MQ --> Worker[DB Batch Worker]
+    Worker --> DB[(PostgreSQL)]
+    
+    style B1 fill:#f9f,stroke:#333,stroke-width:2px
+    style B2 fill:#f9f,stroke:#333,stroke-width:2px
+    style B3 fill:#f9f,stroke:#333,stroke-width:2px
 ```
 
-### Full Write Path Flow
+#### How it Works
+1. **Sharded Keys:** If we have 1,000 items in stock, we split them into 5 buckets of 200 items each (`product_42:bucket_1` to `product_42:bucket_5`). 
+2. **Cluster Distribution:** These buckets are hashed to different slots across the Redis cluster, utilizing multiple Redis nodes and CPU cores.
+3. **Smart Routing:** The app randomly routes checkout requests to one of these buckets. If Bucket 1 is empty but Bucket 2 still has stock, a fallback mechanism routes the request to another bucket.
 
-```go
-func placeOrder(userID, productID int64, qty int) (Order, error) {
-    // 1. Atomic reservation in Redis (sub-ms)
-    remaining, err := reserveInventory(productID, qty)
-    if err != nil { return Order{}, err }
+#### Trade-offs of Design Option 2
 
-    // 2. Create order record with "reserved" status
-    orderID := snowflake.NextID()
-    order := Order{
-        ID:        orderID,
-        UserID:    userID,
-        ProductID: productID,
-        Qty:       qty,
-        Status:    "reserved",
-        Remaining: remaining,
-    }
-
-    // 3. Push to message queue (async, fire-and-forget)
-    payload, _ := json.Marshal(order)
-    if err := kafkaProducer.Publish("orders", productID, payload); err != nil {
-        // Compensating action: restore inventory in Redis
-        redisClient.IncrBy(ctx, fmt.Sprintf("inventory:%d", productID), qty)
-        return Order{}, err
-    }
-
-    // 4. Return immediately (~20ms total)
-    return order, nil
-}
-```
-
-### Background Worker (DB Persistence)
-
-```go
-func orderWorker(consumer *kafka.Consumer, db *sql.DB) {
-    for {
-        msg, err := consumer.ReadMessage(ctx)
-        if err != nil { continue }
-        
-        var order Order
-        json.Unmarshal(msg.Value, &order)
-
-        // Batch insert: collect 100 orders or wait 10ms
-        batch = append(batch, order)
-        if len(batch) >= 100 || time.Since(batchStart) > 10*time.Millisecond {
-            tx, _ := db.Begin()
-            for _, o := range batch {
-                tx.Exec(`
-                    INSERT INTO orders (order_id, user_id, product_id, quantity, status)
-                    VALUES ($1, $2, $3, $4, 'confirmed')
-                `, o.ID, o.UserID, o.ProductID, o.Qty)
-            }
-            tx.Commit()
-            batch = nil
-        }
-    }
-}
-```
-
-### Read-After-Write Consistency
-
-| Scenario | Behavior |
-|----------|----------|
-| **GET /products/{id} after successful reservation** | Reads `stock_count` directly from Redis counter (source of truth) — reflects the decrement immediately |
-| **GET /orders/{id}** | Returns `reserved` until worker confirms; client polls or uses WebSocket |
-| **Worker crashes before DB write** | Order stays `reserved`; reconciliation job scans `reserved` orders older than 5min and re-queues |
-| **Redis crashes mid-sale** | AOF persistence + replica failover (<1s). Inventory state recovered from AOF. |
-
-### Why This Works
-
-| Metric | Synchronous DB | Redis Lua + Queue |
-|--------|----------------|-------------------|
-| Peak write throughput (1 hot key) | ~2K/s (lock contention) | **100K+/s** (single-threaded Redis, no locks) |
-| P99 write latency | >500ms (queueing) | **~20ms** |
-| DB connection pool usage | Exhausted at 20K concurrent | **10–20 connections** (batch workers) |
-| Durability | Immediate | Eventual (ms–s), reconciled |
+| Pros | Cons |
+| :--- | :--- |
+| **Horizontal Scalability:** We are no longer bottlenecked by a single Redis node's CPU. We can easily scale to 100k+ operations/second by adding more buckets. | **High Complexity:** Managing empty-bucket routing, returning inventory on canceled orders, and maintaining overall stock views becomes significantly harder to implement. |
+| **No Single Point of Failure:** If a single Redis node crashes, only a portion of the inventory is temporarily locked. | **Uneven Distribution:** Some users might see "Out of Stock" if their routed bucket is empty, even if other buckets still contain items (mitigated by retry/fallback algorithms). |
 
 ---
 
-## Resilience & Fail-Safes
+## Room for Scalability
 
-| Failure Mode | Mitigation |
-|--------------|------------|
-| **Lock holder crashes / DB slow** | N/A — no DB lock in hot path |
-| **Too many waiters on single key** | Redis Lua executes atomically; no waiters. Key-level capacity limit (e.g., 64) on L1 miss. |
-| **DB connection pool exhausted** | Workers use tiny pool (10–20); queue absorbs burst. Circuit breaker on worker → pause consumption, not serving path. |
-| **Redis (L2) unreachable** | Serve from L1 only (product details). **Inventory reads fail fast** — show "temporarily unavailable" rather than stale count. |
-| **Kafka/SQS backlog** | Consumer lag alerting; scale workers horizontally (partition by product_id). |
-| **Worker crashes before DB write** | Idempotent order_id (snowflake). Reconciliation job re-queues `reserved` orders >5min. |
-| **L1 memory pressure** | LRU eviction; TTL cleanup. 10K hot keys × 50 processes = ~5MB — negligible. |
-| **Process restart** | L2 survives; L1 repopulates from L2 on first request. |
+### 1. Ingress Rate Limiting & Load Shedding
+When traffic exceeds our designated constraints (e.g., more than 100,000 writes/sec), we must protect the system from crashing.
+* **Implementation:** Deploy an API Gateway (like Kong or Envoy) configured with token-bucket rate limiting.
+* **Action:** Instead of letting excessive traffic reach our app nodes, the gateway drops requests early, returning an immediate **HTTP 429 (Too Many Requests)**. This shields application memory and CPU from saturating.
 
----
+### 2. Edge Caching & CDNs (L0 Cache)
+We can offload almost 100% of read traffic (users refreshing the product page to see details and active/inactive status) away from our origin servers entirely.
+* **Implementation:** Deploy a globally distributed Edge layer (like Cloudflare Workers or AWS CloudFront).
+* **Action:** Cache static product details at the CDN edge. Use edge workers to dynamically change the buy button state (enabled/disabled) based on global flags, preventing invalid traffic from even reaching our load balancers.
 
-## Alternative Approaches
-
-### Single-Key Partitioning (When Redis Becomes Bottleneck)
-
-If 1M req/s on one key exceeds Redis single-threaded capacity (~100–200K ops/s per shard):
-
-```mermaid
-graph LR
-    Key["inventory:42"] --> S0["shard-0"]
-    Key --> S1["shard-1"]
-    Key --> S63["... shard-63"]
-```
-
-- **Writes:** increment random shard (or all shards for strong consistency)
-- **Reads:** sum all shards at query time
-
-| Aspect | Trade-off |
-|--------|-----------|
-| Pros | Scales read throughput arbitrarily |
-| Cons | Stale reads (if not write-all); complex invalidation; write amplification; overselling risk for decrementing counter |
-
-**Recommendation:** Use multi-tier + coalescing first. Partition only if Redis CPU saturates.
-
----
-
-## Strategy Decision Matrix
-
-| Strategy                                 | Latency   | DB Load  | Complexity | Best For                                                   |
-| ---------------------------------------- | --------- | -------- | ---------- | ---------------------------------------------------------- |
-| Request coalescing (singleflight)        | +blocking | Low      | Low        | Moderate concurrency (<100K req/s)                         |
-| Probabilistic early expiry               | Low       | Low      | Medium     | Weakly-consistent data, unpredictable traffic              |
-| Pre-warming + multi-tier cache           | Low       | None     | High       | **Scheduled events with known hot keys**                   |
-| Single-key partitioning                  | Low       | Varies   | Very high  | Extreme scale where Redis is bottleneck                    |
-| **Redis Lua + async queue (write path)** | **~20ms** | **None** | **Medium** | **Flash sale write path — eliminates row-lock contention** |
-
-**Production recommendation for flash sale:**
-**Pre-warming + Multi-tier cache + Request coalescing** for the read path. **Redis Lua atomic reserve + Kafka queue + batch DB workers** for the write path. Add **probabilistic early expiry** for self-sustaining refresh after the initial window. Avoid partitioning unless Redis itself is the bottleneck.
-
----
-
-## Summary
-
-| Requirement | How It's Met |
-|-------------|--------------|
-| **P99 ≤ 200ms (read)** | L1 cache serves in <1μs; L2 in ~1ms; singleflight prevents DB queueing |
-| **P99 ≤ 100ms (write)** | Redis Lua executes in <1ms; queue publish ~5ms; total ~20ms |
-| **DB never crashes** | Read path: single-digit DB queries. Write path: 10–20 worker connections, batch inserts. |
-| **Read-after-write inventory consistency** | Redis counter is source of truth; `GET /products` reads directly from it |
-| **No single point of failure** | L1→L2→Redis cluster→Kafka→workers; each tier horizontally scalable |
-| **100ms staleness tolerance** | Product details via stay-ahead; inventory always fresh via Redis counter |
-
-### Goroutine Pool Sizing
-
-| Path | Workers | Rationale |
-|------|---------|-----------|
-| L1 lookup | 0 (non-blocking) | sync.Map read is lock-free |
-| L2 → DB (singleflight) | 10–20 per process | Serializes per key; tiny pool suffices |
-| Kafka consumer (DB workers) | 10–20 total | Batch inserts; partitioned by product_id |
-| Total (50 processes) | ~1,000 goroutines | Well within Go runtime limits |
-
-### Redis Memory Budget
-
-| Item | Size |
-|------|------|
-| 10K product keys (metadata + stock counter) | ~500 KB |
-| L1 overhead (50 processes × 100 KB) | ~5 MB |
-| AOF buffer (write-heavy sale) | ~10–50 MB |
-| **Total incremental** | **< 60 MB** |
-
----
-
-## References
-
-- [Vattani et al., *Techniques to Reduce Cache Stampedes*](https://couchbase.com/blog/cache-stampede-paper)
-- `golang.org/x/sync/singleflight` — [Go Docs](https://pkg.go.dev/golang.org/x/sync/singleflight)
-- *Probabilistic Early Expiration* — [AWS Architecture Blog](https://aws.amazon.com/builders-library/caching-challenges-and-strategies/)
-- *How to Approach a System Design Interview Question* — [System Design Primer](https://github.com/donnemartin/system-design-primer)
-- *Redis Lua Scripting* — [Redis Docs](https://redis.io/docs/latest/develop/use/patterns/atomic-operations/)
-- *Alibaba's Flash Sale Architecture* — [Architecture Paper](https://www.alibabacloud.com/blog/how-alibaba-handles-massive-traffic-during-singles-day_594843)
+### 3. Virtual Waiting Rooms (Queue-it)
+For extreme-demand events, we can implement a traffic-smoothing gatekeeper.
+* **Implementation:** Integrate a third-party waiting room platform.
+* **Action:** Instead of letting 500,000 users hit our checkout endpoints at 12:00:00, the waiting room holds them in a FIFO queue on external servers. It lets users through to our checkout system in controlled batches (e.g., 5,000 users per second), transforming a traffic spike into a flat, predictable plateau.
