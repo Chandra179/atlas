@@ -4,7 +4,9 @@
 export const NAME_OVERRIDES: Record<string, string> = {
   'README':                 'Introduction',
   'introduction':           'Introduction',
-  'flash-sale':             'Flash Sale',
+  'flash-sale':             'Flash Sale', 
+  'pdf-generation':         'PDF Generation',
+
 };
 
 // Display order for root-level standalone pages (slugs).

@@ -123,6 +123,8 @@ The worker generates an **S3 Presigned URL** valid for 7 days. This URL is injec
 - **Poison Pill Messages:** If a corrupted layout payload causes a worker thread to crash repeatedly, the message is automatically moved to a **Dead Letter Queue (DLQ)** after 3 failed retries to avoid blocking the main processing pipeline.
 - **Email Delivery Failure:** If the third-party email provider experiences a network drop, the Notification Service retries the event. The worker first checks if the PDF file already exists in S3; if it does, it skips regeneration entirely and goes straight to generating the presigned link.
 
+---
+
 ## Bottlenecks & Cost
 
 ### The S3 Write Tax
@@ -133,28 +135,28 @@ $(86,400,000 / 1,000) \times \$0.005 = \$432 \text{ per day}$ just in S3 write A
 
 Do not generate and store the PDF for S3 immediately. Instead, stream the lightweight HTML data primitives directly to the Email Service Provider (like SendGrid/SES) which compiles the email layout on their dime. The "7-day public link" in the email points to a lazy-loading API gateway. Only if a user actually clicks that public link do we dynamically compile the PDF in 30ms and stream it to them. Because less than 10% of users actually click the public link, you instantly slash your cloud storage and API bill by 90%.
 
----
-
 ### The CPU Autoscaling Trap
 
 If your downstream Email Service Provider starts throttling your requests, your workers will stall while waiting for network I/O. Their CPU usage will actually drop to near zero because they are just waiting on sockets. Kubernetes will see low CPU and start killing your workers, making the queue backup even worse.
 
 Scale the worker pods based on Queue Lag (Message Backlog), not CPU or memory. If the queue size grows, spin up pods instantly, regardless of what the CPU is doing.
 
----
-
 ### The Upstream Schema Drift Problem
 
 At 1,000 requests/second, you aren't the only engineer touching the system. The checkout team, the localization team, and the marketing team are all modifying the upstream data structures. If a developer on the checkout team renames a database column from `invoice_amount` to `total_price`, your stateless PDF worker will instantly start spitting out broken or blank PDFs at a rate of 1,000 failed jobs per second.
 
-Introduce a Schema Registry (like Confluent Schema Registry using Apache Avro or Protobuf) onto your message broker. The queue payload is strictly typed and versioned. If an upstream team tries to deploy a breaking change to the payment payload, the CI/CD pipeline or the schema registry will reject the event at the broker gate, protecting your production rendering engine from human error.
+Use a Schema Registry (like Confluent Schema Registry using Apache Avro or Protobuf) onto message broker. The queue payload is strictly typed and versioned. If an upstream team tries to deploy a breaking change to the payment payload, the CI/CD pipeline or the schema registry will reject the event at the broker gate, protecting your production rendering engine from human error.
 
 ---
 
-### Tiered Degradation Under Flash Sales
+## Improvement
 
-When a massive flash sale happens and traffic spikes to 5,000 requests/second, a system must know how to fail elegantly rather than crashing entirely.
+### Dropping S3 to Save Cost ("Just use email storage")
 
-- **Tier 1 (Normal):** Beautiful HTML layout with custom compressed company logos embedded.
-- **Tier 2 (High Load):** Drop the logo asset fetching entirely. Render text-only layouts to save worker network bandwidth.
-- **Tier 3 (Extreme Overload / System Failure):** Turn off the PDF generation engine completely. Change the outbox processor behavior to send a raw text email to the user saying: "Your payment was successful. Your official invoice is processing and will be available in your dashboard shortly."
+Attach the PDF directly to the email so it's in their inbox forever. For the 7-day public link, we don't store anything
+
+### Headless Browsers
+
+At 1,000 requests/second, spinning up Chromium tabs (Puppeteer/Playwright) will crash your servers due to memory leaks. 
+
+We are absolutely not using a headless browser like Puppeteer or Chromium at 1,000 requests/second. Managing browser contexts, tabs, and memory leaks at this scale is an operational nightmare. Instead, we are using a native, low-level binary compiled engine (like a Go-based PDF generator or a lightweight C++ HTML-to-PDF library). These don't boot up a browser; they parse HTML/CSS primitives directly into raw PDF byte streams in-memory, keeping CPU and memory usage flat.
