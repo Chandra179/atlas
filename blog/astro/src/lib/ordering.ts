@@ -10,7 +10,7 @@ export const NAME_OVERRIDES: Record<string, string> = {
 };
 
 // Display order for root-level standalone pages (slugs).
-export const ROOT_PAGE_ORDER = ['introduction', 'swe-journey', 'flash-sale', ];
+export const ROOT_PAGE_ORDER = ['introduction', 'swe-journey', 'flash-sale', 'pdf-generation'];
 
 // Display order for category directories (slugs).
 export const CATEGORY_ORDER: string[] = [];
