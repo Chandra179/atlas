@@ -58,7 +58,7 @@ const hasToc = tocTree.length > 0;
       var a = e.target.closest('a[href^="#"]');
       if (!a) return;
       e.preventDefault();
-      var el = document.querySelector(a.getAttribute('href'));
+      var el = document.getElementById(a.getAttribute('href').slice(1));
       if (el) {
         var top = el.getBoundingClientRect().top + window.scrollY - 80;
         window.scrollTo({ top: top, behavior: 'smooth' });
@@ -69,7 +69,7 @@ const hasToc = tocTree.length > 0;
     var links = toc.querySelectorAll('.toc-link');
     var headings = [];
     links.forEach(function (l) {
-      var h = document.querySelector(l.getAttribute('href'));
+      var h = document.getElementById(l.getAttribute('href').slice(1));
       if (h) headings.push(h);
     });
     if (!headings.length) return;
