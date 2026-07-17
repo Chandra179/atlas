@@ -31,8 +31,8 @@ graph TD
         
         subgraph DB [Core Relational DB]
             direction LR
-            Orders[(Orders Table<br>Status: PAID)] 
-            Outbox[(Outbox Table<br>Event: PROCESS_PDF)]
+            Orders[("Orders Table<br/>Status: PAID")] 
+            Outbox[("Outbox Table<br/>Event: PROCESS_PDF")]
         end
         
         Ingestion -->|Atomic Transaction| Orders
@@ -43,7 +43,7 @@ graph TD
     subgraph Streaming_Tier [2. Guaranteed Domain-Isolated Queueing]
         direction TB
         Tailer[Transaction Log Tailer / CDC] -->|Read committed outbox logs| Outbox
-        Tailer -->|Publish Payload < 1MB| Broker{Message Broker}
+        Tailer -->|Publish Payload &lt; 1MB| Broker{Message Broker}
         
         Broker -->|Invoice Data| InvQueue[invoice-queue]
         Broker -->|Order Data| OrdQueue[order-queue]
@@ -56,7 +56,7 @@ graph TD
         InvQueue --> Workers[Autoscaling PDF Workers]
         OrdQueue --> Workers
         
-        Workers -->|HTML-to-PDF Engine<br>Render time < 30ms| Binary[Compressed PDF Binary]
+        Workers -->|"HTML-to-PDF Engine, Render time &lt; 30ms"| Binary[Compressed PDF Binary]
     end
 
     %% Subgraph 4: Storage & Delivery
@@ -65,7 +65,7 @@ graph TD
         Binary -->|Stream Binary Async| S3[(Amazon S3 Bucket)]
         
         subgraph S3_Management [Object Lifecycle]
-            S3 --> Prefixes[/invoices/YYYY-MM-DD/id.pdf/]
+            S3 --> Prefixes["invoices/YYYY-MM-DD/id.pdf"]
             Prefixes --> TTL{7-Day Expire Policy}
             TTL -->|Hard Delete| Purge((Auto-Purge File))
         end
@@ -88,23 +88,23 @@ graph TD
     class Ingestion,Workers,Notification,Tailer logic;
 ```
 
-**1. Payment Ingestion & Webhook Handling
+### 1. Payment Ingestion & Webhook Handling
 
 The Payment Vendor sends a `payment_success` webhook. The Ingestion Service captures this, logs the transaction status as `PAID`, and writes a `PROCESS_PDF` task into an append-only database outbox table within a single local transaction.
 
-**2. Domain-Isolated Message Queueing
+### 2. Domain-Isolated Message Queueing
 
 A transaction log tailer polls the outbox table and streams the full data payload (all text primitives + logo asset URLs) directly into domain-specific message queues (e.g., `invoice-queue`, `order-queue`).
 
-**3. Stateless PDF Generation
+### 3. Stateless PDF Generation
 
-An autoscaling pool of stateless workers consumes messages from the queues. Workers read the raw data payload directly from the message (<1mb), compile the layout using an HTML-to-PDF template engine, and output the compressed binary.
+An autoscaling pool of stateless workers consumes messages from the queues. Workers read the raw data payload directly from the message (&lt;1mb), compile the layout using an HTML-to-PDF template engine, and output the compressed binary.
 
-**4. Object Storage Upload & Lifecycle Policy
+### 4. Object Storage Upload & Lifecycle Policy
 
 The worker streams the generated PDF binary directly to an Object Storage bucket (e.g., Amazon S3). The bucket is configured with a strict **7-day expiration lifecycle policy** to handle automatic data purging.
 
-**5. Cryptographic Link Tokenization & Email Delivery
+### 5. Cryptographic Link Tokenization & Email Delivery
 
 The worker generates an **S3 Presigned URL** valid for 7 days. This URL is injected into the email template and passed to an asynchronous Notification Service to handle the final email dispatch.
 
@@ -113,7 +113,7 @@ The worker generates an **S3 Presigned URL** valid for 7 days. This URL is injec
 |**Component**|**Design Choice**|**Operational Advantage**|**Trade-off / Mitigation**|
 |---|---|---|---|
 |**Data Ingestion**|Payload-Driven Queue Messages|Eliminates database lookups; workers receive everything they need inside the message broker payload.|Slightly larger message size (~100 KB), easily handled by modern brokers like Kafka/RabbitMQ.|
-|**Worker Processing**|Native HTML Engines + Idempotency Flags|Processing drops from 2s to <30ms compared to heavy headless browsers. Database status flags prevent duplicate renders during retries.|HTML layouts must be strictly structured to ensure exact A4 page-boundary compilation.|
+|**Worker Processing**|Native HTML Engines + Idempotency Flags|Processing drops from 2s to &lt;30ms compared to heavy headless browsers. Database status flags prevent duplicate renders during retries.|HTML layouts must be strictly structured to ensure exact A4 page-boundary compilation.|
 |**File Storage**|Standard Object Storage (S3)|Highly scalable, built-in high-availability, and native data purging via Lifecycle Policies.|Requires a structured naming convention (`/invoices/YYYY-MM-DD/id.pdf`) to optimize S3 partitioning.|
 |**Link Security**|Stateless S3 Presigned URLs|Offloads 100% of download bandwidth and auth compute from our internal servers directly to the cloud provider.|Hard ceiling on expiration modification once the email is sent; links cannot easily be manually revoked early.|
 
@@ -129,9 +129,9 @@ The worker generates an **S3 Presigned URL** valid for 7 days. This URL is injec
 
 ### The S3 Write Tax
 
-AWS S3 charges $0.005 per 1,000 PUT requests. At 1,000 PDFs/second, that is 86.4 million PUT requests a day.
+AWS S3 charges 0.005 USD per 1,000 PUT requests. At 1,000 PDFs/second, that is 86.4 million PUT requests a day.
 
-$(86,400,000 / 1,000) \times \$0.005 = \$432 \text{ per day}$ just in S3 write API calls. That is ~$13,000 a month completely wasted on writing temporary 7-day invoices to disk.
+(86,400,000 / 1,000) × 0.005 = 432 USD per day just in S3 write API calls. That is approximately 13,000 USD a month completely wasted on writing temporary 7-day invoices to disk.
 
 Do not generate and store the PDF for S3 immediately. Instead, stream the lightweight HTML data primitives directly to the Email Service Provider (like SendGrid/SES) which compiles the email layout on their dime. The "7-day public link" in the email points to a lazy-loading API gateway. Only if a user actually clicks that public link do we dynamically compile the PDF in 30ms and stream it to them. Because less than 10% of users actually click the public link, you instantly slash your cloud storage and API bill by 90%.
 
