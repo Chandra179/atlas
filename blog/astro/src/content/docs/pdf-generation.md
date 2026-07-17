@@ -1,3 +1,8 @@
+---
+title: "Pdf Generation"
+modified: "2026-07-17"
+---
+
 # PDF Generation Service
 
 ## System Requirements & Constraints

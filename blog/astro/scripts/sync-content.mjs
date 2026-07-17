@@ -10,6 +10,7 @@ const ALLOWED_FILES = new Set([
   'introduction.md',
   'flash-sale.md',
   'swe-journey.md',
+  'pdf-generation.md',
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })
