@@ -3,19 +3,15 @@ title: "Flash Sale"
 aliases: [cache-stampede, thundering-herd, dog-piling, cache-miss-storm]
 tags: [system-design, system-design/caching]
 created: "2026-06-13"
-modified: "2026-07-16"
+modified: "2026-07-17"
 ---
 
-	# Flash Sale System
-
-This document outlines a realistic, battle-tested system design for managing high-concurrency product drops (flash sales) without crashing infrastructure or overselling inventory.
-
----
+# Flash Sale System
 
 ## The Problem & Goals
 
 ### Problem
-Consider a high-profile "hype drop" (e.g., a limited-edition sneaker release or a highly discounted electronics sale). 100,000+ users land on a single product page and click "Buy Now" at the exact same second. 
+a limited-edition sneaker release or a highly discounted electronics sale. 100,000+ users land on a single product page and click "Buy Now" at the exact same second. 
 ### Goals
 * **Strict Business Accuracy:** Never oversell the item. If we have 1,000 units, exactly 1,000 orders must be created.
 * **System Resilience:** Prevent cascading failures. Under extreme load, the API must remain responsive and fail gracefully.
@@ -122,7 +118,7 @@ graph TD
 ## Room for Scalability
 
 ### 1. Ingress Rate Limiting & Load Shedding
-When traffic exceeds our designated constraints (e.g., more than 100,000 writes/sec), we must protect the system from crashing.
+When traffic exceeds our target constraints (e.g., more than 100,000 writes/sec), we must protect the system from crashing.
 * **Implementation:** Deploy an API Gateway (like Kong or Envoy) configured with token-bucket rate limiting.
 * **Action:** Instead of letting excessive traffic reach our app nodes, the gateway drops requests early, returning an immediate **HTTP 429 (Too Many Requests)**. This shields application memory and CPU from saturating.
 
