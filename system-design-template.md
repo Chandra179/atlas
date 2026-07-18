@@ -1,20 +1,20 @@
 # [Interview Topic, e.g., Design Tik Tok]
 
-## 1. Scope & Requirements (5-7 mins)
+## 1. Scope & Requirements
 *Always ask clarifying questions before drawing. Do not assume.*
 
-### Functional Requirements (What the user can do)
+### Functional Requirements
 *   [Feature 1, e.g., "User can upload a 15-second video."]
 *   [Feature 2, e.g., "User can view a personalized video feed."]
 
-### Non-Functional Requirements (System attributes)
+### Non-Functional Requirements
 *   **Availability:** [High/Eventual consistency, or Strict consistency?]
 *   **Latency:** [e.g., "Video playback must start in < 200ms."]
 *   **Scale:** [e.g., "Assume 100M Daily Active Users."]
 
 ---
 
-## 2. Capacity Estimation (Back-of-the-Envelope Math) (5 mins)
+## 2. Capacity Estimation (Back-of-the-Envelope Math)
 *Optional, but highly recommended for senior roles to size the database and network bandwidth.*
 
 *   **Write QPS:** [Calculation: e.g., 10M uploads/day = ~115 writes/sec]
@@ -24,7 +24,7 @@
 
 ---
 
-## 3. High-Level Design (10-15 mins)
+## 3. High-Level Design
 
 ### Core API Endpoints
 *   `POST /v1/videos` -> Returns video metadata and upload URL.
@@ -39,7 +39,7 @@
 
 ---
 
-## 4. Deep Dive: Core Bottlenecks (10-15 mins)
+## 4. Deep Dive: Core Bottlenecks
 *Focus heavily on the hardest parts of the design (e.g., how the feed generation works, or video transcoding).*
 
 *   **Deep Dive 1: [Video Transcoding Pipeline]**
@@ -49,7 +49,7 @@
 
 ---
 
-## 5. Scaling & Trade-offs (5 mins)
+## 5. Scaling & Trade-offs
 *Conclude by identifying single points of failure (SPOFs) and how to handle them.*
 
 *   **Database Sharding:** Shard SQL DB by `user_id` to distribute write load.

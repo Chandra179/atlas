@@ -11,6 +11,7 @@ const ALLOWED_FILES = new Set([
   'flash-sale.md',
   'swe-journey.md',
   'pdf-generation.md',
+  'browser-engine.md',
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })
