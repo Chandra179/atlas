@@ -7,17 +7,17 @@ created: 2026-06-21
 4 years experience in Fintech, distributed system, workflow automation
 
 ### BookCabin
-* Led the rewrite core itinerary service: revamping database schema, business logic, new endpoint, legacy integration
-* API integration to Order: Reschedule, Refund, Esim, TravelFair, Reschedule
-* Adding CI pipeline: unit test, linter, integration test 
-* Establish domain boundaries in order, covering status management, data consistency
+* Led the architectural rewrite of the core itinerary service, redesigning the database schema and business logic to cleanly separate legacy integrations and business domain boundaries.
+* Integrated unit testing and linting into the CI/CD pipeline to automate code quality checks and reduce production bugs.
+* Engineered a standalone SEO data service utilizing an in-memory caching architecture and cache-warming cron jobs, maximizing website performance by keeping API response times under 150ms.
+* Built a centralized data ingestion and notification service, automating the extraction data from multiple sources to orchestrate scheduled email and marketing campaigns.
 
 ### BFI finance
-* Design API integration architecture with high reliability and fault tolerance
-* Revamp loan application system from single to multi-collateral loan architecture, allowing multiple product under 1 order
-* Design authentication & authorization system (cookie and RBAC)
+* Design API integration architecture with high reliability and fault tolerance.
+* Revamp loan application system from single to multi-collateral loan architecture, allowing multiple product under 1 order.
+* Design authentication & authorization system (cookie and RBAC).
 * Automated manual loan approval workflows into a data-driven orchestrated system, reducing operational effort and failure rates.
-* Enabling distributed tracing and structured logging for service level (Otel + Datadog) for easier debugging and monitoring
+* Enabling distributed tracing and structured logging for service level (Otel + Datadog) for easier debugging and monitoring.
 
 ### M+ Software
 * Integrated multiple payment options to streamline transaction processing and improve system stability
