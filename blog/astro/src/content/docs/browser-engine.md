@@ -1,6 +1,6 @@
 ---
 title: "Browser Engine"
-modified: "2026-07-18"
+modified: "2026-07-19"
 ---
 
 # Design a Scalable Headless Browser & Scraping Cluster
@@ -128,7 +128,7 @@ A 14 GB Redis cluster is tiny, completely manageable, and very cheap (well under
 
 - **The "Extract & Eject" Cost Optimization:** To stop the heavy browser from hogging server memory, the worker grabs the raw HTML text as soon as the web page finishes loading. The browser tab is immediately freed up for the next job. All the heavy text processing and HTML parsing are passed down to background workers that use low-memory search tools.
 
-### 2. Cluster Resilience, Security, & Operations
+### Cluster Resilience, Security, & Operations
 
 - **SSRF Mitigation (The Pre-Flight Gatekeeper):** Accepting any URLs introduces high risk. Before passing a payload to a heavy worker, a Gatekeeper node validates the target domain against internal address spaces (localhost, Private Subnets, Cloud Provider metadata endpoints like 169.254.169.254). It runs an HTTP HEAD metadata query via a fast HTTP client to drop non-HTML large streams (>50 MB) before they can crash browser worker allocations.
     

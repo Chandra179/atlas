@@ -2,11 +2,11 @@
 // Name overrides for slugs that don't title-case nicely.
 
 export const NAME_OVERRIDES: Record<string, string> = {
-  'README':                 'Introduction',
-  'introduction':           'Introduction',
+  'README':                 'About Me',
+  'introduction':           'About Me',
   'flash-sale':             'Flash Sale', 
   'pdf-generation':         'PDF Generation',
-
+  'browser-engine':         'Browser Engine',
 };
 
 // Display order for root-level standalone pages (slugs).
