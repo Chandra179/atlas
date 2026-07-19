@@ -49,7 +49,7 @@ modified: "2026-07-19"
 - Production grade RAG
 - [https://github.com/Chandra179/nadir](https://github.com/Chandra179/nadir)
 
-## Clover
+### Clover
 - Internet data aggregation from
 - Reddit, Wikipedia, Hacker News
 - Lobsters, RSS, RSSHub, GitHub
