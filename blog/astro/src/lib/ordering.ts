@@ -7,6 +7,7 @@ export const NAME_OVERRIDES: Record<string, string> = {
   'flash-sale':             'Flash Sale', 
   'pdf-generation':         'PDF Generation',
   'browser-engine':         'Browser Engine',
+  'reconcile-service':      'Reconciliation Service',
 };
 
 // Display order for root-level standalone pages (slugs).
