@@ -35,7 +35,7 @@
 - `POST /v1/internal-events` -> Internal webhook pipeline to push transaction updates to the messaging layer via CDC (Change Data Capture).
 - `SFTP Pull Event (Cron-triggered)` -> Batch job reads from `/settlements/stripe/YYYY-MM-DD.csv`.
 
-### Database Schema (Highly Abstract)
+### Database Schema
 
 ```sql
 -- Operational DB (Protected via Outbox Pattern)
