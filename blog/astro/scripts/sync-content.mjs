@@ -12,6 +12,7 @@ const ALLOWED_FILES = new Set([
   'swe-journey.md',
   'pdf-generation.md',
   'browser-engine.md',
+  'reconcile-service.md',
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })
