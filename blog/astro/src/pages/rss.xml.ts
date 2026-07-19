@@ -22,7 +22,7 @@ export async function GET(context) {
   }
   for (const section of nav) collectUrls(section);
 
-  const baseDescription = 'Personal blog on software engineering, system design, and mathematics.';
+  const baseDescription = 'Personal blog on software engineering, system design';
 
   const items = validEntries
     .filter((e) => {
