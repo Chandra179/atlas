@@ -28,7 +28,7 @@ export function remarkMermaidPreserve() {
       if (!parent || typeof index !== 'number') return;
       if (node.lang !== 'mermaid') return;
 
-      const cleaned = (node.value || '').replace(/<[^>]+>/g, '');
+      const cleaned = (node.value || '').replace(/<(?!\/?br\s*\/?>)[^>]+>/g, '');
 
       parent.children[index] = {
         type: 'html',

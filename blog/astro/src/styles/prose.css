@@ -459,3 +459,11 @@
     border-radius: 0.5rem;
     padding: 0.5rem;
 }
+
+.prose svg[id^="mermaid-"] foreignObject {
+    overflow: visible;
+}
+
+.prose svg[id^="mermaid-"] foreignObject p {
+    margin: 0;
+}

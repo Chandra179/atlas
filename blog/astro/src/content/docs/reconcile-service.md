@@ -104,14 +104,14 @@ flowchart TD
 flowchart TD
     %% Sources
     subgraph Data_Ingestion [1. Data Ingestion]
-        A[Internal Ledger<br/>*Collected live all day*]
-        B[Stripe CSV File<br/>*Grabbed once a night*]
+        A[Internal Ledger]
+        B[Stripe CSV File]
     end
 
     %% Router
     A --> C
     B --> C
-    C{Smart Router<br/>hash'transaction_id' % 10}
+    C{Smart Router}
 
     %% Queues
     subgraph Partition_Queues [2. Sorting Piles]
@@ -138,9 +138,9 @@ flowchart TD
     %% Worker Detail 
     subgraph In_Memory_Matching [4. Inside Worker 0's RAM]
         M1[Read Incoming Record] --> M2[Add to Search Map]
-        M2 --> M3{Internal + Stripe<br/>pair found?}
+        M2 --> M3{Pair Found?}
         M3 -->|Yes| M4[Validate Amount]
-        M4 --> M5[Erase from RAM<br/>to save memory]
+        M4 --> M5[Erase from RAM]
     end
 
     W0 --> M1
