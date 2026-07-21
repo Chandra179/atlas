@@ -1,6 +1,6 @@
 ---
 title: "Browser Engine"
-modified: "2026-07-19"
+modified: "2026-07-21"
 ---
 
 # Design a Scalable Headless Browser & Scraping Cluster
