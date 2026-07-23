@@ -1,6 +1,6 @@
 ---
 title: "SWE Journey"
-modified: "2026-07-21"
+modified: "2026-07-23"
 ---
 
 # Software Engineering Journey
@@ -548,18 +548,6 @@ When you initialize a basic string variable, such as `test := "apple"`, Go alloc
 
 - **Data Pointer (8 bytes):** Stores the memory address pointing to the underlying immutable byte array where the character text is kept.
 - **Length (8 bytes):** Stores the total size of the string in bytes.
-
-```mermaid
-flowchart LR
-    Stack["STRING HEADER ON STACK (16 Bytes)<br/>━━━━━━━━━━━━━━━━━━━━━━━━<br/> Data Pointer (8 bytes)<br/>━━━━━━━━━━━━━━━━━━━━━━━━<br/> Length Field (8 bytes)"]
-    
-    Heap[" BACKING BYTE ARRAY ON HEAP<br/>━━━━━━━━━━━━━━━━━━━━━━━━<br/>'a' │ 'p' │ 'p' │ 'l' │ 'e'"]
-
-    Stack -->|Points to memory address| Heap
-
-    style Stack fill:#f8f9fa,stroke:#333,stroke-width:1px
-    style Heap fill:#e8f5e9,stroke:#333,stroke-width:1px
-```
 
 When you pass a string to a function or assign it to another variable without using a pointer, Go does not copy the entire body text of the string. Because strings are designed to be strictly immutable, multiple string headers can safely point to the exact same backing array. Therefore, copying a string value only copies the lightweight 16-byte header, making it a highly efficient operation.
 
