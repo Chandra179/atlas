@@ -76,12 +76,12 @@ const resolvedOgImage = new URL(ogImage, Astro.site).href;
     twitterCreator={twitterCreator || twitterSite}
   />
 
-  <!-- Dark mode init: apply before paint to prevent flash -->
+  <!-- PDF mode init: hide UI chrome and force light mode before paint -->
   <script is:inline>
     (function () {
       var isPdfMode = new URLSearchParams(window.location.search).get('pdf') === '1';
       if (isPdfMode) {
-        // Browser Run PDF rendering: always use light mode for clean output
+        document.documentElement.classList.add('pdf-mode');
         return;
       }
       var stored = localStorage.getItem('darkMode');

@@ -1,5 +1,41 @@
 /* Print/PDF styles for Browser Run and Ctrl+P */
 
+/* Explicit PDF-mode overrides (applied via ?pdf=1 class) */
+.pdf-mode header,
+.pdf-mode [class*="fixed top-0"],
+.pdf-mode [class*="fixed top-16"],
+.pdf-mode #sidebar,
+.pdf-mode #toc,
+.pdf-mode nav[aria-label="Breadcrumb"],
+.pdf-mode nav[aria-label="Previous and next articles"],
+.pdf-mode .pdf-hide,
+.pdf-mode #search {
+  display: none !important;
+}
+
+.pdf-mode main {
+  margin-left: 0 !important;
+  margin-right: 0 !important;
+  padding-top: 0 !important;
+}
+
+.pdf-mode body {
+  background: #fff !important;
+  color: #111827 !important;
+}
+
+.pdf-mode .prose,
+.pdf-mode .prose h1,
+.pdf-mode .prose h2,
+.pdf-mode .prose h3,
+.pdf-mode .prose h4,
+.pdf-mode .prose p,
+.pdf-mode .prose li,
+.pdf-mode .prose strong,
+.pdf-mode .prose code {
+  color: #111827 !important;
+}
+
 @media print {
   /* Hide UI chrome */
   #sidebar,
