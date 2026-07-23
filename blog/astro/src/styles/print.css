@@ -5,6 +5,7 @@
   #sidebar,
   #toc,
   header,
+  [class*="fixed top-0"],
   [class*="fixed top-16"],
   nav[aria-label="Breadcrumb"],
   nav[aria-label="Previous and next articles"],

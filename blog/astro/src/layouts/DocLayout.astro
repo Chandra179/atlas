@@ -202,6 +202,11 @@ const { prev, next } = getPrevNext(flat, url);
 
       try {
         const res = await fetch(`/api/pdf?${params.toString()}`);
+        if (res.status === 404) {
+          // Dev mode: Worker is not running, fall back to browser print
+          window.print();
+          return;
+        }
         if (!res.ok) {
           throw new Error(`PDF generation failed: ${res.status}`);
         }
