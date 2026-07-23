@@ -1,13 +1,15 @@
 /// <reference types="@cloudflare/workers-types" />
+import { parseHTML } from 'linkedom';
 
 interface Env {
   BROWSER: BrowserRun;
   PDF_CACHE: KVNamespace;
+  ASSETS: Fetcher;
 }
 
-const ORIGIN = 'https://chan179.com';
 const CACHE_TTL_SECONDS = 86400; // 24 hours
 const RATE_LIMIT_RETRIES = 3;
+const CACHE_KEY_PREFIX = 'pdf:v2:';
 
 function isValidSlug(slug: string): boolean {
   if (!slug || slug.length > 200) return false;
@@ -34,15 +36,74 @@ async function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
-async function generatePdf(env: Env, slug: string, attempt = 1): Promise<ArrayBuffer> {
-  const pageUrl = `${ORIGIN}/${slug}?pdf=1`;
+function cleanHtmlForPdf(html: string, origin: string, slug: string): string {
+  const { document } = parseHTML(html);
+
+  // Remove UI chrome
+  const selectors = [
+    'header',
+    'aside#sidebar',
+    'aside#toc',
+    '#search',
+    'nav[aria-label="Breadcrumb"]',
+    'nav[aria-label="Previous and next articles"]',
+    '.pdf-hide',
+    // Mobile menu overlay
+    'div.fixed.top-16.inset-x-0.bottom-0',
+  ];
+
+  for (const selector of selectors) {
+    for (const el of Array.from(document.querySelectorAll(selector))) {
+      el.remove();
+    }
+  }
+
+  // Reset main layout margins
+  for (const main of Array.from(document.querySelectorAll('main'))) {
+    const style = (main as HTMLElement).style;
+    style.marginLeft = '0';
+    style.marginRight = '0';
+    style.paddingTop = '0';
+  }
+
+  // Convert relative URLs to absolute so resources load when using html option
+  for (const el of Array.from(document.querySelectorAll('[href^="/"], [src^="/"]'))) {
+    const href = el.getAttribute('href');
+    if (href) el.setAttribute('href', `${origin}${href}`);
+    const src = el.getAttribute('src');
+    if (src) el.setAttribute('src', `${origin}${src}`);
+  }
+
+  // Ensure a base tag exists for any other relative references
+  let base = document.querySelector('base');
+  if (!base) {
+    base = document.createElement('base');
+    base.setAttribute('href', `${origin}/${slug}/`);
+    document.head.insertBefore(base, document.head.firstChild);
+  }
+
+  return document.toString();
+}
+
+
+
+async function generatePdf(env: Env, request: Request, slug: string, attempt = 1): Promise<ArrayBuffer> {
+  const requestUrl = new URL(request.url);
+  const origin = requestUrl.origin;
+  const assetUrl = new URL(`/${slug}?pdf=1`, origin);
+  const assetRes = await env.ASSETS.fetch(assetUrl);
+  if (!assetRes.ok) {
+    throw new Error(`Failed to fetch asset: ${assetRes.status}`);
+  }
+  const html = await assetRes.text();
+  const cleanedHtml = cleanHtmlForPdf(html, origin, slug);
 
   const response = await env.BROWSER.quickAction('pdf', {
-    url: pageUrl,
+    html: cleanedHtml,
     pdfOptions: {
       format: 'a4',
       printBackground: true,
-      preferCSSPageSize: true,
+      preferCSSPageSize: false,
       margin: {
         top: '20mm',
         bottom: '20mm',
@@ -50,16 +111,12 @@ async function generatePdf(env: Env, slug: string, attempt = 1): Promise<ArrayBu
         right: '15mm',
       },
     },
-    gotoOptions: {
-      waitUntil: 'networkidle0',
-      timeout: 30000,
-    },
   });
 
   if (response.status === 429 && attempt < RATE_LIMIT_RETRIES) {
     const retryAfter = Math.max(1, parseInt(response.headers.get('Retry-After') || '2', 10));
     await sleep(retryAfter * 1000);
-    return generatePdf(env, slug, attempt + 1);
+    return generatePdf(env, request, slug, attempt + 1);
   }
 
   if (!response.ok) {
@@ -90,7 +147,7 @@ export default {
     }
 
     const filename = toFilename(title);
-    const cacheKey = `pdf:${slug}`;
+    const cacheKey = `${CACHE_KEY_PREFIX}${slug}`;
 
     try {
       const cached = await env.PDF_CACHE.get(cacheKey, { type: 'arrayBuffer' });
@@ -110,7 +167,7 @@ export default {
 
     let pdfBuffer: ArrayBuffer;
     try {
-      pdfBuffer = await generatePdf(env, slug);
+      pdfBuffer = await generatePdf(env, request, slug);
     } catch (error: any) {
       console.error('Browser Run PDF generation failed:', error);
       return new Response(

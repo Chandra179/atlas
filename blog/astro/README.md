@@ -8,6 +8,8 @@ PDFs are generated serverlessly with Cloudflare Browser Run (Quick Actions) and 
 - Print styles: `src/styles/print.css`
 - Trigger: the "Download as PDF" button in `src/layouts/DocLayout.astro`
 
+How it works: the Worker fetches the static page HTML via `env.ASSETS`, strips the navbar/sidebar/TOC/breadcrumbs with `linkedom`, then passes the cleaned HTML to Browser Run for PDF rendering.
+
 ### Local development
 
 Browser Run Quick Actions require remote mode during local development:
