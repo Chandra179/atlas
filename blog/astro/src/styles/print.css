@@ -1,0 +1,88 @@
+/* Print/PDF styles for Browser Run and Ctrl+P */
+
+@media print {
+  /* Hide UI chrome */
+  #sidebar,
+  #toc,
+  header,
+  [class*="fixed top-16"],
+  nav[aria-label="Breadcrumb"],
+  nav[aria-label="Previous and next articles"],
+  .pdf-hide,
+  #search {
+    display: none !important;
+  }
+
+  /* Reset main layout margins */
+  main {
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    padding-top: 0 !important;
+  }
+
+  /* Page setup */
+  @page {
+    size: A4;
+    margin: 20mm 15mm;
+  }
+
+  /* Force light background */
+  html,
+  body {
+    background: #fff !important;
+  }
+
+  /* Ensure dark-mode prose still prints dark-on-light */
+  body,
+  .prose,
+  .prose h1,
+  .prose h2,
+  .prose h3,
+  .prose h4,
+  .prose p,
+  .prose li,
+  .prose strong,
+  .prose code {
+    color: #111827 !important;
+  }
+
+  .prose code {
+    background-color: #f3f4f6 !important;
+  }
+
+  .prose pre {
+    background-color: #f8fafc !important;
+  }
+
+  .prose a {
+    color: #2563eb !important;
+    text-decoration: underline !important;
+  }
+
+  /* Avoid breaking inside important elements */
+  pre,
+  table,
+  figure,
+  img,
+  svg,
+  .callout,
+  .expressive-code,
+  blockquote {
+    break-inside: avoid !important;
+    page-break-inside: avoid !important;
+  }
+
+  /* Keep headings with the content that follows */
+  h1, h2, h3, h4, h5, h6 {
+    break-after: avoid !important;
+    page-break-after: avoid !important;
+  }
+
+  /* Show external URLs after links (optional, useful for printed docs) */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 0.8em;
+    color: #6b7280;
+    word-break: break-all;
+  }
+}

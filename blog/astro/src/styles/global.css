@@ -11,6 +11,7 @@
 @import "./math.css";
 @import "./landing.css";
 @import "./dark.css";
+@import "./print.css";
 
 /* KaTeX styles (self-hosted, no CDN) */
 @import "katex/dist/katex.min.css";

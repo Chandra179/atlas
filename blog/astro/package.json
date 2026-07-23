@@ -22,7 +22,6 @@
     "alpinejs": "^3.15.12",
     "astro": "^5.0.0",
     "astro-expressive-code": "^0.43.1",
-    "html2pdf.js": "^0.14.0",
     "katex": "^0.17.0",
     "mermaid": "^11.15.0",
     "rehype-katex": "^7.0.1",
@@ -31,6 +30,7 @@
     "tailwindcss": "^4.3.1"
   },
   "devDependencies": {
+    "@cloudflare/workers-types": "^4.20260702.1",
     "@types/alpinejs": "^3.13.11",
     "pagefind": "^1.5.2",
     "playwright": "^1.61.1",

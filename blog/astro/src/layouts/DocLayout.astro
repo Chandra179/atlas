@@ -135,7 +135,7 @@ const { prev, next } = getPrevNext(flat, url);
         {body && (
           <div
             x-data={`{ copied: false, body: ${JSON.stringify(body)}, async copy() { await navigator.clipboard.writeText(this.body); this.copied = true; setTimeout(() => this.copied = false, 2000); }, async downloadPdf() { await window.downloadPdf(); } }`}
-            class="shrink-0 flex items-center gap-2"
+            class="shrink-0 flex items-center gap-2 pdf-hide"
           >
             <button
               @click="copy"
@@ -195,19 +195,31 @@ const { prev, next } = getPrevNext(flat, url);
 
   <script>
     async function downloadPdf() {
-      const html2pdf = (await import('html2pdf.js')).default;
-      const element = document.getElementById('content');
-      const heading = element?.querySelector('h1');
-      const name = heading?.textContent?.trim() || document.title?.trim() || 'document';
-      const filename = name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') + '.pdf';
-      const opt = {
-        margin: [10, 10, 10, 10],
-        filename,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      };
-      html2pdf().set(opt).from(element).save();
+      const heading = document.querySelector('#content h1');
+      const title = heading?.textContent?.trim() || document.title?.trim() || 'document';
+      const slug = window.location.pathname.replace(/^\/+/, '').replace(/\/+$/, '') || 'index';
+      const params = new URLSearchParams({ slug, title });
+
+      try {
+        const res = await fetch(`/api/pdf?${params.toString()}`);
+        if (!res.ok) {
+          throw new Error(`PDF generation failed: ${res.status}`);
+        }
+        const blob = await res.blob();
+        const match = res.headers.get('Content-Disposition')?.match(/filename="?([^"]+)"?/);
+        const filename = match?.[1] || `${slug}.pdf`;
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        URL.revokeObjectURL(url);
+      } catch (err) {
+        console.error('Download PDF failed:', err);
+        alert('Failed to generate PDF. Please try again.');
+      }
     }
     (window as any).downloadPdf = downloadPdf;
   </script>

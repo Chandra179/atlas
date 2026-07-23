@@ -79,6 +79,11 @@ const resolvedOgImage = new URL(ogImage, Astro.site).href;
   <!-- Dark mode init: apply before paint to prevent flash -->
   <script is:inline>
     (function () {
+      var isPdfMode = new URLSearchParams(window.location.search).get('pdf') === '1';
+      if (isPdfMode) {
+        // Browser Run PDF rendering: always use light mode for clean output
+        return;
+      }
       var stored = localStorage.getItem('darkMode');
       var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
       if (stored === 'true' || (stored === null && prefersDark)) {
