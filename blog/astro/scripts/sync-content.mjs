@@ -13,6 +13,7 @@ const ALLOWED_FILES = new Set([
   'pdf-generation.md',
   'browser-engine.md',
   'reconcile-service.md',
+  'rest-api.md',
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })
