@@ -9,7 +9,7 @@ interface Env {
 
 const CACHE_TTL_SECONDS = 86400; // 24 hours
 const RATE_LIMIT_RETRIES = 3;
-const CACHE_KEY_PREFIX = 'pdf:v3:';
+const CACHE_KEY_PREFIX = 'pdf:v4:';
 
 function isValidSlug(slug: string): boolean {
   if (!slug || slug.length > 200) return false;
