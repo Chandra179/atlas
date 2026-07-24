@@ -9,7 +9,7 @@ interface Env {
 
 const CACHE_TTL_SECONDS = 86400; // 24 hours
 const RATE_LIMIT_RETRIES = 3;
-const CACHE_KEY_PREFIX = 'pdf:v2:';
+const CACHE_KEY_PREFIX = 'pdf:v3:';
 
 function isValidSlug(slug: string): boolean {
   if (!slug || slug.length > 200) return false;
@@ -157,7 +157,7 @@ export default {
             'Content-Type': 'application/pdf',
             'Content-Disposition': `attachment; filename="${escapeHeaderValue(filename)}"`,
             'X-PDF-Source': 'kv-cache',
-            'Cache-Control': 'public, max-age=3600',
+            'Cache-Control': 'no-store',
           },
         });
       }
@@ -187,7 +187,7 @@ export default {
         'Content-Type': 'application/pdf',
         'Content-Disposition': `attachment; filename="${escapeHeaderValue(filename)}"`,
         'X-PDF-Source': 'generated',
-        'Cache-Control': 'public, max-age=3600',
+        'Cache-Control': 'no-store',
       },
     });
   },

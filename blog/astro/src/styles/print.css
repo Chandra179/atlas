@@ -96,23 +96,41 @@
     text-decoration: underline !important;
   }
 
-  /* Avoid breaking inside important elements */
-  pre,
-  table,
-  figure,
+  /* Avoid breaking inside small, indivisible elements only.
+     Codeblocks/mermaid figures are deliberately excluded below: forcing
+     break-inside: avoid on tall elements just pushes them whole onto the
+     next page (leaving a near-empty page behind) or, if taller than a
+     full page, clips them since they still can't split. */
   img,
-  svg,
   .callout,
-  .expressive-code,
-  blockquote {
+  blockquote,
+  tr {
     break-inside: avoid !important;
     page-break-inside: avoid !important;
+  }
+
+  /* Let long codeblocks and mermaid diagrams paginate/scale instead of
+     being kept whole. */
+  figure,
+  svg {
+    max-width: 100% !important;
+  }
+
+  svg {
+    max-height: 240mm !important;
+    height: auto !important;
   }
 
   /* Keep headings with the content that follows */
   h1, h2, h3, h4, h5, h6 {
     break-after: avoid !important;
     page-break-after: avoid !important;
+  }
+
+  /* Avoid stray single lines at page boundaries once blocks can split */
+  .prose p, .prose li {
+    orphans: 3;
+    widows: 3;
   }
 
   /* Show external URLs after links (optional, useful for printed docs) */
