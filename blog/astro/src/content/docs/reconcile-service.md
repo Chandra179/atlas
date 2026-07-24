@@ -101,7 +101,7 @@ flowchart TD
 ### Hash-Based Partitioning & Data Shuffling
 
 ```mermaid
-flowchart TD
+flowchart LR
     %% Sources
     subgraph Data_Ingestion [1. Data Ingestion]
         A[Internal Ledger]
@@ -135,18 +135,8 @@ flowchart TD
     P1 --> W1
     P_N --> WN
 
-    %% Worker Detail 
-    subgraph In_Memory_Matching [4. Inside Worker 0's RAM]
-        M1[Read Incoming Record] --> M2[Add to Search Map]
-        M2 --> M3{Pair Found?}
-        M3 -->|Yes| M4[Validate Amount]
-        M4 --> M5[Erase from RAM]
-    end
-
-    W0 --> M1
-
     %% Target
-    M5 --> DB[(Reconciled Database)]
+    W0 --> DB[(Reconciled Database)]
     W1 --> DB
     WN --> DB
 ```
@@ -158,6 +148,18 @@ The system collects our own data live all day then grabs Stripe's data once a ni
 By setting the message key exclusively to the `transaction_id`, the message router runs an identical routing algorithm across both streams: `hash(transaction_id) % 10`. This guarantees that both the internal ledger event and the external Stripe record for any given ID are routed into the exact same partition queue. 
 
 Distributed workers are assigned explicitly to individual partitions. When a worker reads its partition, it builds a in-memory hash map of the transactions it encounters. When it identifies the matching pair, it validates the amount, drops the pair from memory to keep RAM usage stable, and writes the success state to the database.
+
+```mermaid
+flowchart LR
+    subgraph In_Memory_Matching [4. Inside a Worker's RAM]
+        M1[Read Incoming Record] --> M2[Add to Search Map]
+        M2 --> M3{Pair Found?}
+        M3 -->|Yes| M4[Validate Amount]
+        M4 --> M5[Erase from RAM]
+    end
+
+    M5 --> DB[(Reconciled Database)]
+```
 
 ### Resiliency & The Exception Pipeline
 
