@@ -87,7 +87,7 @@ function cleanHtmlForPdf(html: string, origin: string, slug: string): string {
   // here directly instead of relying on that CSS taking effect.
   for (const el of Array.from(document.querySelectorAll('.mermaid-diagram'))) {
     const style = (el as HTMLElement).style;
-    style.maxWidth = '55%';
+    style.maxWidth = '75%';
     style.marginLeft = 'auto';
     style.marginRight = 'auto';
   }
