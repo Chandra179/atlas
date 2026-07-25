@@ -109,16 +109,15 @@
     page-break-inside: avoid !important;
   }
 
-  /* Let long codeblocks and mermaid diagrams paginate/scale instead of
-     being kept whole. */
+  /* Let long codeblocks and mermaid diagrams paginate instead of being
+     kept whole or scaled down. No max-height here on purpose: capping it
+     just shrinks large diagrams to illegible size (or, combined with
+     break-after: avoid on the preceding heading, strands the heading
+     with a near-empty page behind it). Leaving svg unconstrained lets it
+     stay full size and fragment across as many pages as it needs. */
   figure,
   svg {
     max-width: 100% !important;
-  }
-
-  svg {
-    max-height: 240mm !important;
-    height: auto !important;
   }
 
   /* Keep headings with the content that follows */

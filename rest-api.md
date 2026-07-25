@@ -1,14 +1,15 @@
 # My Experience With API
 
-use http  status code  correctly  like 400  for bad  requests for further handling in client side we can  return business error  code,    example: "error_code: 23" keeping it  informative while dont 
-display sensitive information  to user. 
+Use HTTP status codes correctly (like `400` for bad requests). For further handling on the client side, we can return a business error code—for example, `"error_code: 23"`. Keep it informative while not displaying sensitive information to the user.
 
-client read  404 not found  or read from response body like cats:  [] it all depends  on  how each  company  standards there are  no global rules
+Clients can read `404 Not Found` or read directly from the response body (like `cats: []`). It all depends on each company's standards, as there are no global rules.
 
-carefully design how  the  fields  behave in  the  API  response for  example "admin_fee: 0" could  be mean  something in  finance,  or  maybe multi platform client (mobile, web) handling for existing existing logic have different mechanism, while client A treats "jelly: {}"   as empty object unhandled   the  other client treat  that as a  valid object,  we  the backend need to communicate clearly to  client how we handled it 
+Carefully design how the fields behave in the API response. For example:
 
-we need to consider worse case scenario if we  depends  on API whether it be communicating between company internal service or external service, as  we cannot make sure that heir service is consistent or maybe have a  bug in productiton that we  may now know by schema validation we define what the structure so only the response from the API that match with our definition will be parsed, and validate the data early are they return null or empty data.
+- `"admin_fee: 0"` could mean something specific in finance.
 
-fallback mechanism
+- Multi-platform clients (mobile, web) handling existing logic might have different mechanisms. While Client A treats `"jelly: {}"` as an unhandled empty object, another client treats it as valid object. We in the backend need to communicate clearly to the client how we handle it
 
+We need to consider the worst-case scenario if we depend on an API, whether communicating between internal company services or external services. We cannot be sure that their service is consistent or free of production bugs. By using schema validation, we define what the structure is so that only API responses matching our definition will be parsed, allowing us to validate data early (such as checking whether they return `null` or empty data).
 
+Each API may originate from the same base URL, but their response times and authentication can be different. Other things like headers can vary too, so we need to make them independent in terms of timeouts, headers, cookies, and related settings.
