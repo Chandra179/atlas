@@ -58,10 +58,10 @@ graph TD
 
 A transaction log tailer polls the outbox table and streams the full data payload (all text primitives + logo asset URLs) directly into domain-specific message queues (e.g., `invoice-queue`, `order-queue`).
 
-```mermaid width=70%
-graph TD
+```mermaid width=100%
+graph LR
     subgraph Streaming_Tier [2. Guaranteed Domain-Isolated Queueing]
-        direction TB
+        direction LR
         Outbox[("Outbox Table")]
         Tailer[Transaction Log Tailer / CDC] -->|Read committed outbox logs| Outbox
         Tailer -->|Publish Payload &lt; 1MB| Broker{Message Broker}
@@ -84,10 +84,10 @@ graph TD
 
 An autoscaling pool of stateless workers consumes messages from the queues. Workers read the raw data payload directly from the message (&lt;1mb), compile the layout using an HTML-to-PDF template engine, and output the compressed binary.
 
-```mermaid width=70%
-graph TD
+```mermaid width=100%
+graph LR
     subgraph Compute_Tier [3. Stateless PDF Generation]
-        direction TB
+        direction LR
         InvQueue[invoice-queue] --> Workers[Autoscaling PDF Workers]
         OrdQueue[order-queue] --> Workers
 
@@ -105,10 +105,10 @@ graph TD
 
 The worker streams the generated PDF binary directly to an Object Storage bucket (e.g., Amazon S3). The bucket is configured with a strict **7-day expiration lifecycle policy** to handle automatic data purging.
 
-```mermaid width=70%
-graph TD
+```mermaid width=100%
+graph LR
     subgraph S3_Management [4. Storage & Object Lifecycle]
-        direction TB
+        direction LR
         Binary[Compressed PDF Binary] -->|Stream Binary Async| S3[(Amazon S3 Bucket)]
         S3 --> Prefixes["invoices/YYYY-MM-DD/id.pdf"]
         Prefixes --> TTL{7-Day Expire Policy}
@@ -124,10 +124,10 @@ graph TD
 
 The worker generates an **S3 Presigned URL** valid for 7 days. This URL is injected into the email template and passed to an asynchronous Notification Service to handle the final email dispatch.
 
-```mermaid width=70%
-graph TD
+```mermaid width=100%
+graph LR
     subgraph Delivery [5. Email Dispatch]
-        direction TB
+        direction LR
         Workers[PDF Workers] -->|Cryptographic Signing| SignedLink[7-Day S3 Presigned URL]
         SignedLink --> Notification[Notification Service]
 
