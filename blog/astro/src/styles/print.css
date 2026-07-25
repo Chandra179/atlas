@@ -120,14 +120,24 @@
     max-width: 100% !important;
   }
 
-  /* A4 pages are much narrower than the web content column, so cap mermaid
-     diagrams tighter here regardless of the width= set in the markdown
-     source — otherwise a diagram sized for the web ends up dominating the
-     printed page. */
-  .mermaid-diagram {
-    max-width: 55% !important;
-    margin-left: auto !important;
-    margin-right: auto !important;
+  /* Vertical (TB/TD) diagrams tend to run tall rather than wide, so for
+     print they're capped by height (mirrors `vertical.maxHeightPercent` in
+     src/config/mermaid.config.yaml — keep the two in sync) instead of
+     width, same as the Browser Run PDF path in src/worker/index.ts.
+     Horizontal (LR/RL) diagrams are deliberately left unconstrained here,
+     same as that path's `horizontal.constrain: false`. This only matters
+     for users printing via their own browser (Ctrl+P) — PDFs downloaded
+     via Browser Run are sized directly in the worker instead. */
+  .mermaid-diagram[data-orientation="vertical"] {
+    max-width: 100% !important;
+    width: auto !important;
+    text-align: center;
+  }
+
+  .mermaid-diagram[data-orientation="vertical"] svg {
+    max-height: 70vh !important;
+    width: auto !important;
+    height: auto !important;
   }
 
   /* Keep headings with the content that follows */

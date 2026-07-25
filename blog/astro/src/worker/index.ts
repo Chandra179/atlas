@@ -106,6 +106,16 @@ function cleanHtmlForPdf(html: string, origin: string, slug: string): string {
     style.paddingTop = '0';
   }
 
+  // The content column is capped at max-w-3xl (768px) for the web, where
+  // it's flanked by the sidebar/TOC we just removed above. Left alone, that
+  // cap leaves the PDF's content sitting narrow with dead space on both
+  // sides, since Browser Run lays the page out at a wider viewport before
+  // flattening it onto the A4 page. Let it use the full printable width.
+  const contentWrapper = document.querySelector('#doc-content-wrapper');
+  if (contentWrapper) {
+    (contentWrapper as HTMLElement).style.maxWidth = 'none';
+  }
+
   // Cap mermaid diagram size for print. A4 pages are much narrower (and, for
   // a tall diagram, much shorter per page) than the web content column, and
   // Browser Run doesn't appear to honor @media print, so size caps have to be
