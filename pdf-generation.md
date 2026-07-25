@@ -190,3 +190,21 @@ Attach the PDF directly to the email so it's in their inbox forever. For the 7-d
 At 1,000 requests/second, spinning up Chromium tabs (Puppeteer/Playwright) will crash your servers due to memory leaks. 
 
 We are absolutely not using a headless browser like Puppeteer or Chromium at 1,000 requests/second. Managing browser contexts, tabs, and memory leaks at this scale is an operational nightmare. Instead, we are using a native, low-level binary compiled engine (like a Go-based PDF generator or a lightweight C++ HTML-to-PDF library). These don't boot up a browser; they parse HTML/CSS primitives directly into raw PDF byte streams in-memory, keeping CPU and memory usage flat.
+
+Where there's a real gap — the S3-removal pivot creates a contradiction
+
+The "Improvement" section quietly breaks one of your own non-functional requirements. You stated:
+
+Workers should require minimal dependencies and zero direct database connections.
+
+But once you drop S3 storage and make the 7-day public link lazy/on-demand, something has to answer "regenerate this exact PDF" days later when a user finally clicks — and the only place that source data can live is a database (the original invoice/order record), since the queue message that triggered the original render is long gone.
+
+So: the click-triggered regeneration path now needs a DB read, even if the eager render-and-email-attach path stays stateless. This isn't necessarily wrong — it might be the correct trade-off — but it needs to be stated explicitly and reconciled, not left as an unaddressed contradiction. A stronger version of this design would say something like: "We relax the zero-DB-connection constraint specifically for the lazy-regeneration API tier, which does a single indexed point-lookup by order_id — this is a much lighter dependency than the original stateful design, and we accept it as a deliberate trade-off."
+
+Second gap — expiration mechanism disappeared along with S3
+
+The original design enforced the 7-day expiry via S3's lifecycle policy (a real, infrastructure-level guarantee). Once you remove S3 entirely, what enforces "exactly 7 days" now? This needs a replacement mechanism — the natural fix is a signed token with an embedded expiry claim (e.g., a JWT or HMAC-signed URL containing order_id + exp timestamp), verified at the API gateway on each click, rejecting anything past 7 days. Worth naming this explicitly rather than letting it be implied.
+
+Smaller things worth tightening
+Idempotency flag mechanics are asserted, not designed. "Database status flags prevent duplicate renders" is the right instinct, but doesn't say how two concurrent retries of the same event don't both pass the check — you'd want something like an atomic compare-and-swap (unique constraint on order_id + status transition, or a SETNX-style claim) so the flag check itself isn't a race condition.
+Storage cost of the interim window is implicitly assumed negligible — you calculated PUT cost but not GB-month storage cost for the ~7-day rolling window of stored PDFs (worth a sentence confirming it's small relative to PUT cost, since it is, but stating it shows you checked rather than only optimizing the number you happened to compute).

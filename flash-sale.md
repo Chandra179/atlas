@@ -123,3 +123,31 @@ We can offload almost 100% of read traffic (users refreshing the product page to
 For extreme-demand events, we can implement a traffic-smoothing gatekeeper.
 * **Implementation:** Integrate a third-party waiting room platform.
 * **Action:** Instead of letting 500,000 users hit our checkout endpoints at 12:00:00, the waiting room holds them in a FIFO queue on external servers. It lets users through to our checkout system in controlled batches (e.g., 5,000 users per second), transforming a traffic spike into a flat, predictable plateau.
+
+## Where there are real correctness gaps
+
+1. Option 1 doesn't actually satisfy your own stated peak requirement — this needs to be said explicitly, not left implicit.
+
+Your constraints state 100,000 concurrent write attempts/sec. Option 1's own trade-off table says it caps at ~30k-50k ops/sec. That's not a "trade-off" to weigh against Option 2 — it's a disqualifying limitation: Option 1 alone cannot meet the stated peak load at all. Right now the doc presents these as two roughly equal alternatives with pros and cons; it should instead say plainly: "Option 1 fails to meet our 100k/sec requirement outright, so Option 2 (or a variant) is mandatory at this scale — Option 1 is only viable if peak load is meaningfully lower than the stated target." This is the same category of issue flagged in the PDF-service review — a design decision quietly contradicting a stated requirement instead of naming and reconciling it.
+
+2. Missing idempotency protection at the Redis decrement step itself — this creates a silent under-sell bug.
+
+The Lua script decrements stock atomically, but nothing dedupes by request or user. If a client's request times out on their end (but the server already succeeded), a client retry will run the Lua script again — decrementing stock a second time for what is logically the same purchase attempt. The DB's ON CONFLICT DO NOTHING only protects against duplicate rows, not duplicate decrements. The result: inventory shows sold out, but fewer than 1,000 real orders exist — a direct violation of your own goal, "if we have 1,000 units, exactly 1,000 orders must be created."
+
+Fix: the Lua script needs an atomic guard keyed on something like user_id + product_id (a SETNX-style check) alongside the decrement, so retries are provably safe.
+
+3. A crash between "Redis succeeds" and "Kafka publish" silently leaks inventory — and you already have the right pattern for this from an earlier design.
+
+Look at step 3 → step 4 in the sequence diagram: if the app process dies after the Redis decrement succeeds but before the Kafka event publishes, that unit is gone forever — decremented, but with no order ever created and no way to recover it. Over enough failures, actual orders will land meaningfully below 1,000 even though all units show "sold." This is the exact class of problem the Transactional Outbox pattern (used correctly in your PDF-generation design earlier this session) was built to solve — decrement and publish need to be atomic, or at minimum reconciled via a periodic sweep for "decremented but no matching order" gaps.
+
+4. Latency target is stated inconsistently.
+
+Goals section: "p99 under 50ms." Constraints section: "< 30ms (p99)." These are two different numbers for what appears to be the same metric — worth reconciling into one authoritative target before this goes further.
+
+5. The 10-second DB catch-up target is asserted, not derived.
+
+100k orders persisted within 10 seconds implies ~10,000 inserts/sec sustained. With batches of 100, that's ~100 batch-commits/sec spread across a 100-connection pool — roughly 1 batch per connection per second, which is plausible for Postgres, but this arithmetic isn't shown anywhere in the doc. Given the connection pool was deliberately capped as a stated constraint, this is exactly the kind of number that should be derived and checked against the cap, the same estimation discipline flagged earlier in the session (peak-vs-average sizing in the scraping cluster), just showing up here in a lighter form.
+
+6. Cross-bucket fallback (Option 2) isn't atomic, and this isn't addressed.
+
+"If Bucket 1 is empty, fallback routes to Bucket 2" implies two separate Redis calls — the check-and-fallback sequence needs the same idempotency guard as point #2, or a retry during the fallback window could double-decrement across buckets for one logical request.
