@@ -94,7 +94,15 @@ const baseDescription = 'Personal blog on software engineering, system design';
 const homepageJsonLd = [
   {
     '@context': 'https://schema.org',
+    '@type': 'Person',
+    '@id': 'https://chan179.com/#author',
+    name: 'Chandra179',
+    url: 'https://chan179.com',
+  },
+  {
+    '@context': 'https://schema.org',
     '@type': 'Organization',
+    '@id': 'https://chan179.com/#publisher',
     name: siteName,
     url: 'https://chan179.com',
     logo: 'https://chan179.com/og-image.png',

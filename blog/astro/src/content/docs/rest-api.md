@@ -1,6 +1,6 @@
 ---
 title: "Rest Api"
-modified: "2026-07-24"
+modified: "2026-07-25"
 ---
 
 # My Experience With API

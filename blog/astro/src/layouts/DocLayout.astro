@@ -24,6 +24,7 @@ interface Props {
   modified?: Date;
   tags?: string[];
   author?: string;
+  noindex?: boolean;
 }
 
 const {
@@ -38,6 +39,7 @@ const {
   modified,
   tags = [],
   author = 'Chandra179',
+  noindex = false,
 } = Astro.props;
 
 const siteName = 'Chan179';
@@ -108,6 +110,7 @@ const { prev, next } = getPrevNext(flat, url);
   modified={modified}
   tags={tags}
   author={author}
+  noindex={noindex}
 >
   <Sidebar nav={nav} currentPath={url} />
 

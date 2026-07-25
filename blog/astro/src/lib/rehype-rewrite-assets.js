@@ -87,6 +87,24 @@ export function rehypeRewriteAssets() {
       applyLoading(node);
     });
 
+    visit(tree, 'element', (node) => {
+      if (node.tagName !== 'img') return;
+      applyAltFallback(node);
+    });
+
+    function applyAltFallback(img) {
+      const alt = img.properties?.alt;
+      if (typeof alt === 'string' && alt.trim() !== '') return;
+      const src = img.properties?.src;
+      if (!src || typeof src !== 'string') return;
+      const base = src.split('/').pop() || '';
+      const name = base.replace(/\.[a-z0-9]+$/i, '');
+      img.properties.alt = name
+        .replace(/[-_]+/g, ' ')
+        .replace(/\b\w/g, (c) => c.toUpperCase())
+        .trim();
+    }
+
     function applyLoading(img) {
       if (img.properties.loading !== undefined) return;
       if (isFirstImage) {
