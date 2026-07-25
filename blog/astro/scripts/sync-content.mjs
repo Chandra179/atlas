@@ -14,6 +14,7 @@ const ALLOWED_FILES = new Set([
   'browser-engine.md',
   'reconcile-service.md',
   'rest-api.md',
+  // 'blog-engineering.md',
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })
