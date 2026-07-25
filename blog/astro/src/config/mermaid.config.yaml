@@ -8,7 +8,7 @@
 # PDF cache key version (KV key: `pdf:v<cacheVersion>:<slug>:<hash>`). Bump
 # this whenever cleanHtmlForPdf's cleaning/sizing logic changes incompatibly,
 # so previously cached PDFs aren't served stale under the old behavior.
-cacheVersion: 8
+cacheVersion: 9
 
 # Printable page geometry — must match pdfOptions in src/worker/index.ts.
 page:
