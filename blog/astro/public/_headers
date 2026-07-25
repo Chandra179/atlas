@@ -1,13 +1,13 @@
 # Cloudflare Pages cache headers
 
-# Security headers (applied to all responses)
+# Security headers + default HTML caching (applied to all responses).
+# Clean URLs (e.g. /introduction) never match a /*.html pattern, so the
+# default Cache-Control lives here and gets overridden below by the
+# more specific rules for hashed assets, images, etc.
 /*
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
-
-# HTML: 6 hours, stale-while-revalidate 1 day
-/*.html
   Cache-Control: public, max-age=21600, stale-while-revalidate=86400
 
 # Sitemap: 1 day, SWR 1 week

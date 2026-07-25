@@ -9,4 +9,6 @@ carefully design how  the  fields  behave in  the  API  response for  example "a
 
 we need to consider worse case scenario if we  depends  on API whether it be communicating between company internal service or external service, as  we cannot make sure that heir service is consistent or maybe have a  bug in productiton that we  may now know by schema validation we define what the structure so only the response from the API that match with our definition will be parsed, and validate the data early are they return null or empty data.
 
+fallback mechanism
+
 

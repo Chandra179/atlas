@@ -1,5 +1,6 @@
 ---
 import SEO from '../components/SEO.astro';
+import { ClientRouter } from 'astro:transitions';
 import '../styles/global.css';
 
 import interLatinWoff2 from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2';
@@ -61,6 +62,8 @@ const resolvedOgImage = new URL(ogImage, Astro.site).href;
   <link rel="preload" as="font" href={interLatinWoff2} type="font/woff2" crossorigin />
   <link rel="preload" as="font" href={jetbrainsLatin400} type="font/woff2" crossorigin />
   <link rel="preload" as="font" href={jetbrainsLatin600} type="font/woff2" crossorigin />
+
+  <ClientRouter />
 
   <SEO
     title={fullTitle}
@@ -177,20 +180,23 @@ const resolvedOgImage = new URL(ogImage, Astro.site).href;
     <slot />
   </div>
 
-  <!-- Pagefind search UI -->
+  <!-- Pagefind search UI: (re)mount on initial load and after every
+       client-side transition, since the #search element is replaced
+       on each navigation and won't otherwise pick up a widget. -->
   <script is:inline>
-    window.addEventListener('load', function () {
-      if (window.pagefind) {
-        var el = document.getElementById('search');
-        if (el) {
-          new window.pagefind.ui({
-            element: '#search',
-            showImages: false,
-            pageSize: 5,
-          });
-        }
-      }
-    });
+    function mountPagefindUi() {
+      if (!window.pagefind) return;
+      var el = document.getElementById('search');
+      if (!el) return;
+      el.innerHTML = '';
+      new window.pagefind.ui({
+        element: '#search',
+        showImages: false,
+        pageSize: 5,
+      });
+    }
+    window.addEventListener('load', mountPagefindUi);
+    document.addEventListener('astro:page-load', mountPagefindUi);
   </script>
   {import.meta.env.PROD && (
     <>

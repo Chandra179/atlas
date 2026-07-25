@@ -49,8 +49,17 @@ const hasToc = tocTree.length > 0;
 </aside>
 
 <script is:inline>
-  (function () {
+  // Runs on initial load and after every client-side transition — this
+  // script's content is identical across pages, so Astro won't re-execute
+  // the tag itself on navigation; the astro:page-load listener is what
+  // re-binds behavior to each page's freshly-rendered #toc element.
+  var __tocObserver = null;
+  function __initToc() {
     var toc = document.getElementById('toc');
+    if (__tocObserver) {
+      __tocObserver.disconnect();
+      __tocObserver = null;
+    }
     if (!toc) return;
 
     // Smooth scroll on click
@@ -107,7 +116,7 @@ const hasToc = tocTree.length > 0;
       }
     }
 
-    var observer = new IntersectionObserver(function (entries) {
+    __tocObserver = new IntersectionObserver(function (entries) {
       var activeFound = false;
       entries.forEach(function (entry) {
         var link = toc.querySelector('a[href="#' + entry.target.id + '"]');
@@ -123,6 +132,7 @@ const hasToc = tocTree.length > 0;
       if (!activeFound) return;
     }, { rootMargin: '-80px 0px -60% 0px', threshold: 0 });
 
-    headings.forEach(function (h) { observer.observe(h); });
-  })();
+    headings.forEach(function (h) { __tocObserver.observe(h); });
+  }
+  document.addEventListener('astro:page-load', __initToc);
 </script>
