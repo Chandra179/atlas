@@ -58,6 +58,12 @@ function cleanHtmlForPdf(html: string, origin: string, slug: string): string {
     '.pdf-hide',
     // Mobile menu overlay
     'div.fixed.top-16.inset-x-0.bottom-0',
+    // Mobile header (hamburger/dark-mode buttons) — `.pdf-mode` CSS never
+    // applies here since Browser Run renders the HTML string directly
+    // rather than navigating to a `?pdf=1` URL, so it must be stripped here.
+    '#mobile-header',
+    // Skip-to-content accessibility link, irrelevant in a static PDF
+    'a[href="#main-content"]',
   ];
 
   for (const selector of selectors) {
@@ -72,6 +78,18 @@ function cleanHtmlForPdf(html: string, origin: string, slug: string): string {
     style.marginLeft = '0';
     style.marginRight = '0';
     style.paddingTop = '0';
+  }
+
+  // Cap mermaid diagram size for print: A4 pages are much narrower than the
+  // web content column, so a width= sized for the web still dominates the
+  // printed page. print.css has an @media print override for this, but
+  // Browser Run doesn't appear to honor print media emulation, so force it
+  // here directly instead of relying on that CSS taking effect.
+  for (const el of Array.from(document.querySelectorAll('.mermaid-diagram'))) {
+    const style = (el as HTMLElement).style;
+    style.maxWidth = '55%';
+    style.marginLeft = 'auto';
+    style.marginRight = 'auto';
   }
 
   // Convert relative URLs to absolute so resources load when using html option

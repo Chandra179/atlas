@@ -108,6 +108,7 @@ const resolvedOgImage = new URL(ogImage, Astro.site).href;
     <>
       <!-- Mobile Header -->
       <div
+        id="mobile-header"
         class="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 z-50 flex items-center px-4 gap-4">
         <button @click="mobileMenuOpen = !mobileMenuOpen" class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg flex-shrink-0">
           <svg x-show="!mobileMenuOpen" class="w-6 h-6 text-gray-700 dark:text-gray-200" fill="none" stroke="currentColor" viewBox="0 0 24 24">

@@ -30,7 +30,7 @@ The system uses an **Event-Driven Architecture (EDA)** paired with the **Transac
 
 The Payment Vendor sends a `payment_success` webhook. The Ingestion Service captures this, logs the transaction status as `PAID`, and writes a `PROCESS_PDF` task into an append-only database outbox table within a single local transaction.
 
-```mermaid
+```mermaid width=70%
 graph TD
     subgraph Ingestion_Tier [1. Ingestion & Acid Consistency]
         direction TB
@@ -58,7 +58,7 @@ graph TD
 
 A transaction log tailer polls the outbox table and streams the full data payload (all text primitives + logo asset URLs) directly into domain-specific message queues (e.g., `invoice-queue`, `order-queue`).
 
-```mermaid
+```mermaid width=70%
 graph TD
     subgraph Streaming_Tier [2. Guaranteed Domain-Isolated Queueing]
         direction TB
@@ -84,7 +84,7 @@ graph TD
 
 An autoscaling pool of stateless workers consumes messages from the queues. Workers read the raw data payload directly from the message (&lt;1mb), compile the layout using an HTML-to-PDF template engine, and output the compressed binary.
 
-```mermaid
+```mermaid width=70%
 graph TD
     subgraph Compute_Tier [3. Stateless PDF Generation]
         direction TB
@@ -105,7 +105,7 @@ graph TD
 
 The worker streams the generated PDF binary directly to an Object Storage bucket (e.g., Amazon S3). The bucket is configured with a strict **7-day expiration lifecycle policy** to handle automatic data purging.
 
-```mermaid
+```mermaid width=70%
 graph TD
     subgraph S3_Management [4. Storage & Object Lifecycle]
         direction TB
@@ -124,7 +124,7 @@ graph TD
 
 The worker generates an **S3 Presigned URL** valid for 7 days. This URL is injected into the email template and passed to an asynchronous Notification Service to handle the final email dispatch.
 
-```mermaid
+```mermaid width=70%
 graph TD
     subgraph Delivery [5. Email Dispatch]
         direction TB

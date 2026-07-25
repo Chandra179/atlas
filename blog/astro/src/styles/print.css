@@ -120,6 +120,16 @@
     max-width: 100% !important;
   }
 
+  /* A4 pages are much narrower than the web content column, so cap mermaid
+     diagrams tighter here regardless of the width= set in the markdown
+     source — otherwise a diagram sized for the web ends up dominating the
+     printed page. */
+  .mermaid-diagram {
+    max-width: 55% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
   /* Keep headings with the content that follows */
   h1, h2, h3, h4, h5, h6 {
     break-after: avoid !important;
