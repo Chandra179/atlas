@@ -39,8 +39,8 @@ graph TD
 
         subgraph DB [Core Relational DB]
             direction LR
-            Orders[("Orders Table<br/>Status: PAID")]
-            Outbox[("Outbox Table<br/>Event: PROCESS_PDF")]
+            Orders[("Orders Table Status: PAID")]
+            Outbox[("Outbox Table Event: PROCESS_PDF")]
         end
 
         Ingestion -->|Atomic Transaction| Orders
