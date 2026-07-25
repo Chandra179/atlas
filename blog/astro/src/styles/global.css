@@ -1,5 +1,9 @@
 @import "tailwindcss";
 
+/* Dark mode is toggled manually via a `.dark` class on <html> (see BaseLayout.astro),
+   not the OS `prefers-color-scheme`, so `dark:` utilities must key off that class. */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;

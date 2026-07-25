@@ -26,92 +26,122 @@ modified: "2026-07-25"
 
 The system uses an **Event-Driven Architecture (EDA)** paired with the **Transactional Outbox Pattern** to decouple the heavy compute layer from the critical path of the payment checkout flow.
 
+### 1. Payment Ingestion & Webhook Handling
+
+The Payment Vendor sends a `payment_success` webhook. The Ingestion Service captures this, logs the transaction status as `PAID`, and writes a `PROCESS_PDF` task into an append-only database outbox table within a single local transaction.
+
 ```mermaid
 graph TD
-    %% Subgraph 1: Ingestion
     subgraph Ingestion_Tier [1. Ingestion & Acid Consistency]
         direction TB
         Vendor[Payment Vendor Webhook] -->|Retry on 5xx| LB[Load Balancer]
         LB --> Ingestion[Ingestion Service]
-        
+
         subgraph DB [Core Relational DB]
             direction LR
-            Orders[("Orders Table<br/>Status: PAID")] 
+            Orders[("Orders Table<br/>Status: PAID")]
             Outbox[("Outbox Table<br/>Event: PROCESS_PDF")]
         end
-        
+
         Ingestion -->|Atomic Transaction| Orders
         Ingestion -->|Atomic Transaction| Outbox
     end
 
-    %% Subgraph 2: Event Streaming
-    subgraph Streaming_Tier [2. Guaranteed Domain-Isolated Queueing]
-        direction TB
-        Tailer[Transaction Log Tailer / CDC] -->|Read committed outbox logs| Outbox
-        Tailer -->|Publish Payload &lt; 1MB| Broker{Message Broker}
-        
-        Broker -->|Invoice Data| InvQueue[invoice-queue]
-        Broker -->|Order Data| OrdQueue[order-queue]
-        Broker -->|3x Failures| DLQ[Dead Letter Queue]
-    end
-
-    %% Subgraph 3: Compute
-    subgraph Compute_Tier [3. Stateless PDF Generation]
-        direction TB
-        InvQueue --> Workers[Autoscaling PDF Workers]
-        OrdQueue --> Workers
-        
-        Workers -->|"HTML-to-PDF Engine, Render time &lt; 30ms"| Binary[Compressed PDF Binary]
-    end
-
-    %% Subgraph 4: Storage & Delivery
-    subgraph Storage_Delivery [4. Storage & Email Dispatch]
-        direction TB
-        Binary -->|Stream Binary Async| S3[(Amazon S3 Bucket)]
-        
-        subgraph S3_Management [Object Lifecycle]
-            S3 --> Prefixes["invoices/YYYY-MM-DD/id.pdf"]
-            Prefixes --> TTL{7-Day Expire Policy}
-            TTL -->|Hard Delete| Purge((Auto-Purge File))
-        end
-        
-        Workers -->|Cryptographic Signing| SignedLink[7-Day S3 Presigned URL]
-        SignedLink --> Notification[Notification Service]
-        
-        Notification -->|Check if S3 key exists| S3
-        Notification -->|Inject Link to Email HTML| SES[Email Service Provider]
-        SES -->|Async Delivery| User[End User Inbox]
-    end
-
-    %% Styling & Theme adjustments
     classDef storage fill:#d4ebf2,stroke:#333,stroke-width:1px;
-    classDef queue fill:#fbe3e8,stroke:#333,stroke-width:1px;
     classDef logic fill:#e1f7d5,stroke:#333,stroke-width:1px;
-    
-    class DB,S3 storage;
-    class InvQueue,OrdQueue,DLQ,Broker queue;
-    class Ingestion,Workers,Notification,Tailer logic;
+
+    class DB storage;
+    class Ingestion logic;
 ```
-
-### 1. Payment Ingestion & Webhook Handling
-
-The Payment Vendor sends a `payment_success` webhook. The Ingestion Service captures this, logs the transaction status as `PAID`, and writes a `PROCESS_PDF` task into an append-only database outbox table within a single local transaction.
 
 ### 2. Domain-Isolated Message Queueing
 
 A transaction log tailer polls the outbox table and streams the full data payload (all text primitives + logo asset URLs) directly into domain-specific message queues (e.g., `invoice-queue`, `order-queue`).
 
+```mermaid
+graph TD
+    subgraph Streaming_Tier [2. Guaranteed Domain-Isolated Queueing]
+        direction TB
+        Outbox[("Outbox Table")]
+        Tailer[Transaction Log Tailer / CDC] -->|Read committed outbox logs| Outbox
+        Tailer -->|Publish Payload &lt; 1MB| Broker{Message Broker}
+
+        Broker -->|Invoice Data| InvQueue[invoice-queue]
+        Broker -->|Order Data| OrdQueue[order-queue]
+        Broker -->|3x Failures| DLQ[Dead Letter Queue]
+    end
+
+    classDef storage fill:#d4ebf2,stroke:#333,stroke-width:1px;
+    classDef queue fill:#fbe3e8,stroke:#333,stroke-width:1px;
+    classDef logic fill:#e1f7d5,stroke:#333,stroke-width:1px;
+
+    class Outbox storage;
+    class InvQueue,OrdQueue,DLQ,Broker queue;
+    class Tailer logic;
+```
+
 ### 3. Stateless PDF Generation
 
 An autoscaling pool of stateless workers consumes messages from the queues. Workers read the raw data payload directly from the message (&lt;1mb), compile the layout using an HTML-to-PDF template engine, and output the compressed binary.
+
+```mermaid
+graph TD
+    subgraph Compute_Tier [3. Stateless PDF Generation]
+        direction TB
+        InvQueue[invoice-queue] --> Workers[Autoscaling PDF Workers]
+        OrdQueue[order-queue] --> Workers
+
+        Workers -->|"HTML-to-PDF Engine, Render time &lt; 30ms"| Binary[Compressed PDF Binary]
+    end
+
+    classDef queue fill:#fbe3e8,stroke:#333,stroke-width:1px;
+    classDef logic fill:#e1f7d5,stroke:#333,stroke-width:1px;
+
+    class InvQueue,OrdQueue queue;
+    class Workers logic;
+```
 
 ### 4. Object Storage Upload & Lifecycle Policy
 
 The worker streams the generated PDF binary directly to an Object Storage bucket (e.g., Amazon S3). The bucket is configured with a strict **7-day expiration lifecycle policy** to handle automatic data purging.
 
+```mermaid
+graph TD
+    subgraph S3_Management [4. Storage & Object Lifecycle]
+        direction TB
+        Binary[Compressed PDF Binary] -->|Stream Binary Async| S3[(Amazon S3 Bucket)]
+        S3 --> Prefixes["invoices/YYYY-MM-DD/id.pdf"]
+        Prefixes --> TTL{7-Day Expire Policy}
+        TTL -->|Hard Delete| Purge((Auto-Purge File))
+    end
+
+    classDef storage fill:#d4ebf2,stroke:#333,stroke-width:1px;
+
+    class S3 storage;
+```
+
 ### 5. Cryptographic Link Tokenization & Email Delivery
 
 The worker generates an **S3 Presigned URL** valid for 7 days. This URL is injected into the email template and passed to an asynchronous Notification Service to handle the final email dispatch.
+
+```mermaid
+graph TD
+    subgraph Delivery [5. Email Dispatch]
+        direction TB
+        Workers[PDF Workers] -->|Cryptographic Signing| SignedLink[7-Day S3 Presigned URL]
+        SignedLink --> Notification[Notification Service]
+
+        Notification -->|Check if S3 key exists| S3[(Amazon S3 Bucket)]
+        Notification -->|Inject Link to Email HTML| SES[Email Service Provider]
+        SES -->|Async Delivery| User[End User Inbox]
+    end
+
+    classDef storage fill:#d4ebf2,stroke:#333,stroke-width:1px;
+    classDef logic fill:#e1f7d5,stroke:#333,stroke-width:1px;
+
+    class S3 storage;
+    class Workers,Notification logic;
+```
 
 ## Component Deep Dive & Trade-offs
 
