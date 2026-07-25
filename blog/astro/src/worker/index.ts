@@ -9,7 +9,15 @@ interface Env {
 
 const CACHE_TTL_SECONDS = 86400; // 24 hours
 const RATE_LIMIT_RETRIES = 3;
-const CACHE_KEY_PREFIX = 'pdf:v4:';
+const CACHE_KEY_PREFIX = 'pdf:v5:';
+
+async function hashHtml(html: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(html));
+  return Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, '0'))
+    .join('')
+    .slice(0, 16);
+}
 
 function isValidSlug(slug: string): boolean {
   if (!slug || slug.length > 200) return false;
@@ -87,17 +95,7 @@ function cleanHtmlForPdf(html: string, origin: string, slug: string): string {
 
 
 
-async function generatePdf(env: Env, request: Request, slug: string, attempt = 1): Promise<ArrayBuffer> {
-  const requestUrl = new URL(request.url);
-  const origin = requestUrl.origin;
-  const assetUrl = new URL(`/${slug}?pdf=1`, origin);
-  const assetRes = await env.ASSETS.fetch(assetUrl);
-  if (!assetRes.ok) {
-    throw new Error(`Failed to fetch asset: ${assetRes.status}`);
-  }
-  const html = await assetRes.text();
-  const cleanedHtml = cleanHtmlForPdf(html, origin, slug);
-
+async function generatePdf(env: Env, cleanedHtml: string, attempt = 1): Promise<ArrayBuffer> {
   const response = await env.BROWSER.quickAction('pdf', {
     html: cleanedHtml,
     pdfOptions: {
@@ -116,7 +114,7 @@ async function generatePdf(env: Env, request: Request, slug: string, attempt = 1
   if (response.status === 429 && attempt < RATE_LIMIT_RETRIES) {
     const retryAfter = Math.max(1, parseInt(response.headers.get('Retry-After') || '2', 10));
     await sleep(retryAfter * 1000);
-    return generatePdf(env, request, slug, attempt + 1);
+    return generatePdf(env, cleanedHtml, attempt + 1);
   }
 
   if (!response.ok) {
@@ -147,7 +145,20 @@ export default {
     }
 
     const filename = toFilename(title);
-    const cacheKey = `${CACHE_KEY_PREFIX}${slug}`;
+
+    const origin = url.origin;
+    const assetUrl = new URL(`/${slug}?pdf=1`, origin);
+    const assetRes = await env.ASSETS.fetch(assetUrl);
+    if (!assetRes.ok) {
+      return new Response(`Failed to fetch asset: ${assetRes.status}`, { status: 502 });
+    }
+    const html = await assetRes.text();
+    const cleanedHtml = cleanHtmlForPdf(html, origin, slug);
+
+    // Content-addressed: key includes a hash of the rendered page, so a
+    // content change (i.e. a new deploy of that page) invalidates only
+    // that page's cache entry, not the whole cache.
+    const cacheKey = `${CACHE_KEY_PREFIX}${slug}:${await hashHtml(cleanedHtml)}`;
 
     try {
       const cached = await env.PDF_CACHE.get(cacheKey, { type: 'arrayBuffer' });
@@ -167,7 +178,7 @@ export default {
 
     let pdfBuffer: ArrayBuffer;
     try {
-      pdfBuffer = await generatePdf(env, request, slug);
+      pdfBuffer = await generatePdf(env, cleanedHtml);
     } catch (error: any) {
       console.error('Browser Run PDF generation failed:', error);
       return new Response(
