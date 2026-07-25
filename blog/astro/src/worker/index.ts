@@ -9,7 +9,7 @@ interface Env {
 
 const CACHE_TTL_SECONDS = 86400; // 24 hours
 const RATE_LIMIT_RETRIES = 3;
-const CACHE_KEY_PREFIX = 'pdf:v5:';
+const CACHE_KEY_PREFIX = 'pdf:v6:';
 
 async function hashHtml(html: string): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(html));
