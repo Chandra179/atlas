@@ -39,42 +39,10 @@ created: 2026-06-29
 - Shard rebalancing — consistent hashing, virtual nodes, weighted sharding
 
 ## System Design
-- Design a real-time chat system (WhatsApp, Messenger)
-- Design a news feed (Facebook, Twitter timeline)
-- Design a URL shortener (TinyURL, bit.ly)
-- Design a payment system (Stripe, PayPal)
-- Design a rate limiter (token bucket, sliding window, GCRA, distributed)
-- Design a distributed cache (Memcached at Facebook, Redis Cluster, Twemproxy)
-- Design a notification system (push, email, SMS, fan-out, unsub center)
-- Design a video streaming platform (YouTube, Netflix CDN architecture)
-- Design a ride-hailing system (Uber, Lyft — location matching, surge pricing)
-- Design a key-value store (Dynamo, Redis cluster)
-- Design a file storage system (Google Drive, Dropbox)
-- Design a search engine (Google, Elasticsearch index design)
-- Design a content delivery network (CDN at edge)
-- Design a vote system (Reddit, Hacker News — hot/controversial ranking)
-- Design a distributed logging system (ELK architecture, Loki, Datadog agent)
-- Design a metrics monitoring system (Prometheus, Thanos, Grafana)
-- Design a distributed tracing system (Dapper, Jaeger, OpenTelemetry)
-- Design a workflow engine (Temporal, Airflow, Cadence)
-- Design a feature flag system (LaunchDarkly, Flagsmith)
-- Design an A/B testing platform
-- Design a leaderboard system (real-time gaming, LiveOps)
-- Design an inventory reservation system (e-commerce, flash sale, race condition)
-- Design a calendar scheduling system (Google Calendar, meeting conflict)
-- Design an API gateway (rate limiting, auth, routing, aggregation)
-- Design a multiplayer game server (room management, state sync, tick rate)
-- Design a comments system (tree vs flat, likes, moderation, spam detection)
-- Design a proximity service (find nearby restaurants, geo-hashing, S2, QuadTree)
-- Design a typeahead / autocomplete (prefix tree, edge N-grams, top-k fresh)
-- Design a distributed counter (stock ticker, like counter, sharded atomic)
-- Design a job scheduler (Cron at scale, distributed timer, time wheel)
-- Design a data warehouse / OLAP system (Snowflake, Redshift, BigQuery)
-- Design a time-series database (InfluxDB, Prometheus TSDB)
-- Design an ETL pipeline (batch vs streaming, incremental, data quality)
-- Design a feature store (Feast, Tecton — online/offline serving)
-- Design a recommender system (collaborative filtering, matrix factorization, ALS)
-
+- flash sale: failure recovery, reservation expiry, duplicate-order prevention
+- PDF generation: exactly-once semantics, retry/idempotency, queue backpressure
+- reconciliation: partitioning correctness, late-arriving data, reprocessing strategy
+- 
 ## Math
 - Calculus 1: chain rule, product rule, quotient rule, related rates, optimization
 - Calculus 2: integration by substitution, by parts, trigonometric integrals, improper integrals
