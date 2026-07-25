@@ -92,9 +92,11 @@ graph TD
 
 ### Database Schema
 
-**Jobs Table (DynamoDB):** Manages metadata state routing. Sharded horizontally using a hash of the `user_id`/`tenant_id` to prevent cross-tenant read/write deadlocks.
+**Jobs Table (DynamoDB):** Manages metadata state routing. Sharded horizontally using a hash of `user_id`/`tenant_id` as the partition key. DynamoDB's partition model doesn't have classic lock-based deadlocks, so the real benefit here is data locality and per-tenant isolation, not deadlock avoidance — but tenant-based sharding introduces its own hot-partition risk: a single large enterprise client submitting a disproportionate burst of jobs lands all of their writes on one partition, the same "hot key overwhelms a shard" problem as a celebrity-fanout scenario, just recurring in this subsystem. Large tenants are sub-sharded with a `tenant_id + random_suffix` composite key, and per-tenant write rates are capped, so no single tenant can saturate a partition.
 
 - Schema: `job_id` (PK), `user_id`, `type`, `status`, `current_step`, `created_at`, `updated_at`
+
+**Source of Truth:** DynamoDB is the durable, authoritative source of job state; Redis is a disposable performance cache only. If the two ever disagree — e.g., a Redis entry expires or is evicted before DynamoDB reflects the same transition — DynamoDB wins. `GET /v1/jobs/:job_id` always reads from DynamoDB (or a consistent read path derived from it), never from Redis, so a client's poll can never observe a stale or evicted cache value as if it were current state.
 
 **Claim-Check Cache (Redis Cluster):** A temporary holding area to hand off raw HTML from the browser to the downstream code
 
@@ -104,12 +106,15 @@ graph TD
 
 Redis cluster with 2 TB of RAM would cost thousands of dollars a month. **But we don't need 2 TB of RAM.** Because this is a decoupled asynchronous pipeline, the parser picks up the job from the queue almost instantly after the Scraper drops it. The HTML only needs to live in Redis for the few seconds before processed .
 
-If we apply a aggressive **10-minute TTL (Time-To-Live)** on the Redis keys:
-- **Average throughput:** 40,000,000 jobs / 86,400 seconds = ~463 jobs/second.
-- **Concurrent data in flight (10 mins / 600 seconds):** 463 jobs/sec × 600 seconds = ~277,800 active HTML payloads in cache at any single moment.
-- **Total RAM required:** 277,800 payloads × 50 KB = **~13.8 GB of RAM**
+If we apply a aggressive **10-minute TTL (Time-To-Live)** on the Redis keys, we size the cluster off **peak** throughput, not average — the cache has to survive the moment it's under the most pressure, not the typical second:
 
-A 14 GB Redis cluster is tiny, completely manageable, and very cheap (well under $100/month on AWS ElastiCache).
+- **Peak scraping throughput:** overall peak QPS is 1,740 jobs/sec (the 3x multiplier from Capacity Estimation); scraping is 80% of that mix, so 1,740 × 0.8 ≈ 1,392 jobs/sec peak.
+- **Concurrent data in flight (10 mins / 600 seconds):** 1,392 jobs/sec × 600 seconds ≈ 835,200 active HTML payloads in cache at any single moment.
+- **Total RAM required:** 835,200 payloads × 50 KB ≈ **41.8 GB of RAM**
+
+A ~42 GB Redis cluster (round up to ~50 GB with headroom) is still cheap and manageable — a few hundred dollars/month on AWS ElastiCache — but it's the number that could actually break under load, not the average-case number that would silently under-provision the cache during the exact traffic spike it exists to absorb.
+
+**TTL vs. backpressure — closing the silent data-loss path:** a fixed 10-minute TTL is a race against the Parser Queue's lag. If the parser tier backs up (a slow downstream, a burst of jobs, a bad deploy) for longer than 10 minutes, the raw HTML in Redis expires before it's ever read — a job is silently lost with no retry and no DLQ entry, which is a worse reliability gap than the single-browser-crash case the non-functional requirements call out. To close it: the Scraper tier's producers watch Parser Queue lag (via the same Queue Depth Metrics used for autoscaling); once lag approaches a threshold (e.g., 5 minutes, half the TTL), the Gatekeeper applies backpressure and slows or pauses new scrape admissions, and any Redis key nearing expiry with no corresponding parser ack is proactively copied to a DLQ before it ages out, rather than being allowed to silently disappear.
 
 ---
 
@@ -126,6 +131,8 @@ A 14 GB Redis cluster is tiny, completely manageable, and very cheap (well under
 ### Cluster Resilience, Security, & Operations
 
 - **SSRF Mitigation (The Pre-Flight Gatekeeper):** Accepting any URLs introduces high risk. Before passing a payload to a heavy worker, a Gatekeeper node validates the target domain against internal address spaces (localhost, Private Subnets, Cloud Provider metadata endpoints like 169.254.169.254). It runs an HTTP HEAD metadata query via a fast HTTP client to drop non-HTML large streams (>50 MB) before they can crash browser worker allocations.
+
+- **DNS Rebinding (TOCTOU) Protection:** A domain-only check at pre-flight time is bypassable: an attacker's DNS can resolve to a public IP during the Gatekeeper's validation HEAD request, then re-resolve to `169.254.169.254` or a private-subnet address by the time the browser worker actually fetches it moments later. To close this, the Gatekeeper pins the resolved IP at validation time and passes that exact IP (not the hostname) down to the browser worker, which connects to the pinned IP directly (with the original `Host` header preserved for TLS/vhost routing) — so re-resolution between check and use can't smuggle a private-address fetch through.
     
 - **Thundering Herd Request Collapsing:** If an external breaking event prompts 10,000 immediate matching requests for a specific URL render, the ingestion layer use the **Singleflight Pattern**. A distributed Redis lock ensures only one worker renders the target page; all remaining parallel queues subscribe directly to that active job's output instead of hitting the cluster.
 
@@ -136,29 +143,3 @@ A 14 GB Redis cluster is tiny, completely manageable, and very cheap (well under
 - **Distributed Tracing Across Pipelines:** Decoupling execution into independent microservice steps makes debugging difficult. We use **OpenTelemetry Context Propagation** to inject a unique correlation ID (`X-Correlation-ID`) into the initial API request headers, carry it through the message queue metadata, and print it across all logs to enable easy end-to-end debugging.
 
 - **Graceful Disaster Degradation:** If like blackout happen we fallback into low-fidelity mode: the system fetches raw data values directly from the database and injects them into an inline HTML email template (no pdf) or maybe native proglang engine without pdf generator. The user still receives their confirmation data immediately, maintaining operational continuity.
-
-## Where the gaps are
-
-1. The Redis capacity math uses average QPS, not peak — and this is a sizing decision that can't afford to be wrong.
-
-You calculated the in-flight cache size using 463 jobs/sec (average), but your own capacity estimation earlier established a peak multiplier of 3x. Scraping is 80% of total peak load: 1,740 × 0.8 ≈ 1,392 jobs/sec peak.
-
-Redoing the math at peak: 1,392 × 600 sec = 835,200 payloads × 50KB ≈ 41.8 GB, not 13.8 GB.
-
-This matters because the whole point of this cache is to never overflow during exactly the moment it's under the most pressure — sizing it off the average is the same category of mistake as the earlier feed-system QPS estimate that used the wrong baseline. Capacity planning should always size to the number that could actually break the system, not the typical-case number.
-
-2. TTL-vs-backpressure creates a silent data-loss path — and it violates your own non-functional requirement.
-
-You stated fault tolerance means "an individual browser crash must not impact cluster stability" — but there's an unaddressed failure mode: if the Parser Queue backs up for any reason (downstream slowness, a burst of jobs, a parser deployment) longer than the 10-minute Redis TTL, the raw HTML silently expires before being read. That's a lost job with no retry, no DLQ entry, nothing — a bigger reliability gap than a single browser crash. A real design needs either: alerting/backpressure that pauses the Scraper tier when Parser lag approaches the TTL window, or a TTL-extension-on-approach mechanism, or moving genuinely at-risk items to a DLQ before they age out.
-
-3. The SSRF mitigation has a classic TOCTOU (time-of-check-to-time-of-use) hole: DNS rebinding.
-
-The Gatekeeper validates the domain at pre-flight time via an HTTP HEAD request. But nothing stops the domain from resolving to a public IP at validation time and then re-resolving to 169.254.169.254 or a private subnet IP at actual fetch time — a well-known SSRF bypass technique. The fix needs to pin the resolved IP from the validation step and force the actual browser fetch to use that same IP (or re-validate at fetch time, immediately before use), not just check the domain once upstream and trust it stays the same.
-
-4. The sharding justification is slightly off, and there's an unaddressed hot-partition risk that mirrors the celebrity problem from the earlier feed exercise.
-
-"Sharding by tenant_id to prevent cross-tenant deadlocks" isn't quite right — DynamoDB's partition-key model doesn't really have classic lock-based deadlocks in the way this phrasing implies; the real benefit of tenant-based sharding is data locality and per-tenant isolation. But more importantly: if one tenant (say, a large enterprise client) submits a disproportionate burst of jobs, all of their writes land on the same partition — this is structurally the same "one hot key overwhelms a shard" problem you already solved elegantly in the celebrity fanout case, just recurring here in a different subsystem. Worth naming explicitly and either capping per-tenant write rate or adding a sub-sharding scheme (e.g., tenant_id + random_suffix) for unusually large tenants.
-
-5. Two sources of truth for job state, without a stated reconciliation rule.
-
-You have job:state:[job_id] in Redis and current_step/status in the DynamoDB Jobs Table. If these ever disagree (e.g., Redis entry expires or is evicted before DynamoDB is updated), which one wins? This needs an explicit statement — typically DynamoDB should be the durable source of truth and Redis should be treated as a disposable performance cache only, never authoritative for state a client might poll via GET /v1/jobs/:job_id.

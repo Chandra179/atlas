@@ -15,7 +15,7 @@ a limited-edition sneaker release or a highly discounted electronics sale. 100,0
 ### Goals
 * **Strict Business Accuracy:** Never oversell the item. If we have 1,000 units, exactly 1,000 orders must be created.
 * **System Resilience:** Prevent cascading failures. Under extreme load, the API must remain responsive and fail gracefully.
-* **Low Latency:** Keep checkout response times (p99) under **50ms** for the user's initial interaction.
+* **Low Latency:** Keep checkout response times (p99) under **30ms** for the user's initial interaction.
 
 ---
 
@@ -25,6 +25,7 @@ a limited-edition sneaker release or a highly discounted electronics sale. 100,0
 * **Peak Write Load:** 100,000 concurrent write attempts per second targeting a *single* product ID.
 * **Latency Target:** Initial checkout response (HTTP 202 Accepted) returned in **< 30ms** (p99).
 * **Database Persist Latency:** Actual database writes must catch up within **10 seconds** post-drop.
+  * *Derivation:* 100,000 orders / 10s = 10,000 inserts/sec sustained. At batches of 100 rows, that's ~100 batch-commits/sec. Spread across the 100-connection pool cap above, that's ~1 batch-commit per connection per second — well within Postgres's per-connection commit throughput, so the target is achievable without raising the pool cap.
 ### Resource Constraints
 * **Application Layer:** 10 stateless container instances (each allocated 2 vCPU, 4GB RAM).
   * *Target CPU Usage:* Max 70% under peak load to leave head-room for network I/O.
@@ -39,6 +40,8 @@ a limited-edition sneaker release or a highly discounted electronics sale. 100,0
 ## High-Level Design (HLD) & Trade-offs
 
 We evaluate two architectural patterns to solve the hot-spot problem.
+
+> **Decision:** Our stated peak load is 100,000 concurrent writes/sec against a single product. Option 1 caps out at ~30k-50k ops/sec because it serializes all writes through one Redis key on one single-threaded node — it cannot meet the stated peak at all, full stop. Option 1 is only viable if actual peak load is meaningfully below the stated target (e.g. a smaller drop, or a product without single-key hot-spotting). **Option 2 (sharded/bucketed keys), or an equivalent horizontal-scaling variant, is mandatory to meet the 100k/sec requirement as stated.** Option 1 is kept below as the simpler baseline and as the design each bucket in Option 2 individually implements.
 
 ### Design Option 1: Single-Key Redis Decr + Asynchronous DB Queue
 
@@ -55,19 +58,20 @@ sequenceDiagram
     participant DB as PostgreSQL
 
     Client->>App: 1. POST /checkout (Submit Order)
-    App->>Redis: 2. Run Lua Script (Check & DECR key)
+    App->>Redis: 2. Run Lua Script (Dedupe check, DECR key, write to Outbox Stream — atomic)
     Note over Redis: Atomic evaluation on single thread
     Redis-->>App: 3. Return Success (New Stock Count)
-    App->>MQ: 4. Publish "OrderCreated" Event
-    App-->>Client: 5. Return HTTP 202 (Accepted)
+    App-->>Client: 4. Return HTTP 202 (Accepted)
+    Redis->>MQ: 5. Relay process forwards Outbox entry as "OrderCreated" Event
     MQ->>Worker: 6. Consume events in batches (e.g., 100 msgs)
     Worker->>DB: 7. Batch INSERT orders (ON CONFLICT DO NOTHING)
 ```
 
 #### How it Works
-1. **Atomic In-Memory Decr:** The application runs a Lua script in Redis. Because Redis runs commands on a single thread, the Lua script safely checks if stock is available and decrements it atomically in a single operation.
-2. **Decoupled Writes:** If Redis succeeds, the user has "reserved" their item. The app posts a message to a Kafka queue, returns an immediate **HTTP 202 (Accepted)**, and lets the client UI poll for the final order confirmation.
-3. **Database Batching:** Background workers consume from Kafka and write to PostgreSQL in optimized batches of 100+ records, avoiding single-row lock contention.
+1. **Atomic In-Memory Decr with Idempotency Guard:** The application runs a Lua script in Redis. Because Redis runs commands on a single thread, the Lua script safely checks if stock is available and decrements it atomically in a single operation. The same script also does a `SETNX`-style check on a dedupe key (`checkout:{product_id}:{user_id}`) *before* decrementing — if that key already exists, the script returns the prior result without decrementing again. This makes client-side retries (e.g. a timed-out request whose server-side call actually succeeded) safe: a retry never double-decrements the same logical purchase attempt.
+2. **Atomic Decrement-and-Publish (Outbox Pattern):** A naive "decrement in Redis, then publish to Kafka" sequence leaks inventory if the app process crashes between the two steps — the unit is decremented but no order or event ever exists to recover it. To close this gap, the Lua script writes the "OrderCreated" event into a Redis-backed outbox (e.g. a Redis Stream) in the *same* atomic operation as the decrement, so decrement and publish either both happen or neither does. A separate relay process tails the outbox stream and forwards entries to Kafka, retrying independently of the checkout request path. As a backstop, a periodic reconciliation sweep compares decremented-count vs. order-count and alerts/replays on any gap.
+3. **Decoupled Writes:** Once the event is durably in Kafka, the app returns an immediate **HTTP 202 (Accepted)** and lets the client UI poll for the final order confirmation.
+4. **Database Batching:** Background workers consume from Kafka and write to PostgreSQL in optimized batches of 100+ records, avoiding single-row lock contention.
 
 #### Trade-offs
 
@@ -104,7 +108,7 @@ graph TD
 #### How it Works
 1. **Sharded Keys:** If we have 1,000 items in stock, we split them into 5 buckets of 200 items each (`product_42:bucket_1` to `product_42:bucket_5`). 
 2. **Cluster Distribution:** These buckets are hashed to different slots across the Redis cluster, utilizing multiple Redis nodes and CPU cores.
-3. **Smart Routing:** The app randomly routes checkout requests to one of these buckets. If Bucket 1 is empty but Bucket 2 still has stock, a fallback mechanism routes the request to another bucket.
+3. **Smart Routing:** The app randomly routes checkout requests to one of these buckets, each running the same Lua script from Option 1 (dedupe-check + decrement + outbox-write, atomic within that bucket). If Bucket 1 is empty but Bucket 2 still has stock, a fallback mechanism retries the request against another bucket. Because the *same* `user_id + product_id` dedupe key is checked before every bucket attempt, a retry into a second bucket after a first bucket's decrement is rejected as a duplicate — preventing a single logical request from double-decrementing across buckets.
 
 #### Trade-offs of Design Option 2
 
@@ -132,30 +136,3 @@ For extreme-demand events, we can implement a traffic-smoothing gatekeeper.
 * **Implementation:** Integrate a third-party waiting room platform.
 * **Action:** Instead of letting 500,000 users hit our checkout endpoints at 12:00:00, the waiting room holds them in a FIFO queue on external servers. It lets users through to our checkout system in controlled batches (e.g., 5,000 users per second), transforming a traffic spike into a flat, predictable plateau.
 
-## Where there are real correctness gaps
-
-1. Option 1 doesn't actually satisfy your own stated peak requirement — this needs to be said explicitly, not left implicit.
-
-Your constraints state 100,000 concurrent write attempts/sec. Option 1's own trade-off table says it caps at ~30k-50k ops/sec. That's not a "trade-off" to weigh against Option 2 — it's a disqualifying limitation: Option 1 alone cannot meet the stated peak load at all. Right now the doc presents these as two roughly equal alternatives with pros and cons; it should instead say plainly: "Option 1 fails to meet our 100k/sec requirement outright, so Option 2 (or a variant) is mandatory at this scale — Option 1 is only viable if peak load is meaningfully lower than the stated target." This is the same category of issue flagged in the PDF-service review — a design decision quietly contradicting a stated requirement instead of naming and reconciling it.
-
-2. Missing idempotency protection at the Redis decrement step itself — this creates a silent under-sell bug.
-
-The Lua script decrements stock atomically, but nothing dedupes by request or user. If a client's request times out on their end (but the server already succeeded), a client retry will run the Lua script again — decrementing stock a second time for what is logically the same purchase attempt. The DB's ON CONFLICT DO NOTHING only protects against duplicate rows, not duplicate decrements. The result: inventory shows sold out, but fewer than 1,000 real orders exist — a direct violation of your own goal, "if we have 1,000 units, exactly 1,000 orders must be created."
-
-Fix: the Lua script needs an atomic guard keyed on something like user_id + product_id (a SETNX-style check) alongside the decrement, so retries are provably safe.
-
-3. A crash between "Redis succeeds" and "Kafka publish" silently leaks inventory — and you already have the right pattern for this from an earlier design.
-
-Look at step 3 → step 4 in the sequence diagram: if the app process dies after the Redis decrement succeeds but before the Kafka event publishes, that unit is gone forever — decremented, but with no order ever created and no way to recover it. Over enough failures, actual orders will land meaningfully below 1,000 even though all units show "sold." This is the exact class of problem the Transactional Outbox pattern (used correctly in your PDF-generation design earlier this session) was built to solve — decrement and publish need to be atomic, or at minimum reconciled via a periodic sweep for "decremented but no matching order" gaps.
-
-4. Latency target is stated inconsistently.
-
-Goals section: "p99 under 50ms." Constraints section: "< 30ms (p99)." These are two different numbers for what appears to be the same metric — worth reconciling into one authoritative target before this goes further.
-
-5. The 10-second DB catch-up target is asserted, not derived.
-
-100k orders persisted within 10 seconds implies ~10,000 inserts/sec sustained. With batches of 100, that's ~100 batch-commits/sec spread across a 100-connection pool — roughly 1 batch per connection per second, which is plausible for Postgres, but this arithmetic isn't shown anywhere in the doc. Given the connection pool was deliberately capped as a stated constraint, this is exactly the kind of number that should be derived and checked against the cap, the same estimation discipline flagged earlier in the session (peak-vs-average sizing in the scraping cluster), just showing up here in a lighter form.
-
-6. Cross-bucket fallback (Option 2) isn't atomic, and this isn't addressed.
-
-"If Bucket 1 is empty, fallback routes to Bucket 2" implies two separate Redis calls — the check-and-fallback sequence needs the same idempotency guard as point #2, or a retry during the fallback window could double-decrement across buckets for one logical request.

@@ -1,3 +1,8 @@
+---
+title: "Twitter Feed"
+modified: "2026-07-25"
+---
+
 # Design a Social Media Feed System (Twitter/Instagram-style)
 
 ## 1. Scope & Requirements
