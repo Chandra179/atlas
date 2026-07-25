@@ -1,5 +1,7 @@
 /// <reference types="@cloudflare/workers-types" />
 import { parseHTML } from 'linkedom';
+import yaml from 'js-yaml';
+import mermaidConfigYaml from '../config/mermaid.config.yaml';
 
 interface Env {
   BROWSER: BrowserRun;
@@ -7,9 +9,33 @@ interface Env {
   ASSETS: Fetcher;
 }
 
+interface MermaidConfig {
+  cacheVersion: number;
+  page: {
+    widthMm: number;
+    heightMm: number;
+    marginTopMm: number;
+    marginBottomMm: number;
+    marginLeftMm: number;
+    marginRightMm: number;
+  };
+  vertical: { maxHeightPercent: number };
+  horizontal: { constrain: boolean };
+}
+
+const mermaidConfig = yaml.load(mermaidConfigYaml) as MermaidConfig;
+
+const MM_TO_PX = 96 / 25.4;
+
+/** Printable page height (page height minus top/bottom margins), in px. */
+function verticalMaxHeightPx(cfg: MermaidConfig): number {
+  const usableHeightMm = cfg.page.heightMm - cfg.page.marginTopMm - cfg.page.marginBottomMm;
+  return Math.round(usableHeightMm * MM_TO_PX * (cfg.vertical.maxHeightPercent / 100));
+}
+
 const CACHE_TTL_SECONDS = 86400; // 24 hours
 const RATE_LIMIT_RETRIES = 3;
-const CACHE_KEY_PREFIX = 'pdf:v6:';
+const CACHE_KEY_PREFIX = `pdf:v${mermaidConfig.cacheVersion}:`;
 
 async function hashHtml(html: string): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(html));
@@ -80,16 +106,35 @@ function cleanHtmlForPdf(html: string, origin: string, slug: string): string {
     style.paddingTop = '0';
   }
 
-  // Cap mermaid diagram size for print: A4 pages are much narrower than the
-  // web content column, so a width= sized for the web still dominates the
-  // printed page. print.css has an @media print override for this, but
-  // Browser Run doesn't appear to honor print media emulation, so force it
-  // here directly instead of relying on that CSS taking effect.
+  // Cap mermaid diagram size for print. A4 pages are much narrower (and, for
+  // a tall diagram, much shorter per page) than the web content column, and
+  // Browser Run doesn't appear to honor @media print, so size caps have to be
+  // forced here directly instead of relying on print.css. Config lives in
+  // src/config/mermaid.config.yaml.
+  //
+  // Vertical (TB/TD) diagrams tend to run tall, so they're capped by height
+  // (a % of the printable page height) rather than width — the wrapper's own
+  // width= (sized for the web) is cleared so it doesn't fight with that.
+  // Horizontal (LR/RL) diagrams are already short and are left untouched.
+  const maxHeightPx = verticalMaxHeightPx(mermaidConfig);
   for (const el of Array.from(document.querySelectorAll('.mermaid-diagram'))) {
-    const style = (el as HTMLElement).style;
-    style.maxWidth = '75%';
-    style.marginLeft = 'auto';
-    style.marginRight = 'auto';
+    const wrapper = el as HTMLElement;
+    if (wrapper.getAttribute('data-orientation') === 'horizontal') {
+      if (!mermaidConfig.horizontal.constrain) continue;
+    }
+
+    const svg = wrapper.querySelector('svg');
+    if (!svg) continue;
+
+    wrapper.style.maxWidth = 'none';
+    wrapper.style.textAlign = 'center';
+
+    const svgStyle = (svg as unknown as HTMLElement).style;
+    svgStyle.display = 'inline-block';
+    svgStyle.height = 'auto';
+    svgStyle.width = 'auto';
+    svgStyle.maxHeight = `${maxHeightPx}px`;
+    svgStyle.maxWidth = '100%';
   }
 
   // Convert relative URLs to absolute so resources load when using html option
@@ -121,10 +166,10 @@ async function generatePdf(env: Env, cleanedHtml: string, attempt = 1): Promise<
       printBackground: true,
       preferCSSPageSize: false,
       margin: {
-        top: '20mm',
-        bottom: '20mm',
-        left: '15mm',
-        right: '15mm',
+        top: `${mermaidConfig.page.marginTopMm}mm`,
+        bottom: `${mermaidConfig.page.marginBottomMm}mm`,
+        left: `${mermaidConfig.page.marginLeftMm}mm`,
+        right: `${mermaidConfig.page.marginRightMm}mm`,
       },
     },
   });

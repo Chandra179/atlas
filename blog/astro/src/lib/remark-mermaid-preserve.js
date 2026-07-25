@@ -11,12 +11,16 @@
 // hast level and render it to an inline <svg> at build time.
 //
 // The fence's meta string supports an optional `width=` to cap the
-// rendered diagram's size, e.g.:
+// rendered diagram's size on the web, e.g.:
 //   ```mermaid width=60%
 //   ```mermaid width=400px
-// This wraps the <pre> in a <div class="mermaid-diagram"> with a
-// `max-width` inline style (rehype-mermaid swaps the <pre> for the
-// rendered <svg> in place, leaving the wrapping div intact).
+// The <pre> is always wrapped in a <div class="mermaid-diagram"
+// data-orientation="vertical|horizontal">: the orientation is read from the
+// diagram's own `graph`/`flowchart` direction (TB/TD/BT vs LR/RL) and is used
+// by the PDF worker (src/worker/index.ts) to size diagrams differently for
+// print, independent of whatever `width=` was set for the web (rehype-mermaid
+// swaps the <pre> for the rendered <svg> in place, leaving the wrapping div
+// intact).
 import { visit } from 'unist-util-visit';
 
 /** Escape HTML special characters in text. */
@@ -33,6 +37,13 @@ function parseWidth(meta) {
   return match ? match[1] : null;
 }
 
+/** Detect vertical (TB/TD/BT) vs horizontal (LR/RL) from the diagram source. */
+function detectOrientation(value) {
+  const match = /^\s*(?:graph|flowchart)\s+(TB|TD|BT|LR|RL)\b/im.exec(value || '');
+  const dir = match?.[1]?.toUpperCase();
+  return dir === 'LR' || dir === 'RL' ? 'horizontal' : 'vertical';
+}
+
 /**
  * @returns {import('unified').Transformer<import('mdast').Root, import('mdast').Root>}
  */
@@ -44,13 +55,13 @@ export function remarkMermaidPreserve() {
 
       const cleaned = (node.value || '').replace(/<(?!\/?br\s*\/?>)[^>]+>/g, '');
       const width = parseWidth(node.meta);
+      const orientation = detectOrientation(node.value);
       const pre = `<pre class="mermaid">${escapeHtml(cleaned)}</pre>`;
+      const style = width ? ` style="max-width: ${width}"` : '';
 
       parent.children[index] = {
         type: 'html',
-        value: width
-          ? `<div class="mermaid-diagram" style="max-width: ${width}">${pre}</div>`
-          : pre,
+        value: `<div class="mermaid-diagram" data-orientation="${orientation}"${style}>${pre}</div>`,
       };
     });
   };

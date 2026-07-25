@@ -1,0 +1,31 @@
+# PDF-only mermaid diagram sizing.
+#
+# The web view's size is controlled per-diagram by `width=` on the fence
+# (see src/lib/remark-mermaid-preserve.js). This file only affects the PDF
+# render path, since Browser Run's PDF renderer doesn't honor @media print,
+# so caps have to be applied directly to the DOM (see src/worker/index.ts).
+
+# PDF cache key version (KV key: `pdf:v<cacheVersion>:<slug>:<hash>`). Bump
+# this whenever cleanHtmlForPdf's cleaning/sizing logic changes incompatibly,
+# so previously cached PDFs aren't served stale under the old behavior.
+cacheVersion: 8
+
+# Printable page geometry — must match pdfOptions in src/worker/index.ts.
+page:
+  widthMm: 210
+  heightMm: 297
+  marginTopMm: 20
+  marginBottomMm: 20
+  marginLeftMm: 15
+  marginRightMm: 15
+
+# Vertical (TB/TD) diagrams tend to run tall rather than wide, so they're
+# capped by height instead of width — a percentage of the printable page
+# height (i.e. page height minus top/bottom margins).
+vertical:
+  maxHeightPercent: 70
+
+# Horizontal (LR/RL) diagrams are already short, so they're left as-is:
+# whatever width= is set in the markdown source (or full width if unset).
+horizontal:
+  constrain: false

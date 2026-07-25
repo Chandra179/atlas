@@ -22,6 +22,7 @@
     "alpinejs": "^3.15.12",
     "astro": "^5.0.0",
     "astro-expressive-code": "^0.43.1",
+    "js-yaml": "^4.3.0",
     "katex": "^0.17.0",
     "linkedom": "^0.18.13",
     "mermaid": "^11.15.0",
@@ -33,6 +34,7 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20260702.1",
     "@types/alpinejs": "^3.13.11",
+    "@types/js-yaml": "^4.0.9",
     "pagefind": "^1.5.2",
     "playwright": "^1.61.1",
     "rehype-mermaid": "^3.0.0",

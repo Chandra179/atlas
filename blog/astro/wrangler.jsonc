@@ -3,6 +3,9 @@
   "name": "blog",
   "compatibility_date": "2026-07-17",
   "main": "src/worker/index.ts",
+  "rules": [
+    { "type": "Text", "globs": ["**/*.yaml"], "fallthrough": true }
+  ],
   "assets": {
     "directory": "./dist",
     "binding": "ASSETS",
