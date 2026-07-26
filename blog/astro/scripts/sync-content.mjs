@@ -15,7 +15,7 @@ const ALLOWED_FILES = new Set([
   'reconcile-service.md',
   'twitter-feed.md',
   'rate-limiter.md',
-  'order-inventory-system'
+  'order-inventory-system.md'
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })
