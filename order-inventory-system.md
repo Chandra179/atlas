@@ -39,6 +39,26 @@
 ### System Architecture
 Client -> Load Balancer -> App Server -> Redis (atomic reserve/decrement, TTL-based reservation) -> async write to DB for durability. On payment webhook -> queue -> worker finalizes order (idempotent, checks order status before acting) -> decrement confirmed in DB.
 
+```mermaid
+flowchart TD
+    Client -->|"POST /v1/cart/checkout"| LB[Load Balancer]
+    LB --> App[App Server]
+
+    App -->|"atomic reserve/decrement (Lua script)"| Redis[(Redis: sku -> available_stock, reservation:order_id TTL)]
+    App -->|"async durability write"| DB[(DB: Inventory + Orders)]
+    App -->|order_id| Client
+
+    Vendor[Payment Vendor] -->|"POST /v1/payment/webhook"| App
+    App -->|"enqueue finalize event, ack only after durable write"| Queue[[Finalize Queue]]
+    Queue --> Worker[Finalize Worker]
+
+    Worker -->|"idempotent check: pending vs finalized"| DB
+    Worker -->|confirm decrement| DB
+
+    Redis -.->|TTL expiry releases stock| Redis
+    Client -->|"GET /v1/orders/order_id"| App
+```
+
 ---
 
 ## Deep Dive: Core Bottlenecks
@@ -47,7 +67,7 @@ Client -> Load Balancer -> App Server -> Redis (atomic reserve/decrement, TTL-ba
 - Naive approach (decrement inventory only after payment succeeds) doesn't prevent two users from both completing payment for the same last unit, since nothing blocks concurrent checkouts before payment.
 - Fix: reserve stock atomically at checkout start, before payment — using a Redis atomic operation (e.g. a Lua script doing a conditional check-and-decrement), not a distributed lock, since a lock would serialize requests for hot SKUs at high throughput.
 - Reservation has a TTL; if payment isn't completed in time, stock is released back automatically.
-- Redis is treated as the authoritative source for live available stock; the DB is updated asynchronously for durability/audit. Tradeoff: if Redis loses recent writes before they reach the DB (e.g. crash), a small oversell window is possible. Verified this is a known, accepted real-world tradeoff (see: sellers commonly keeping a small stock buffer, and oversell being handled operationally via cancellation/refund rather than solved architecturally in some real systems).
+- Redis is treated as the authoritative source for live available stock; the DB is updated asynchronously for durability/audit. **Tradeoff**: if Redis loses recent writes before they reach the DB (e.g. crash), a small oversell window is possible. Verified this is a known, accepted real-world tradeoff (see: sellers commonly keeping a small stock buffer, and oversell being handled operationally via cancellation/refund rather than solved architecturally in some real systems).
 
 **Deep Dive 2: Finalizing an order after payment succeeds**
 - Payment vendor notifies via webhook. Webhook is acked only after the "finalize order" work is durably written to an internal queue, so a crash before full processing doesn't silently lose the event (vendor retries if not acked in time).
