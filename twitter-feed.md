@@ -1,4 +1,4 @@
-# Design a Social Media Feed System (Twitter/Instagram-style)
+# Social Media Feed System (Twitter/Instagram-style)
 
 ## Scope & Requirements
 

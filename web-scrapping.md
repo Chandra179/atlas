@@ -1,4 +1,4 @@
-# Design a Scalable Web Scraping System
+# Web Scraping System
 
 ## Scope & Requirements
 

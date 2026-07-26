@@ -6,7 +6,7 @@ modified: "2026-07-26"
 
 # Rate Limiter
 
-### Scope & Requirements
+## Scope & Requirements
 
 **Functional Requirements**
 
@@ -21,14 +21,14 @@ modified: "2026-07-26"
 - Latency: Rate-limit check must add **< 5ms p99** to every request — it sits in the hot path.
 - Scale: ~500,000 distinct API clients; ~50,000 req/sec average, ~200,000 req/sec peak.
 
-### Capacity Estimation
+## Capacity Estimation
 
 - **Check QPS**: ~50K/sec avg, 200K/sec peak — every single request needs a rate-limit check, so this equals total platform traffic.
 - **Storage**: One small counter/token-bucket record per client (~2 fields) — 500K clients × small footprint (~100 bytes) ≈ tens of MB. Trivially fits in memory (Redis).
 - **Redis ops/sec**: ~200K/sec peak, all simple atomic ops (`INCR`, or token-bucket read/update) — well within Redis's single-digit-microsecond op capacity.
 - Bandwidth: not a major factor here — payload is tiny (client ID + counter), no media/blob concerns.
 
-### High-Level Design
+## High-Level Design
 
 **Core API / Interface**
 
@@ -67,7 +67,7 @@ flowchart LR
     class Reject reject
 ```
 
-### Deep Dive: Core Bottlenecks
+## Deep Dive: Core Bottlenecks
 
 **Deep Dive 1: Shared state across multiple gateway instances**  
 Multiple LB/gateway instances handle traffic in parallel, so a client's requests get distributed across them. If each instance tracked counts locally, a client could exceed their true global limit by a multiple of however many instances they hit. Solution: externalize state to a shared Redis store, and use Redis's atomic operations (`INCR`, or a Lua script for token-bucket read-modify-write) instead of a distributed lock — a lock would serialize every request for a hot client and become a self-inflicted bottleneck at 200K req/sec.
@@ -86,7 +86,7 @@ Rate-limit state doesn't need strong durability — worst case on data loss is a
 - Primary + replica for availability/failover.
 - **Fail open** if Redis is fully unavailable: allow requests through rather than blocking all traffic platform-wide; resume normal enforcement once Redis recovers. The bounded cost (a short unmetered window during a rare full outage) is preferable to synchronous DB writes on every request, which would blow the 5ms latency budget and require the DB to sustain 200K writes/sec just for rate-limiter bookkeeping.
 
-### Scaling & Trade-offs
+## Scaling & Trade-offs
 
 - **Single point of failure**: Redis itself — mitigated via replica failover and fail-open behavior rather than blocking all traffic on Redis unavailability.
 - **Hot key problem**: A single very high-traffic client's counter could become a hot key in Redis — consider client-side sharding of the counter (e.g., split into N sub-counters summed at check time) if this becomes an issue at extreme scale.

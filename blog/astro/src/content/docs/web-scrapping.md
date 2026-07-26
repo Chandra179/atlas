@@ -3,7 +3,7 @@ title: "Web Scrapping"
 modified: "2026-07-26"
 ---
 
-# Design a Scalable Web Scraping System
+# Web Scraping System
 
 ## Scope & Requirements
 
