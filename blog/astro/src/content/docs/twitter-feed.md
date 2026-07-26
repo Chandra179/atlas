@@ -5,6 +5,8 @@ modified: "2026-07-26"
 
 # Design a Social Media Feed System (Twitter/Instagram-style)
 
+> **45-min pacing guide:** Requirements + estimation (5-7 min) → High-level design (10-12 min) → Deep Dive 1: Celebrity Fanout (12-15 min, this is the signal-bearing part) → Deep Dive 2 if time remains (8-10 min) → close with trade-offs/SPOFs (3-5 min). Deep Dives 3 & 4 are "if asked" material — don't proactively spend time on them unless the interviewer steers there.
+
 ## 1. Scope & Requirements
 
 ### Functional Requirements
@@ -24,26 +26,12 @@ modified: "2026-07-26"
 
 ---
 
-## 2. Capacity Estimation (Back-of-the-Envelope Math)
+## 2. Capacity Estimation
 
-*   **Write QPS:**
-    *   10,000,000 posts/day ÷ 86,400 sec ≈ **116 writes/sec average**
-    *   Assume peak = 10x average → **~1,160 writes/sec peak** (rounded to ~1-2k/sec)
-    *   Key insight: *writing posts is not the hard part — fanout is.*
-
-*   **Read QPS:**
-    *   100M DAU × 20 feed opens/day = 2,000,000,000 feed requests/day
-    *   2B ÷ 86,400 sec ≈ **23,000 requests/sec average**
-    *   Peak (5-10x) → **~115,000-230,000 QPS** → rounded to **100k-200k/sec peak**
-    *   This is the real scaling challenge, not writes.
-
-*   **Storage (per day/year):**
-    *   Post content: 10M posts × 1KB ≈ **10 GB/day**
-    *   Realistic per-post storage including metadata (post_id, user_id, timestamp, visibility, engagement counters) ≈ 5KB/post → **~50 GB/day ≈ 18 TB/year**
-    *   **Timeline storage is the bigger problem:** 100M users × 20 feed items/day = 2 billion timeline entries/day; at ~100 bytes each ≈ **200 GB/day** — this dwarfs post storage.
-
-*   **Celebrity Fanout Load:**
-    *   Naive fanout-on-write for a 50M-follower celebrity = 50,000,000 cache writes for a *single post* → clogs queues, burns CPU/memory, breaks the "few seconds" latency requirement.
+*   **Write QPS:** 10M posts/day ÷ 86,400s ≈ **116/sec avg**, ~**1-2K/sec peak**. Writing posts is not the hard part — fanout is.
+*   **Read QPS:** 100M DAU × 20 opens/day = 2B feed requests/day ≈ **23K/sec avg**, **~100-200K/sec peak**. This is the real scaling challenge.
+*   **Celebrity Fanout Load:** Naive fanout-on-write for a 50M-follower celebrity = **50,000,000 cache writes for a single post** → clogs queues, breaks the "few seconds" latency requirement. This one number motivates the entire push/pull design in Deep Dive 1 — say it out loud, don't just compute it.
+*   (Storage math — 18TB/year posts, 200GB/day timeline entries — is good to have mentally but skip deriving it live unless asked; just note "timeline storage dwarfs post storage" if it comes up.)
 
 ---
 
@@ -85,15 +73,13 @@ flowchart TD
 ```
 
 *   **Write Path:** Client → API Gateway → Post Service writes to Post DB (source of truth) + Post Cache, emits `PostCreated` event to Message Queue, returns `201` immediately (no synchronous fanout).
-*   **Fanout Path (async):** Fanout Workers consume `PostCreated` events, look up followers via Social Graph, push `post_id` into each follower's Timeline Cache ZSet (only for non-celebrity accounts — see Deep Dive).
+*   **Fanout Path (async):** Fanout Workers consume `PostCreated` events, look up followers via Social Graph, push `post_id` into each follower's Timeline Cache ZSet (only for non-celebrity accounts — see Deep Dive 1).
 *   **Read Path:** Client → API Gateway → Feed Service queries Timeline Cache for top 20 post_ids → hydrates with content from Post Cache (fallback to Post DB on miss) → returns payload.
 *   **Key principle:** Never mix the post store with the timeline store — Post DB stores *what was published*, Timeline Store stores *who should see what*.
 
 ---
 
-## 4. Deep Dive: Core Bottlenecks
-
-### Deep Dive 1: Celebrity Fanout Problem (Push vs. Pull Hybrid)
+## 4. Deep Dive 1: Celebrity Fanout Problem (Push vs. Pull Hybrid)
 
 *   **Normal users (small follower count):** Fanout-on-write (push). Cheap — Fanout Worker writes `post_id` into each follower's Timeline Cache at post time.
 *   **Celebrities (follower count above threshold):** Fanout-on-read (pull). Never fan out to millions of timelines; instead maintain a `celebrity:{id}:recent_posts` cache (last 20-50 posts).
@@ -102,46 +88,27 @@ flowchart TD
 *   **Migration across the threshold:** Posts are naturally **time-partitioned** — posts made *before* a user flips to celebrity status live only in the push path (already delivered); posts made *after* the flip are only ever pulled (Fanout Worker checks the flag at *processing time*, not cached at enqueue time). This avoids duplicate or missing posts without needing a receipt/tracking log.
 *   **Hot-key protection:** Single-flight/request-coalescing applies to protecting the `celebrity:{id}:recent_posts` cache key from thundering-herd reads when many followers open their feed simultaneously right after a celebrity posts — not to deduplicating feed reads generally.
 
-### Deep Dive 2: Timeline Cache Design & Cold-Start Rebuild
+---
 
-*   **ZSet structure:** member = `post_id` only (score already handles sort, no need to duplicate `published_at` in the member); score = `published_at`.
-*   **Cap size:** Should be sized to **pagination depth**, not "one phone screen." Since the API supports infinite scroll (`limit=20` per page), a cap of 5-10 is far too small — realistic cap is **~200-800 entries** per user, still only a few KB per user even at scale.
+## 5. Deep Dive 2: Timeline Cache Design & Cold-Start Rebuild
+
+*  **ZSet structure:** member = `post_id` only (score already handles sort); score = `published_at`
+*  **Cap size:** sized to pagination depth, not "one phone screen" — realistic cap is **~200-800 entries** per user, still only a few KB per user even at scale.
 *   **Cache miss / cold-start rebuild (fan-in approach):**
     1. Fetch the user's follow list from the Social Graph.
-    2. For each followed user, pull their last N posts from the **per-user "recent posts" cache** (same structure celebrities use for pull-fanout) — in parallel, not a full historical scan.
+    2. For each followed user, pull their last N posts from the per-user "recent posts" cache — in parallel, not a full historical scan.
     3. K-way merge all fetched lists by `created_at`, take top ~200, batch-write into the Timeline Cache ZSet.
     4. Serve the original request from the now-populated cache.
-    *   **Risk:** users who follow a very large number of accounts make this fan-in proportionally expensive — the mirror image of the celebrity fanout problem. Mitigate with follow-count caps or caching "recently rebuilt" status to avoid repeat fan-in on every miss.
-
-### Deep Dive 3: Queue Partitioning & Fanout Worker Failure Handling
-
-*   **Partitioning problem:** A naive single queue lets one celebrity's fanout job block/delay normal users' fanout jobs queued behind it.
-*   **Fix:**
-    *   Split celebrity fanout into many small **sub-tasks/shards** (e.g., 50M followers ÷ 10K per shard = 5,000 sub-tasks) so no single message can starve a partition.
-    *   Use **separate topics/queues** for celebrity vs. normal fanout (e.g., Kafka `fanout-celebrity` vs `fanout-normal`) with independently scalable consumer groups.
-*   **Worker failure handling:**
-    *   `ZADD` (the fanout write operation) is naturally **idempotent** — redundant writes from a retried job cause no harm.
-    *   Rely on standard **at-least-once delivery** (Kafka offset commits / SQS visibility timeout + redelivery) rather than building distributed-transaction/exactly-once guarantees.
-    *   Optional: shard-level checkpointing so a coordinator can re-enqueue just the incomplete shard of a large celebrity fanout, instead of restarting from zero.
-
-### Deep Dive 4: Post DB Sharding & Delete/Visibility Lifecycle
-
-*   **Sharding key: `post_id` (or hash of it), not `user_id`.** Dominant access pattern is point lookups by `post_id` during feed hydration (batch of ~20 IDs per page), which parallelizes well across shards. Sharding by `user_id` would create hot shards for celebrity accounts (same problem as fanout).
-*   **Delete/visibility handling:** Deletes are a **soft filter applied at hydration time**, not a cache invalidation problem.
-    *   Deletion = flip `visibility` to `DELETED` in the Post DB (source of truth for visibility).
-    *   Timeline Cache ZSets never get purged of the deleted `post_id` — too expensive to reverse-fanout across potentially millions of caches.
-    *   Feed Service silently filters out `DELETED` posts at hydration time (may over-fetch a few extra `post_id`s to backfill the page to the requested size).
-    *   Stale `post_id`s in ZSets are harmless dead weight, naturally aged out as the capped ZSet rolls off old entries.
+    *   **Risk:** users who follow a very large number of accounts make this fan-in proportionally expensive — mirror image of the celebrity fanout problem. Mitigate with follow-count caps or caching "recently rebuilt" status.
 
 ---
 
-## 5. Scaling & Trade-offs
-*Conclude by identifying single points of failure (SPOFs) and how to handle them.*
+## 6. Scaling & Trade-offs / Close
 
-*   **Database Sharding:** Shard Post DB by `post_id` to distribute write and hydration-read load evenly; avoids hot shards from celebrity accounts.
-*   **Caching Strategy:** Hybrid push/pull fanout is itself the core caching/scaling strategy — push for normal users (cheap fanout), pull via `celebrity:{id}:recent_posts` for high-follower accounts (avoids fanout explosion).
-*   **Queue Partitioning:** Shard celebrity fanout into many sub-tasks and use separate topics per account tier so large jobs can't starve normal-user throughput.
-*   **Idempotent Writes:** Rely on idempotent `ZADD` + at-least-once delivery instead of complex exactly-once guarantees for fanout worker resilience.
-*   **Not yet designed (open gaps / follow-ups for next session):**
-    *   Read-path fallback if the Timeline Cache (Redis) is down entirely — does the system degrade to pure pull-based reconstruction for all users, and is that survivable at 100k-200k QPS?
+*   **Database Sharding:** Shard Post DB by `post_id` (not `user_id`) — dominant access pattern is point lookups by `post_id` during feed hydration; sharding by `user_id` would create hot shards for celebrity accounts.
+*   **Caching Strategy:** Hybrid push/pull fanout *is* the core scaling strategy.
+*   **Queue Partitioning:** Shard celebrity fanout so large jobs can't starve normal-user throughput.
+*   **Idempotent Writes:** Idempotent `ZADD` + at-least-once delivery instead of exactly-once guarantees.
+*   **Good closing line (cheap, shows breadth, costs 30 seconds):** name open gaps you'd explore with more time rather than solving them —
+    *   Read-path fallback if Timeline Cache (Redis) is down entirely — degrade to pure pull-based reconstruction for all users? Survivable at 100-200K QPS?
     *   Feed staleness/cursor stability while new posts arrive mid-scroll.
