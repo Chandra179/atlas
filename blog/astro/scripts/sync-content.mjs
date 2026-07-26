@@ -11,10 +11,10 @@ const ALLOWED_FILES = new Set([
   'flash-sale.md',
   'swe-journey.md',
   'pdf-generation.md',
-  'browser-engine.md',
+  'web-scrapping.md',
   'reconcile-service.md',
-  'rest-api.md',
   'twitter-feed.md',
+  'rate-limiter.md',
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })

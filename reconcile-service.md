@@ -8,7 +8,7 @@
 - Match transactions by ID.
 - Flag and handle mismatches.
 ### Non-Functional
-- **Scale:** 50 Million transactions per day.
+- **Scale:** 10 Million transactions per day.
 - **Accuracy:** Strict financial consistency (no dropped data).
 - **Latency:** Batch/offline processing (doesn't need to be real-time).
 
@@ -18,13 +18,12 @@
 
 - **Data Size:** Assume 1 record (internal ledger event or external CSV row) = 1 KB.
 - **Daily Storage:**
-  - Internal: 50,000,000 records × 1 KB = 50 GB / day.
-  - External: 50,000,000 records × 1 KB = 50 GB / day.
-  - Total Daily Raw Ingestion: 100 GB / day.
-- **Throughput Rate (Flat Execution):** Spreading the 50M daily external transactions flatly across a controlled 24-hour ingestion window yields:
-  $\approx 580 \text{ records/sec}$
-  $\approx 580 \text{ KB/sec}$ inbound network bandwidth.
-- **Memory Footprint:** 580 records/sec is only the arrival rate — it says nothing about the standing population of unmatched records waiting to be joined. Internal events arrive continuously all day via CDC, but the Stripe file only lands once, at 2:00 AM, so an internal record from 9:00 AM has to wait up to 17 hours before its counterpart even exists. The number that matters is the full day's accumulation right before the batch arrives: 50,000,000 records × 1 KB ≈ **50 GB of standing unmatched state**, not a 580/sec trickle that fits comfortably in 16 GB of RAM. This rules out a plain in-process hash map as the matching structure (see Deep Dive) and is why matching is done against durable, indexed staging tables instead.
+  - Internal: 10,000,000 records × 1 KB = 10 GB / day.
+  - External: 10,000,000 records × 1 KB = 10 GB / day.
+  - Total Daily Raw Ingestion: 20 GB / day.
+- **Throughput Rate (Flat Execution):** Spreading the 10M daily external transactions flatly across a controlled 24-hour ingestion window yields:
+  $\approx 116 \text{ records/sec}$
+  $\approx 116 \text{ KB/sec}$ inbound network bandwidth.
 
 ---
 
@@ -136,13 +135,13 @@ flowchart LR
     WN --> DB
 ```
 
-To reconcile millions of rows across distributed hardware without causing massive memory overhead or cross-worker chat network bottlenecks, we enforce strict Hash-Based Partitioning for distributing task to worker. 
+To reconcile millions of rows without blowing up memory on any single machine, we partition work by hash instead of letting one process try to hold everything.
 
-The system collects our own data live all day then grabs Stripe's data once a night, and throws both into a smart sorting system that splits the heavy workload so multiple computers can share the job.
+Internal data streams in live all day; Stripe's data lands once a night. Both get fed into a router that splits the combined workload across multiple workers.
 
-By setting the message key exclusively to the `transaction_id`, the message router runs an identical routing algorithm across both streams: `hash(transaction_id) % 10`. This guarantees that both the internal ledger event and the external Stripe record for any given ID are routed into the exact same partition queue. 
+The router keys each message on `transaction_id` and applies `hash(transaction_id) % 10` to both streams. That guarantees the internal ledger event and the matching Stripe record always land in the same partition, no matter which one arrives first.
 
-Distributed workers are assigned explicitly to individual partitions. Because internal records can wait up to ~17 hours for their Stripe counterpart (see Capacity Estimation), the "search map" cannot be a pure in-memory structure owned by a single stateless worker — a day's standing unmatched population is ~50 GB, and a worker restart or crash would silently wipe out everything it hadn't matched yet. Instead, each partition's incoming records (from both the internal CDC stream and the nightly Stripe load) are upserted directly into the durable staging tables (`transaction_outbox` / `external_stripe_staging`, both indexed on `transaction_id`), and the worker's "match" step is an indexed query — `SELECT` a candidate from one table, look up the same `transaction_id` in the other — rather than an in-memory join. This keeps the working set on disk instead of in a single process's RAM, so a worker crash mid-batch loses no state: on restart, it simply resumes querying the same partition's staging rows, since nothing was held only in memory.
+Each partition has one worker, but the worker doesn't keep records in memory. Internal records can wait up to ~17 hours for their Stripe match (see Capacity Estimation), and a full day of unmatched records adds up to ~10 GB. That's too much for one process's RAM, and a crash would lose it all anyway. So both streams write straight to disk instead — into staging tables (`transaction_outbox` / `external_stripe_staging`, indexed on `transaction_id`). Matching is just a lookup: grab a record from one table, check if its counterpart exists in the other. Since everything lives on disk, a worker crash loses nothing. It just restarts and keeps querying the same partition where it left off.
 
 ```mermaid
 flowchart LR

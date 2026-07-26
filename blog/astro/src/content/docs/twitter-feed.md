@@ -6,7 +6,6 @@ modified: "2026-07-26"
 # Design a Social Media Feed System (Twitter/Instagram-style)
 
 ## 1. Scope & Requirements
-*Always ask clarifying questions before drawing. Do not assume.*
 
 ### Functional Requirements
 *   Users can create **text posts** (media upload explicitly out of scope for this version, but design should extend to object storage/CDN/async processing later).
@@ -146,27 +145,3 @@ flowchart TD
 *   **Not yet designed (open gaps / follow-ups for next session):**
     *   Read-path fallback if the Timeline Cache (Redis) is down entirely — does the system degrade to pure pull-based reconstruction for all users, and is that survivable at 100k-200k QPS?
     *   Feed staleness/cursor stability while new posts arrive mid-scroll.
-
----
-
-## Interview Performance Retro (Self-Assessment Notes)
-
-**Overall readiness rating: 5/10 for senior-level bar.**
-
-**Strengths:**
-*   Strong product instincts — asked the right scoping questions upfront (media, consistency, read tracking).
-*   Independently arrived at async fanout via message queue before being prompted.
-*   Correctly identified push vs. pull as the celebrity fanout solution unprompted.
-*   Good self-checking habit ("is this enough," "does this cover the core mechanism").
-
-**Weaknesses to improve:**
-1.  **Estimation mechanics** — initial QPS/storage calculations mixed units and jumped to ungrounded extreme numbers (e.g., assuming 2M writes/sec with no derivation). Needs drilling until "requests/day → QPS → peak QPS" is reflexive.
-2.  **Naming techniques before earning them** — reached for plausible-sounding solutions (single-flight, "detect via post rate") without first identifying the precise failure mode being solved. Should state the problem explicitly before naming the fix.
-3.  **Depth requires prompting** — most answers were directionally correct but needed 2-3 follow-up questions to become fully concrete (threshold logic, ZSet cap sizing, rebuild mechanism, dedup). At a senior bar, first-pass answers should already contain this depth.
-4.  **Relying on interviewer to generate the design** rather than iterating on own draft under time pressure — good for learning material, but needs more reps producing (not just reviewing) designs solo.
-
-**Study plan:**
-1.  Estimation drills across multiple system types (URL shortener, chat app, video platform) until QPS/storage math is automatic.
-2.  Study real-world references (Twitter timeline architecture, Instagram feed ranking) to internalize *why* specific tradeoffs were made, not just *what* they are.
-3.  Practice narrating tradeoffs explicitly: "the alternative was X, but that fails because Y" for every technique used.
-4.  Run timed (20-25 min) mock interviews to build the habit of proactively surfacing edge cases and depth without needing follow-up scaffolding.
