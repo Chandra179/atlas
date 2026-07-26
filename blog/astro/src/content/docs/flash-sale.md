@@ -3,7 +3,7 @@ title: "Flash Sale"
 aliases: [cache-stampede, thundering-herd, dog-piling, cache-miss-storm]
 tags: [system-design, system-design/caching]
 created: "2026-06-13"
-modified: "2026-07-25"
+modified: "2026-07-26"
 ---
 
 # Flash Sale System
@@ -25,15 +25,19 @@ a limited-edition sneaker release or a highly discounted electronics sale. 100,0
 * **Peak Write Load:** 100,000 concurrent write attempts per second targeting a *single* product ID.
 * **Latency Target:** Initial checkout response (HTTP 202 Accepted) returned in **< 30ms** (p99).
 * **Database Persist Latency:** Actual database writes must catch up within **10 seconds** post-drop.
-  * *Derivation:* 100,000 orders / 10s = 10,000 inserts/sec sustained. At batches of 100 rows, that's ~100 batch-commits/sec. Spread across the 100-connection pool cap above, that's ~1 batch-commit per connection per second — well within Postgres's per-connection commit throughput, so the target is achievable without raising the pool cap.
+* **Derivation**: 
+	* 100,000 orders / 10s = 10,000 inserts/sec. 
+	* At batches of 100 rows, that's ~100 batch-commits/sec. 
+	* Spread across the 100-connection pool, that's ~1 batch-commit per connection per second 
+	* well within Postgres's per-connection commit throughput, so the target is achievable without raising the pool cap.
 ### Resource Constraints
 * **Application Layer:** 10 stateless container instances (each allocated 2 vCPU, 4GB RAM).
-  * *Target CPU Usage:* Max 70% under peak load to leave head-room for network I/O.
-  * *Target Memory:* Max 60% (2.4GB) to prevent Out-Of-Memory (OOM) process restarts.
+  * Target CPU Usage: Max 70% under peak load to leave head-room for network I/O.
+  * Target Memory: Max 60% (2.4GB) to prevent Out-Of-Memory (OOM) process restarts.
 * **Cache Layer (Redis):** A single 3-node Redis cluster (1 Master, 2 Read Replicas). 
-  * *Target CPU Usage:* Max 80% on the Master node. Since Redis is single-threaded, a single node's CPU is a hard wall.
+  * Target CPU Usage: Max 80% on the Master node. Since Redis is single-threaded, a single node's CPU is a hard wall.
 * **Database Layer:** A single PostgreSQL master instance (8 vCPU, 32GB RAM). 
-  * *Target Connection Pool:* Capped at 100 persistent connections to protect system memory.
+  * Target Connection Pool: Capped at 100 persistent connections to protect system memory.
 
 ---
 
@@ -41,7 +45,10 @@ a limited-edition sneaker release or a highly discounted electronics sale. 100,0
 
 We evaluate two architectural patterns to solve the hot-spot problem.
 
-> **Decision:** Our stated peak load is 100,000 concurrent writes/sec against a single product. Option 1 caps out at ~30k-50k ops/sec because it serializes all writes through one Redis key on one single-threaded node — it cannot meet the stated peak at all, full stop. Option 1 is only viable if actual peak load is meaningfully below the stated target (e.g. a smaller drop, or a product without single-key hot-spotting). **Option 2 (sharded/bucketed keys), or an equivalent horizontal-scaling variant, is mandatory to meet the 100k/sec requirement as stated.** Option 1 is kept below as the simpler baseline and as the design each bucket in Option 2 individually implements.
+- Our stated peak load is 100,000 concurrent writes/sec against a single product. Option 1 caps out at ~30k-50k ops/sec because it serializes all writes through one Redis key on one single-threaded node it cannot meet the stated peak at all, full stop. 
+- Option 1 is only viable if actual peak load is meaningfully below the stated target (e.g. a smaller drop, or a product without single-key hot-spotting). 
+- Option 2 (sharded/bucketed keys), or an equivalent horizontal-scaling variant, is mandatory to meet the 100k/sec requirement as stated. 
+- Option 1 is kept below as the simpler baseline and as the design each bucket in Option 2 individually implements.
 
 ### Design Option 1: Single-Key Redis Decr + Asynchronous DB Queue
 
@@ -68,17 +75,17 @@ sequenceDiagram
 ```
 
 #### How it Works
-1. **Atomic In-Memory Decr with Idempotency Guard:** The application runs a Lua script in Redis. Because Redis runs commands on a single thread, the Lua script safely checks if stock is available and decrements it atomically in a single operation. The same script also does a `SETNX`-style check on a dedupe key (`checkout:{product_id}:{user_id}`) *before* decrementing — if that key already exists, the script returns the prior result without decrementing again. This makes client-side retries (e.g. a timed-out request whose server-side call actually succeeded) safe: a retry never double-decrements the same logical purchase attempt.
+1. **Atomic In-Memory Decr with Idempotency Guard:** The application runs a Lua script in Redis. Because Redis runs commands on a single thread, the Lua script safely checks if stock is available and decrements it atomically in a single operation. The same script also does a `SETNX`-style check on a dedupe key (`checkout:{product_id}:{user_id}`) before decrementing — if that key already exists, the script returns the prior result without decrementing again. This makes client-side retries (e.g. a timed-out request whose server-side call actually succeeded) safe: a retry never double-decrements the same logical purchase attempt.
 2. **Atomic Decrement-and-Publish (Outbox Pattern):** A naive "decrement in Redis, then publish to Kafka" sequence leaks inventory if the app process crashes between the two steps — the unit is decremented but no order or event ever exists to recover it. To close this gap, the Lua script writes the "OrderCreated" event into a Redis-backed outbox (e.g. a Redis Stream) in the *same* atomic operation as the decrement, so decrement and publish either both happen or neither does. A separate relay process tails the outbox stream and forwards entries to Kafka, retrying independently of the checkout request path. As a backstop, a periodic reconciliation sweep compares decremented-count vs. order-count and alerts/replays on any gap.
 3. **Decoupled Writes:** Once the event is durably in Kafka, the app returns an immediate **HTTP 202 (Accepted)** and lets the client UI poll for the final order confirmation.
 4. **Database Batching:** Background workers consume from Kafka and write to PostgreSQL in optimized batches of 100+ records, avoiding single-row lock contention.
 
 #### Trade-offs
 
-| Pros | Cons |
-| :--- | :--- |
-| **Simple Implementation:** Relies on standard Redis and Lua features. Very easy to maintain. | **Single-Threaded CPU Wall:** Because all writes hit *one* key (`inventory:product_42`), they must run on *one* Redis node. This limits maximum throughput to ~30k-50k operations/second. |
-| **Excellent Latency:** In-memory operations return in <2ms, keeping application threads highly responsive. | **Eventual Consistency Lag:** Users must wait on a loading screen while background workers finish inserting their orders into the SQL DB. |
+| Pros                                                                                                       | Cons                                                                                                                                                                                      |
+| :--------------------------------------------------------------------------------------------------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Simple Implementation:** Relies on standard Redis and Lua features. Very easy to maintain.               | **Single-Threaded CPU Wall:** Because all writes hit *one* key (`inventory:product_42`), they must run on *one* Redis node. This limits maximum throughput to ~30k-50k operations/second. |
+| **Excellent Latency:** In-memory operations return in <2ms, keeping application threads highly responsive. | **Eventual Consistency Lag:** Users must wait on a loading screen while background workers finish inserting their orders into the SQL DB.                                                 |
 
 ---
 
@@ -112,10 +119,10 @@ graph TD
 
 #### Trade-offs of Design Option 2
 
-| Pros | Cons |
-| :--- | :--- |
-| **Horizontal Scalability:** We are no longer bottlenecked by a single Redis node's CPU. We can easily scale to 100k+ operations/second by adding more buckets. | **High Complexity:** Managing empty-bucket routing, returning inventory on canceled orders, and maintaining overall stock views becomes significantly harder to implement. |
-| **No Single Point of Failure:** If a single Redis node crashes, only a portion of the inventory is temporarily locked. | **Uneven Distribution:** Some users might see "Out of Stock" if their routed bucket is empty, even if other buckets still contain items (mitigated by retry/fallback algorithms). |
+| Pros                                                                                                                                                           | Cons                                                                                                                                                                              |
+| :------------------------------------------------------------------------------------------------------------------------------------------------------------- | :-------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Horizontal Scalability:** We are no longer bottlenecked by a single Redis node's CPU. We can easily scale to 100k+ operations/second by adding more buckets. | **High Complexity:** Managing empty-bucket routing, returning inventory on canceled orders, and maintaining overall stock views becomes significantly harder to implement.        |
+| **No Single Point of Failure:** If a single Redis node crashes, only a portion of the inventory is temporarily locked.                                         | **Uneven Distribution:** Some users might see "Out of Stock" if their routed bucket is empty, even if other buckets still contain items (mitigated by retry/fallback algorithms). |
 
 ---
 

@@ -1,6 +1,6 @@
 ---
 title: "Pdf Generation"
-modified: "2026-07-25"
+modified: "2026-07-26"
 ---
 
 # PDF Generation Service
@@ -145,12 +145,12 @@ graph LR
 
 ## Component Deep Dive & Trade-offs
 
-|**Component**|**Design Choice**|**Operational Advantage**|**Trade-off / Mitigation**|
-|---|---|---|---|
-|**Data Ingestion**|Payload-Driven Queue Messages|Eliminates database lookups; workers receive everything they need inside the message broker payload.|Slightly larger message size (~100 KB), easily handled by modern brokers like Kafka/RabbitMQ.|
-|**Worker Processing**|Native HTML Engines + Idempotency Flags|Processing drops from 2s to &lt;30ms compared to heavy headless browsers. Database status flags prevent duplicate renders during retries.|HTML layouts must be strictly structured to ensure exact A4 page-boundary compilation.|
-|**File Storage**|Standard Object Storage (S3)|Highly scalable, built-in high-availability, and native data purging via Lifecycle Policies.|Requires a structured naming convention (`/invoices/YYYY-MM-DD/id.pdf`) to optimize S3 partitioning.|
-|**Link Security**|Stateless S3 Presigned URLs|Offloads 100% of download bandwidth and auth compute from our internal servers directly to the cloud provider.|Hard ceiling on expiration modification once the email is sent; links cannot easily be manually revoked early.|
+| **Component**         | **Design Choice**                       | **Operational Advantage**                                                                                                                 | **Trade-off / Mitigation**                                                                                     |
+| --------------------- | --------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------- |
+| **Data Ingestion**    | Payload-Driven Queue Messages           | Eliminates database lookups; workers receive everything they need inside the message broker payload.                                      | Slightly larger message size (~100 KB), easily handled by modern brokers like Kafka/RabbitMQ.                  |
+| **Worker Processing** | Native HTML Engines + Idempotency Flags | Processing drops from 2s to &lt;30ms compared to heavy headless browsers. Database status flags prevent duplicate renders during retries. | HTML layouts must be strictly structured to ensure exact A4 page-boundary compilation.                         |
+| **File Storage**      | Standard Object Storage (S3)            | Highly scalable, built-in high-availability, and native data purging via Lifecycle Policies.                                              | Requires a structured naming convention (`/invoices/YYYY-MM-DD/id.pdf`) to optimize S3 partitioning.           |
+| **Link Security**     | Stateless S3 Presigned URLs             | Offloads 100% of download bandwidth and auth compute from our internal servers directly to the cloud provider.                            | Hard ceiling on expiration modification once the email is sent; links cannot easily be manually revoked early. |
 
 ## Failure Modes & Resiliency Strategy
 
@@ -196,12 +196,21 @@ This pivot relaxes the **Stateless Processing** requirement, but only for this o
 - The eager path (render → attach → email) stays exactly as stateless as originally designed: the worker gets everything it needs from the queue payload and never talks to a database.
 - The lazy path (click → regenerate → serve) necessarily needs a data source, because the queue message that triggered the original render is long gone by the time someone clicks days later. It performs a single indexed point-lookup by `order_id` against the read replica of the Orders table — a much lighter dependency than a stateful worker pool, and one we accept explicitly as a trade-off for the cost savings, rather than leaving it as an unstated contradiction.
 
-**Expiration, without S3's lifecycle policy:** since there's no S3 object whose lifecycle policy can auto-purge it, expiry is enforced instead by a signed, self-describing token. The link emailed to the user is `/view/{token}`, where `token` is an HMAC-signed (or JWT) payload containing `order_id` and an `exp` timestamp set to `sent_at + 7 days`. The API gateway verifies the signature and checks `exp` on every request, rejecting anything expired with a 410 before a regeneration is ever attempted — no database write or background sweep is needed to enforce the 7-day window.
+**Expiration, without S3's lifecycle policy:** S3 doesn't auto-delete anything here, because most PDFs are never saved to S3 in the first place — one is only made when someone clicks the link. So instead of deleting a file after 7 days, the system makes the *link itself* expire.
 
-**Interim storage cost check:** for PDFs that *are* eagerly written (if a hybrid mode is used, or during the click-triggered regen, which can optionally cache its output for subsequent clicks within the 7-day window), the rolling storage footprint is small enough to ignore relative to the PUT cost above — a single-page compressed A4 PDF is roughly 50–150 KB, so even at 1,000/sec sustained for a full 7-day retention window, total standing storage is on the order of a few TB, costing tens of dollars/month under S3 standard storage pricing — negligible next to the $13k/month in PUT requests it replaces.
+The link emailed to the user is `/view/{token}`, where `token` is a signed code that secretly holds the `order_id` and an expiry date (`sent_at + 7 days`). Every time someone clicks the link, the API gateway checks the code is genuine and checks whether the expiry date has passed. If it has, the request is rejected immediately with a 410 ("Gone") — no PDF is generated. No database write or cleanup job is needed to enforce the 7-day window; the link simply stops working on its own once it's past its expiry date.
+
+**Interim storage cost check:** sometimes a PDF still does get saved to S3 — either because a hybrid mode is used, or because the click-triggered regen saves its output so a second click on the same link doesn't need to re-render. Does this bring back the storage cost problem? No, because S3 has two separate costs:
+
+- **Writing a file** (the PUT cost from the section above) — charged per write, no matter the file size. This is what was costing $13k/month.
+- **Storing a file** — a much smaller, separate charge, billed per GB kept in the bucket per month.
+
+Even in the worst case — every saved PDF (50–150 KB each) sitting around for the full 7 days, at 1,000 saves/sec — the total amount of data sitting in S3 at any one time is only a few TB. Storing a few TB costs roughly tens to low hundreds of dollars a month, which is still tiny next to the $13k/month in write costs this design avoids.
 
 ### Headless Browsers
 
 At 1,000 requests/second, spinning up Chromium tabs (Puppeteer/Playwright) will crash your servers due to memory leaks.
 
 We are absolutely not using a headless browser like Puppeteer or Chromium at 1,000 requests/second. Managing browser contexts, tabs, and memory leaks at this scale is an operational nightmare. Instead, we are using a native, low-level binary compiled engine (like a Go-based PDF generator or a lightweight C++ HTML-to-PDF library). These don't boot up a browser; they parse HTML/CSS primitives directly into raw PDF byte streams in-memory, keeping CPU and memory usage flat.
+
+Further reading on this browser-engine trade-off: https://chan179.com/pdf-generation
