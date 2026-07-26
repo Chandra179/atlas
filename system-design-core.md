@@ -1,0 +1,154 @@
+
+## ✅ Fundamentals Covered (Across 6 Systems)
+
+- **Requirements gathering / scoping**
+    - Applied in: All 6 systems
+- **Capacity estimation (RPS, storage, bandwidth, peak RPS)**
+    - Applied in: All 6 systems
+- **Consistency models (strong vs eventual, and applicability)**
+    - Applied in:
+        - Twitter
+        - Rate limiter
+        - Inventory
+        - Reconciliation (ground-truth rules)
+- **Atomic operations vs locks**
+    - Applied in:
+        - Rate limiter
+        - Inventory
+        - PDF generation (compare-and-swap claim)
+- **Fan-out (push vs pull)**
+    - Applied in:
+        - Twitter
+- **Caching + cold-cache / eviction handling**
+    - Applied in:
+        - Twitter
+        - Rate limiter
+        - Web scraping (claim-check cache)
+- **Queues + asynchronous workers**
+    - Applied in:
+        - Twitter
+        - Inventory
+        - PDF generation
+        - Reconciliation
+        - Web scraping
+- **Reservation / hold pattern + TTL expiry**
+    - Applied in:
+        - Inventory
+        - Web scraping (claim-check TTL vs backpressure race)
+- **Idempotency in message processing**
+    - Applied in:
+        - Inventory
+        - PDF generation
+- **At-least-once delivery & duplicate handling**
+    - Applied in:
+        - Inventory
+        - PDF generation
+- **Fail-open vs fail-closed**
+    - Applied in:
+        - Rate limiter
+- **Durability tradeoffs**
+    - Applied in:
+        - Rate limiter
+        - Inventory
+        - Reconciliation (outbox pattern)
+- **Secondary index / lookup tables**
+    - Applied in:
+        - Twitter
+        - Reconciliation (staging tables)
+        - Web scraping (DynamoDB job table)
+- **SQL vs NoSQL decisions**
+    - Applied in:
+        - Twitter
+        - PDF generation
+        - Web scraping
+        - Reconciliation
+- **Saga pattern / compensating actions**
+    - Applied in:
+        - Inventory
+- **Transactional Outbox pattern**
+    - Applied in:
+        - PDF generation
+        - Reconciliation
+- **Change Data Capture (CDC)**
+    - Applied in:
+        - Reconciliation (correct implementation; improved from earlier Twitter attempt)
+- **Database partitioning / sharding (hash-based)**
+    - Applied in:
+        - Reconciliation (hash(transaction_id) % 10)
+        - Web scraping (tenant_id sharding + hot-partition mitigation)
+- **Hot-partition / hot-key mitigation**
+    - Applied in:
+        - Web scraping (composite key + rate limiting)
+- **Cost-driven architecture decisions**
+    - Applied in:
+        - PDF generation (S3 PUT cost optimization, lazy generation)
+- **Autoscaling signal selection (queue lag vs CPU)**
+    - Applied in:
+        - PDF generation (avoiding CPU-based scaling trap)
+- **Schema evolution / contract enforcement**
+    - Applied in:
+        - PDF generation (schema registry)
+- **Security considerations (SSRF, TOCTOU, DNS rebinding)**
+    - Applied in:
+        - Web scraping
+- **Dead Letter Queues (DLQ) / poison pill handling**
+    - Applied in:
+        - PDF generation
+        - Web scraping
+- **Staged escalation / grace-period design**
+    - Applied in:
+        - Reconciliation (soft-fail → hard-fail progression)
+- **Source-of-truth arbitration (multi async sources)**
+    - Applied in:
+        - Reconciliation (internal ledger vs Stripe)
+        - Web scraping (DynamoDB vs Redis)
+
+## ❌ Still Not Covered
+
+- **Geospatial / proximity matching**
+    - Why it matters:
+        - Requires a different algorithmic toolkit (e.g., geohash, quadtree)
+    - Where you'd hit it:
+        - Ride-sharing
+        - Delivery systems
+- **Real-time bidirectional communication (WebSockets, pub/sub, long-polling)**
+    - Why it matters:
+        - Enables pushing live updates to connected clients
+    - Where you'd hit it:
+        - Chat applications
+        - Live notifications
+        - Live sports scores
+- **Search / ranking / autocomplete**
+    - Why it matters:
+        - Involves inverted indexes, tries, and relevance scoring
+    - Where you'd hit it:
+        - Search engines
+        - Autocomplete systems
+        - Personalized feeds ("For You")
+- **Two-sided matching under contention**
+    - Why it matters:
+        - Different contention model vs one-sided or merge-based systems
+    - Where you'd hit it:
+        - Ride-sharing dispatch (rider ↔ driver matching)
+- **Multi-region / geo-distributed design**
+    - Why it matters:
+        - Required for global scalability, latency optimization, and fault tolerance
+    - Where you'd hit it:
+        - Any system scaling beyond a single region
+- **Long-running multi-day workflow orchestration**
+    - Why it matters:
+        - Requires durable, multi-stage coordination across extended timeframes
+    - Where you'd hit it:
+        - Order fulfillment / shipping pipelines
+        - Video encoding workflows
+- **CDN edge delivery**
+    - Why it matters:
+        - Critical for low-latency content distribution at scale
+    - Where you'd hit it:
+        - Video streaming platforms
+        - Image hosting services
+- **Explicit CAP theorem articulation**
+    - Why it matters:
+        - Needed to formally justify tradeoffs between consistency, availability, and partition tolerance
+    - Where you'd hit it:
+        - Any distributed system deep-dive or technical interview scenario
