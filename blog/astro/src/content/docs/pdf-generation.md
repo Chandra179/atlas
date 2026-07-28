@@ -1,6 +1,6 @@
 ---
 title: "Pdf Generation"
-modified: "2026-07-26"
+modified: "2026-07-28"
 ---
 
 # PDF Generation Service

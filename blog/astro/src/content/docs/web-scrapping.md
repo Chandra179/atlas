@@ -1,6 +1,6 @@
 ---
 title: "Web Scrapping"
-modified: "2026-07-26"
+modified: "2026-07-28"
 ---
 
 # Web Scraping System
