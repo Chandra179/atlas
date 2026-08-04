@@ -1,6 +1,6 @@
 ---
 title: "SWE Journey"
-modified: "2026-07-28"
+modified: "2026-08-04"
 ---
 
 # Software Engineering Journey

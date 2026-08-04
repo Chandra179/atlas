@@ -1,6 +1,6 @@
 ---
 title: "Twitter Feed"
-modified: "2026-07-28"
+modified: "2026-08-04"
 ---
 
 # Social Media Feed System (Twitter/Instagram-style)

@@ -1,2 +1,7 @@
 # Obsidian workspace (changes constantly with pane/resize/position)
 .obsidian/workspace.json
+
+# Machine-local agent config
+.claude/
+.agents/
+skills-lock.json

@@ -3,7 +3,7 @@ title: "Flash Sale"
 aliases: [cache-stampede, thundering-herd, dog-piling, cache-miss-storm]
 tags: [system-design, system-design/caching]
 created: "2026-06-13"
-modified: "2026-07-28"
+modified: "2026-08-04"
 ---
 
 # Flash Sale System
