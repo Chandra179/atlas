@@ -1,6 +1,6 @@
 ---
 created: 2026-06-21
-modified: "2026-08-04"
+modified: "2026-08-05"
 ---
 
 # Experience
