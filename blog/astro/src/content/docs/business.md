@@ -8,7 +8,7 @@ tags:
   - business
   - frameworks
 created: 2026-08-08T00:00:00.000Z
-modified: '2026-08-07'
+modified: '2026-08-08'
 ---
 
 # Business Knowledge Map

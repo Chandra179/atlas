@@ -25,6 +25,7 @@ interface Props {
   tags?: string[];
   author?: string;
   noindex?: boolean;
+  relatedPosts?: { title: string; url: string }[];
 }
 
 const {
@@ -40,6 +41,7 @@ const {
   tags = [],
   author = 'Chandra179',
   noindex = false,
+  relatedPosts = [],
 } = Astro.props;
 
 const siteName = 'Chan179';
@@ -97,6 +99,10 @@ const breadcrumbJsonLd = {
 
 const flat = flattenNav(nav);
 const { prev, next } = getPrevNext(flat, url);
+
+const dateFormatter = new Intl.DateTimeFormat('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+const modifiedDiffersFromCreated =
+  modified && created && modified.toISOString().slice(0, 10) !== created.toISOString().slice(0, 10);
 ---
 
 <BaseLayout
@@ -169,9 +175,31 @@ const { prev, next } = getPrevNext(flat, url);
         )}
       </div>
 
+      {created && (
+        <p class="text-sm text-gray-400 dark:text-gray-500 mb-6">
+          Published {dateFormatter.format(created)}
+          {modifiedDiffersFromCreated && <> · Updated {dateFormatter.format(modified!)}</>}
+        </p>
+      )}
+
       <article id="content" class="prose prose-lg prose-blue max-w-none">
         <slot />
       </article>
+
+      {relatedPosts.length > 0 && (
+        <nav aria-label="Related articles" class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">Related</h2>
+          <ul class="flex flex-col gap-2">
+            {relatedPosts.map((post) => (
+              <li>
+                <a href={post.url} class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                  {post.title}
+                </a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
 
       {(prev || next) && (
         <nav aria-label="Previous and next articles" class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">

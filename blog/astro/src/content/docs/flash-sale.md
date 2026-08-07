@@ -13,7 +13,7 @@ tags:
   - system-design
   - system-design/caching
 created: 2026-06-13T00:00:00.000Z
-modified: '2026-07-26'
+modified: '2026-08-08'
 ---
 
 # Flash Sale System
