@@ -1,6 +1,15 @@
 ---
-title: "Twitter Feed"
-modified: "2026-08-05"
+title: Social Media Feed System Design
+description: >-
+  Designing a personalized social feed system for 100M DAU: cursor-based
+  pagination, eventual consistency, and fast propagation of posts including
+  celebrity fan-out.
+tags:
+  - system-design
+  - distributed-systems
+  - social
+created: 2026-07-25T00:00:00.000Z
+modified: '2026-07-26'
 ---
 
 # Social Media Feed System (Twitter/Instagram-style)

@@ -1,3 +1,10 @@
+---
+title: "Social Media Feed System Design"
+description: "Designing a personalized social feed system for 100M DAU: cursor-based pagination, eventual consistency, and fast propagation of posts including celebrity fan-out."
+tags: [system-design, distributed-systems, social]
+created: 2026-07-25
+---
+
 # Social Media Feed System (Twitter/Instagram-style)
 
 ## Scope & Requirements

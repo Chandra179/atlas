@@ -1,6 +1,18 @@
 ---
-title: "SWE Journey"
-modified: "2026-08-05"
+title: Software Engineering Journey
+created: 2026-07-12T00:00:00.000Z
+author: Koala
+tags:
+  - go
+  - architecture
+  - best-practices
+  - backend
+  - software-design
+description: >-
+  Practical lessons on variable naming, abstraction, data types, logging,
+  idempotency, caching, message brokers, and deployment from real-world
+  engineering experience.
+modified: '2026-07-25'
 ---
 
 # Software Engineering Journey

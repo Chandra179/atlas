@@ -1,3 +1,11 @@
+---
+title: "Flash Sale"
+description: "Designing a flash-sale system that survives cache stampedes and thundering-herd traffic: strict oversell prevention, graceful degradation, and cache-miss storm mitigation."
+aliases: [cache-stampede, thundering-herd, dog-piling, cache-miss-storm]
+tags: [system-design, system-design/caching]
+created: 2026-06-13
+---
+
 # Flash Sale System
 
 ## The Problem & Goals

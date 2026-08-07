@@ -1,3 +1,10 @@
+---
+title: "Financial Reconciliation System"
+description: "Designing a financial reconciliation system that matches internal ledger and external payment data (e.g. Stripe) at 10 million transactions per day with strict accuracy."
+tags: [system-design, fintech, data-engineering]
+created: 2026-07-19
+---
+
 # Financial Reconciliation System
 
 ## Scope & Requirements

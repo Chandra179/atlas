@@ -1,3 +1,10 @@
+---
+title: "Real-Time Chat System Design"
+description: "System design for a WhatsApp-style chat app: 1:1 and group messaging, delivery/read receipts, multi-device sync, and media attachments."
+tags: [system-design, distributed-systems, real-time]
+created: 2026-07-26
+---
+
 # Real-Time Chat App (WhatsApp-like)
 
 ## 1. Scope & Requirements

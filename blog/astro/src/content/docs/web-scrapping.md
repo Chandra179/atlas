@@ -1,6 +1,15 @@
 ---
-title: "Web Scrapping"
-modified: "2026-08-05"
+title: Web Scraping System
+description: >-
+  Designing a fault-tolerant web scraping system processing 4 million jobs/day:
+  JS-rendered page scraping, async delivery via webhook/email, and browser-crash
+  isolation.
+tags:
+  - system-design
+  - distributed-systems
+  - web-scraping
+created: 2026-07-26T00:00:00.000Z
+modified: '2026-07-26'
 ---
 
 # Web Scraping System

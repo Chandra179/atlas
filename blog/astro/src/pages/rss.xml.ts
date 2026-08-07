@@ -31,17 +31,18 @@ export async function GET(context) {
       return navUrls.has(url);
     })
     .filter((e) => e.data.created)
+    .filter((e) => !e.data.noindex)
     .sort((a, b) => new Date(b.data.created!).getTime() - new Date(a.data.created!).getTime())
     .map((e) => {
       const url = entryIdToUrl(e.id);
       const title = e.data.title || deriveTitle(e.id.split('/').pop()!, e.data.title);
-      const desc = e.data.description || extractDescription(e.body) || `${title} — ${baseDescription}`;
+      const desc = e.data.description || extractDescription(e.body || '') || `${title} — ${baseDescription}`;
       return {
         title,
         description: desc.substring(0, 300),
         link: url,
         pubDate: e.data.created!,
-        author: 'Chandra179',
+        author: e.data.author || 'Chandra179',
         customData: e.data.tags?.length ? e.data.tags.map((t) => `<category>${t}</category>`).join('') : '',
       };
     });

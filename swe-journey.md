@@ -1,6 +1,6 @@
 ---
 title: "Software Engineering Journey"
-date: 2026-07-12
+created: 2026-07-12
 author: "Koala"
 tags: [go, architecture, best-practices, backend, software-design]
 description: "Practical lessons on variable naming, abstraction, data types, logging, idempotency, caching, message brokers, and deployment from real-world engineering experience."

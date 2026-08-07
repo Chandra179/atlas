@@ -1,6 +1,15 @@
 ---
-title: "Order Inventory System"
-modified: "2026-08-05"
+title: E-commerce Order & Inventory System
+description: >-
+  System design for an e-commerce order and inventory system: strong consistency
+  for stock reservation, external payment coordination, and handling 20,000
+  orders/sec at peak.
+tags:
+  - system-design
+  - distributed-systems
+  - e-commerce
+created: 2026-07-26T00:00:00.000Z
+modified: '2026-07-26'
 ---
 
 # E-commerce Order & Inventory System

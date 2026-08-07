@@ -1,6 +1,8 @@
 import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync, rmSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execFileSync } from 'node:child_process';
+import yaml from 'js-yaml';
 
 const DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT = path.resolve(DIR, '../../..');
@@ -17,8 +19,7 @@ const ALLOWED_FILES = new Set([
   'rate-limiter.md',
   'order-inventory-system.md',
   'real-time-chat.md',
-  'ticketing-seat-selection.md',
-  'ticketing-seat-poc.md'
+  'business.md',
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })
@@ -47,6 +48,31 @@ function extractFrontmatterBlock(content) {
   return content.slice(3, end).trim();
 }
 
+function parseFrontmatter(block) {
+  if (!block) return {};
+  try {
+    return yaml.load(block) || {};
+  } catch {
+    return {};
+  }
+}
+
+// Last real commit date for a root file, so `modified` reflects actual
+// content changes instead of "whenever sync last ran". Untracked/new
+// files (e.g. not yet committed) fall back to today.
+function lastCommitDate(file) {
+  try {
+    const out = execFileSync(
+      'git', ['log', '-1', '--format=%ad', '--date=short', '--', file],
+      { cwd: ROOT, encoding: 'utf-8' }
+    ).trim();
+    if (out) return out;
+  } catch {
+    // not a git repo / git unavailable, fall through
+  }
+  return new Date().toISOString().slice(0, 10);
+}
+
 let synced = 0;
 let cleaned = 0;
 
@@ -56,20 +82,22 @@ for (const file of rootFiles) {
 
   const rootContent = readFileSync(rootPath, 'utf-8');
   const rootBody = stripFrontmatter(rootContent);
+  const rootFm = parseFrontmatter(extractFrontmatterBlock(rootContent));
 
-  let frontmatter = `title: "${titleFromFilename(file)}"`;
+  let blogFm = {};
   if (existsSync(blogPath)) {
     const blogContent = readFileSync(blogPath, 'utf-8');
-    const blogFm = extractFrontmatterBlock(blogContent);
-    if (blogFm) frontmatter = blogFm;
+    blogFm = parseFrontmatter(extractFrontmatterBlock(blogContent));
   }
 
-  const today = new Date().toISOString().slice(0, 10);
-  if (frontmatter.includes('modified:')) {
-    frontmatter = frontmatter.replace(/modified:\s*.*/, `modified: "${today}"`);
-  } else {
-    frontmatter += `\nmodified: "${today}"`;
-  }
+  // Root frontmatter is authoritative (content is authored at the repo
+  // root); destination-only fields are preserved as a fallback so nothing
+  // set previously just for the site (and never mirrored to root) is lost.
+  const merged = { ...blogFm, ...rootFm };
+  if (!merged.title) merged.title = titleFromFilename(file);
+  merged.modified = lastCommitDate(file);
+
+  const frontmatter = yaml.dump(merged).trim();
 
   const newContent = `---\n${frontmatter}\n---\n\n${rootBody}`;
   writeFileSync(blogPath, newContent);

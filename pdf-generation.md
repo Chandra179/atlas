@@ -1,3 +1,10 @@
+---
+title: "PDF Generation Service"
+description: "System design for a PDF generation service handling 1,000 PDFs/sec at peak: async generation after payment, email delivery, and a 7-day expiring public view link."
+tags: [system-design, distributed-systems, async-processing]
+created: 2026-07-17
+---
+
 # PDF Generation Service
 
 ## System Requirements & Constraints

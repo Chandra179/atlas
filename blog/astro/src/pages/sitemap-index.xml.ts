@@ -7,26 +7,39 @@ export async function GET({ site }) {
   const validEntries = await getValidEntries();
 
   const nav = buildNav(validEntries);
-  const navUrls = new Set<string>();
+  const navUrls = new Set<string>(['/']);
   const urlDates = new Map<string, Date>();
 
+  // Synthetic category/folder index pages (no README, no entryId) are
+  // rendered with noindex by [...slug].astro — mirror that same condition
+  // here so the sitemap never advertises a URL the page itself tells
+  // crawlers not to index.
   function collect(section: any) {
-    navUrls.add(section.url);
+    const sectionIsIndex = !section.standalone && !section.entryId;
+    if (!sectionIsIndex) navUrls.add(section.url);
     if (section.pages) {
       for (const page of section.pages) {
-        navUrls.add(page.url);
+        const pageIsIndex = page.isFolder && !page.entryId;
+        if (!pageIsIndex) navUrls.add(page.url);
         if (page.pages) for (const sub of page.pages) navUrls.add(sub.url);
       }
     }
   }
   for (const section of nav) collect(section);
 
+  // Also drop any entry explicitly marked noindex: true in its own
+  // frontmatter, same reasoning as the synthetic-index case above.
+  for (const entry of validEntries) {
+    if (entry.data.noindex) navUrls.delete(entryIdToUrl(entry.id));
+  }
+
   for (const entry of validEntries) {
     const url = entryIdToUrl(entry.id);
-    if (navUrls.has(url) && entry.data.created) {
+    const date = entry.data.modified || entry.data.created;
+    if (navUrls.has(url) && date) {
       const existing = urlDates.get(url);
-      if (!existing || entry.data.created > existing) {
-        urlDates.set(url, entry.data.created);
+      if (!existing || date > existing) {
+        urlDates.set(url, date);
       }
     }
   }

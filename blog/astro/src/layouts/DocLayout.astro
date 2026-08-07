@@ -46,7 +46,7 @@ const siteName = 'Chan179';
 const breadcrumb = buildBreadcrumb(nav, url);
 const pageTitle = title || breadcrumb;
 const pageDescription = description || extractDescription(body);
-const baseDescription = 'Personal blog on software engineering, system design, and mathematics.';
+const baseDescription = 'Personal blog on software engineering, system design.';
 const metaDescription = pageDescription || `Notes on ${breadcrumb}. ${baseDescription}`;
 
 const wordCount = body ? body.split(/\s+/).filter(Boolean).length : 0;

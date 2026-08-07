@@ -12,76 +12,37 @@ const nav = buildNav(validEntries);
 const cards: Array<{
   title: string;
   path: string;
-  category: string | null;
-  categorySlug: string | null;
   description: string;
-  tags: string[];
 }> = [];
+
+function pushCard(title: string, url: string, entryId: string | undefined) {
+  const entry = entryId ? validEntries.find((e) => e.id === entryId) : undefined;
+  cards.push({
+    title,
+    path: url.replace(/^\//, ''),
+    description: entry ? extractDescription(entry.body) : '',
+  });
+}
 
 for (const section of nav) {
   if (section.standalone) {
-    const entry = validEntries.find((e) => e.id === section.entryId);
-    const tags = entry?.data.tags || [];
-    cards.push({
-      title: section.name,
-      path: section.url.replace(/^\//, ''),
-      category: null,
-      categorySlug: null,
-      description: entry ? extractDescription(entry.body) : '',
-      tags,
-    });
+    pushCard(section.name, section.url, section.entryId);
   } else {
     if (section.entryId) {
-      const entry = validEntries.find((e) => e.id === section.entryId);
-      const tags = entry?.data.tags || [];
-      cards.push({
-        title: section.name,
-        path: section.url.replace(/^\//, ''),
-        category: section.name,
-        categorySlug: section.slug,
-        description: entry ? extractDescription(entry.body) : '',
-        tags,
-      });
+      pushCard(section.name, section.url, section.entryId);
     }
 
     if (section.pages) {
       for (const page of section.pages) {
         if (page.isFolder && page.pages) {
           if (page.entryId) {
-            const entry = validEntries.find((e) => e.id === page.entryId);
-            const tags = entry?.data.tags || [];
-            cards.push({
-              title: page.name,
-              path: page.url.replace(/^\//, ''),
-              category: section.name,
-              categorySlug: section.slug,
-              description: entry ? extractDescription(entry.body) : '',
-              tags,
-            });
+            pushCard(page.name, page.url, page.entryId);
           }
           for (const subpage of page.pages) {
-            const entry = validEntries.find((e) => e.id === subpage.entryId);
-            const tags = entry?.data.tags || [];
-            cards.push({
-              title: subpage.name,
-              path: subpage.url.replace(/^\//, ''),
-              category: section.name,
-              categorySlug: section.slug,
-              description: entry ? extractDescription(entry.body) : '',
-              tags,
-            });
+            pushCard(subpage.name, subpage.url, subpage.entryId);
           }
         } else {
-          const entry = validEntries.find((e) => e.id === page.entryId);
-          const tags = entry?.data.tags || [];
-          cards.push({
-            title: page.name,
-            path: page.url.replace(/^\//, ''),
-            category: section.name,
-            categorySlug: section.slug,
-            description: entry ? extractDescription(entry.body) : '',
-            tags,
-          });
+          pushCard(page.name, page.url, page.entryId);
         }
       }
     }
@@ -130,7 +91,7 @@ const homepageJsonLd = [
       <!-- Card grid (server-rendered for SEO) -->
       <div class="landing-grid" style="--landing-cols: 2;">
         {cards.map((card) => (
-          <a href={'/' + card.path} class="landing-card" data-category={card.categorySlug || ''} data-tags={card.tags.join(',')}>
+          <a href={'/' + card.path} class="landing-card">
             <div class="card-badge-wrapper"></div>
             <h3 class="card-title">{card.title}</h3>
             <p class="card-desc">{card.description || 'No description available.'}</p>

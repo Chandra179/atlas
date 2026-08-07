@@ -1,9 +1,19 @@
 ---
-title: "Flash Sale"
-aliases: [cache-stampede, thundering-herd, dog-piling, cache-miss-storm]
-tags: [system-design, system-design/caching]
-created: "2026-06-13"
-modified: "2026-08-05"
+title: Flash Sale
+description: >-
+  Designing a flash-sale system that survives cache stampedes and
+  thundering-herd traffic: strict oversell prevention, graceful degradation, and
+  cache-miss storm mitigation.
+aliases:
+  - cache-stampede
+  - thundering-herd
+  - dog-piling
+  - cache-miss-storm
+tags:
+  - system-design
+  - system-design/caching
+created: 2026-06-13T00:00:00.000Z
+modified: '2026-07-26'
 ---
 
 # Flash Sale System

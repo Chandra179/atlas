@@ -63,6 +63,8 @@ let created: Date | undefined;
 let modified: Date | undefined;
 let tags: string[] = [];
 let ogImage: string | undefined;
+let author: string | undefined;
+let entryNoindex = false;
 
 if (!isIndex && entryId) {
   const entry = entryMap[entryId];
@@ -80,6 +82,8 @@ if (!isIndex && entryId) {
   modified = entry.data.modified;
   tags = entry.data.tags || [];
   ogImage = (entry.data as any).ogImage;
+  author = entry.data.author;
+  entryNoindex = entry.data.noindex ?? false;
 }
 
 if (isIndex) {
@@ -98,7 +102,8 @@ if (isIndex) {
   created={created}
   modified={modified}
   tags={tags}
-  noindex={isIndex}
+  author={author}
+  noindex={isIndex || entryNoindex}
 >
   {isIndex ? (
     <>

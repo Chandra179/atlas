@@ -1,6 +1,16 @@
 ---
-created: 2026-06-21
-modified: "2026-08-05"
+title: About Me
+description: >-
+  Chandra's background: 4 years in fintech, distributed systems, and workflow
+  automation, spanning itinerary services, SEO data pipelines, and marketing
+  automation.
+tags:
+  - about
+  - career
+  - fintech
+  - distributed-systems
+created: 2026-06-21T00:00:00.000Z
+modified: '2026-07-19'
 ---
 
 # Experience
