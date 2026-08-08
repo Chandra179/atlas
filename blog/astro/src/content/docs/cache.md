@@ -66,23 +66,23 @@ flowchart LR
 
     subgraph Redis["Redis Server"]
         direction TB
-        NIC[Network Interface<br/>TCP/IP Socket]
-        Q[FIFO Queue<br/>Single-Threaded]
+        NIC[Network Interface TCP/IP Socket]
+        Q[FIFO Queue Single-Threaded]
         CPU[CPU Event Loop]
-        RAM[In-Memory Data<br/>RAM]
-        BG[Background Fork<br/>Disk Persistence]
+        RAM[In-Memory Data RAM]
+        BG[Background Fork Disk Persistence]
     end
 
     subgraph Disk["Disk (SSD)"]
-        RDB[(RDB Snapshot<br/>AOF Log)]
+        RDB[(RDB Snapshot AOF Log)]
     end
 
-    A1 -->|"Request A<br/>(1-5ms network)"| NIC
-    A2 -->|"Request B<br/>(1-5ms network)"| NIC
+    A1 -->|"Request A (1-5ms network)"| NIC
+    A2 -->|"Request B (1-5ms network)"| NIC
     NIC -->|enqueue| Q
     Q -->|dequeue one by one| CPU
-    CPU -->|"read/write<br/>(~0.1ms)"| RAM
-    CPU -->|"periodic async<br/>save"| BG
+    CPU -->|"read/write (~0.1ms)"| RAM
+    CPU -->|"periodic async save"| BG
     BG -->|write| RDB
 ```
 

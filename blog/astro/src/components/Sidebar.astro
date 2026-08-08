@@ -53,7 +53,7 @@ const initialState = JSON.stringify({ expandedSections: initialSections, expande
           <!-- Standalone page (no dropdown) -->
           <div class="mb-6">
             <a href={section.url}
-              class={`block px-3 mb-2 text-xs font-semibold uppercase tracking-wider hover:text-gray-900 ${isActive(section.url, currentPath) ? 'text-blue-600' : 'text-gray-500'}`}
+              class={`block px-3 mb-2 text-xs font-semibold tracking-wider hover:text-gray-900 ${isActive(section.url, currentPath) ? 'text-blue-600' : 'text-gray-500'}`}
               aria-current={isActive(section.url, currentPath) ? 'page' : undefined}>
               {section.name}
             </a>
@@ -63,7 +63,7 @@ const initialState = JSON.stringify({ expandedSections: initialSections, expande
           <div class="mb-6">
             <div class="flex items-center justify-between px-3 mb-2 group">
               <a href={section.url}
-                class={`text-xs font-semibold uppercase tracking-wider hover:text-gray-900 flex-1 ${isCategoryActive(section.slug, currentPath) ? 'text-blue-600' : 'text-gray-500'}`}>
+                class={`text-xs font-semibold tracking-wider hover:text-gray-900 flex-1 ${isCategoryActive(section.slug, currentPath) ? 'text-blue-600' : 'text-gray-500'}`}>
                 {section.name}
               </a>
               {section.pages && section.pages.length > 0 && (
