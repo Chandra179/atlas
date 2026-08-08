@@ -21,6 +21,8 @@ const ALLOWED_FILES = new Set([
   'real-time-chat.md',
   'uber-architecture.md',
   'business.md',
+  'cache.md',
+  'backend-engineering/cache.md'
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })
