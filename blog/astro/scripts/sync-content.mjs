@@ -19,6 +19,7 @@ const ALLOWED_FILES = new Set([
   'rate-limiter.md',
   'order-inventory-system.md',
   'real-time-chat.md',
+  'uber-architecture.md',
   'business.md',
 ]);
 

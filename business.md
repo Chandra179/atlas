@@ -60,14 +60,14 @@ Level 3 institutions get pointed at real-world problems and turn into applied to
 
 **How deep software has taken over each Level 4 tool.** This is the "software's role" question, asked before any specific industry exists:
 
-| **Level 4 Tool**       | **Software's Role**                                                                 |
-| ------------------------ | --------------------------------------------------------------------------------- |
-| Trade/exchange            | Core. Ecommerce platforms and marketplaces literally *are* software.             |
-| Money/credit               | Core. Banking, payments, BNPL now run as software systems.                       |
-| Property/ownership         | Support. Software tracks/manages; the asset itself is physical/legal.            |
-| Production                  | Growing core. Software increasingly controls robotics/automation directly.       |
-| Movement/logistics          | Core. Routing, tracking, fleet management is almost entirely software-driven.    |
-| Information systems         | Is software. This Level 4 tool and software are effectively the same thing.      |
+| **Level 4 Tool**    | **Software's Role**                                                           |
+| ------------------- | ----------------------------------------------------------------------------- |
+| Trade/exchange      | Core. Ecommerce platforms and marketplaces literally *are* software.          |
+| Money/credit        | Core. Banking, payments, BNPL now run as software systems.                    |
+| Property/ownership  | Support. Software tracks/manages; the asset itself is physical/legal.         |
+| Production          | Growing core. Software increasingly controls robotics/automation directly.    |
+| Movement/logistics  | Core. Routing, tracking, fleet management is almost entirely software-driven. |
+| Information systems | Is software. This Level 4 tool and software are effectively the same thing.   |
 
 ---
 
