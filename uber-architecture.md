@@ -573,3 +573,287 @@ graph TB
 3. Events land in Apache Kafka within seconds.
 4. Apache Hudi / Marmaray consumes Kafka CDC messages → Performs incremental upserts into Parquet files on Hadoop HDFS.
 5. Data Engineers / ML Models query the updated Parquet data using Presto, Hive, or Spark.
+
+## 8. Durable Execution & Financial Ledger
+
+To handle complex multi-step processes and maintain financial accuracy, Uber relies on two fundamental architectural patterns: Durable Execution (Cadence/Temporal) and SOX-Compliant Double-Entry Accounting (Gulfstream).
+
+### 8.1 Distributed Workflows: Cadence / Temporal
+
+When a trip is canceled mid-route, several microservices must execute steps in a precise sequence: charge a cancellation fee, notify the driver, update driver availability, issue promo credits, and recalibrate matching algorithms. Standard microservices using HTTP calls or message queues risk losing state if the payment service drops connection halfway through, leading to duplicate charges or orphaned transactions.
+
+Uber created Cadence (now evolved in the open-source community as Temporal) to solve this via Durable Execution.
+
+```mermaid
+graph TB
+    subgraph CADENCE["Cadence Cluster"]
+        WS["Workflow Service<br/>Orchestrator"]
+        EHS["Event History Store<br/>Cassandra / Database"]
+        WS --> EHS
+    end
+    WS -->|Task Queues gRPC| WORKERS
+    subgraph WORKERS["Worker Processes"]
+        WW["Workflow Worker<br/>Deterministic Business Logic"]
+        AW["Activity Worker<br/>Non-deterministic Side Effects / APIs"]
+    end
+```
+
+**Workflows vs. Activities:**
+
+To achieve crash resilience, Cadence strictly splits code into two concepts:
+
+- **Workflows (State Logic):** Written as standard, imperative code (Go, Java, Python). They must be completely deterministic — they cannot make API calls, access the system clock, or generate random numbers directly. They simply dictate order: "Execute Step A, wait for signal X, then execute Step B."
+- **Activities (Side Effects):** Non-deterministic actions live here: charging a credit card, sending an SMS, or calling a third-party API. Activities can fail, time out, and be retried independently using automatic backoff policies defined by the workflow.
+
+**Replay-Based Recovery (Durable Execution):**
+
+Cadence does not take memory snapshots of your code. Instead, it uses Event Sourcing:
+
+```
+Event History Stream:
+[1] WorkflowStarted --> [2] ActivityScheduled(ChargeFee) --> [3] ActivityCompleted(Success)
+```
+
+Every time an Activity completes, Cadence commits an event to an immutable Event History database (Cassandra or MySQL). If the worker host running your workflow dies mid-execution, Cadence spins up a brand new worker node. The new worker re-executes the Workflow code from line 1. When it hits `ChargeFee()`, Cadence checks the Event History, sees `ActivityCompleted(Success)`, skips calling the payment API again, and immediately feeds the stored result directly into the code variable. The workflow resumes at line N without performing duplicate operations.
+
+**Saga Pattern & Compensation Logic:**
+
+In distributed transactions without 2-Phase Commit (2PC), Cadence implements the Saga Pattern for rollback recovery. If an operation fails late in the flow, compensation steps run in reverse:
+
+```go
+func CancellationWorkflow(ctx workflow.Context, tripID string) error {
+    var saga CompensationSaga
+
+    err := workflow.ExecuteActivity(ctx, ReserveDriverPayout, tripID).Get(ctx, nil)
+    if err != nil { return err }
+    saga.AddCompensation(ReleaseDriverPayout, tripID)
+
+    err = workflow.ExecuteActivity(ctx, ChargeRiderFee, tripID).Get(ctx, nil)
+    if err != nil {
+        saga.Compensate(ctx)
+        return err
+    }
+    return nil
+}
+```
+
+### 8.2 Financial Ledger & Double-Entry Bookkeeping (Gulfstream)
+
+Handling money across millions of trips requires strict financial auditability (SOX compliance). A single database field like `user_balance = user_balance - $10` is forbidden because it lacks an audit trail and causes catastrophic race conditions. Uber's core financial platform, Gulfstream, enforces Double-Entry Bookkeeping.
+
+**The Fundamental Rule:** Money Is Neither Created Nor Destroyed
+
+In Gulfstream, every monetary movement is represented as an immutable transaction where:
+
+$$\sum \text{Debits} = \sum \text{Credits}$$
+
+Every balance is simply the sum total of its history of ledger entries.
+
+**Example: $20 Fare with a $5 Promo Code**
+
+When a rider takes a $20 ride using a $5 promo code, Uber's platform fee is $3, and the driver earns $17. Gulfstream writes a single balanced atomic transaction containing 4 entries:
+
+| Account | Entry Type | Amount |
+|---------|-----------|--------|
+| Rider:Account | Debit (Asset reduction/Payment) | $15.00 |
+| Uber:MarketingPromo | Debit (Expense/Subsidy) | $5.00 |
+| Driver:Account | Credit (Liability/Owed to driver) | $17.00 |
+| Uber:Revenue | Credit (Revenue retained) | $3.00 |
+
+$$\text{Total Debits } (\$15 + \$5 = \$20) \equiv \text{Total Credits } (\$17 + \$3 = \$20)$$
+
+**High-Throughput Account Scaling (Batching & Concurrency):**
+
+A major engineering challenge with double-entry ledgers is hotspot write contention. When thousands of riders finish trips at 5:00 PM, Uber's central accounts (like Uber:Revenue or global driver payout pools) experience tens of thousands of concurrent writes per second. Standard database row-locking causes massive bottlenecking.
+
+Uber solved this by building a 250ms User Account Batch Processing Engine:
+
+```mermaid
+graph TB
+    REQ["Incoming Ledger Requests"] --> BC["Batch Creator<br/>Redis Coordination<br/>Aggregates ops into 250ms time-windows per account"]
+    BC --> BPS["Batch Process Service<br/>1. Read Account Balance ONCE<br/>2. Apply all operations in-memory<br/>3. Write Atomic Update via Optimistic Locking version_id"]
+    BPS --> UAS["User Account Store"]
+    UAS --> AAS["Async Audit Service<br/>User Account Changelog UAC"]
+```
+
+- **Sub-Second Aggregation:** Operations targeting the same account are grouped into 250-millisecond windows using Redis coordination.
+- **Single Read/Write Cycle:** Instead of 50 independent SQL reads/writes for 50 updates, the engine reads the current account state once, applies all 50 debit/credit mutations in memory, and writes back the updated balance in a single atomic batch update.
+- **Optimistic Locking:** The batch update validates account versions (`WHERE version = 104`). If a conflict occurs, the batch quickly retries without holding long database locks.
+- **Asynchronous Audit Logging:** Writing the User Account Changelog (UAC) audit trail is decoupled from the critical path using Kafka, reducing database round-trip times to 8–20ms per operation.
+
+### Architectural Comparison
+
+| Need | Distributed Workflow (Cadence) | Financial Ledger (Gulfstream) |
+|------|-------------------------------|------------------------------|
+| Primary Goal | Orchestrate long-running, multi-step business logic without dropping state | Guarantee mathematical correctness and auditability of funds |
+| Failure Recovery | Replay-based recovery from event history logs; Saga compensation rollbacks | Atomic batch updates; double-entry balance constraints ($\sum \text{Debits} = \sum \text{Credits}$) |
+| Consistency Model | Eventual consistency across microservices via orchestrator tasks | Strict serializability and ACID compliance at the account entry level |
+| Throughput Strategy | Decoupled background task queues and priority-based scheduling | 250ms time-window batching with optimistic locking in Redis |
+
+### 8.3 Workflow Design Hierarchy: Steps, Flows, and Journeys
+
+Determining how to decompose a system into Steps (Activities), Flows (Child/Parent Workflows), and Journeys (Entities) is the most critical design decision in durable execution. If boundaries are too granular, you hit Event History limits (default 51,200 events per execution). If they are too broad, your code becomes monolithic and hard to recover or test.
+
+```mermaid
+graph TB
+    T4["TIER 4: JOURNEY Entity Workflow<br/>Driver Lifecycle Runs for months or years"]
+    T3["TIER 3: FLOW / BUSINESS SUB-WORKFLOW<br/>Background Check Flow or Trip Execution Flow Minutes"]
+    T2["TIER 2: STEP / ACTIVITY<br/>Call Checkr API or Process Stripe Payment Seconds"]
+    T1["TIER 1: LOCAL FUNCTION / CODE<br/>Validate Email Format or Calculate Subtotal Nanoseconds"]
+    T4 -->|Signals / Child Calls| T3
+    T3 -->|Schedules| T2
+    T2 -->|Internal Call| T1
+```
+
+**Tier 2 — Step (Activity):** A unit of work that interacts with the real world or performs non-deterministic logic. Make it an Activity if it involves network I/O, non-deterministic operations (time.Now(), random UUID), requires failure retries with exponential backoff, or heavy CPU computation. Keep it inline in the Workflow if it's pure data manipulation (validating input, mapping JSON, basic math).
+
+**Tier 3 — Flow (Child / Sub-Workflow):** A self-contained, bounded business sequence. Make it a Sub-Workflow if it is a reusable business unit (e.g., Refund & Cancellation Flow invoked by multiple parents), generates thousands of events (so its history completes independently), needs an independent failure domain, or is owned by a different team.
+
+**Tier 4 — Journey (Entity / Long-Running Workflow):** Models the long-term state machine of a core business entity (e.g., a Driver, a Vehicle). Make it an Entity Journey if it spans months or years, coordinates state via incoming Signals (`for { select { ... } }`), and uses `ContinueAsNew` to atomically truncate event history before hitting the 50,000 event limit.
+
+**Decision Matrix:**
+
+| Question | Step (Activity)? | Flow (Sub-Workflow)? | Journey (Entity)? |
+|----------|:---:|:---:|:---:|
+| Calls an external API or DB? | YES | No | No |
+| Should be retried independently? | YES | No | No |
+| Represents an entire business task? | No | YES | No |
+| Will generate thousands of events? | No | YES (isolates history) | YES (uses ContinueAsNew) |
+| Listens for signals over months? | No | No | YES |
+
+**Real-World Example: Driver Onboarding**
+
+```go
+// TIER 4: JOURNEY (Entity Workflow - Driver Lifetime)
+func DriverJourneyWorkflow(ctx workflow.Context, driverID string) error {
+    state := InitialDriverState()
+
+    for {
+        var signal DriverSignal
+        workflow.GetSignalChannel(ctx, "driver-events").Receive(ctx, &signal)
+
+        switch signal.Type {
+        case "SUBMIT_DOCUMENTS":
+            // TIER 3: FLOW (Child Workflow)
+            err := workflow.ExecuteChildWorkflow(ctx, DocumentVerificationFlow, driverID).Get(ctx, nil)
+            if err == nil { state.IsVerified = true }
+
+        case "RETIRE_DRIVER":
+            return nil
+        }
+
+        if workflow.GetInfo(ctx).HistoryLength > 20000 {
+            return workflow.NewContinueAsNewError(ctx, DriverJourneyWorkflow, driverID, state)
+        }
+    }
+}
+
+// TIER 3: FLOW (Sub-Workflow)
+func DocumentVerificationFlow(ctx workflow.Context, driverID string) error {
+    err := workflow.ExecuteActivity(ctx, CallBackgroundCheckAPI, driverID).Get(ctx, nil)
+    if err != nil {
+        _ = workflow.ExecuteActivity(ctx, SendRejectionEmail, driverID).Get(ctx, nil)
+        return err
+    }
+    return nil
+}
+```
+
+### 8.4 Concrete Example: Uber Eats Order Fulfillment
+
+The 4-tier hierarchy applied to Uber Eats, where a single order coordinates a customer, restaurant, and courier through a ~45-minute lifecycle.
+
+```mermaid
+graph TB
+    T4["TIER 4: JOURNEYS Entity Workflows<br/>Customer Order Journey ~45 mins<br/>Restaurant Operational Journey<br/>Courier Shift Journey"]
+    T3["TIER 3: FLOWS Sub-Workflows<br/>Order Placement & Payment Flow<br/>Restaurant Fulfillment & Cooking Flow<br/>Courier Dispatch & Pickup Flow<br/>Delivery & Hand-off Flow"]
+    T2["TIER 2: STEPS Activities<br/>Reserve Payment Stripe | Dispatch Courier Push<br/>Send POS Order POS API | Verify Delivery PIN"]
+    T1["TIER 1: LOCAL FUNCTIONS<br/>Compute Tax & Fees | Calculate ETA Windows"]
+    T4 -->|Coordinates / Spawns| T3
+    T3 -->|Schedules| T2
+    T2 -->|Pure Code| T1
+```
+
+**OrderFulfillmentJourney:**
+
+```mermaid
+graph TB
+    START["Customer Order Placed"] --> PAY["Payment & Authorization Flow"]
+    PAY --> REST["Restaurant Preparation Flow"]
+    REST --> COURIER["Courier Dispatch & Pickup"]
+    COURIER --> DELIVERY["Delivery & Hand-off Flow"]
+    SIG1["Signal: Restaurant Accepts Est. Prep 15m"] -.-> REST
+    SIG2["Signal: Courier Arrived / Picked Up"] -.-> COURIER
+    SIG3["Signal: Order Delivered PIN verified"] -.-> DELIVERY
+```
+
+**Flow A — Payment Authorization:** Runs as a child workflow to fail fast before notifying the restaurant. If payment fails, no food waste.
+
+**Flow B — Restaurant Fulfillment:** Uses a Temporal Selector to wait concurrently for `AcceptOrder(prepTimeMinutes)`, `RejectOrder(reason)`, or a 5-minute timeout (auto-reject if tablet unresponsive).
+
+**Flow C — Courier Dispatch & Matching:** Delayed launch using a workflow timer so the courier arrives just as food finishes cooking:
+
+$$\text{Dispatch Delay} = \text{Target Pickup Time} - \text{Estimated Driver Transit Time}$$
+
+**Tier 2 Activities:**
+
+| Activity | Failure & Retry Policy |
+|----------|----------------------|
+| AuthorizePayment | Retry 3x on network failure; fail immediately on card decline |
+| SendOrderToRestaurantPOS | Exponential backoff for 3 min; fallback to IVR phone call |
+| AssignCourierLock | Short retry (15s SETNX timeout per candidate) |
+| CapturePayment | Retry indefinitely (durable finance step) |
+| SendPushNotification | Fire-and-forget; low-priority retry |
+
+**Production Go Implementation:**
+
+```go
+func OrderFulfillmentJourney(ctx workflow.Context, orderID string) error {
+    var saga CompensationSaga
+
+    // Phase 1: Payment Authorization
+    var paymentAuth PaymentAuthResult
+    err := workflow.ExecuteChildWorkflow(ctx, PaymentAuthorizationFlow, orderID).Get(ctx, &paymentAuth)
+    if err != nil {
+        return err
+    }
+    saga.AddCompensation(VoidPaymentAuthorization, paymentAuth.AuthCode)
+
+    // Phase 2: Restaurant Fulfillment
+    var prepResult RestaurantPrepResult
+    err = workflow.ExecuteChildWorkflow(ctx, RestaurantFulfillmentFlow, orderID).Get(ctx, &prepResult)
+    if err != nil {
+        saga.Compensate(ctx)
+        return err
+    }
+
+    // Phase 3: Timed Courier Dispatch
+    dispatchDelay := prepResult.EstimatedReadyTime.Sub(workflow.Now(ctx)) - EstimatedCourierTransitTime
+    if dispatchDelay > 0 {
+        workflow.Sleep(ctx, dispatchDelay)
+    }
+
+    var courierResult CourierMatchResult
+    err = workflow.ExecuteChildWorkflow(ctx, CourierDispatchFlow, orderID, prepResult.RestaurantLocation).Get(ctx, &courierResult)
+    if err != nil {
+        workflow.ExecuteActivity(ctx, CancelRestaurantOrder, orderID)
+        saga.Compensate(ctx)
+        return err
+    }
+
+    // Phase 4: Delivery & Payment Capture
+    var deliverySignal DeliveryConfirmationSignal
+    workflow.GetSignalChannel(ctx, "delivery-channel").Receive(ctx, &deliverySignal)
+
+    if deliverySignal.Status == "DELIVERED" {
+        return workflow.ExecuteActivity(ctx, CapturePayment, orderID, paymentAuth.AuthCode).Get(ctx, nil)
+    }
+    saga.Compensate(ctx)
+    return fmt.Errorf("delivery failed")
+}
+```
+
+**Key architectural takeaways:**
+- **Failure Isolation:** A restaurant rejection voids the credit card hold without dispatching a courier.
+- **Durable Timers:** `workflow.Sleep` survives server restarts — timer state is preserved in event history.
+- **Decoupled Scaling:** Payment, POS, and Courier workers scale independently on distinct fleets.
