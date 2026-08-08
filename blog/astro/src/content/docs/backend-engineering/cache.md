@@ -3,6 +3,8 @@ title: Cache
 modified: '2026-08-08'
 ---
 
+# Cache
+
 ## Locks vs. Atomic Operations: When to Use Which?
 
 If 1,000 requests compete for a lock, 999 requests sit idle waiting for the lock holder to finish. This creates thread starvation and database timeouts.
