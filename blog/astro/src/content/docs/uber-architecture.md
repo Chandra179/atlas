@@ -31,9 +31,9 @@ graph TB
     EG --> DS[Demand Service]
     SS --> DE[DISCO Engine]
     DS --> DE
-    DE --> RTE[Real-Time Event Stream<br/>Kafka / Flink Pipe]
-    DE --> INF[Infrastructure<br/>Multi-Region DCs]
-    RTE --> MLB[ML & Business<br/>Michelangelo, Payments, Safety]
+    DE --> RTE[Real-Time Event Stream Kafka / Flink Pipe]
+    DE --> INF[Infrastructure Multi-Region DCs]
+    RTE --> MLB[ML & Business Michelangelo, Payments, Safety]
     INF --> MLB
 ```
 
@@ -50,10 +50,10 @@ The foundation of Uber's location system is Earth partitioning. Because calculat
 ```mermaid
 graph TB
     RA[Rider App] -->|WebSocket/HTTP| DS[Demand Service]
-    DA[Driver App] -->|WebSocket<br/>Location ping every 4s| SS[Supply Service]
+    DA[Driver App] -->|WebSocket Location ping every 4s| SS[Supply Service]
     DS --> DISCO[DISCO Dispatch]
     SS --> DISCO
-    DISCO --> ETA[ETA Engine & Routing<br/>Map Matching]
+    DISCO --> ETA[ETA Engine & Routing Map Matching]
 ```
 
 **Step A: Supply Service (Tracking Drivers)**
@@ -319,11 +319,11 @@ In a production Redis Cluster, each node (Master or Replica) runs as its own pro
 ```mermaid
 graph TB
     subgraph VM1["Physical Host / VM 1"]
-        M1["Redis Master 1<br/>Handles Slots 0-5460"]
+        M1["Redis Master 1 Handles Slots 0-5460"]
     end
     M1 -->|Replication stream| R1
     subgraph VM2["Physical Host / VM 2"]
-        R1["Redis Replica 1<br/>Standby copy of Master 1"]
+        R1["Redis Replica 1 Standby copy of Master 1"]
     end
 ```
 
@@ -427,11 +427,11 @@ Schemaless is an append-only, key-value datastore built over clusters of MySQL i
 
 ```mermaid
 graph TB
-    APP["APP SERVICES<br/>Ride Service, Billing, Receipt"]
-    APP -->|HTTP / gRPC| SW["SCHEMALESS WORKER<br/>Routing, Sharding, Datastore Logic"]
-    SW --> M1["MySQL Instance<br/>Shard 1"]
-    SW --> M2["MySQL Instance<br/>Shard 2"]
-    SW --> M3["MySQL Instance<br/>Shard 3"]
+    APP["APP SERVICES Ride Service, Billing, Receipt"]
+    APP -->|HTTP / gRPC| SW["SCHEMALESS WORKER Routing, Sharding, Datastore Logic"]
+    SW --> M1["MySQL Instance Shard 1"]
+    SW --> M2["MySQL Instance Shard 2"]
+    SW --> M3["MySQL Instance Shard 3"]
 ```
 
 **Key Design Principles:**
@@ -460,9 +460,9 @@ Keeping decades of trip history in expensive high-speed transactional databases 
 
 ```mermaid
 graph TB
-    ACTIVE["Active / Recent Trips"] --> HOT["Schemaless MySQL / NVMe SSDs<br/>Hot Data: 0-30 Days"]
-    HOT -->|Kafka CDC| WARM["Cassandra / HBase Cluster<br/>Warm Data: 30+ Days"]
-    WARM -->|Batch Ingestion| COLD["Hadoop HDFS / Apache Iceberg<br/>Cold Data: Permanent"]
+    ACTIVE["Active / Recent Trips"] --> HOT["Schemaless MySQL / NVMe SSDs Hot Data: 0-30 Days"]
+    HOT -->|Kafka CDC| WARM["Cassandra / HBase Cluster Warm Data: 30+ Days"]
+    WARM -->|Batch Ingestion| COLD["Hadoop HDFS / Apache Iceberg Cold Data: Permanent"]
 ```
 
 - **Hot Tier (Schemaless / NVMe SSDs):** Active and recent trips (0-30 days). Optimized for fast API reads (e.g., viewing a recent receipt).
@@ -510,11 +510,11 @@ graph TB
         BINLOG["Transaction Binlog"]
         MYSQL --> BINLOG
     end
-    BINLOG -->|Reads Raw Binlog Bytes| ST["StorageTapper CDC Service<br/>Parses mutations → Schematizes via Avro Schema"]
-    ST -->|Publishes Events| KAFKA["Apache Kafka Cluster<br/>Topic: schemaless.trip_events"]
-    KAFKA -->|Real-Time Path| FLINK["Apache Flink / Pinot<br/>Real-time Surge & Fraud"]
-    KAFKA -->|Batch Data Lake Path| MH["Marmaray / Hoodi<br/>Data Lake Ingestion Engine"]
-    MH --> HDFS["Hadoop HDFS / S3<br/>Columnar Storage Parquet"]
+    BINLOG -->|Reads Raw Binlog Bytes| ST["StorageTapper CDC Service Parses mutations → Schematizes via Avro Schema"]
+    ST -->|Publishes Events| KAFKA["Apache Kafka Cluster Topic: schemaless.trip_events"]
+    KAFKA -->|Real-Time Path| FLINK["Apache Flink / Pinot Real-time Surge & Fraud"]
+    KAFKA -->|Batch Data Lake Path| MH["Marmaray / Hoodi Data Lake Ingestion Engine"]
+    MH --> HDFS["Hadoop HDFS / S3 Columnar Storage Parquet"]
 ```
 
 #### Step-by-Step Data Journey
@@ -592,14 +592,14 @@ Uber created Cadence (now evolved in the open-source community as Temporal) to s
 ```mermaid
 graph TB
     subgraph CADENCE["Cadence Cluster"]
-        WS["Workflow Service<br/>Orchestrator"]
-        EHS["Event History Store<br/>Cassandra / Database"]
+        WS["Workflow Service Orchestrator"]
+        EHS["Event History Store Cassandra / Database"]
         WS --> EHS
     end
     WS -->|Task Queues gRPC| WORKERS
     subgraph WORKERS["Worker Processes"]
-        WW["Workflow Worker<br/>Deterministic Business Logic"]
-        AW["Activity Worker<br/>Non-deterministic Side Effects / APIs"]
+        WW["Workflow Worker Deterministic Business Logic"]
+        AW["Activity Worker Non-deterministic Side Effects / APIs"]
     end
 ```
 
@@ -675,10 +675,10 @@ Uber solved this by building a 250ms User Account Batch Processing Engine:
 
 ```mermaid
 graph TB
-    REQ["Incoming Ledger Requests"] --> BC["Batch Creator<br/>Redis Coordination<br/>Aggregates ops into 250ms time-windows per account"]
-    BC --> BPS["Batch Process Service<br/>1. Read Account Balance ONCE<br/>2. Apply all operations in-memory<br/>3. Write Atomic Update via Optimistic Locking version_id"]
+    REQ["Incoming Ledger Requests"] --> BC["Batch Creator Redis Coordination Aggregates ops into 250ms time-windows per account"]
+    BC --> BPS["Batch Process Service 1. Read Account Balance ONCE 2. Apply all operations in-memory 3. Write Atomic Update via Optimistic Locking version_id"]
     BPS --> UAS["User Account Store"]
-    UAS --> AAS["Async Audit Service<br/>User Account Changelog UAC"]
+    UAS --> AAS["Async Audit Service User Account Changelog UAC"]
 ```
 
 - **Sub-Second Aggregation:** Operations targeting the same account are grouped into 250-millisecond windows using Redis coordination.
@@ -701,10 +701,10 @@ Determining how to decompose a system into Steps (Activities), Flows (Child/Pare
 
 ```mermaid
 graph TB
-    T4["TIER 4: JOURNEY Entity Workflow<br/>Driver Lifecycle Runs for months or years"]
-    T3["TIER 3: FLOW / BUSINESS SUB-WORKFLOW<br/>Background Check Flow or Trip Execution Flow Minutes"]
-    T2["TIER 2: STEP / ACTIVITY<br/>Call Checkr API or Process Stripe Payment Seconds"]
-    T1["TIER 1: LOCAL FUNCTION / CODE<br/>Validate Email Format or Calculate Subtotal Nanoseconds"]
+    T4["TIER 4: JOURNEY Entity Workflow Driver Lifecycle Runs for months or years"]
+    T3["TIER 3: FLOW / BUSINESS SUB-WORKFLOW Background Check Flow or Trip Execution Flow Minutes"]
+    T2["TIER 2: STEP / ACTIVITY Call Checkr API or Process Stripe Payment Seconds"]
+    T1["TIER 1: LOCAL FUNCTION / CODE Validate Email Format or Calculate Subtotal Nanoseconds"]
     T4 -->|Signals / Child Calls| T3
     T3 -->|Schedules| T2
     T2 -->|Internal Call| T1
@@ -770,10 +770,10 @@ The 4-tier hierarchy applied to Uber Eats, where a single order coordinates a cu
 
 ```mermaid
 graph TB
-    T4["TIER 4: JOURNEYS Entity Workflows<br/>Customer Order Journey ~45 mins<br/>Restaurant Operational Journey<br/>Courier Shift Journey"]
-    T3["TIER 3: FLOWS Sub-Workflows<br/>Order Placement & Payment Flow<br/>Restaurant Fulfillment & Cooking Flow<br/>Courier Dispatch & Pickup Flow<br/>Delivery & Hand-off Flow"]
-    T2["TIER 2: STEPS Activities<br/>Reserve Payment Stripe | Dispatch Courier Push<br/>Send POS Order POS API | Verify Delivery PIN"]
-    T1["TIER 1: LOCAL FUNCTIONS<br/>Compute Tax & Fees | Calculate ETA Windows"]
+    T4["TIER 4: JOURNEYS Entity Workflows Customer Order Journey ~45 mins Restaurant Operational Journey Courier Shift Journey"]
+    T3["TIER 3: FLOWS Sub-Workflows Order Placement & Payment Flow Restaurant Fulfillment & Cooking Flow Courier Dispatch & Pickup Flow Delivery & Hand-off Flow"]
+    T2["TIER 2: STEPS Activities Reserve Payment Stripe | Dispatch Courier Push Send POS Order POS API | Verify Delivery PIN"]
+    T1["TIER 1: LOCAL FUNCTIONS Compute Tax & Fees | Calculate ETA Windows"]
     T4 -->|Coordinates / Spawns| T3
     T3 -->|Schedules| T2
     T2 -->|Pure Code| T1
