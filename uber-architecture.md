@@ -79,6 +79,46 @@ To manage thousands of individual microservices, Uber introduced Domain-Oriented
 4. **Business Layer:** Shared capabilities used across all products (e.g., Payments, Passports/Identity, Billing).
 5. **Infrastructure Layer:** Low-level operations like database management, networking, and deployment frameworks.
 
+## 5. Core Design Drivers: Ratio, CQRS & CAP Trade-Offs
+
+The 1:10 driver-to-rider ratio and the AP vs. CP split directly dictate how you choose your databases, write protocols, and partition strategy. Here is exactly how those two insights shaped the blueprint.
+
+### 5.1 How the 1:10 Driver-to-Rider Ratio Shapes the System
+
+The ratio creates an asymmetric Read/Write profile:
+
+$$\text{Writes} = 250,000 \text{ pings/sec (Drivers sending updates)}$$
+$$\text{Reads} = 50,000\text{--}100,000 \text{ queries/sec (Riders opening maps, searching, polling)}$$
+
+While there are more riders overall, drivers write far more frequently (every 4 seconds) than riders query. This asymmetry forced three critical architectural choices:
+
+**1. Ingestion Protocol Choice (gRPC over HTTP/2 vs. REST):** Without the 1:10 write-heavy ratio, you might use standard REST HTTP/1.1 POST calls for location pings. With 250,000 writes/sec, establishing 250,000 new TCP/TLS connections every second would crash your API gateways due to handshake overhead. The high write ratio forced us to use long-lived gRPC streaming connections over HTTP/2, allowing 1,000,000 drivers to keep persistent sockets open and stream tiny binary Protobuf payloads with minimal CPU overhead.
+
+**2. CQRS Pattern (Command Query Responsibility Segregation):** Because driver updates happen on a relentless 4-second ticker, you cannot let rider search queries hit the same database table or lock the same rows. We completely separated the Write Path (Driver → Kafka → Redis Primary) from the Read Path (Rider → Redis Read Replicas). Riders reading nearby drivers never block drivers writing their new locations.
+
+### 5.2 How the AP vs. CP Trade-Off Shapes the System
+
+Instead of choosing one CAP trade-off for the entire platform, we split the system into two distinct sub-domains based on business requirements:
+
+```mermaid
+graph TB
+    AP["LOCATION TRACKING ENGINE Requirement: High Availability & Sub-second Latency Trade-off Choice: AP Eventual Consistency Storage Engine: Redis Spatial Cluster"]
+    CP["MATCHING & TRIP STATE ENGINE Requirement: Zero Double-Bookings Financial Integrity Trade-off Choice: CP Strong Consistency Storage Engine: Distributed RDBMS CockroachDB / Postgres"]
+    AP --> CP
+```
+
+**The AP Engine (Location Streaming):** If a driver drops connection for 3 seconds, or if a rider sees a driver's icon 50 meters away from where they actually are, nobody loses money. We chose Redis + Kafka configured for speed over strict ACID guarantees. Writes are non-blocking. If a location ping fails due to a momentary network partition, we simply drop it and wait for the next ping 4 seconds later. No distributed database transactions are used for pings.
+
+**The CP Engine (Match & Dispatch Execution):** If two riders press "Request Ride" at the exact same millisecond for the exact same driver, and both get confirmed, the business loses trust and money. Availability must yield to absolute consistency here. We switched from the AP fast-path (Redis) to a CP transactional execution path with Distributed Locks (Redlock) + Atomic Lua Scripts + Relational DB ACID Transactions (SELECT FOR UPDATE or Optimistic Locking). If a network partition occurs during a match, the system fails the request and asks the rider to try again (sacrificing Availability) rather than risk double-booking the driver (preserving Consistency).
+
+### Summary Matrix
+
+| Metric / Constraint | Design Decision Driven By It |
+|---------------------|------------------------------|
+| 1:10 Asymmetric Scale | Separated Read/Write pipelines (CQRS) and used persistent gRPC streams instead of REST |
+| AP (Location Tracking) | Redis in-memory storage, dropped-packet tolerance, 2-second eventual consistency |
+| CP (Trip Matching) | Pessimistic/Optimistic distributed locking, transactional SQL state updates, hard consistency guarantees |
+
 ## 6. Production System Design: Driver Tracking & Matching
 
 ### 6.1 Requirements & Scale Expectations
@@ -362,9 +402,9 @@ Four factors keep it fast:
 | Gateway socket exhaustion | Use Netty/epoll non-blocking I/O to hold 100k+ open WebSocket connections per instance |
 | Driver connection drop | Background worker marks driver OFFLINE and removes from S2 index if no ping in > 12 seconds |
 
-## 5. Supporting Architecture Layers
+## 10. Supporting Architecture Layers
 
-### 5.1 Data Mesh & Machine Learning Platform (Michelangelo)
+### 10.1 Data Mesh & Machine Learning Platform (Michelangelo)
 
 Matching drivers and riders isn't purely rule-based — it relies on AI/ML predictions running in real time:
 
@@ -372,28 +412,28 @@ Matching drivers and riders isn't purely rule-based — it relies on AI/ML predi
 - **Dynamic Pricing (Surge):** Flink processes real-time event streams from Kafka (rider app opens vs. available drivers per H3 grid cell). Michelangelo uses this to update pricing multipliers dynamically to balance market demand.
 - **DeepETA:** Neural networks continuously update estimated trip times by evaluating weather, historical traffic, and micro-routing nuances.
 
-### 5.2 High Availability & Multi-Region Resiliency
+### 10.2 High Availability & Multi-Region Resiliency
 
 Uber cannot afford downtime in any city.
 
 - **Active-Active Datacenters:** Uber runs multi-region deployments. If an entire cloud region or datacenter fails, traffic automatically fails over without losing active trip states.
 - **Stateful Failover:** In-flight trip states are replicated cross-region so a driver mid-trip won't lose navigation or fare tracking if a server cluster dies.
 
-### 5.3 Payment Processing & Financial Settlement
+### 10.3 Payment Processing & Financial Settlement
 
 Handling money across hundreds of currencies, payment methods, and tax jurisdictions is an architectural domain of its own:
 
 - **Double-Entry Ledger:** Ensures financial consistency — a dollar charged to a rider must strictly balance across Uber's fee, driver payout, and local tax.
 - **Payout Pipelines:** Real-time risk screening before pushing money to driver bank accounts or debit cards globally.
 
-### 5.4 Safety & Telematics Processing
+### 10.4 Safety & Telematics Processing
 
 Driver phones stream gyroscope, accelerometer, and GPS sensor data back to Uber:
 
 - Real-time anomaly detection flags sudden stops, crashes, or erratic driving.
 - Safety features like crash detection trigger immediate customer support outreach via automated workflows.
 
-### 5.5 Open-Source Ecosystem Originated by Uber
+### 10.5 Open-Source Ecosystem Originated by Uber
 
 To support this architecture, Uber custom-built several industry-standard tools:
 
@@ -857,3 +897,108 @@ func OrderFulfillmentJourney(ctx workflow.Context, orderID string) error {
 - **Failure Isolation:** A restaurant rejection voids the credit card hold without dispatching a courier.
 - **Durable Timers:** `workflow.Sleep` survives server restarts — timer state is preserved in event history.
 - **Decoupled Scaling:** Payment, POS, and Courier workers scale independently on distinct fleets.
+
+## 9. Edge Infrastructure, Identity & Rate Limiting
+
+At Uber's scale — handling millions of concurrent mobile clients, web applications, and third-party integrations across the globe — the edge infrastructure serves as the front door to thousands of internal microservices (DOMA architecture). To secure this perimeter, Uber uses a layered defense strategy operating across Edge Routing, Identity & Token Management, and Distributed Rate Limiting.
+
+### 9.1 Edge Architecture Topology
+
+Uber's edge topology relies on a two-tier gateway design to separate threat mitigation from business routing.
+
+```mermaid
+graph TB
+    CLIENTS["MOBILE APP / CLIENT APIS"] -->|HTTPS / HTTP/3 gRPC| CF["1. CLOUDFLARE / ANYCAST EDGE LAYER Anycast IP Routing | DDoS Mitigation L3/L4/L7 TLS Termination | Web Application Firewall WAF"]
+    CF -->|Cleaned Traffic| GW["2. UBER EDGE GATEWAY Envoy Proxy + Custom Plugins Rate Limiting Radix | Edge Auth & Token Swap Dynamic Path Routing | SPIFFE/SPIRE Identity Injection"]
+    GW -->|Internal mTLS + SPIFFE Passport| MS["3. CORE MICROSERVICES LAYER DOMA Passenger Service | Driver Dispatch Engine"]
+```
+
+**Tier 1: Anycast & Public Edge (Cloudflare WAF)**
+
+- Anycast IP routing sends traffic to the nearest global PoP, minimizing TCP/TLS handshake latency.
+- DDoS and L7 inspection blocks volumetric L3/L4 SYN floods and L7 HTTP floods before traffic enters Uber's private datacenters.
+- TLS termination near the user establishes optimized long-lived TCP/gRPC connections back to Uber's origin.
+
+**Tier 2: Core API Gateway (Envoy Proxy)**
+
+Once inside Uber's network, the Envoy-based gateway performs four critical functions:
+- **Protocol Translation:** Converts external REST/JSON or HTTP/2 gRPC into internal gRPC over Thrift or Protobuf.
+- **Path & Tenant Routing:** Routes `/v1/trips` or `/v1/eats` to respective microservice clusters based on header metadata, geo-location, and canary deployment flags.
+- **Edge Authentication (Token Swapping):** Converts public bearer tokens into authenticated internal identity objects.
+- **Resiliency Circuits:** Enforces timeouts, retries with backoff, and circuit breakers (hedged requests) to prevent cascading failures.
+
+### 9.2 Security, OAuth2 & Identity Engineering
+
+Managing session state for millions of riders and drivers requires a dual-token identity pipeline: external OAuth2 tokens for public transport and internal Passports for microservices.
+
+```mermaid
+sequenceDiagram
+    participant Client
+    participant EG as Edge Gateway
+    participant IS as Identity Service
+    participant MS as Internal Microservice
+
+    Client->>EG: POST /oauth/token
+    EG->>IS: Validate Credentials
+    IS-->>EG: Generate Access Token
+    EG-->>Client: Return Access Token
+    Client->>EG: GET /v1/trips (Bearer Token)
+    EG->>IS: Exchange Token
+    IS-->>EG: Return HMAC Passport
+    EG->>MS: Forward Request + Passport
+```
+
+**External Authentication (OAuth2):** When a user logs in, the Identity Service issues a short-lived OAuth2 Access Token (1 hour) and a Refresh Token (stored in device Keychain/Keystore). Mobile clients send the access token in the `Authorization: Bearer <token>` header.
+
+**The Identity Passport Pattern (Internal Token Swapping):** To prevent downstream microservices from repeatedly calling the Identity Service, the Edge Gateway exchanges the public OAuth2 token for a cryptographically signed Passport — a lightweight binary struct containing validated user metadata:
+
+```json
+{
+  "user_id": "usr_9921_sf",
+  "user_type": "DRIVER",
+  "device_id": "dev_iphone_8832",
+  "authenticated_at": 1770562800,
+  "scopes": ["trips:read", "location:write"]
+}
+```
+
+The Passport is HMAC-signed with a symmetric key shared across the internal mesh. Microservices verify the HMAC signature locally in sub-milliseconds without any network lookup.
+
+**Zero-Trust Service-to-Service Security (SPIFFE/SPIRE & mTLS):** Every microservice workload is assigned a cryptographic identity (`spiffe://uber.com/ns/fulfillment/sa/driver-dispatch`). SPIRE agents issue and rotate short-lived X.509 SVID certificates to application pods. Sidecar proxies enforce zero-trust mTLS ACL policies — Service A can only talk to Service B if explicitly permitted.
+
+### 9.3 Distributed Rate Limiting (Radix Engine)
+
+Rate limiting at Uber operates at multiple tiers to defend against brute-force credential stuffing, API abuse, and runaway internal clients. Uber built Radix, a custom high-throughput distributed rate-limiting system using Redis Clusters as an in-memory sliding window store.
+
+```mermaid
+flowchart TD
+    REQ["Incoming Request"] --> GW["EDGE GATEWAY Extracts Key: ratelimit:user_id:endpoint:minute_bucket"]
+    GW --> REDIS["REDIS CLUSTER Sliding Window Counter via Lua Script Increments Counter Evaluates Limit e.g. Max 60 requests / minute"]
+    REDIS -->|Under Limit| FORWARD["Forward to Microservices"]
+    REDIS -->|Exceeded Limit| REJECT["Return HTTP 429 Too Many Requests Header: Retry-After: 15"]
+```
+
+**Sliding Window Counter:** Instead of a fixed window (which suffers from boundary spikes), Radix uses a sliding window via atomic Lua script with INCRBY and EXPIRE over time buckets:
+
+$$\text{Current Weight} = \text{Count}_{\text{current}} + \text{Count}_{\text{previous}} \times \left(1 - \frac{\text{Time elapsed in current window}}{\text{Window duration}}\right)$$
+
+**Token Bucket (Burst Management):** Used for endpoints that naturally burst (e.g., driver location pings every 4s). Defines a capacity bucket and refill rate — allows bursts up to capacity, then smooths to the refill rate.
+
+**Multi-Dimensional Rate Limit Keys:**
+
+| Target Scope | Key Definition | Purpose |
+|-------------|----------------|---------|
+| IP-Based (Global) | `ip:{client_ip}:all` | Blocks botnets and global scraping |
+| Authentication | `ip:{client_ip}:endpoint:/v1/login` | Brute-force prevention (max 5 attempts/min) |
+| Per-User Endpoint | `user:{user_id}:endpoint:/v1/payment` | Prevents duplicate credit card charge attempts |
+| Partner API | `client_id:{partner_app}:all` | Enforces tier-based B2B developer API limits |
+
+### Architecture Summary
+
+| Security Tier | Core Technology | Operational Benefit |
+|---------------|-----------------|---------------------|
+| Public Perimeter | Cloudflare Anycast + Envoy Edge Gateway | Anycast routing, L3/L4 DDoS scrubbing, TLS termination |
+| Public Auth | OAuth2 (Short-lived Access + Refresh Tokens) | Standardized secure authentication for mobile & web |
+| Internal Auth | Passport Pattern (Token-to-Passport Swap) | Eliminates auth-service bottlenecks; local HMAC verification |
+| Service Identity | SPIFFE/SPIRE + Mutual TLS (mTLS) | Zero-trust service mesh preventing lateral movement |
+| Rate Limiting | Radix Engine (Redis Sliding Window Counters) | Multi-dimensional protection against DDoS, brute-force, and API abuse |
