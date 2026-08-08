@@ -193,7 +193,7 @@ sequenceDiagram
 Two Major Problems with this approach:
 
 - **Network Latency**: You pay the network ping tax twice (or more).
-- **Race Conditions**: Between step 1 and step 2, another app server could change user:123:balance (e.g., spending the money elsewhere). You get a double-spend bug unless you use heavy, slow distributed locks.
+- **Race Conditions**: Between step 1 and step 2, another app server could change `user:123:balance` (e.g., spending the money elsewhere). You get a double-spend bug unless you use heavy, slow distributed locks.
 
 **How Lua Changes the Game**
 
@@ -263,7 +263,7 @@ We use a Redis Lua script to guarantee that two riders searching for a ride at t
 
 **The Problem: The Simultaneous Tap Race Condition**
 
-Imagine Rider A and Rider B both tap "Request Ride" in Downtown San Francisco at 5:00:00.000 PM. Driver 123 is available and nearby for both riders.
+Imagine Rider A and Rider B both tap "Request Ride" in Downtown San Francisco at `5:00:00.000` PM. Driver 123 is available and nearby for both riders.
 
 **Approach 1: Application-Level Logic (WITHOUT Lua Script)**
 
@@ -389,13 +389,13 @@ This leads to two distinct scenarios for atomic operations in a distributed syst
 
 **Scenario A: Single-Key Atomicity (Always Works Built-in)**
 
-If your atomic operation or Lua script only touches one key (e.g., INCR user:101:balance or updating driver:99:status), the distributed cluster forwards the request to the exact single primary node that owns that key's hash slot. That node executes the command using its local single-threaded event loop. Single-key operations are always 100% atomic across the cluster.
+If your atomic operation or Lua script only touches one key (e.g., INCR user:101:balance or updating `driver:99:status`), the distributed cluster forwards the request to the exact single primary node that owns that key's hash slot. That node executes the command using its local single-threaded event loop. Single-key operations are always 100% atomic across the cluster.
 
 **Scenario B: Multi-Key Atomicity and The Cross-Slot Error**
 
-What happens if a Lua script needs to atomically update two keys (e.g., transfer money from user:101 to user:202)?
+What happens if a Lua script needs to atomically update two keys (e.g., transfer money from `user:101` to `user:202`)?
 
-If user:101 lives on Node 1 and user:202 lives on Node 2, Redis cannot execute the Lua script atomically. A single-threaded Redis engine cannot reach across the network to lock memory on another server during a single execution step. If you attempt this, Redis throws a CROSSSLOT error.
+If `user:101` lives on Node 1 and user:202 lives on Node 2, Redis cannot execute the Lua script atomically. A single-threaded Redis engine cannot reach across the network to lock memory on another server during a single execution step. If you attempt this, Redis throws a CROSSSLOT error.
 
 **How to Achieve Multi-Key Atomicity in Distributed Redis**
 
