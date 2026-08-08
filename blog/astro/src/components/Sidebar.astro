@@ -63,7 +63,7 @@ const initialState = JSON.stringify({ expandedSections: initialSections, expande
           <div class="mb-6">
             <div class="flex items-center justify-between px-3 mb-2 group">
               <a href={section.url}
-                class={`text-xs font-semibold tracking-wider hover:text-gray-900 flex-1 ${isCategoryActive(section.slug, currentPath) ? 'text-blue-600' : 'text-gray-500'}`}>
+                class={`text-s font-semibold tracking-wider hover:text-gray-900 flex-1 ${isCategoryActive(section.slug, currentPath) ? 'text-blue-600' : 'text-gray-500'}`}>
                 {section.name}
               </a>
               {section.pages && section.pages.length > 0 && (
