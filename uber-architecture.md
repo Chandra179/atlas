@@ -906,9 +906,9 @@ Uber's edge topology relies on a two-tier gateway design to separate threat miti
 
 ```mermaid
 graph TB
-    CLIENTS["MOBILE APP / CLIENT APIS"] -->|HTTPS / HTTP/3 gRPC| CF["1. CLOUDFLARE / ANYCAST EDGE LAYER Anycast IP Routing | DDoS Mitigation L3/L4/L7 TLS Termination | Web Application Firewall WAF"]
-    CF -->|Cleaned Traffic| GW["2. UBER EDGE GATEWAY Envoy Proxy + Custom Plugins Rate Limiting Radix | Edge Auth & Token Swap Dynamic Path Routing | SPIFFE/SPIRE Identity Injection"]
-    GW -->|Internal mTLS + SPIFFE Passport| MS["3. CORE MICROSERVICES LAYER DOMA Passenger Service | Driver Dispatch Engine"]
+    CLIENTS["Mobile app / Client APIs"] -->|https / http/3 grpc| CF["1. Cloudflare / Anycast edge layer"]
+    CF -->|cleaned traffic| GW["2. Uber edge gateway Envoy proxy"]
+    GW -->|internal mTLS + SPIFFE passport| MS["3. Core microservices Passenger service | Driver dispatch"]
 ```
 
 **Tier 1: Anycast & Public Edge (Cloudflare WAF)**
