@@ -1,3 +1,11 @@
+---
+title: "Consistent Hashing"
+description: "The hash ring, virtual nodes, clockwise lookup, binary-search routing, and how Cassandra/DynamoDB/Discord partition data across dynamic node clusters."
+aliases: [consistent-hashing, hash-ring, virtual-nodes, vnode, cache-stampede]
+tags: [system-design, system-design/caching, distributed-systems]
+created: 2026-06-13
+---
+
 # Consistent Hashing
 
 Consistent hashing is the go-to standard whenever you need to partition data or route traffic across a dynamic set of nodes without a central routing bottleneck.

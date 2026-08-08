@@ -1,6 +1,21 @@
 ---
-title: Cache
+title: Caching & Redis Internals
 modified: '2026-08-08'
+description: >-
+  Deep dive into caching strategies: Redis vs Memcached, Lua scripting,
+  distributed atomicity, race-condition prevention, and cluster-level hash
+  slots.
+aliases:
+  - redis
+  - memcached
+  - lua-scripting
+  - distributed-atomicity
+  - cache-stampede
+tags:
+  - system-design
+  - system-design/caching
+  - redis
+created: 2026-06-13T00:00:00.000Z
 ---
 
 # Cache

@@ -1,3 +1,11 @@
+---
+title: "Caching & Redis Internals"
+description: "Deep dive into caching strategies: Redis vs Memcached, Lua scripting, distributed atomicity, race-condition prevention, and cluster-level hash slots."
+aliases: [redis, memcached, lua-scripting, distributed-atomicity, cache-stampede]
+tags: [system-design, system-design/caching, redis]
+created: 2026-06-13
+---
+
 # Cache
 
 ## Locks vs. Atomic Operations: When to Use Which?
