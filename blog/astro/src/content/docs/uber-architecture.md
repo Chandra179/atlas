@@ -86,9 +86,9 @@ To manage thousands of individual microservices, Uber introduced Domain-Oriented
 
 ## 5. Core Design Drivers: Ratio, CQRS & CAP Trade-Offs
 
-The 1:10 driver-to-rider ratio and the AP vs. CP split directly dictate how you choose your databases, write protocols, and partition strategy. Here is exactly how those two insights shaped the blueprint.
+The `1:10` driver-to-rider ratio and the AP vs. CP split directly dictate how you choose your databases, write protocols, and partition strategy. Here is exactly how those two insights shaped the blueprint.
 
-### 5.1 How the 1:10 Driver-to-Rider Ratio Shapes the System
+### 5.1 How the `1:10` Driver-to-Rider Ratio Shapes the System
 
 The ratio creates an asymmetric Read/Write profile:
 
@@ -105,12 +105,10 @@ While there are more riders overall, drivers write far more frequently (every 4 
 
 Instead of choosing one CAP trade-off for the entire platform, we split the system into two distinct sub-domains based on business requirements:
 
-```mermaid
-graph TB
-    AP["LOCATION TRACKING ENGINE Requirement: High Availability & Sub-second Latency Trade-off Choice: AP Eventual Consistency Storage Engine: Redis Spatial Cluster"]
-    CP["MATCHING & TRIP STATE ENGINE Requirement: Zero Double-Bookings Financial Integrity Trade-off Choice: CP Strong Consistency Storage Engine: Distributed RDBMS CockroachDB / Postgres"]
-    AP --> CP
-```
+| Engine | Requirement | Trade-off Choice | Storage Engine | Flow |
+|--------|-------------|----------------|----------------|------|
+| Location Tracking Engine | High Availability & Sub-second Latency | AP Eventual Consistency | Redis Spatial Cluster | → feeds into → |
+| Matching & Trip State Engine | Zero Double-Bookings, Financial Integrity | CP Strong Consistency | Distributed RDBMS (CockroachDB / Postgres) | |
 
 **The AP Engine (Location Streaming):** If a driver drops connection for 3 seconds, or if a rider sees a driver's icon 50 meters away from where they actually are, nobody loses money. We chose Redis + Kafka configured for speed over strict ACID guarantees. Writes are non-blocking. If a location ping fails due to a momentary network partition, we simply drop it and wait for the next ping 4 seconds later. No distributed database transactions are used for pings.
 
@@ -120,7 +118,7 @@ graph TB
 
 | Metric / Constraint | Design Decision Driven By It |
 |---------------------|------------------------------|
-| 1:10 Asymmetric Scale | Separated Read/Write pipelines (CQRS) and used persistent gRPC streams instead of REST |
+| `1:10` Asymmetric Scale | Separated Read/Write pipelines (CQRS) and used persistent gRPC streams instead of REST |
 | AP (Location Tracking) | Redis in-memory storage, dropped-packet tolerance, 2-second eventual consistency |
 | CP (Trip Matching) | Pessimistic/Optimistic distributed locking, transactional SQL state updates, hard consistency guarantees |
 
@@ -715,10 +713,10 @@ Uber solved this by building a 250ms User Account Batch Processing Engine:
 
 ```mermaid
 graph TB
-    REQ["Incoming Ledger Requests"] --> BC["Batch Creator Redis Coordination Aggregates ops into 250ms time-windows per account"]
-    BC --> BPS["Batch Process Service 1. Read Account Balance ONCE 2. Apply all operations in-memory 3. Write Atomic Update via Optimistic Locking version_id"]
+    REQ["Incoming Ledger Requests"] --> BC["Batch Creator (Redis)"]
+    BC --> BPS["Batch Process Service"]
     BPS --> UAS["User Account Store"]
-    UAS --> AAS["Async Audit Service User Account Changelog UAC"]
+    UAS --> AAS["Async Audit Service (UAC)"]
 ```
 
 - **Sub-Second Aggregation:** Operations targeting the same account are grouped into 250-millisecond windows using Redis coordination.
@@ -741,10 +739,10 @@ Determining how to decompose a system into Steps (Activities), Flows (Child/Pare
 
 ```mermaid
 graph TB
-    T4["TIER 4: JOURNEY Entity Workflow Driver Lifecycle Runs for months or years"]
-    T3["TIER 3: FLOW / BUSINESS SUB-WORKFLOW Background Check Flow or Trip Execution Flow Minutes"]
-    T2["TIER 2: STEP / ACTIVITY Call Checkr API or Process Stripe Payment Seconds"]
-    T1["TIER 1: LOCAL FUNCTION / CODE Validate Email Format or Calculate Subtotal Nanoseconds"]
+    T4["TIER 4: JOURNEY Entity Workflow"]
+    T3["TIER 3: FLOW / BUSINESS SUB-WORKFLOW"]
+    T2["TIER 2: STEP / ACTIVITY"]
+    T1["TIER 1: LOCAL FUNCTION / CODE"]
     T4 -->|Signals / Child Calls| T3
     T3 -->|Schedules| T2
     T2 -->|Internal Call| T1
@@ -810,10 +808,10 @@ The 4-tier hierarchy applied to Uber Eats, where a single order coordinates a cu
 
 ```mermaid
 graph TB
-    T4["TIER 4: JOURNEYS Entity Workflows Customer Order Journey ~45 mins Restaurant Operational Journey Courier Shift Journey"]
-    T3["TIER 3: FLOWS Sub-Workflows Order Placement & Payment Flow Restaurant Fulfillment & Cooking Flow Courier Dispatch & Pickup Flow Delivery & Hand-off Flow"]
-    T2["TIER 2: STEPS Activities Reserve Payment Stripe | Dispatch Courier Push Send POS Order POS API | Verify Delivery PIN"]
-    T1["TIER 1: LOCAL FUNCTIONS Compute Tax & Fees | Calculate ETA Windows"]
+    T4["TIER 4: JOURNEYS Entity Workflows"]
+    T3["TIER 3: FLOWS Sub-Workflows"]
+    T2["TIER 2: STEPS Activities"]
+    T1["TIER 1: LOCAL FUNCTIONS"]
     T4 -->|Coordinates / Spawns| T3
     T3 -->|Schedules| T2
     T2 -->|Pure Code| T1
@@ -977,10 +975,10 @@ Rate limiting at Uber operates at multiple tiers to defend against brute-force c
 
 ```mermaid
 flowchart TD
-    REQ["Incoming Request"] --> GW["EDGE GATEWAY Extracts Key: ratelimit:user_id:endpoint:minute_bucket"]
-    GW --> REDIS["REDIS CLUSTER Sliding Window Counter via Lua Script Increments Counter Evaluates Limit e.g. Max 60 requests / minute"]
+    REQ["Incoming Request"] --> GW["EDGE GATEWAY"]
+    GW --> REDIS["REDIS CLUSTER Sliding Window Counter"]
     REDIS -->|Under Limit| FORWARD["Forward to Microservices"]
-    REDIS -->|Exceeded Limit| REJECT["Return HTTP 429 Too Many Requests Header: Retry-After: 15"]
+    REDIS -->|Exceeded Limit| REJECT["Return HTTP 429"]
 ```
 
 **Sliding Window Counter:** Instead of a fixed window (which suffers from boundary spikes), Radix uses a sliding window via atomic Lua script with INCRBY and EXPIRE over time buckets:
