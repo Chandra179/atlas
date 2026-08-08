@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync, rmSync } from 'node:fs';
+import { readFileSync, writeFileSync, existsSync, readdirSync, unlinkSync, rmSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { execFileSync } from 'node:child_process';
@@ -120,12 +120,49 @@ for (const entry of blogFiles) {
   }
 }
 
-// Remove subdirectories that shouldn't exist (we only want root-level allowed files)
+// Sync allowed files from subdirectories (e.g. backend-engineering/cache.md)
+const subdirFiles = [...ALLOWED_FILES].filter(f => f.includes('/'));
+
+for (const file of subdirFiles) {
+  const rootPath = path.join(ROOT, file);
+  const blogPath = path.join(BLOG_DIR, file);
+
+  if (!existsSync(rootPath)) {
+    console.log(`  ! source not found: ${file}`);
+    continue;
+  }
+
+  mkdirSync(path.dirname(blogPath), { recursive: true });
+
+  const rootContent = readFileSync(rootPath, 'utf-8');
+  const rootBody = stripFrontmatter(rootContent);
+  const rootFm = parseFrontmatter(extractFrontmatterBlock(rootContent));
+
+  let blogFm = {};
+  if (existsSync(blogPath)) {
+    const blogContent = readFileSync(blogPath, 'utf-8');
+    blogFm = parseFrontmatter(extractFrontmatterBlock(blogContent));
+  }
+
+  const merged = { ...blogFm, ...rootFm };
+  if (!merged.title) merged.title = titleFromFilename(path.basename(file, '.md'));
+  merged.modified = lastCommitDate(file);
+
+  const frontmatter = yaml.dump(merged).trim();
+  const newContent = `---\n${frontmatter}\n---\n\n${rootBody}`;
+  writeFileSync(blogPath, newContent);
+  console.log(`  ✓ ${file}`);
+  synced++;
+}
+
+// Remove subdirectories that shouldn't exist (we only want allowed files)
 // Include symlinks to directories
+const neededDirs = new Set(subdirFiles.map(f => path.dirname(f)));
 const blogDirs = readdirSync(BLOG_DIR, { withFileTypes: true })
   .filter(e => e.isDirectory() || e.isSymbolicLink());
 
 for (const dir of blogDirs) {
+  if (neededDirs.has(dir.name)) continue;
   rmSync(path.join(BLOG_DIR, dir.name), { recursive: true, force: true });
   console.log(`  ✗ removed dir: ${dir.name}`);
   cleaned++;
