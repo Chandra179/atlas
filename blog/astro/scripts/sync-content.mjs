@@ -22,7 +22,7 @@ const ALLOWED_FILES = new Set([
   'uber-architecture.md',
   'business.md',
   'cache.md',
-  'backend-engineering/cache.md'
+  'routing-mechanism.md'
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })

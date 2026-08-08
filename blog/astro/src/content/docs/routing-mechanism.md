@@ -1,3 +1,8 @@
+---
+title: Routing Mechanism
+modified: '2026-08-08'
+---
+
 # Consistent Hashing
 
 Consistent hashing is the go-to standard whenever you need to partition data or route traffic across a dynamic set of nodes without a central routing bottleneck.

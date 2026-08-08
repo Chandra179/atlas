@@ -465,8 +465,8 @@ Schemaless is an append-only, key-value datastore built over clusters of MySQL i
 
 ```mermaid
 graph TB
-    APP["APP SERVICES Ride Service, Billing, Receipt"]
-    APP -->|HTTP / gRPC| SW["SCHEMALESS WORKER Routing, Sharding, Datastore Logic"]
+    APP["App services Ride Service, Billing, Receipt"]
+    APP -->|HTTP / gRPC| SW["Schemaless worker Routing, Sharding, Datastore Logic"]
     SW --> M1["MySQL Instance Shard 1"]
     SW --> M2["MySQL Instance Shard 2"]
     SW --> M3["MySQL Instance Shard 3"]
@@ -739,10 +739,10 @@ Determining how to decompose a system into Steps (Activities), Flows (Child/Pare
 
 ```mermaid
 graph TB
-    T4["TIER 4: JOURNEY Entity Workflow"]
-    T3["TIER 3: FLOW / BUSINESS SUB-WORKFLOW"]
-    T2["TIER 2: STEP / ACTIVITY"]
-    T1["TIER 1: LOCAL FUNCTION / CODE"]
+    T4["Tier 4: Journey entity workflow"]
+    T3["Tier 3: Flow / business sub-workflow"]
+    T2["Tier 2: Step / activity"]
+    T1["Tier 1: Local function / code"]
     T4 -->|Signals / Child Calls| T3
     T3 -->|Schedules| T2
     T2 -->|Internal Call| T1
@@ -808,10 +808,10 @@ The 4-tier hierarchy applied to Uber Eats, where a single order coordinates a cu
 
 ```mermaid
 graph TB
-    T4["TIER 4: JOURNEYS Entity Workflows"]
-    T3["TIER 3: FLOWS Sub-Workflows"]
-    T2["TIER 2: STEPS Activities"]
-    T1["TIER 1: LOCAL FUNCTIONS"]
+    T4["Tier 4: Journeys entity workflows"]
+    T3["Tier 3: Flows sub-workflows"]
+    T2["Tier 2: Steps activities"]
+    T1["Tier 1: Local functions"]
     T4 -->|Coordinates / Spawns| T3
     T3 -->|Schedules| T2
     T2 -->|Pure Code| T1
