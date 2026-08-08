@@ -139,7 +139,7 @@ flowchart TD
     ACC --> W1[Worker Thread 1]
     ACC --> W2[Worker Thread 2]
     ACC --> W3[Worker Thread 3]
-    W1 --> RAM[Shared System RAM\nSlab Allocator + Hash Table]
+    W1 --> RAM[Shared System RAM Slab Allocator + Hash Table]
     W2 --> RAM
     W3 --> RAM
 ```
@@ -441,4 +441,3 @@ The client attempts to acquire a lock key (SET lock_key uuid NX PX 1000) across 
 | Single Key on 1 Node               | Native Single-Threaded Event Loop (RAM)         | Sub-millisecond (~0.1 ms)             |
 | Multi-Key on 1 Node (or Hash Tags) | Atomic Lua Script on the target node            | Sub-millisecond (~0.5 ms)             |
 | Multi-Node / Multi-Cluster         | Distributed Locking (Redlock) or 2-Phase Commit | Higher latency (5-20 ms network hops) |
-```
