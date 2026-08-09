@@ -21,14 +21,6 @@ created: 2026-06-13T00:00:00.000Z
 
 Consistent hashing is the go-to standard whenever you need to partition data or route traffic across a dynamic set of nodes without a central routing bottleneck.
 
-## Industry Use Case
-
-| Production Implementations                                                             | Why Consistent Hashing Rules Here                                                                                                           |
-| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
-| **NoSQL / Peer-to-Peer Databases** — Apache Cassandra, Amazon DynamoDB, ScyllaDB, Riak | Allows fully decentralized rings (no single "master" node directing traffic). Nodes handle reads/writes independently based on hash ranges. |
-| **Distributed Caching & CDNs** — Memcached, Akamai CDN, Discord Media Caches           | Prevents "cache stampedes." Adding a 10th cache node only invalidates ~10% of cached data instead of 100%.                                  |
-| **Edge Proxies & Load Balancers** — Envoy Proxy, NGINX, HAProxy, Kubernetes            | Powers "ring hash" load balancing to stick WebSocket connections or media requests to specific backend instances.                           |
-
 ## The Problem with Traditional Hashing
 
 In a standard system with $N$ servers, you assign data using a modulo operation:
@@ -109,7 +101,7 @@ If you insert Server D at position 1,500,000 (between Server A and Server B), Se
 
 If all your incoming keys happen to hash into a single range, they would all pile up on one server. This is known as the **Data Skew / Hotspot Problem**. There are two distinct causes and two different fixes:
 
-### Cause 1: Low-Quality Hash Function (Fix: Uniform Cryptographic Hashing)
+### Cause 1: Low-Quality Hash Function 
 
 A scenario where 50% of all incoming keys hash into a single narrow range like 1000 to 2000 is statistically impossible if you use a standard cryptographic or high-entropy hash function (MurmurHash3, MD5, SHA-256). If that were happening, your hash function is broken, not the consistent hashing ring.
 
@@ -135,7 +127,7 @@ user_1001 and user_1002 are almost identical strings, yet their hashes land in c
    - **Local In-Memory Caching (L1 Cache):** The API gateway or app servers cache the hot key locally for 1–5 seconds so they don't query the ring.
    - **Key Salting / Scatter-Gather:** Append a random suffix to the key for hot reads (e.g., query `user_1234_salt_1`, `user_1234_salt_2`, `user_1234_salt_3`). These salted keys produce different hashes, scattering the hot key across multiple servers.
 
-### Cause 2: Uneven Node Gaps on the Ring (Fix: Virtual Nodes)
+### Cause 2: Uneven Node Gaps on the Ring
 
 Even if the key hashes are spread out randomly, the servers themselves might end up placed far apart on the ring:
 
