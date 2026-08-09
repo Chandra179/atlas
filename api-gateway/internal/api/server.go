@@ -2,7 +2,9 @@ package api
 
 import (
 	"context"
+	"fmt"
 	"log/slog"
+	"net"
 	"net/http"
 	"time"
 
@@ -18,9 +20,11 @@ import (
 //   - the gateway listener, which serves the modular monolith's protected
 //     module endpoints after the check passes.
 type Server struct {
-	check   *http.Server
-	gateway *http.Server
-	logger  *slog.Logger
+	check     *http.Server
+	gateway   *http.Server
+	checkLn   net.Listener
+	gatewayLn net.Listener
+	logger    *slog.Logger
 }
 
 // NewServer wires the routing for both listeners.
@@ -43,19 +47,33 @@ func NewServer(cfg config.Config, limiter *ratelimit.Limiter, logger *slog.Logge
 	}
 }
 
-// Start begins serving on both listeners. It returns once both are serving.
+// Start binds both listeners up front (so a bind failure, e.g. a port already
+// in use, is surfaced synchronously) and then serves on both.
 func (s *Server) Start() error {
-	errCh := make(chan error, 2)
-	go func() { errCh <- s.check.ListenAndServe() }()
-	go func() { errCh <- s.gateway.ListenAndServe() }()
+	checkLn, err := net.Listen("tcp", s.check.Addr)
+	if err != nil {
+		return fmt.Errorf("check listener %s: %w", s.check.Addr, err)
+	}
+	gatewayLn, err := net.Listen("tcp", s.gateway.Addr)
+	if err != nil {
+		_ = checkLn.Close()
+		return fmt.Errorf("gateway listener %s: %w", s.gateway.Addr, err)
+	}
+	s.checkLn, s.gatewayLn = checkLn, gatewayLn
 
-	// Treat early failure of either listener as fatal.
+	errCh := make(chan error, 2)
+	go func() { _ = s.check.Serve(checkLn) }()
+	go func() { _ = s.gateway.Serve(gatewayLn) }()
+
+	// Any immediate serve error (beyond the already-bound listener) is fatal.
 	select {
 	case err := <-errCh:
-		return err
+		if err != nil {
+			return err
+		}
 	case <-time.After(50 * time.Millisecond):
-		return nil
 	}
+	return nil
 }
 
 // Shutdown gracefully stops both listeners.
