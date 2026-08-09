@@ -8,7 +8,7 @@ tags:
   - backend
   - software-design
 description: Uber architecture explanation in detail
-modified: '2026-08-08'
+modified: '2026-08-09'
 ---
 
 # Uber Architecture
