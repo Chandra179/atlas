@@ -40,6 +40,11 @@ Custom remark/rehype plugins in `src/lib/` run in this pipeline order:
 
 These plugins port behavior from an earlier non-Astro build (`blog/scripts/lib/*.js` — see comments referencing "Ported from" / "gen-nav.js").
 
+When writing mermaid diagrams in content:
+- Do not use `<br>` or `\n` for line breaks inside node labels — put line breaks via separate nodes/lines or omit them; `<br>`/`\n` breaks rendering through `remark-mermaid-preserve.js`.
+- Do not use all-uppercase words in labels.
+- Keep node label text short — avoid long/wrapping text in a single node.
+
 ### PDF generation Worker
 
 - `src/worker/index.ts` is the Cloudflare Worker entry (`wrangler.jsonc`: `main`), serving only `GET/POST /api/pdf?slug=...&title=...`. Everything else falls through to the static `ASSETS` binding.

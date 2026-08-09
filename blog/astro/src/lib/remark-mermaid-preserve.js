@@ -53,7 +53,11 @@ export function remarkMermaidPreserve() {
       if (!parent || typeof index !== 'number') return;
       if (node.lang !== 'mermaid') return;
 
-      const cleaned = (node.value || '').replace(/<(?!\/?br\s*\/?>)[^>]+>/g, '');
+      // Require a letter right after `<` so a lone comparison like "< 2-3%"
+      // isn't mistaken for the start of a tag and matched through to the
+      // next unrelated `>` (e.g. an arrow's `-->`), which would silently
+      // delete everything in between.
+      const cleaned = (node.value || '').replace(/<(?!\/?br\s*\/?>)\/?[a-zA-Z][^<>]*>/g, '');
       const width = parseWidth(node.meta);
       const orientation = detectOrientation(node.value);
       const pre = `<pre class="mermaid">${escapeHtml(cleaned)}</pre>`;

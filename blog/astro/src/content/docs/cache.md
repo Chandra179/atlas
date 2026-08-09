@@ -1,6 +1,6 @@
 ---
 title: Caching & Redis Internals
-modified: '2026-08-08'
+modified: '2026-08-09'
 description: >-
   Deep dive into caching strategies: Redis vs Memcached, Lua scripting,
   distributed atomicity, race-condition prevention, and cluster-level hash
@@ -295,7 +295,7 @@ sequenceDiagram
     participant AppB as Rider B App Server
     participant Redis as Redis Server
 
-    Note over AppA,AppB: Both tap Request Ride at 5:00:00.000 PM
+    Note over AppA,AppB: Both Request Ride at 5:00:00.000 PM
     AppA->>Redis: GET driver:123:status
     AppB->>Redis: GET driver:123:status
     Redis-->>AppA: AVAILABLE

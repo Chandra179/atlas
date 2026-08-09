@@ -283,7 +283,7 @@ sequenceDiagram
     participant AppB as Rider B App Server
     participant Redis as Redis Server
 
-    Note over AppA,AppB: Both tap Request Ride at 5:00:00.000 PM
+    Note over AppA,AppB: Both Request Ride at 5:00:00.000 PM
     AppA->>Redis: GET driver:123:status
     AppB->>Redis: GET driver:123:status
     Redis-->>AppA: AVAILABLE

@@ -1,6 +1,6 @@
 ---
 title: Routing Mechanism
-modified: '2026-08-08'
+modified: '2026-08-09'
 description: >-
   The hash ring, virtual nodes, clockwise lookup, binary-search routing, and how
   Cassandra/DynamoDB/Discord partition data across dynamic node clusters.
@@ -23,11 +23,11 @@ Consistent hashing is the go-to standard whenever you need to partition data or 
 
 ## Industry Use Case
 
-| Production Implementations | Why Consistent Hashing Rules Here |
-|---|---|
+| Production Implementations                                                             | Why Consistent Hashing Rules Here                                                                                                           |
+| -------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | **NoSQL / Peer-to-Peer Databases** — Apache Cassandra, Amazon DynamoDB, ScyllaDB, Riak | Allows fully decentralized rings (no single "master" node directing traffic). Nodes handle reads/writes independently based on hash ranges. |
-| **Distributed Caching & CDNs** — Memcached, Akamai CDN, Discord Media Caches | Prevents "cache stampedes." Adding a 10th cache node only invalidates ~10% of cached data instead of 100%. |
-| **Edge Proxies & Load Balancers** — Envoy Proxy, NGINX, HAProxy, Kubernetes | Powers "ring hash" load balancing to stick WebSocket connections or media requests to specific backend instances. |
+| **Distributed Caching & CDNs** — Memcached, Akamai CDN, Discord Media Caches           | Prevents "cache stampedes." Adding a 10th cache node only invalidates ~10% of cached data instead of 100%.                                  |
+| **Edge Proxies & Load Balancers** — Envoy Proxy, NGINX, HAProxy, Kubernetes            | Powers "ring hash" load balancing to stick WebSocket connections or media requests to specific backend instances.                           |
 
 ## The Problem with Traditional Hashing
 
@@ -278,7 +278,7 @@ graph LR
         P2["Pros: < 2-3% load variance"]
         C2["Cons: Higher memory, slower ring updates"]
     end
-    F["Fewer Vnodes"] --> M["100-256 Vnodes<br/>(Sweet Spot)"]
+    F["Fewer Vnodes"] --> M["100-256 Vnodes (Sweet Spot)"]
     M --> R["More Vnodes"]
 ```
 
