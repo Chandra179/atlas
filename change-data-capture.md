@@ -10,9 +10,9 @@ In a modern event-driven architecture, CDC is typically implemented using three 
 
 ```mermaid
 flowchart LR
-  SourceDB["Source DB<br/>(Postgres/MySQL)"] -->|"Read WAL/Log"| CDCEngine["CDC Engine<br/>(Debezium/Kafka Connect)"]
-  CDCEngine -->|"Stream JSON/Avro"| EventStream["Event Stream<br/>(Kafka/Pulsar/Kinesis)"]
-  EventStream -->|"Consume Events"| Sinks["Downstream Sinks<br/>(Elasticsearch, Snowflake, Redis, Microservices)"]
+  SourceDB["Source DB (Postgres/MySQL)"] -->|"Read WAL/Log"| CDCEngine["CDC Engine (Debezium/Kafka Connect)"]
+  CDCEngine -->|"Stream JSON/Avro"| EventStream["Event Stream (Kafka/Pulsar/Kinesis)"]
+  EventStream -->|"Consume Events"| Sinks["Downstream Sinks (Elasticsearch, Snowflake, Redis, Microservices)"]
 ```
 
 ## 2. Core Mechanics: Log-Based CDC vs. Query-Based CDC
@@ -29,8 +29,8 @@ A database like PostgreSQL or MySQL manages data across 3 distinct places:
 
 ```mermaid
 flowchart TD
-  RAM["1. RAM (Memory)<br/>Buffer Pool / Shared Buffers<br/>(in-memory cache of pages & tables)"] -->|"Step 2: Append to WAL (sequential I/O)"| WAL["2. Write-Ahead Log (WAL/Binlog)<br/>Append-only, durability + crash recovery"]
-  RAM -->|"Step 3: Checkpoint to disk (random I/O, deferred)"| Tables["3. Table Data & Index Files<br/>B-Trees, pages, querying"]
+  RAM["1. RAM (Memory) - Buffer Pool / Shared Buffers - (in-memory cache of pages & tables)"] -->|"Step 2: Append to WAL (sequential I/O)"| WAL["2. Write-Ahead Log (WAL/Binlog) - Append-only, durability + crash recovery"]
+  RAM -->|"Step 3: Checkpoint to disk (random I/O, deferred)"| Tables["3. Table Data & Index Files - B-Trees, pages, querying"]
 ```
 
 **Step-by-step: What happens when you save data (INSERT)**
@@ -72,7 +72,7 @@ At the physical storage level, an append-only log (WAL) is structured like a Con
 
 ```mermaid
 flowchart LR
-  E1["Offset 0<br/>Entry 1 (100B)"] --> E2["Offset 100<br/>Entry 2 (150B)"] --> E3["Offset 250<br/>Entry 3 (150B)"] --> P["Offset 400<br/>Append Pointer"]
+  E1["Offset 0 - Entry 1 (100B)"] --> E2["Offset 100 - Entry 2 (150B)"] --> E3["Offset 250 - Entry 3 (150B)"] --> P["Offset 400 - Append Pointer"]
 ```
 
 How it behaves in practice:
@@ -89,8 +89,8 @@ Because a WAL is an append-only log file, it would eventually fill up the entire
 
 ```mermaid
 flowchart LR
-  Active["Active: [ wal_segment_003.log ]<br/>Appending live transactions"]
-  Completed["Completed: [ wal_segment_001.log ]<br/>[ wal_segment_002.log ]"]
+  Active["Active: [ wal_segment_003.log ] - Appending live transactions"]
+  Completed["Completed: [ wal_segment_001.log ] [ wal_segment_002.log ]"]
   Completed -->|"Once checkpointed or synced by CDC"| Purge["Safely deleted or archived"]
 ```
 
@@ -116,7 +116,7 @@ Every single byte written to a database's Write-Ahead Log is given an incrementa
 flowchart TD
   L100["LSN 100: INSERT INTO users (id=1, name='Alex')"]
   L250["LSN 250: UPDATE users SET name='Alexander' WHERE id=1"]
-  L410["LSN 410: DELETE FROM users WHERE id=2<br/>(CDC just processed this)"]
+  L410["LSN 410: DELETE FROM users WHERE id=2 (CDC just processed this)"]
   L580["LSN 580: INSERT INTO orders (id=99, user_id=1)"]
   L100 --> L250 --> L410 --> L580
 ```
@@ -144,7 +144,7 @@ Imagine the CDC engine crashes while processing LSN 580:
 
 ```mermaid
 flowchart LR
-  A["LSN 100"] --> B["LSN 250"] --> C["LSN 410<br/>Last committed offset"] --> D["LSN 580<br/>Process crashes here 💥"] --> E["LSN 720"]
+  A["LSN 100"] --> B["LSN 250"] --> C["LSN 410 - Last committed offset"] --> D["LSN 580 - Process crashes here 💥"] --> E["LSN 720"]
   C -.->|"Resume from LSN 411 on restart"| D
 ```
 
@@ -225,13 +225,13 @@ The database's internal log file (WAL / Binlog) is written in raw binary data th
 
 ```mermaid
 flowchart TD
-  App["Your Application<br/>Runs UPDATE users SET status='ACTIVE' WHERE id=101"] --> Pg["PostgreSQL Engine<br/>Appends raw binary bytes"]
+  App["Your Application - Runs UPDATE users SET status='ACTIVE' WHERE id=101"] --> Pg["PostgreSQL Engine - Appends raw binary bytes"]
   Pg --> WAL["WAL / Log File on Disk"]
-  WAL --> CDC["CDC Engine (Debezium)<br/>Listens & reads raw bytes"]
-  CDC -->|"Converts bytes into structured Event (JSON/Avro)"| Bus["Event Bus / Kafka<br/>Topic"]
-  Bus --> Es["Elasticsearch<br/>Updates search index"]
-  Bus --> Redis["Redis<br/>Invalidates cache"]
-  Bus --> Notif["Notification Service<br/>Sends email"]
+  WAL --> CDC["CDC Engine (Debezium) - Listens & reads raw bytes"]
+  CDC -->|"Converts bytes into structured Event (JSON/Avro)"| Bus["Event Bus / Kafka - Topic"]
+  Bus --> Es["Elasticsearch - Updates search index"]
+  Bus --> Redis["Redis - Invalidates cache"]
+  Bus --> Notif["Notification Service - Sends email"]
 ```
 
 The event plays three key roles:
