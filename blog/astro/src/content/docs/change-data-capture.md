@@ -1,3 +1,8 @@
+---
+title: Change Data Capture
+modified: '2026-08-09'
+---
+
 # Change Data Capture (CDC)
 
 CDC (Change Data Capture) is a software architecture pattern used to track, capture, and stream row-level changes (e.g., INSERT, UPDATE, DELETE) from a source database to downstream targets (data warehouses, search indexes, event streaming platforms, or microservices) in near real-time.
