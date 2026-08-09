@@ -1,5 +1,5 @@
 ---
-title: Consistent Hashing
+title: Routing Mechanism
 modified: '2026-08-08'
 description: >-
   The hash ring, virtual nodes, clockwise lookup, binary-search routing, and how

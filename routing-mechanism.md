@@ -1,5 +1,5 @@
 ---
-title: "Consistent Hashing"
+title: "Routing Mechanism"
 description: "The hash ring, virtual nodes, clockwise lookup, binary-search routing, and how Cassandra/DynamoDB/Discord partition data across dynamic node clusters."
 aliases: [consistent-hashing, hash-ring, virtual-nodes, vnode, cache-stampede]
 tags: [system-design, system-design/caching, distributed-systems]

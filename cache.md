@@ -290,7 +290,7 @@ sequenceDiagram
     Redis-->>AppB: AVAILABLE
     AppA->>Redis: SET driver:123:status BUSY
     AppB->>Redis: SET driver:123:status BUSY
-    Note over AppA,AppB: DOUBLE BOOKING - Both told Driver 123 is on the way
+    Note over AppA,AppB: Both told Driver 123 is on the way
 ```
 
 Outcome: Double-Booking Failure! Both riders are told "Driver 123 is on the way." Driver 123 receives two conflicting trip requests.
