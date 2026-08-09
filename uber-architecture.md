@@ -339,7 +339,7 @@ If `affected_rows == 0`, another thread updated the driver first, and the transa
 | Delayed execution | Lua script validates trip_id before releasing lock |
 | Redis master failover | Redlock multi-node consensus or DB conditional update |
 
-### 6.9 Redis Infrastructure & Network Topology
+### 6.8 Redis Infrastructure & Network Topology
 
 #### App Instances vs. Redis Instances
 
@@ -392,7 +392,7 @@ Four factors keep it fast:
 - The App falls back to querying the persistent database (Cassandra, DynamoDB, or Schemaless) directly.
 - Performance degrades (higher latency), but the core feature stays functional rather than throwing a hard error.
 
-### 6.10 Scaling & Resiliency
+### 6.9 Scaling & Resiliency
 
 | Bottleneck | Mitigation |
 |-----------|-----------|
@@ -400,9 +400,9 @@ Four factors keep it fast:
 | Gateway socket exhaustion | Use Netty/epoll non-blocking I/O to hold 100k+ open WebSocket connections per instance |
 | Driver connection drop | Background worker marks driver OFFLINE and removes from S2 index if no ping in > 12 seconds |
 
-## 10. Supporting Architecture Layers
+## 7. Supporting Architecture Layers
 
-### 10.1 Data Mesh & Machine Learning Platform (Michelangelo)
+### 7.1 Data Mesh & Machine Learning Platform (Michelangelo)
 
 Matching drivers and riders isn't purely rule-based — it relies on AI/ML predictions running in real time:
 
@@ -410,28 +410,28 @@ Matching drivers and riders isn't purely rule-based — it relies on AI/ML predi
 - **Dynamic Pricing (Surge):** Flink processes real-time event streams from Kafka (rider app opens vs. available drivers per H3 grid cell). Michelangelo uses this to update pricing multipliers dynamically to balance market demand.
 - **DeepETA:** Neural networks continuously update estimated trip times by evaluating weather, historical traffic, and micro-routing nuances.
 
-### 10.2 High Availability & Multi-Region Resiliency
+### 7.2 High Availability & Multi-Region Resiliency
 
 Uber cannot afford downtime in any city.
 
 - **Active-Active Datacenters:** Uber runs multi-region deployments. If an entire cloud region or datacenter fails, traffic automatically fails over without losing active trip states.
 - **Stateful Failover:** In-flight trip states are replicated cross-region so a driver mid-trip won't lose navigation or fare tracking if a server cluster dies.
 
-### 10.3 Payment Processing & Financial Settlement
+### 7.3 Payment Processing & Financial Settlement
 
 Handling money across hundreds of currencies, payment methods, and tax jurisdictions is an architectural domain of its own:
 
 - **Double-Entry Ledger:** Ensures financial consistency — a dollar charged to a rider must strictly balance across Uber's fee, driver payout, and local tax.
 - **Payout Pipelines:** Real-time risk screening before pushing money to driver bank accounts or debit cards globally.
 
-### 10.4 Safety & Telematics Processing
+### 7.4 Safety & Telematics Processing
 
 Driver phones stream gyroscope, accelerometer, and GPS sensor data back to Uber:
 
 - Real-time anomaly detection flags sudden stops, crashes, or erratic driving.
 - Safety features like crash detection trigger immediate customer support outreach via automated workflows.
 
-### 10.5 Open-Source Ecosystem Originated by Uber
+### 7.5 Open-Source Ecosystem Originated by Uber
 
 To support this architecture, Uber custom-built several industry-standard tools:
 
@@ -446,13 +446,13 @@ To support this architecture, Uber custom-built several industry-standard tools:
 | Matching Speed | In-memory DISCO matching engine coupled with a custom ETA engine |
 | High Availability | Active-active multi-datacenter deployment (if one region fails, another takes over instantly) |
 
-## 7. Historical Data Storage & Database Scaling
+## 8. Historical Data Storage & Database Scaling
 
 Storing billions of historical trip records is a fundamentally different problem than tracking live drivers in Redis. Live tracking requires ultra-low latency and ephemeral in-memory state, whereas historical data requires infinite scalability, high write throughput, multi-region persistence, and zero data loss.
 
 Uber moved away from monolithic relational databases and built **Schemaless** — an in-house distributed, fault-tolerant datastore layered on top of MySQL, complemented by a Hadoop/Data Lake tier for long-term analytical storage.
 
-### 7.1 Schemaless: The Core Storage Engine
+### 8.1 Schemaless: The Core Storage Engine
 
 When a trip completes, it transitions from short-lived memory state into a permanent record. Standard relational databases hit a wall when table sizes exceed billions of rows — index maintenance, schema migrations, and cross-node joins degrade performance.
 
@@ -476,7 +476,7 @@ graph TB
   - **Column Name:** The domain data (e.g., `driver_info`, `fare_breakdown`).
   - **Ref Key:** An incremental version integer ordering updates chronologically.
 
-### 7.2 Horizontal Scaling Strategies
+### 8.2 Horizontal Scaling Strategies
 
 **A. Dynamic Sharding by trip_uuid:**
 Schemaless groups virtual shards across physical MySQL instances. A write request hashes the `trip_uuid` using consistent hashing to map to a specific Shard ID. If a database server approaches capacity, virtual shards migrate to new physical nodes in the background without downtime.
@@ -487,7 +487,7 @@ Trip data is separated logically by domain so high-volume operations don't impac
 - **Payment Datastore:** Isolated cluster for strict ACID compliance and financial audit trails.
 - **Driver Partner Datastore:** Earnings, payouts, and tax documentation.
 
-### 7.3 Tiered Storage: Hot, Warm, and Cold
+### 8.3 Tiered Storage: Hot, Warm, and Cold
 
 Keeping decades of trip history in expensive high-speed transactional databases is not viable. Uber moves data through a tiered lifecycle:
 
@@ -502,7 +502,7 @@ graph TB
 - **Warm Tier (Cassandra / HBase):** Older trips where high-throughput reads are infrequent, but individual point lookups (e.g., auditing a trip from 2 years ago) must still complete under 100ms.
 - **Cold Tier / Data Lake (Hadoop HDFS, Parquet, Apache Iceberg):** Changes in Schemaless are published to Kafka via Change Data Capture (CDC). Stream ingestion pipelines write these into columnar Parquet files in a Hadoop Data Lake. Data teams query this tier using Presto/Trino or Spark for long-term trends, ETA model retraining, and fraud pattern recognition.
 
-### 7.4 Multi-Region Data Replication
+### 8.4 Multi-Region Data Replication
 
 Uber operates in an Active-Active configuration across regions:
 
@@ -530,7 +530,7 @@ graph TB
 | Cost-Effective Retention | Data Tiering: Hot (Schemaless) → Warm (Cassandra) → Cold (Hadoop/Iceberg) |
 | Analytical Querying | Kafka CDC pipelines streaming into a Parquet-based Data Lake |
 
-### 7.5 Change Data Capture (CDC): Operational to Analytical Bridge
+### 8.5 Change Data Capture (CDC): Operational to Analytical Bridge
 
 Change Data Capture is the real-time bridge connecting Uber's operational databases (Schemaless / MySQL) with its downstream analytical systems (Kafka, Apache Hadoop, Apache Pinot, and the Data Lake). Instead of running heavy SQL queries (`SELECT * FROM trips WHERE updated_at > ...`) against the operational database — which degrades performance for live drivers and riders — CDC streams data mutations asynchronously and directly out of the database write log (binlog) with zero impact on database performance.
 
@@ -612,11 +612,11 @@ graph TB
 4. Apache Hudi / Marmaray consumes Kafka CDC messages → Performs incremental upserts into Parquet files on Hadoop HDFS.
 5. Data Engineers / ML Models query the updated Parquet data using Presto, Hive, or Spark.
 
-## 8. Durable Execution & Financial Ledger
+## 9. Durable Execution & Financial Ledger
 
 To handle complex multi-step processes and maintain financial accuracy, Uber relies on two fundamental architectural patterns: Durable Execution (Cadence/Temporal) and SOX-Compliant Double-Entry Accounting (Gulfstream).
 
-### 8.1 Distributed Workflows: Cadence / Temporal
+### 9.1 Distributed Workflows: Cadence / Temporal
 
 When a trip is canceled mid-route, several microservices must execute steps in a precise sequence: charge a cancellation fee, notify the driver, update driver availability, issue promo credits, and recalibrate matching algorithms. Standard microservices using HTTP calls or message queues risk losing state if the payment service drops connection halfway through, leading to duplicate charges or orphaned transactions.
 
@@ -675,7 +675,7 @@ func CancellationWorkflow(ctx workflow.Context, tripID string) error {
 }
 ```
 
-### 8.2 Financial Ledger & Double-Entry Bookkeeping (Gulfstream)
+### 9.2 Financial Ledger & Double-Entry Bookkeeping (Gulfstream)
 
 Handling money across millions of trips requires strict financial auditability (SOX compliance). A single database field like `user_balance = user_balance - $10` is forbidden because it lacks an audit trail and causes catastrophic race conditions. Uber's core financial platform, Gulfstream, enforces Double-Entry Bookkeeping.
 
@@ -728,7 +728,7 @@ graph TB
 | Consistency Model | Eventual consistency across microservices via orchestrator tasks | Strict serializability and ACID compliance at the account entry level |
 | Throughput Strategy | Decoupled background task queues and priority-based scheduling | 250ms time-window batching with optimistic locking in Redis |
 
-### 8.3 Workflow Design Hierarchy: Steps, Flows, and Journeys
+### 9.3 Workflow Design Hierarchy: Steps, Flows, and Journeys
 
 Determining how to decompose a system into Steps (Activities), Flows (Child/Parent Workflows), and Journeys (Entities) is the most critical design decision in durable execution. If boundaries are too granular, you hit Event History limits (default 51,200 events per execution). If they are too broad, your code becomes monolithic and hard to recover or test.
 
@@ -797,7 +797,7 @@ func DocumentVerificationFlow(ctx workflow.Context, driverID string) error {
 }
 ```
 
-### 8.4 Concrete Example: Uber Eats Order Fulfillment
+### 9.4 Concrete Example: Uber Eats Order Fulfillment
 
 The 4-tier hierarchy applied to Uber Eats, where a single order coordinates a customer, restaurant, and courier through a ~45-minute lifecycle.
 
@@ -896,11 +896,11 @@ func OrderFulfillmentJourney(ctx workflow.Context, orderID string) error {
 - **Durable Timers:** `workflow.Sleep` survives server restarts — timer state is preserved in event history.
 - **Decoupled Scaling:** Payment, POS, and Courier workers scale independently on distinct fleets.
 
-## 9. Edge Infrastructure, Identity & Rate Limiting
+## 10. Edge Infrastructure, Identity & Rate Limiting
 
 At Uber's scale — handling millions of concurrent mobile clients, web applications, and third-party integrations across the globe — the edge infrastructure serves as the front door to thousands of internal microservices (DOMA architecture). To secure this perimeter, Uber uses a layered defense strategy operating across Edge Routing, Identity & Token Management, and Distributed Rate Limiting.
 
-### 9.1 Edge Architecture Topology
+### 10.1 Edge Architecture Topology
 
 Uber's edge topology relies on a two-tier gateway design to separate threat mitigation from business routing.
 
@@ -925,7 +925,7 @@ Once inside Uber's network, the Envoy-based gateway performs four critical funct
 - **Edge Authentication (Token Swapping):** Converts public bearer tokens into authenticated internal identity objects.
 - **Resiliency Circuits:** Enforces timeouts, retries with backoff, and circuit breakers (hedged requests) to prevent cascading failures.
 
-### 9.2 Security, OAuth2 & Identity Engineering
+### 10.2 Security, OAuth2 & Identity Engineering
 
 Managing session state for millions of riders and drivers requires a dual-token identity pipeline: external OAuth2 tokens for public transport and internal Passports for microservices.
 
@@ -964,7 +964,7 @@ The Passport is HMAC-signed with a symmetric key shared across the internal mesh
 
 **Zero-Trust Service-to-Service Security (SPIFFE/SPIRE & mTLS):** Every microservice workload is assigned a cryptographic identity (`spiffe://uber.com/ns/fulfillment/sa/driver-dispatch`). SPIRE agents issue and rotate short-lived X.509 SVID certificates to application pods. Sidecar proxies enforce zero-trust mTLS ACL policies — Service A can only talk to Service B if explicitly permitted.
 
-### 9.3 Distributed Rate Limiting (Radix Engine)
+### 10.3 Distributed Rate Limiting (Radix Engine)
 
 Rate limiting at Uber operates at multiple tiers to defend against brute-force credential stuffing, API abuse, and runaway internal clients. Uber built Radix, a custom high-throughput distributed rate-limiting system using Redis Clusters as an in-memory sliding window store.
 
