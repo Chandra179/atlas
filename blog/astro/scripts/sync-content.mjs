@@ -23,7 +23,8 @@ const ALLOWED_FILES = new Set([
   'business.md',
   'cache.md',
   'routing-mechanism.md',
-  'change-data-capture.md'
+  'change-data-capture.md',
+  'others.md'
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })
