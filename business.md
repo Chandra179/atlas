@@ -4,10 +4,9 @@ description: "A knowledge map of business models, industries, and market trends,
 tags: [business, frameworks]
 created: 2026-08-08
 ---
+# Business Knowledge Maps
 
-# Business Knowledge Map
-
-Everything below is a leaf on one tree. Each level is *caused by* the level above it, a chain of "this forces that," not arbitrary categorization. Sections 1-4 (Technology, Financial Services, Retail/Commerce/Logistics, Energy) live inside Level 5 and Level 6 below, tagged by which part of the chain they represent.
+This framework is a **first-principles taxonomy of modern business and technology**. Instead of viewing industries and software applications as isolated entities, this map traces how every commercial activity—from a local retail POS system to generative AI platforms—stems from a single foundational reality.
 
 ---
 
@@ -191,11 +190,11 @@ AI/ML platforms (OpenAI, Anthropic, Nvidia, Hugging Face, GitHub Copilot, Claude
 
 **Trends reshaping how the resource is produced, owned, and distributed (5-10 year horizon):**
 
-| **Trend**                        | **What Changes**                                                                                                          |
-| --------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| Renewables scale further          | Solar + battery storage costs keep falling, reaching cost-competitiveness with fossil fuels in most markets.              |
-| Grid strain from AI/data centers  | AI infrastructure power demand becomes a major driver of new energy investment; resurging nuclear interest.               |
-| EV adoption continues             | Pace varies by region/policy; charging infrastructure buildout remains the bottleneck.                                    |
-| Nuclear renaissance                | Small modular reactors (SMRs) move from pilot to early deployment, partly to meet data center demand.                     |
-| Grid modernization                | Smart grids and storage become essential to absorb renewable intermittency.                                               |
-| Geopolitics                        | Critical mineral supply chains (lithium, cobalt, rare earths) shape battery/EV competitive outcomes.                      |
+| **Trend**                        | **What Changes**                                                                                             |
+| -------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| Renewables scale further         | Solar + battery storage costs keep falling, reaching cost-competitiveness with fossil fuels in most markets. |
+| Grid strain from AI/data centers | AI infrastructure power demand becomes a major driver of new energy investment; resurging nuclear interest.  |
+| EV adoption continues            | Pace varies by region/policy; charging infrastructure buildout remains the bottleneck.                       |
+| Nuclear renaissance              | Small modular reactors (SMRs) move from pilot to early deployment, partly to meet data center demand.        |
+| Grid modernization               | Smart grids and storage become essential to absorb renewable intermittency.                                  |
+| Geopolitics                      | Critical mineral supply chains (lithium, cobalt, rare earths) shape battery/EV competitive outcomes.         |
