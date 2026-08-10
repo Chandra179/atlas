@@ -8,7 +8,7 @@ tags:
   - backend
   - software-design
 description: Uber architecture explanation in detail
-modified: '2026-08-09'
+modified: '2026-08-10'
 ---
 
 # Uber Architecture
@@ -19,7 +19,7 @@ At a high level, Uber evolved from a single monolithic server into a Domain-Orie
 
 Here is a breakdown of how the architecture works step-by-step.
 
-### Big Picture: The Complete System
+## Big Picture: The Complete System
 
 ```mermaid
 graph TB
@@ -37,7 +37,7 @@ graph TB
     INF --> MLB
 ```
 
-Geospatial Indexing (Google S2)
+## Geospatial Indexing (Google S2)
 
 The foundation of Uber's location system is Earth partitioning. Because calculating precise distances on a 3D sphere (latitude/longitude) in real-time for millions of users is too computationally expensive, Uber uses Google's S2 geometry library.
 
@@ -45,7 +45,7 @@ The foundation of Uber's location system is Earth partitioning. Because calculat
 
 **Searching:** When a rider opens the app, the backend translates their coordinate into an S2 Cell ID. Instead of searching the whole database, the system simply queries drivers registered inside that specific Cell ID and its 8 immediate neighbors.
 
-The Core Ride Loop Architecture
+## The Core Ride Loop Architecture
 
 ```mermaid
 graph TB
@@ -65,7 +65,7 @@ When a rider opens the app, the Demand Service picks up their GPS coordinates, d
 **Step C: The Matching Engine — DISCO (Dispatch Optimization)**
 Uber's core matching engine is called DISCO. DISCO receives a ride request from Demand Service. It queries Supply Service for candidate drivers within the local S2 cell radius. Instead of simple straight-line distance, DISCO passes candidates to the ETA Engine. The ETA Engine uses actual road networks, traffic conditions, and routing algorithms to compute real drive times for each driver. DISCO selects the optimal driver (minimizing overall wait time for the system, not just a single rider) and pushes a notification to that driver's phone.
 
-Data Architecture & Storage
+## Data Architecture & Storage
 
 Uber processes petabytes of data daily and uses specialized storage for different speed requirements:
 
@@ -74,7 +74,7 @@ Uber processes petabytes of data daily and uses specialized storage for differen
 - **Real-time Analytics (Apache Pinot & Flink):** Powers dynamic pricing (Surge), fraud detection, and driver incentives by processing streaming data in real time.
 - **Data Warehouse (Hadoop/HDFS & Parquet):** Stores historical trip data for long-term machine learning model training, ETA predictions, and business analytics.
 
-Microservice Organization: DOMA
+## Microservice Organization: DOMA
 
 To manage thousands of individual microservices, Uber introduced Domain-Oriented Microservice Architecture (DOMA). It organizes code into 5 distinct layers:
 
@@ -84,7 +84,7 @@ To manage thousands of individual microservices, Uber introduced Domain-Oriented
 4. **Business Layer:** Shared capabilities used across all products (e.g., Payments, Passports/Identity, Billing).
 5. **Infrastructure Layer:** Low-level operations like database management, networking, and deployment frameworks.
 
-Core Design Drivers: Ratio, CQRS & CAP Trade-Offs
+## Core Design Drivers: Ratio, CQRS & CAP Trade-Offs
 
 The `1:10` driver-to-rider ratio and the AP vs. CP split directly dictate how you choose your databases, write protocols, and partition strategy. Here is exactly how those two insights shaped the blueprint.
 
@@ -122,7 +122,7 @@ Instead of choosing one CAP trade-off for the entire platform, we split the syst
 | AP (Location Tracking) | Redis in-memory storage, dropped-packet tolerance, 2-second eventual consistency |
 | CP (Trip Matching) | Pessimistic/Optimistic distributed locking, transactional SQL state updates, hard consistency guarantees |
 
-Production System Design: Driver Tracking & Matching
+## Production System Design: Driver Tracking & Matching
 
 ### Requirements & Scale Expectations
 
@@ -405,7 +405,7 @@ Four factors keep it fast:
 | Gateway socket exhaustion | Use Netty/epoll non-blocking I/O to hold 100k+ open WebSocket connections per instance |
 | Driver connection drop | Background worker marks driver OFFLINE and removes from S2 index if no ping in > 12 seconds |
 
-Supporting Architecture Layers
+## Supporting Architecture Layers
 
 ### Data Mesh & Machine Learning Platform (Michelangelo)
 
@@ -451,7 +451,7 @@ To support this architecture, Uber custom-built several industry-standard tools:
 | Matching Speed | In-memory DISCO matching engine coupled with a custom ETA engine |
 | High Availability | Active-active multi-datacenter deployment (if one region fails, another takes over instantly) |
 
-Historical Data Storage & Database Scaling
+## Historical Data Storage & Database Scaling
 
 Storing billions of historical trip records is a fundamentally different problem than tracking live drivers in Redis. Live tracking requires ultra-low latency and ephemeral in-memory state, whereas historical data requires infinite scalability, high write throughput, multi-region persistence, and zero data loss.
 
@@ -617,7 +617,7 @@ graph TB
 4. Apache Hudi / Marmaray consumes Kafka CDC messages → Performs incremental upserts into Parquet files on Hadoop HDFS.
 5. Data Engineers / ML Models query the updated Parquet data using Presto, Hive, or Spark.
 
-Durable Execution & Financial Ledger
+## Durable Execution & Financial Ledger
 
 To handle complex multi-step processes and maintain financial accuracy, Uber relies on two fundamental architectural patterns: Durable Execution (Cadence/Temporal) and SOX-Compliant Double-Entry Accounting (Gulfstream).
 
@@ -901,7 +901,7 @@ func OrderFulfillmentJourney(ctx workflow.Context, orderID string) error {
 - **Durable Timers:** `workflow.Sleep` survives server restarts — timer state is preserved in event history.
 - **Decoupled Scaling:** Payment, POS, and Courier workers scale independently on distinct fleets.
 
-Edge Infrastructure, Identity & Rate Limiting
+## Edge Infrastructure, Identity & Rate Limiting
 
 At Uber's scale — handling millions of concurrent mobile clients, web applications, and third-party integrations across the globe — the edge infrastructure serves as the front door to thousands of internal microservices (DOMA architecture). To secure this perimeter, Uber uses a layered defense strategy operating across Edge Routing, Identity & Token Management, and Distributed Rate Limiting.
 
