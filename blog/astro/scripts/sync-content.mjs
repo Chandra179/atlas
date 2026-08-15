@@ -24,6 +24,7 @@ const ALLOWED_FILES = new Set([
   'cache.md',
   'routing-mechanism.md',
   'change-data-capture.md',
+  'youtube-architecture.md',
   'others.md'
 ]);
 
