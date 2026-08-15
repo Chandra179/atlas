@@ -1,3 +1,8 @@
+---
+title: System Performance
+modified: '2026-08-15'
+---
+
 # System Performance
 
 ## Scenario: The Creeping P99 Spike in the Audit Service

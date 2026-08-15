@@ -9,7 +9,7 @@ tags:
   - fintech
   - data-engineering
 created: 2026-07-19T00:00:00.000Z
-modified: '2026-08-08'
+modified: '2026-08-15'
 ---
 
 # Financial Reconciliation System

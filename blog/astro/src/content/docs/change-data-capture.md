@@ -1,6 +1,6 @@
 ---
 title: Change Data Capture
-modified: '2026-08-09'
+modified: '2026-08-15'
 ---
 
 # Change Data Capture (CDC)
