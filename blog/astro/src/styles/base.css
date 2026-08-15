@@ -51,3 +51,29 @@ body {
     padding-left: 1rem;
 }
 
+/* ========== Pagefind search results ========== */
+/* Pagefind's default UI renders results in normal document flow (display: flex),
+   but #search lives inside a fixed-height header, so without this the results
+   drawer overflows the header and overlaps the page below it instead of floating
+   over it. Turn it into a proper dropdown panel anchored to the search input. */
+#search .pagefind-ui__drawer {
+    position: absolute;
+    top: calc(100% + 0.5rem);
+    left: 0;
+    right: 0;
+    z-index: 60;
+    max-height: 70vh;
+    overflow-y: auto;
+    background: #ffffff;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    box-shadow: 0 12px 28px -8px rgba(15, 23, 42, 0.18);
+    padding: 1rem;
+}
+
+.dark #search .pagefind-ui__drawer {
+    background: #1e293b;
+    border-color: #334155;
+    box-shadow: 0 12px 28px -8px rgba(0, 0, 0, 0.5);
+}
+

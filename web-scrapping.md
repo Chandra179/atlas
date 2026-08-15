@@ -50,7 +50,7 @@ graph TD
 
     Gatekeeper --> ProcQueue[(Processing Task Queue)]
 
-    ProcQueue --> Scraper[Scraper Workers <br> Warm Browser Contexts]
+    ProcQueue --> Scraper[Scraper Workers: Warm Browser Contexts]
 
     %% Scraper Pipeline (Claim Check Pattern)
     Scraper -->|1. Write Raw HTML| Redis[(Redis Cluster <br> Raw HTML Cache)]

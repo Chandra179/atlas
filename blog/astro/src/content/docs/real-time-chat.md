@@ -13,7 +13,7 @@ modified: '2026-08-08'
 
 # Real-Time Chat App (WhatsApp-like)
 
-## 1. Scope & Requirements
+## Scope & Requirements
 
 #### Functional Requirements
 
@@ -32,7 +32,7 @@ modified: '2026-08-08'
 
 ---
 
-## 2. Capacity Estimation
+## Capacity Estimation
 
 - **Write QPS (messages):** ~500K/sec avg, ~2M/sec peak.
 - **Connections:** Up to 100M concurrent WebSocket connections at peak (multiplied further by multi-device sessions).
@@ -41,7 +41,7 @@ modified: '2026-08-08'
 
 ---
 
-## 3. High-Level Design
+## High-Level Design
 
 #### Core API / Interface
 
@@ -84,7 +84,7 @@ flowchart TD
 
 ---
 
-## 4. Deep Dive: Core Bottlenecks
+## Deep Dive: Core Bottlenecks
 
 **Deep Dive 1: Connection routing across WebSocket servers**  
 A WebSocket connection is stateful and pinned to one specific server instance. When user A is connected to server #3 and user B (on server #7) sends A a message, server #7 needs to know _where_ A's live connection lives. Solved with a Redis-based connection registry (`user_id -> server_id(s)`), updated on connect/disconnect, looked up on every outbound message to route it to the correct server instance(s) — extended to a set (not single value) to support multi-device sessions.
@@ -101,7 +101,7 @@ Real systems (per WhatsApp's public behavior) track granular per-recipient read 
 
 ---
 
-## 5. Scaling & Trade-offs
+## Scaling & Trade-offs
 
 - **Connection Registry (Redis) as a SPOF:** if it goes down, live routing breaks — but messages aren't lost, since they're durably written to the message store regardless; delivery just falls back to the history/backfill fetch path on reconnect (higher latency, not data loss). Mitigate further with Redis replication and considering a degraded fallback (e.g., push notification via APNs/FCM) to at least notify the recipient while live routing is impaired.
 - **Read-receipt state loss:** if Redis holding `read_by` sets is lost, worst case is a message reverting from "read" to "delivered" in the UI until the recipient's client re-triggers the read event — self-healing, not permanent data loss.

@@ -154,7 +154,7 @@ Each partition has one worker, but the worker doesn't keep records in memory. In
 flowchart LR
     subgraph Durable_Matching [4. Indexed Query Against Staging Tables]
         M1[Read Incoming Record] --> M2[Upsert into Staging Table]
-        M2 --> M3{Indexed Lookup:<br/>Counterpart Row Exists?}
+        M2 --> M3{Indexed Lookup: Counterpart Row Exists?}
         M3 -->|Yes| M4[Validate Amount]
         M4 --> M5[Mark Reconciled in DB]
     end

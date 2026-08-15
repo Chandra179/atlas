@@ -133,7 +133,24 @@
     background-color: #1e293b;
 }
 
+.dark .prose table {
+    background:
+        linear-gradient(to right, #0f172a 30%, rgba(15, 23, 42, 0)),
+        linear-gradient(to right, rgba(15, 23, 42, 0), #0f172a 70%) 100% 0,
+        radial-gradient(farthest-side at 0 50%, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0)),
+        radial-gradient(farthest-side at 100% 50%, rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0)) 100% 0;
+    background-repeat: no-repeat;
+    background-color: #0f172a;
+    background-size: 40px 100%, 40px 100%, 14px 100%, 14px 100%;
+    background-attachment: local, local, scroll, scroll;
+}
+
 /* Code block dark theme is handled by astro-expressive-code via .dark CSS variables */
+
+/* Mermaid SVGs are baked light-theme at build time; invert to approximate dark mode without a re-render. */
+.dark .prose svg[id^="mermaid-"] {
+    filter: invert(0.9) hue-rotate(180deg);
+}
 
 .dark .prose blockquote {
     color: #94a3b8;

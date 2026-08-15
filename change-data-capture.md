@@ -4,7 +4,7 @@ CDC (Change Data Capture) is a software architecture pattern used to track, capt
 
 Instead of performing expensive bulk extraction queries (like running `SELECT * WHERE updated_at > last_sync`), CDC taps into the database's internal change log to stream events as they happen without impacting database performance.
 
-## 1. High-Level CDC Architecture
+## High-Level CDC Architecture
 
 In a modern event-driven architecture, CDC is typically implemented using three main components: the Source DB (Write-Ahead Log), the CDC Engine, and the Event Streaming Bus.
 
@@ -15,7 +15,7 @@ flowchart LR
   EventStream -->|"Consume Events"| Sinks["Downstream Sinks (Elasticsearch, Snowflake, Redis, Microservices)"]
 ```
 
-## 2. Core Mechanics: Log-Based CDC vs. Query-Based CDC
+## Core Mechanics: Log-Based CDC vs. Query-Based CDC
 
 There are two primary ways to capture changes from a database. In modern production systems, Log-Based CDC is the industry standard.
 
@@ -184,7 +184,7 @@ Drawbacks:
 - High query load/CPU spikes on the primary database.
 - Loses intermediate updates between polling cycles.
 
-## 3. Structure of a CDC Event Payload
+## Structure of a CDC Event Payload
 
 When the CDC engine (e.g., Debezium) converts a database commit from the transaction log into an event payload, it typically produces a JSON structure containing both the before and after state of the row:
 
@@ -219,7 +219,7 @@ When the CDC engine (e.g., Debezium) converts a database commit from the transac
 - **op (Operation Type):** `"c"` (Create/Insert), `"u"` (Update), `"d"` (Delete), `"r"` (Read - initial snapshot).
 - **before / after:** Shows the exact state mutation, making it easy for downstream consumers to compute delta changes.
 
-## 4. The Role of the Event in CDC
+## The Role of the Event in CDC
 
 The database's internal log file (WAL / Binlog) is written in raw binary data that only the database engine understands. Downstream applications (like search engines or cache servers) cannot read it directly. This is where the CDC Engine (e.g., Debezium) and an Event Streaming Bus (e.g., Apache Kafka) come in:
 
@@ -240,7 +240,7 @@ The event plays three key roles:
 - **Standardization:** The CDC engine translates database-specific binary bytes into a standardized, language-agnostic event (like JSON or Avro).
 - **Broadcasting:** The event bus (Kafka) allows 10 different microservices to listen to the exact same change event independently without slowing down the primary database.
 
-## 5. Key Production Challenges & Patterns in CDC
+## Key Production Challenges & Patterns in CDC
 
 Building a resilient CDC pipeline requires addressing several distributed systems challenges:
 
@@ -264,7 +264,7 @@ What happens if a developer runs `ALTER TABLE orders ADD COLUMN discount DECIMAL
 
 Solution: CDC frameworks integrate with a Schema Registry (e.g., Confluent Schema Registry). When the database schema changes, the CDC engine detects the DDL change, updates the Schema Registry, and writes events with the new schema version without breaking downstream consumer deserialization.
 
-## 6. Popular Open-Source & Enterprise CDC Tech Stack
+## Popular Open-Source & Enterprise CDC Tech Stack
 
 | Component          | Standard Technologies                                                                                              |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------ |

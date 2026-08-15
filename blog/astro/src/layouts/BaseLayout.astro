@@ -187,11 +187,11 @@ const resolvedOgImage = new URL(ogImage, Astro.site).href;
        on each navigation and won't otherwise pick up a widget. -->
   <script is:inline>
     function mountPagefindUi() {
-      if (!window.pagefind) return;
+      if (!window.PagefindUI) return;
       var el = document.getElementById('search');
       if (!el) return;
       el.innerHTML = '';
-      new window.pagefind.ui({
+      new window.PagefindUI({
         element: '#search',
         showImages: false,
         pageSize: 5,
