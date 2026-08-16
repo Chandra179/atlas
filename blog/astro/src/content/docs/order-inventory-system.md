@@ -9,7 +9,7 @@ tags:
   - distributed-systems
   - e-commerce
 created: 2026-07-26T00:00:00.000Z
-modified: '2026-08-08'
+modified: '2026-08-16'
 ---
 
 # E-commerce Order & Inventory System

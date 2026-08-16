@@ -12,7 +12,7 @@ description: >-
   Practical lessons on variable naming, abstraction, data types, logging,
   idempotency, caching, message brokers, and deployment from real-world
   engineering experience.
-modified: '2026-08-08'
+modified: '2026-08-16'
 ---
 
 # Software Engineering Journey

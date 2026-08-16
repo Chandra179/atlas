@@ -8,7 +8,7 @@ tags:
   - distributed-systems
   - real-time
 created: 2026-07-26T00:00:00.000Z
-modified: '2026-08-15'
+modified: '2026-08-16'
 ---
 
 # Real-Time Chat App (WhatsApp-like)

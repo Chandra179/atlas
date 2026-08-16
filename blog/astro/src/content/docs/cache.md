@@ -1,6 +1,6 @@
 ---
 title: Caching & Redis Internals
-modified: '2026-08-09'
+modified: '2026-08-16'
 description: >-
   Deep dive into caching strategies: Redis vs Memcached, Lua scripting,
   distributed atomicity, race-condition prevention, and cluster-level hash
