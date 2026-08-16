@@ -592,7 +592,7 @@ Go applies this exact same design principle to other major structural types, usi
 
 **Note on Primitives:** Primitives like integers, floats, and booleans do not use headers or pointer descriptors at all. Because their raw values are already tiny (1 to 8 bytes), Go simply duplicates the value directly from one stack slot to another. It fits perfectly inside a single CPU register, making it incredibly fast.
 
-Because strings, slices, and maps are already just lightweight headers or pointers under the hood, **you almost never need to pass them as pointers (`*string`, `*[]int`, `*map`) for performance reasons.** You only use a pointer if you explicitly need to change the header itself—like reallocating a new slice or replacing the entire map reference.
+Because strings, slices, and maps are already just lightweight headers or pointers under the hood, **you almost never need to pass them as pointers (`*string`, `*[]int`, `*map`) for performance reasons.** You only use a pointer if you explicitly need to change the header itself, like reallocating a new slice or replacing the entire map reference.
 
 #### Stack vs. Heap
 Deciding whether to pass a data structure by value or by pointer requires an understanding of how the Go compiler conducts escape analysis to choose between stack and heap distribution:

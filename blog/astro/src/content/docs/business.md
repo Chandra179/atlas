@@ -13,7 +13,7 @@ modified: '2026-08-09'
 
 # Business Knowledge Maps
 
-This framework is a **first-principles taxonomy of modern business and technology**. Instead of viewing industries and software applications as isolated entities, this map traces how every commercial activity—from a local retail POS system to generative AI platforms—stems from a single foundational reality.
+This framework is a **first-principles taxonomy of modern business and technology**. Instead of viewing industries and software applications as isolated entities, this map traces how every commercial activity, from a local retail POS system to generative AI platforms, stems from a single foundational reality.
 
 ---
 

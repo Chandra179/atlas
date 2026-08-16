@@ -93,7 +93,7 @@ flowchart LR
 
 While data operations happen in RAM via the CPU, Redis still interacts with the network and disk in specific, controlled ways:
 
-- **Network I/O (The Real Bottleneck)**: Before the CPU can run your operation, the data must travel over the network via TCP/IP from your app server to the Redis server. Network latency (e.g., 1ms to 5ms) is usually the slowest part of a Redis request—not the Redis CPU execution itself.
+- **Network I/O (The Real Bottleneck)**: Before the CPU can run your operation, the data must travel over the network via TCP/IP from your app server to the Redis server. Network latency (e.g., 1ms to 5ms) is usually the slowest part of a Redis request, not the Redis CPU execution itself.
 - **Disk Persistence (Asynchronous Background Thread)**: While Redis serves requests from RAM, it can periodically save data to disk (RDB snapshots or AOF logs) so data isn't lost if the server reboots. Crucially, Redis offloads disk persistence to separate background process threads, ensuring that disk writes do not block the main CPU core from executing your real-time operations.
 
 **Summary Checklist for System Design**
@@ -113,7 +113,7 @@ While data operations happen in RAM via the CPU, Redis still interacts with the 
 Think of a computer like a kitchen:
 
 - **The CPU is the Chef (Processor)**: The chef does the actual work (cooking, chopping, computing). A Single-Threaded system means there is only 1 chef in the kitchen working on orders one by one.
-- **RAM is the Countertop (Memory)**: The countertop holds the ingredients (data). RAM is just physical storage space. It doesn't "run" code or have threads—it just holds data that the CPU reads from or writes to.
+- **RAM is the Countertop (Memory)**: The countertop holds the ingredients (data). RAM is just physical storage space. It doesn't "run" code or have threads; it just holds data that the CPU reads from or writes to.
 
 **2. How Redis Uses the CPU and RAM**
 
@@ -221,7 +221,7 @@ sequenceDiagram
 
 1. **Guaranteed Atomicity (No Race Conditions)**: Because Redis's core engine is single-threaded, when Redis runs a Lua script, it blocks all other incoming commands until the script finishes. No other client can read or write to the keys touched by your script midway through. You eliminate the need for complex distributed locks (SETNX or Redlock) for in-memory operations.
 
-2. **Massively Reduced Network Latency**: Instead of sending 5 or 10 separate commands back and forth over TCP/IP, you send 1 network request containing the script. Redis runs all 5–10 commands locally in RAM at CPU speed (nanoseconds) and returns just the final result.
+2. **Massively Reduced Network Latency**: Instead of sending 5 or 10 separate commands back and forth over TCP/IP, you send 1 network request containing the script. Redis runs all 5-10 commands locally in RAM at CPU speed (nanoseconds) and returns just the final result.
 
 3. **Building Custom Atomic Operations**: Redis gives you basic primitives (INCR, HSET, ZADD). Lua lets you combine these primitives to create brand new, complex atomic database operations tailored to your business logic (like checking inventory before deducting a balance).
 

@@ -32,7 +32,7 @@ In a database or cache with millions of keys, $90\%+$ of your data suddenly maps
 
 ## How Consistent Hashing Works: The Hash Ring
 
-Instead of taking the hash modulo $N$ (the number of servers), consistent hashing takes the hash modulo a fixed, enormous number — typically $2^{32} - 1$ (the maximum value of a 32-bit integer). Imagine wrapping the number range from $0$ to $2^{32}-1$ into a circle: the hash ring.
+Instead of taking the hash modulo $N$ (the number of servers), consistent hashing takes the hash modulo a fixed, enormous number, typically $2^{32} - 1$ (the maximum value of a 32-bit integer). Imagine wrapping the number range from $0$ to $2^{32}-1$ into a circle: the hash ring.
 
 ```mermaid
 graph LR
@@ -94,7 +94,7 @@ If all your incoming keys happen to hash into a single range, they would all pil
 
 A scenario where 50% of all incoming keys hash into a single narrow range like 1000 to 2000 is statistically impossible if you use a standard cryptographic or high-entropy hash function (MurmurHash3, MD5, SHA-256). If that were happening, your hash function is broken, not the consistent hashing ring.
 
-**Why a Good Hash Function Never Does This** — A proper hash function behaves like a pseudo-random number generator with two strict properties:
+**Why a Good Hash Function Never Does This.** A proper hash function behaves like a pseudo-random number generator with two strict properties:
 
 - **Uniform Distribution:** Output values are distributed evenly across the entire $0$ to $2^{32}-1$ spectrum. Every number has equal probability.
 - **The Avalanche Effect:** Changing just 1 bit or 1 letter in the input completely changes every byte of the output hash.
@@ -110,10 +110,10 @@ user_1001 and user_1002 are almost identical strings, yet their hashes land in c
 
 **What Would Cause Keys to Pile Up in Practice?** If you observe keys clustering in production, one of two bugs is occurring:
 
-1. **Non-uniform / custom hash function** — Someone writes `return key.length()` or `return key.charAt(0)`. Fix: Use standard MurmurHash3, xxHash, or MD5. Never write custom hash math for consistent hashing.
+1. **Non-uniform / custom hash function**: Someone writes `return key.length()` or `return key.charAt(0)`. Fix: Use standard MurmurHash3, xxHash, or MD5. Never write custom hash math for consistent hashing.
 
-2. **Single hot key** — 50% of traffic isn't many different keys, but one key (e.g., a viral product ID). The hash for that key always outputs the same number, overwhelming whichever Vnode owns that position. Consistent hashing cannot solve this alone — systems use two patterns:
-   - **Local In-Memory Caching (L1 Cache):** The API gateway or app servers cache the hot key locally for 1–5 seconds so they don't query the ring.
+2. **Single hot key**: 50% of traffic isn't many different keys, but one key (e.g., a viral product ID). The hash for that key always outputs the same number, overwhelming whichever Vnode owns that position. Consistent hashing cannot solve this alone; systems use two patterns:
+   - **Local In-Memory Caching (L1 Cache):** The API gateway or app servers cache the hot key locally for 1-5 seconds so they don't query the ring.
    - **Key Salting / Scatter-Gather:** Append a random suffix to the key for hot reads (e.g., query `user_1234_salt_1`, `user_1234_salt_2`, `user_1234_salt_3`). These salted keys produce different hashes, scattering the hot key across multiple servers.
 
 ### Cause 2: Uneven Node Gaps on the Ring
@@ -129,7 +129,7 @@ graph LR
 
 In this setup, Server C is responsible for everything between 1,200,000 and 3,800,000 (70% of the entire circle). Even with perfect random key distribution, Server C will get flooded with 70% of all requests.
 
-**The Solution: Virtual Nodes (Vnodes)** — Instead of placing a physical server on the ring once, the system creates 100 or 250 virtual aliases for each server:
+**The Solution: Virtual Nodes (Vnodes).** Instead of placing a physical server on the ring once, the system creates 100 or 250 virtual aliases for each server:
 
 - ServerA#1, ServerA#2, ..., ServerA#100
 - ServerB#1, ServerB#2, ..., ServerB#100
@@ -148,7 +148,7 @@ graph TD
     PC --> VC3["C#3 ... C#100"]
 ```
 
-Scattering hundreds of virtual points for every physical server across the ring means the 1,000,000–2,000,000 range no longer belongs to just one server. It contains virtual slices belonging to Server A, Server B, and Server C. If keys land in that range, they get evenly divided among all physical machines in the cluster.
+Scattering hundreds of virtual points for every physical server across the ring means the 1,000,000-2,000,000 range no longer belongs to just one server. It contains virtual slices belonging to Server A, Server B, and Server C. If keys land in that range, they get evenly divided among all physical machines in the cluster.
 
 ```mermaid
 graph LR
@@ -203,7 +203,7 @@ This sorted array IS the clockwise ring. Moving down the array index ($0 \righta
 
 ### Step 3: Clockwise Lookup
 
-A key comes in: Hash("user_99") = 4,000,000. Binary search finds the first hash greater than 4,000,000 — index [3] at 5,400,000, owned by Server_B. The request goes to Server_B.
+A key comes in: Hash("user_99") = 4,000,000. Binary search finds the first hash greater than 4,000,000: index [3] at 5,400,000, owned by Server_B. The request goes to Server_B.
 
 ## How We Guarantee "Clockwise" Lookup
 
@@ -271,7 +271,7 @@ Mathematically, load variance follows standard deviation. Research and productio
 - With 100 Vnodes per node, load variance drops to roughly $\pm 5\%$.
 - With 256 Vnodes per node, load variance drops below $\pm 2\%$.
 
-Beyond 256 Vnodes, you hit diminishing returns — adding more Vnodes uses extra memory without significantly improving balance.
+Beyond 256 Vnodes, you hit diminishing returns: adding more Vnodes uses extra memory without significantly improving balance.
 
 ### Industry Standards in Real Systems
 

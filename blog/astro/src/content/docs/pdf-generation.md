@@ -29,7 +29,7 @@ modified: '2026-08-08'
 
 - **High Availability & Fault Tolerance:** Microservice failures must not result in data loss or duplicate PDF generation.
 - **Scalability:** Independent scaling of ingestion, processing, and delivery tiers.
-- **Stateless Processing:** The eager render-and-email-attach workers require minimal dependencies and zero direct database connections. (The lazy-regeneration API tier introduced below is a deliberate, scoped exception — see [Improvement](#improvement).)
+- **Stateless Processing:** The eager render-and-email-attach workers require minimal dependencies and zero direct database connections. (The lazy-regeneration API tier introduced below is a deliberate, scoped exception; see [Improvement](#improvement).)
 
 ## High-Level Architecture & End-to-End Pipeline
 
@@ -164,7 +164,7 @@ graph LR
 ## Failure Modes & Resiliency Strategy
 
 - **Sudden Ingestion Crash:** If an ingestion instance dies mid-transaction, the payment vendor's native retry policy will hit a sibling instance via the Load Balancer. The system checks the database status flag to guarantee a task is never double-queued (idempotency).
-- **Concurrent Retry Race:** Two retries of the same event can arrive at different workers at nearly the same instant, so a plain read-then-write status check is not enough — both could read `PENDING` before either writes `DONE`. The claim is made atomic instead: a unique constraint on `(order_id, status)` (or a `SETNX`-style compare-and-swap on a `claimed` key) means only one concurrent writer can transition the row from `PENDING` to `PROCESSING`; the loser's write fails and it discards its render instead of emitting a duplicate.
+- **Concurrent Retry Race:** Two retries of the same event can arrive at different workers at nearly the same instant, so a plain read-then-write status check is not enough: both could read `PENDING` before either writes `DONE`. The claim is made atomic instead: a unique constraint on `(order_id, status)` (or a `SETNX`-style compare-and-swap on a `claimed` key) means only one concurrent writer can transition the row from `PENDING` to `PROCESSING`; the loser's write fails and it discards its render instead of emitting a duplicate.
 - **Poison Pill Messages:** If a corrupted layout payload causes a worker thread to crash repeatedly, the message is automatically moved to a **Dead Letter Queue (DLQ)** after 3 failed retries to avoid blocking the main processing pipeline.
 - **Email Delivery Failure:** If the third-party email provider experiences a network drop, the Notification Service retries the event. The worker first checks if the PDF file already exists in S3; if it does, it skips regeneration entirely and goes straight to generating the presigned link.
 
@@ -198,23 +198,23 @@ Use a Schema Registry (like Confluent Schema Registry using Apache Avro or Proto
 
 ### Dropping Eager S3 Writes to Save Cost ("Lazy, Click-Triggered Generation")
 
-Instead of rendering and uploading a PDF to S3 for every payment event, attach the PDF directly to the confirmation email (generated once, inline, at send time) so the common case never touches object storage at all. The "7-day public view link" in the email is not a pre-generated S3 object — it points at a lazy-loading API gateway route (`/view/{token}`) that only compiles a PDF on demand, the first time it's actually clicked. Since fewer than 10% of recipients click the link, this removes ~90% of the PUT-request volume calculated above.
+Instead of rendering and uploading a PDF to S3 for every payment event, attach the PDF directly to the confirmation email (generated once, inline, at send time) so the common case never touches object storage at all. The "7-day public view link" in the email is not a pre-generated S3 object; it points at a lazy-loading API gateway route (`/view/{token}`) that only compiles a PDF on demand, the first time it's actually clicked. Since fewer than 10% of recipients click the link, this removes ~90% of the PUT-request volume calculated above.
 
 This pivot relaxes the **Stateless Processing** requirement, but only for this one code path, and deliberately:
 
 - The eager path (render → attach → email) stays exactly as stateless as originally designed: the worker gets everything it needs from the queue payload and never talks to a database.
-- The lazy path (click → regenerate → serve) necessarily needs a data source, because the queue message that triggered the original render is long gone by the time someone clicks days later. It performs a single indexed point-lookup by `order_id` against the read replica of the Orders table — a much lighter dependency than a stateful worker pool, and one we accept explicitly as a trade-off for the cost savings, rather than leaving it as an unstated contradiction.
+- The lazy path (click → regenerate → serve) necessarily needs a data source, because the queue message that triggered the original render is long gone by the time someone clicks days later. It performs a single indexed point-lookup by `order_id` against the read replica of the Orders table, a much lighter dependency than a stateful worker pool, and one we accept explicitly as a trade-off for the cost savings, rather than leaving it as an unstated contradiction.
 
-**Expiration, without S3's lifecycle policy:** S3 doesn't auto-delete anything here, because most PDFs are never saved to S3 in the first place — one is only made when someone clicks the link. So instead of deleting a file after 7 days, the system makes the *link itself* expire.
+**Expiration, without S3's lifecycle policy:** S3 doesn't auto-delete anything here, because most PDFs are never saved to S3 in the first place: one is only made when someone clicks the link. So instead of deleting a file after 7 days, the system makes the *link itself* expire.
 
-The link emailed to the user is `/view/{token}`, where `token` is a signed code that secretly holds the `order_id` and an expiry date (`sent_at + 7 days`). Every time someone clicks the link, the API gateway checks the code is genuine and checks whether the expiry date has passed. If it has, the request is rejected immediately with a 410 ("Gone") — no PDF is generated. No database write or cleanup job is needed to enforce the 7-day window; the link simply stops working on its own once it's past its expiry date.
+The link emailed to the user is `/view/{token}`, where `token` is a signed code that secretly holds the `order_id` and an expiry date (`sent_at + 7 days`). Every time someone clicks the link, the API gateway checks the code is genuine and checks whether the expiry date has passed. If it has, the request is rejected immediately with a 410 ("Gone"), and no PDF is generated. No database write or cleanup job is needed to enforce the 7-day window; the link simply stops working on its own once it's past its expiry date.
 
-**Interim storage cost check:** sometimes a PDF still does get saved to S3 — either because a hybrid mode is used, or because the click-triggered regen saves its output so a second click on the same link doesn't need to re-render. Does this bring back the storage cost problem? No, because S3 has two separate costs:
+**Interim storage cost check:** sometimes a PDF still does get saved to S3, either because a hybrid mode is used, or because the click-triggered regen saves its output so a second click on the same link doesn't need to re-render. Does this bring back the storage cost problem? No, because S3 has two separate costs:
 
-- **Writing a file** (the PUT cost from the section above) — charged per write, no matter the file size. This is what was costing $13k/month.
-- **Storing a file** — a much smaller, separate charge, billed per GB kept in the bucket per month.
+- **Writing a file** (the PUT cost from the section above): charged per write, no matter the file size. This is what was costing $13k/month.
+- **Storing a file**: a much smaller, separate charge, billed per GB kept in the bucket per month.
 
-Even in the worst case — every saved PDF (50–150 KB each) sitting around for the full 7 days, at 1,000 saves/sec — the total amount of data sitting in S3 at any one time is only a few TB. Storing a few TB costs roughly tens to low hundreds of dollars a month, which is still tiny next to the $13k/month in write costs this design avoids.
+Even in the worst case, every saved PDF (50-150 KB each) sitting around for the full 7 days, at 1,000 saves/sec, the total amount of data sitting in S3 at any one time is only a few TB. Storing a few TB costs roughly tens to low hundreds of dollars a month, which is still tiny next to the $13k/month in write costs this design avoids.
 
 ### Headless Browsers
 

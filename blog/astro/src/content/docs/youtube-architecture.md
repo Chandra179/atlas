@@ -33,7 +33,7 @@ To handle tens of thousands of concurrent view writes on viral videos, YouTube a
 
 ## Global Content Delivery (CDN & Edge Strategy)
 
-To minimize buffering and latency, video bytes are delivered through Google Global Cache (GGC)—edge servers deployed directly inside ISP networks worldwide.
+To minimize buffering and latency, video bytes are delivered through Google Global Cache (GGC), edge servers deployed directly inside ISP networks worldwide.
 
 - **Hot Content** (Popular Videos): Cached on high-speed NVMe/SSD edge servers located physically close to the end user.
 - **Warm Content**: Retained in regional Google Data Center caches.
@@ -65,7 +65,7 @@ flowchart LR
 
 ### VOD vs. Live: Architecture Comparison
 
-**Video-on-Demand** is optimized for maximum compression and highest visual quality; processing latency does not matter (a 10-minute upload can take 5 minutes to encode). **Live Streaming** is optimized for ultra-low latency (1–3 seconds broadcaster-to-viewer); processing must happen in milliseconds without delaying frames.
+**Video-on-Demand** is optimized for maximum compression and highest visual quality; processing latency does not matter (a 10-minute upload can take 5 minutes to encode). **Live Streaming** is optimized for ultra-low latency (1-3 seconds broadcaster-to-viewer); processing must happen in milliseconds without delaying frames.
 
 | Architectural Dimension | VOD Pipeline | Live Pipeline |
 | --- | --- | --- |
@@ -74,7 +74,7 @@ flowchart LR
 | Processing Engine | Asynchronous DAG across thousands of nodes. | Continuous stream pipeline (real-time workers with small memory buffers). |
 | Encoding Passes | Multi-pass: scans the whole video to optimize bitrate allocation frame-by-frame. | Single-pass (hardware) encoding; no lookahead. |
 | Codecs Used | Heavy, compute-intensive (AV1, VP9, H.264). | Fast, lightweight (H.264, VP9 w/ hardware acceleration). |
-| Delivery Protocols | Standard MPEG-DASH / HLS (2–6 s static chunks). | LL-DASH / CMAF w/ HTTP Chunked Transfer (sub-second sub-chunks). |
+| Delivery Protocols | Standard MPEG-DASH / HLS (2-6 s static chunks). | LL-DASH / CMAF w/ HTTP Chunked Transfer (sub-second sub-chunks). |
 | Caching Strategy | Static files aggressively cached on CDN edges (high hit ratio). | Live ring buffer in memory; consumed as it is generated. |
 | Storage Engine | Permanent Blob Storage (Google Colossus). | Temporary volatile RAM/SSD ring buffer + async dump to Colossus for DVR. |
 
@@ -103,11 +103,11 @@ flowchart LR
 
 **3. State & Storage: Static Blobs vs. the "DVR Loop".**
 - **VOD**: Video files are immutable, static blobs in Google Colossus.
-- **Live**: Uses a circular ring buffer — as new video arrives, the oldest segments drop off the live-edge window. If a user pauses or rewinds, a separate DVR worker writes the stream to permanent blob storage in the background.
+- **Live**: Uses a circular ring buffer: as new video arrives, the oldest segments drop off the live-edge window. If a user pauses or rewinds, a separate DVR worker writes the stream to permanent blob storage in the background.
 
 ### Where the Architectures Merge (Live → VOD)
 
-When a live broadcast ends, a post-live task stitches together all background DVR chunks in Colossus, generates a permanent VideoID, and hands the raw recording to the VOD DAG Pipeline. Multi-pass encoding then produces high-compression AV1 files, automatic chapters, and full captions — the live stream seamlessly becomes a standard VOD video.
+When a live broadcast ends, a post-live task stitches together all background DVR chunks in Colossus, generates a permanent VideoID, and hands the raw recording to the VOD DAG Pipeline. Multi-pass encoding then produces high-compression AV1 files, automatic chapters, and full captions, and the live stream seamlessly becomes a standard VOD video.
 
 ## Content ID & Copyright Matching Engine
 
@@ -115,7 +115,7 @@ Before or during video publication, every audio and visual stream is checked aga
 
 - **Digital Fingerprinting**: The audio track is converted into spectral audio fingerprints; visual frames are converted into perceptual hashes.
 - **Vector Search Database**: Fingerprints are compared against a reference database of 100M+ copyrighted assets in seconds.
-- **Policy Router**: On a match, the engine triggers automated rights-holder actions — **Block**, **Track Analytics**, or **Claim Revenue** (monetize).
+- **Policy Router**: On a match, the engine triggers automated rights-holder actions: **Block**, **Track Analytics**, or **Claim Revenue** (monetize).
 
 ## Monetization & Ad Insertion (SSAI vs. CSAI)
 
@@ -153,20 +153,20 @@ flowchart LR
 ```
 
 **Write path (ingestion & moderation):**
-- **Rate-limiting**: The API gateway enforces per-user token buckets (e.g., max 1 message every 2–5 s, modified by channel "Slow Mode").
+- **Rate-limiting**: The API gateway enforces per-user token buckets (e.g., max 1 message every 2-5 s, modified by channel "Slow Mode").
 - **Synchronous moderation**: ML classifiers scan for blocklisted terms, links, and toxic content in under 20 ms.
 - **Super Chat validation**: Paid messages are validated synchronously, given a priority metadata flag and pinning duration.
 - **Event ingest**: Validated messages land on a pub/sub topic (Kafka / Pub/Sub) partitioned strictly by `LiveStreamID`.
 
-**Core optimization — server-side sampling & throttling:**
-Humans read only ~3–5 msgs/s; delivering 5,000 raw msgs/s would crash the browser DOM thread and waste bandwidth. The server ranks messages for a time window and sheds the firehose:
+**Core optimization: server-side sampling & throttling.**
+Humans read only ~3-5 msgs/s; delivering 5,000 raw msgs/s would crash the browser DOM thread and waste bandwidth. The server ranks messages for a time window and sheds the firehose:
 
 $$\text{Priority Score} = f(\text{SuperChat Value}, \text{Subscriber Status}, \text{Moderator Badge}, \text{User Engagement})$$
 
 - **Low-volume stream** (<5 msgs/s): 100% of messages pass through.
-- **Viral stream** (>1,000 msgs/s): keep all Super Chats and Moderator messages, then randomly sample regular messages down to a cap of ~3–5 msgs/s total; excess drops server-side.
+- **Viral stream** (>1,000 msgs/s): keep all Super Chats and Moderator messages, then randomly sample regular messages down to a cap of ~3-5 msgs/s total; excess drops server-side.
 
-**Read path — adaptive HTTP batch polling, not WebSockets:**
+**Read path: adaptive HTTP batch polling, not WebSockets.**
 Unlike 1:1 messaging apps (WhatsApp/Slack) that rely on persistent bidirectional WebSockets, live chat primarily uses an adaptive `get_live_chat` batch-polling endpoint. WebSockets hold stateful per-server connections; 2M open sockets on one stream create routing bottlenecks during edge failovers. Instead:
 
 ```json
@@ -183,7 +183,7 @@ The server returns a batch of sampled messages plus a `continuationToken` and `p
 
 | Storage Tier | Technology | Purpose |
 | --- | --- | --- |
-| L1 Edge Cache | In-memory Edge Ring Buffer | Holds the last 10–30 s of sampled chat batches on CDN/Edge nodes. |
+| L1 Edge Cache | In-memory Edge Ring Buffer | Holds the last 10-30 s of sampled chat batches on CDN/Edge nodes. |
 | L2 Aggregation Cache | Distributed Redis / Memcached | Sliding time-window state per `LiveStreamID`; serves L1 misses. |
 | L3 Persistent Store | Bigtable / Spanner | Asynchronously writes full (unsampled) chat logs for Live Chat Replay on VODs. |
 
@@ -191,7 +191,7 @@ Over 99% of poll requests are served from L1/L2, turning DB lookups into cheap R
 
 **Client-side virtualization (browser & app):**
 - **DOM virtualization**: The client keeps a strict buffer (e.g., max 100 array items); oldest items drop as new ones arrive.
-- **Animation queueing**: Incoming batches go into an internal JS queue and slide onto screen every 200–300 ms to preserve readability and avoid OOM.
+- **Animation queueing**: Incoming batches go into an internal JS queue and slide onto screen every 200-300 ms to preserve readability and avoid OOM.
 
 ## Security, DRM & Asset Protection
 
@@ -216,7 +216,7 @@ A Group of Pictures (GOP) is a self-contained group of frames that begins with a
 Resolution is just the dimensions of the screen (e.g., $1920 \times 1080$). A codec (Encoder/Decoder) is the mathematical formula used to compress those pixels into bytes. YouTube encodes videos into multiple codecs for compatibility and bandwidth cost:
 
 - **H.264 (AVC)**: The legacy standard. It produces larger file sizes, but virtually every device on Earth (old smart TVs, legacy smartphones, older web browsers) has a physical hardware chip built to play it.
-- **VP9**: Developed by Google. It compresses video roughly 30%–40% better than H.264 at the same visual quality. Most modern web browsers and Android devices support it.
+- **VP9**: Developed by Google. It compresses video roughly 30%-40% better than H.264 at the same visual quality. Most modern web browsers and Android devices support it.
 - **AV1**: The latest open-source codec. It offers extreme compression (saving massive amounts of mobile data), but encoding it requires heavy computing power.
 
 YouTube serves AV1 or VP9 to modern devices with fast processors to save server bandwidth, while falling back to H.264 for older or low-power devices.
@@ -242,9 +242,9 @@ flowchart TD
 
 **Why DAG is crucial:**
 - **Parallel Execution**: Nodes that don't depend on each other (like speech-to-text vs. 1080p encoding) run simultaneously across thousands of server nodes.
-- **Fault Tolerance**: If chunk #42 fails, only Node #42 is retried — not the entire 2-hour video.
+- **Fault Tolerance**: If chunk #42 fails, only Node #42 is retried, not the entire 2-hour video.
 
-**The DAG is not the entry point** — it runs on a separate workflow engine (Temporal-like, cf. Airflow / Netflix Conductor):
+**The DAG is not the entry point.** It runs on a separate workflow engine (Temporal-like, cf. Airflow / Netflix Conductor):
 
 ```mermaid
 flowchart LR
@@ -256,18 +256,18 @@ flowchart LR
 | Feature | Entry Point (API Gateway) | Workflow Engine (Temporal / DAG engine) |
 | --- | --- | --- |
 | Primary Role | Accepts traffic, validates auth, ingests file. | Orchestrates multi-step dependencies, maintains cross-server state. |
-| Lifespan | Short-lived (seconds); ends once upload is stored. | Long-lived (minutes–hours); lives until all encoding completes. |
-| State Handling | Stateless. | Stateful — tracks which chunks succeeded, failed, or are running. |
+| Lifespan | Short-lived (seconds); ends once upload is stored. | Long-lived (minutes-hours); lives until all encoding completes. |
+| State Handling | Stateless. | Stateful: tracks which chunks succeeded, failed, or are running. |
 
 **What happens at the Entry Point:**
 1. The creator hits "Upload"; the gateway streams raw bytes into Google Cloud Storage (Colossus).
 2. It assigns a `VideoID` and creates a row in Vitess with status `PROCESSING`.
 3. It fires a trigger: `Start Workflow "ProcessVideo" for VideoID: 9x2A_kL`.
-4. The connection closes — the entry point's job is done.
+4. The connection closes, and the entry point's job is done.
 
 **What the workflow engine adds on top of the DAG:** durable orchestration with runtime expansion, heartbeat-based retries, and fine-grained dependency ordering:
 - **Dynamic Fan-Out / Fan-In**: a 2-hour video yields ~1,000 GOP chunks; the engine expands the DAG at runtime, spawning 1,000 parallel encoding Activities onto worker pools, then performs a barrier sync before "Generate Manifest" fires.
-- **Durable Execution & Retries**: workers crash or get preempted all the time. If Worker #342 dies mid-chunk, the engine detects the heartbeat timeout, re-queues only chunk 342 onto another worker, and resumes — the other 999 chunks are never restarted.
+- **Durable Execution & Retries**: workers crash or get preempted all the time. If Worker #342 dies mid-chunk, the engine detects the heartbeat timeout, re-queues only chunk 342 onto another worker, and resumes; the other 999 chunks are never restarted.
 - **Dependency Management**: thumbnail generation needs only chunk #1 (starts immediately); speech-to-text needs all audio chunks; the "video delivery" signal fires only when at least one video quality + audio are fully packaged.
 
 **Mapping to Temporal concepts** (if you rebuilt ingest with Temporal today):

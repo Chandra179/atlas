@@ -15,7 +15,7 @@ You manage a high-throughput Go microservice (`audit-aggregator`) ingesting stre
 
 **Memory Footprint:** Resident Set Size (RSS) steadily climbs over a 36-hour period until the container approaches OOM limits.
 
-**Latency Spikes:** P95 latency remains low (~4ms), but P99 latency degrades from 5ms to 900ms, accompanied by CPU spikes reaching 80–90% utilization.
+**Latency Spikes:** P95 latency remains low (~4ms), but P99 latency degrades from 5ms to 900ms, accompanied by CPU spikes reaching 80-90% utilization.
 
 **Garbage Collector Behavior:** CPU profiling via `pprof` shows `runtime.gcDrain` and `runtime.scanobject` taking up ~45% of total CPU time during latency spikes.
 
@@ -49,7 +49,7 @@ Lock contention is usually the first suspect in Go latency issues, but in this s
 
 ### Root Cause 1: Slice Backing Array Pinning (Memory Retention)
 
-In Go, slicing an existing buffer does not allocate new memory — it creates a 24-byte `reflect.SliceHeader` pointing into the original backing array:
+In Go, slicing an existing buffer does not allocate new memory; it creates a 24-byte `reflect.SliceHeader` pointing into the original backing array:
 
 ```
 Slice Header [ Pointer | Length | Capacity ]
@@ -64,17 +64,17 @@ Original 64 KB Array: [ 0 ... 44 |────── Payload ──────|
 - **Length:** `payloadLen - 44`
 - **Capacity:** `65536 - 44` (remaining space in the original array)
 
-The Go GC operates at the **allocation boundary**, not the slice header boundary. When `sync.Pool` or `make([]byte, 65536)` allocates, the runtime marks that entire 64 KB block as a single heap object. Storing the payload slice in the map holds a live pointer into that block, so the GC cannot free it — even if only 100 bytes are referenced.
+The Go GC operates at the **allocation boundary**, not the slice header boundary. When `sync.Pool` or `make([]byte, 65536)` allocates, the runtime marks that entire 64 KB block as a single heap object. Storing the payload slice in the map holds a live pointer into that block, so the GC cannot free it, even if only 100 bytes are referenced.
 
 **The Impact:** If the cache holds 10,000 events, you aren't storing 10,000 × 100 B (~1 MB). You are pinning 10,000 × 64 KB (~640 MB) of RAM. Because those buffers are pinned by the map, `sync.Pool` cannot recycle them and is forced to continuously allocate new 64 KB buffers, causing steady RSS growth.
 
-Note that this is not one shared 64 KB slab — `sync.Pool` manages a collection of **individual, separate** 64 KB allocations. Each request gets its own buffer, and each map entry pins a different one:
+Note that this is not one shared 64 KB slab: `sync.Pool` manages a collection of **individual, separate** 64 KB allocations. Each request gets its own buffer, and each map entry pins a different one:
 
 - Request 1 gets Buffer A, slices 100 B into `EventMetadata`, map pins A.
 - Request 2 gets Buffer B, slices 100 B, map pins B.
 - Request 10,000 gets Buffer #10,000, slices 100 B, map pins #10,000.
 
-Every map entry references a different 64 KB heap allocation, so the GC cannot free a single one — `10,000 items × 64 KB = 640 MB`.
+Every map entry references a different 64 KB heap allocation, so the GC cannot free a single one: `10,000 items × 64 KB = 640 MB`.
 
 With copying, the server reuses the **same few dozen buffers** across all requests instead of allocating 10,000 distinct ones:
 
