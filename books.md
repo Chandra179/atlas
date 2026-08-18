@@ -99,9 +99,231 @@
 - **What it covers:** The Toyota Production System (TPS), Just-In-Time (JIT) manufacturing, waste reduction (*Muda*), and continuous improvement (*Kaizen*).
 - **Goal:** Eliminate process waste, build a culture of continuous operational improvement, and optimize assembly flow.
 
+**Behemoth: A History of the Factory and the Making of the Modern World**
+- **Author:** Joshua B. Freeman
+- **What it covers:** The factory as an institution, from early English/New England textile mills through Soviet and modern Chinese/Vietnamese mega-factories.
+- **Goal:** See the factory itself as the subject — its social, political, and economic footprint — rather than its internal management methodology (a broader lens than Toyota Way).
+
+**The Machine That Changed the World**
+- **Author:** James P. Womack, Daniel T. Jones, & Daniel Roos
+- **What it covers:** The original MIT International Motor Vehicle Program study comparing craft, mass, and lean production — the research that first documented and named the Toyota Production System for a Western audience.
+- **Goal:** Get the rigorous, data-driven research base underneath Toyota Way's popularized management framing.
+
 ### Freight, Transportation & Last-Mile Delivery
 
 **Ninety Percent of Everything: Inside Shipping, the Almost Invisible Industry That Puts Clothes on Your Back, Gas in Your Tank, and Food on Your Plate**
 - **Author:** Rose George
 - **What it covers:** Ocean freight operations, maritime trade routes, port logistics, and the realities of commercial ocean shipping.
 - **Goal:** Gain deep insight into maritime freight logistics and the global ocean shipping infrastructure.
+
+---
+
+## Energy, Utilities & ClimateTech
+
+**The Prize: The Epic Quest for Oil, Money, and Power**
+- **Author:** Daniel Yergin
+- **What it covers:** The geopolitical, economic, and technological history of global energy infrastructure, upstream/downstream operations, and commodity trading.
+- **Goal:** Master the economic and operational foundations of global commodity markets and energy supply chains.
+
+**The New Map: Energy, Climate, and the Clash of Nations**
+- **Author:** Daniel Yergin
+- **What it covers:** The global energy transition, the shale revolution, electric vehicles, renewable grid integration, and clean energy supply chains.
+- **Goal:** Frame strategic and technical decisions around grid decarbonization, battery supply chains, and energy transition dynamics.
+
+**The Rare Metals War: The Dark Side of Clean Energy and Digital Technologies**
+- **Author:** Guillaume Pitron
+- **What it covers:** The mining, refining, and geopolitics of rare earth elements and critical minerals (lithium, cobalt, neodymium) that clean energy, EVs, and electronics all depend on — and China's dominant grip on the supply chain.
+- **Goal:** Understand the extraction/geopolitical layer underneath every battery and wind turbine — the physical supply chain the New Map's energy transition actually runs on.
+
+**Rare Earth and Critical Mineral Operations and Processing**
+- **Author:** Richard Skiba
+- **What it covers:** The technical value chain — mining, beneficiation, leaching, separation/purification — plus case studies from projects in Australia, the US, and Asia, and the economic/geopolitical forces shaping supply-chain resilience.
+- **Goal:** Get the engineering/operations-level detail underneath Pitron's geopolitical narrative — how rare earth actually gets extracted and processed.
+
+---
+
+## FinTech & Financial Infrastructure
+
+**The Anatomy of the Swipe: Making Sense of the Payment Cards System**
+- **Author:** Ahmed Siddiqui
+- **What it covers:** Card network mechanics (Visa/Mastercard), interchange fees, issuing vs. acquiring banks, payment gateways, double-entry ledgering, and settlement clearing.
+- **Goal:** Master the technical architecture and economic models underpinning global payment networks and payment processing.
+
+**Note — India's UPI/India Stack and core banking/SWIFT infrastructure:** No mature, well-verified standalone book exists for either as of 2026. Both are documented only in institutional reports (Cambridge Global Handbook of Financial Infrastructure ch. 27 & ch. 19, ADB briefs) and vendor blogs, not books — a genuine gap in the literature rather than a missed search.
+
+---
+
+## Biology & Biotech
+
+**The Gene: An Intimate History**
+- **Author:** Siddhartha Mukherjee
+- **What it covers:** The history of genetics — from Mendel through the Human Genome Project to CRISPR — woven with the author's own family history of mental illness.
+- **Goal:** Build a foundational, narrative-driven mental model of how genes work and how the science got here, written explicitly for a lay audience.
+
+**The Code Breaker: Jennifer Doudna, Gene Editing, and the Future of the Human Race**
+- **Author:** Walter Isaacson
+- **What it covers:** The discovery and commercialization of CRISPR gene editing, told through Jennifer Doudna's career, the race to patent the technology, and its use during COVID-19.
+- **Goal:** Understand how a foundational biology discovery turns into a biotech industry — the science, the personalities, and the commercial/ethical stakes.
+
+**The Billion Dollar Molecule: One Company's Quest for the Perfect Drug**
+- **Author:** Barry Werth
+- **What it covers:** The founding and early years of Vertex Pharmaceuticals — venture funding, drug discovery science, and the brutal economics of getting a single drug to market.
+- **Goal:** See the biotech industry's actual operating mechanics — how a drug company is built, funded, and run — as a narrative rather than a textbook.
+
+---
+
+## Telecommunications
+
+**Fundamentals of EMS, NMS and OSS/BSS**
+- **Author:** Jithesh Sathyan
+- **What it covers:** Element/network management systems and Operations/Business Support Systems — the software that provisions, monitors, and bills telecom networks, including charging architecture across GSM/3G/LTE/IMS. Built on TM Forum frameworks used by carriers worldwide.
+- **Goal:** Understand the operational software stack behind carrier networks, distinct from RF/radio engineering.
+
+**Note — EU telecom regulation:** No general-reader book found; the only material is an academic legal text (Edward Elgar), aimed at law faculty/policy researchers rather than practitioners. Flagging as a gap.
+
+---
+
+## Real Estate & PropTech
+
+**Rethinking Real Estate: A Roadmap to Technology's Impact on the World's Largest Asset Class**
+- **Author:** Dror Poleg
+- **What it covers:** How digitization, remote work, and tech platforms are restructuring real estate as an asset class — leasing, valuation, and ownership models.
+- **Goal:** Frame how PropTech platforms are reshaping the economics of the world's largest asset class.
+
+**An Introduction to Real Estate Finance**
+- **Author:** Edward Glickman
+- **What it covers:** Mortgage structuring, capital markets, REITs, and real estate accounting/tax fundamentals — the US financial-infrastructure view.
+- **Goal:** Learn the mortgage/capital-markets machinery underlying US real estate specifically.
+
+**Note — China's real estate/land-tenure system:** *Understanding China's Real Estate Markets* (Springer) covers the state-ownership/leased-use-rights model, but it's an academic multi-author volume, not general-reader accessible. Flagging as a gap.
+
+**Note — EU real estate/land registry law:** No general-reader book found; the only material is an academic legal handbook (Edward Elgar), not practitioner- or general-reader-accessible. Flagging as a gap.
+
+---
+
+## Retail & E-commerce
+
+**The Everything Store: Jeff Bezos and the Age of Amazon**
+- **Author:** Brad Stone
+- **What it covers:** Amazon's founding and platform strategy — marketplace mechanics, fulfillment buildout, pricing/ranking algorithms, and flywheel economics.
+- **Goal:** Understand the strategic and operational logic behind the inventory-owning e-commerce marketplace model.
+
+**Alibaba: The House That Jack Ma Built**
+- **Author:** Duncan Clark
+- **What it covers:** Alibaba's "Iron Triangle" — e-commerce + logistics + Alipay finance — and its asset-light marketplace strategy, structurally opposite to Amazon's inventory-owning approach.
+- **Goal:** Understand the platform/super-app commerce model that dominates Chinese and much of Southeast Asian retail.
+
+**Inventory Optimization**
+- **Author:** Nicolas Vandeput
+- **What it covers:** EOQ through stochastic single-echelon and multi-echelon inventory models, with Python implementations throughout.
+- **Goal:** Get hands-on, code-level grounding in the inventory math underlying retail systems.
+
+---
+
+## Agriculture & AgTech
+
+**Merchants of Grain**
+- **Author:** Dan Morgan
+- **What it covers:** The history of the trading houses (Cargill, Bunge, Louis Dreyfus, Continental, André) that control global grain flows.
+- **Goal:** Understand the historical roots of agricultural commodity trading and global food-flow infrastructure.
+
+**Commodity Conversations: An Introduction to Trading Agricultural Commodities**
+- **Author:** Jonathan Kingsman
+- **What it covers:** Present-day mechanics of trading grains, oilseeds, and sugar — contracts, hedging, physical vs. futures markets.
+- **Goal:** Learn the operational and financial mechanics underlying agricultural commodity markets today, as a practitioner-level complement to Merchants of Grain's history.
+
+**Note — industrial-scale precision agriculture:** *Precision Agriculture Technology for Crop Farming* (Qin Zhang) covers the sensing/data/modeling stack, but it's an academic technical text, not general-reader accessible. Flagging as a gap.
+
+**The Future of Smallholder Farming in Asia**
+- **Author:** Asian Development Bank
+- **What it covers:** Policy and investment strategies for smallholder viability across South/Southeast Asia.
+- **Goal:** Understand technology adoption constraints at smallholder scale — the opposite context from the large-mechanized-farm precision ag above.
+
+---
+
+## Automotive
+
+**Note — automotive embedded systems (AUTOSAR):** *Embedded Systems in Automotive Applications* (El Hammoumi et al., Elsevier) covers AUTOSAR architecture and autonomous-driving stacks, but it's an engineering textbook assuming embedded-systems background — not general-reader accessible. Flagging as a gap.
+
+**Note — Chinese EV manufacturing:** No mature, widely-cited book exists yet on BYD/Chinese EV supply chains specifically; the topic is currently covered only in research-firm briefs (Rhodium Group, Contrary Research), not books.
+
+---
+
+## Capital Markets & Trading
+
+**Trading and Exchanges: Market Microstructure for Practitioners**
+- **Author:** Larry Harris
+- **What it covers:** Order types, exchange mechanics, liquidity provision, and trader behavior — the most comprehensive treatment of market microstructure available.
+- **Goal:** Master how exchanges and order-matching actually function beneath trading strategy. Principles generalize across NYSE/LSE/HKEX/NSE, though the 2002 text predates the algo/HFT buildout now prominent in Indian and Chinese markets.
+
+---
+
+## Semiconductors & Chip Manufacturing
+
+**Chip War: The Fight for the World's Most Critical Technology**
+- **Author:** Chris Miller
+- **What it covers:** The history of the global semiconductor industry, the TSMC/ASML supply chain, and the geopolitics of chip manufacturing (Taiwan, Korea, US-China tensions).
+- **Goal:** Understand why chips are the chokepoint underlying modern technology, economics, and great-power competition — FT Business Book of the Year, widely regarded as the definitive book on this subject.
+
+**Microchip Fabrication: A Practical Guide to Semiconductor Processing**
+- **Author:** Peter Van Zant
+- **What it covers:** The physical fab process — photolithography, EUV, etching, doping, deposition — the standard industry/academic reference for how chips are actually manufactured.
+- **Goal:** Get the engineering-level detail underneath Chip War's geopolitical narrative — how a wafer actually becomes a chip.
+
+---
+
+## Mining & Metals
+
+**The War of the Copper Kings: Greed, Power, and Politics**
+- **Author:** C. B. Glasscock
+- **What it covers:** The turn-of-the-20th-century battle for Butte, Montana's copper mines — corporate warfare, Wall Street finance, and the birth of Anaconda Copper.
+- **Goal:** Understand how a single-commodity mining industry actually got built and fought over, historically.
+
+**Cobalt Red: How the Blood of the Congo Powers Our Lives**
+- **Author:** Siddharth Kara
+- **What it covers:** Contemporary cobalt mining in the DRC and its role in the battery/EV supply chain — labor conditions and extraction economics.
+- **Goal:** See that mining-industry exploitation isn't just history — a present-day, different-commodity/different-region counterpart to *The Rare Metals War* (Energy section): cobalt/DRC here vs. rare earth/China there.
+
+*No single strong book covering the general mining industry (iron/coal/copper together) was found — coverage exists per-commodity rather than as one unified text.*
+
+---
+
+## Water & Utilities
+
+**Cadillac Desert: The American West and Its Disappearing Water**
+- **Author:** Marc Reisner
+- **What it covers:** Dammed and diverted rivers, political corruption, and economic greed over water rights in the American West.
+- **Goal:** Understand the historical politics and infrastructure fights behind water rights and allocation.
+
+**Water 4.0: The Past, Present, and Future of the World's Most Vital Resource**
+- **Author:** David Sedlak
+- **What it covers:** The engineering history of water systems — from Roman aqueducts through modern treatment, desalination, and recycling.
+- **Goal:** Get the systems/engineering layer of municipal water infrastructure and desalination underneath Reisner's political narrative.
+
+---
+
+## Behavioral Economics & Decision-Making
+
+**Thinking, Fast and Slow**
+- **Author:** Daniel Kahneman
+- **What it covers:** The dual-process theory of cognition (System 1 fast/intuitive vs. System 2 slow/deliberate), heuristics, biases, and prospect theory.
+- **Goal:** Build the core mental model of how human judgment under uncertainty actually works — the canonical starting point.
+
+**Predictably Irrational: The Hidden Forces That Shape Our Decisions**
+- **Author:** Dan Ariely
+- **What it covers:** Experiment-driven look at specific irrational patterns — anchoring, the "zero price effect," social vs. market norms.
+- **Goal:** See the biases from Kahneman's theory demonstrated through concrete, memorable experiments — an applied complement, not a repeat of the same ground.
+
+---
+
+## Geopolitics & Global History
+
+**Prisoners of Geography: Ten Maps That Explain Everything About the World**
+- **Author:** Tim Marshall
+- **What it covers:** Ten regions (Russia, China, USA, Middle East, Europe, India/Pakistan, etc.) analyzed through the physical-geography constraints that shape their strategic behavior.
+- **Goal:** Get an accessible, map-driven framework for why great powers act the way they do — a broader lens than Yergin's energy-specific geopolitics.
+
+**Guns, Germs, and Steel: The Fates of Human Societies**
+- **Author:** Jared Diamond
+- **What it covers:** Why some civilizations developed technology, agriculture, and conquest capacity faster than others over a 10,000-year span — argues environmental/geographic factors explain global inequality.
+- **Goal:** Get the deep-history causal layer underneath Marshall's present-day strategic analysis. Note: Pulitzer winner but carries real academic criticism for environmental determinism and downplaying human agency/culture — read with that caveat, not as unchallenged consensus.
