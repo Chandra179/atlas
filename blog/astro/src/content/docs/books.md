@@ -1,6 +1,6 @@
 ---
 title: Books
-modified: '2026-08-17'
+modified: '2026-08-18'
 ---
 
 # Engineering & Supply Chain Reading List
@@ -332,3 +332,56 @@ modified: '2026-08-17'
 - **Author:** Jared Diamond
 - **What it covers:** Why some civilizations developed technology, agriculture, and conquest capacity faster than others over a 10,000-year span — argues environmental/geographic factors explain global inequality.
 - **Goal:** Get the deep-history causal layer underneath Marshall's present-day strategic analysis. Note: Pulitzer winner but carries real academic criticism for environmental determinism and downplaying human agency/culture — read with that caveat, not as unchallenged consensus.
+
+---
+
+## Construction & Infrastructure
+
+**How Big Things Get Done: The Surprising Factors That Determine the Fate of Every Project**
+- **Author:** Bent Flyvbjerg & Dan Gardner
+- **What it covers:** Why megaprojects (rail, tunnels, stadiums, software rollouts) blow their budgets and schedules, drawn from a dataset of 16,000+ projects — 92% run over budget, schedule, or both.
+- **Goal:** Understand the systemic causes of infrastructure cost/schedule overruns, from the leading academic authority on megaproject management. Distinct from the manufacturing/logistics sections above — this is about building things in place, not moving or assembling them.
+
+*No well-verified technical/engineering counterpart found for heavy-civil construction specifically — flagging as an open gap rather than including a weakly-sourced match.*
+
+---
+
+## Chemical Industry
+
+**Shaping the Industrial Century: The Remarkable Story of the Evolution of the Modern Chemical and Pharmaceutical Industries**
+- **Author:** Alfred D. Chandler Jr.
+- **What it covers:** The strategic evolution of the global chemical and pharma industries — who won, who lost, and why — covering DuPont, BASF, Dow, and Bayer over a century.
+- **Goal:** Understand how major chemical companies built and lost competitive advantage, from a top-tier business historian.
+
+**Petrochemicals: The Rise of an Industry**
+- **Author:** Peter H. Spitz
+- **What it covers:** The petrochemical industry's growth from the 1920s–1970s — a practitioner account of how plastics, fibers, and synthetic rubber production became foundational industries.
+- **Goal:** Get an industry-insider, more operational complement to Chandler's strategy-level history.
+
+---
+
+## Urban Planning & Cities
+
+**The Death and Life of Great American Cities**
+- **Author:** Jane Jacobs
+- **What it covers:** A critique of 1950s top-down urban renewal, arguing for density, mixed use, and "eyes on the street" as what actually makes cities work.
+- **Goal:** Get the foundational, general-reader framework for how cities function organically — called by the NYT "perhaps the most influential single work in the history of town planning." Complements Real Estate and Construction above.
+
+**Order Without Design: How Markets Shape Cities**
+- **Author:** Alain Bertaud
+- **What it covers:** Economic logic and quantitative analysis applied to zoning, land markets, and urban planning decisions, from a 55-year career as a global urban planner.
+- **Goal:** Get the technical/analytical counterpart to Jacobs — how land markets and regulation actually shape city form, not just why density matters.
+
+---
+
+## Environmental & Climate Science
+
+**The Discovery of Global Warming**
+- **Author:** Spencer Weart
+- **What it covers:** The history of climate science itself — how researchers built the case for climate change from 19th-century physics through modern climate models.
+- **Goal:** Get an accessible account of the actual science and its evidentiary history, distinct from the energy-policy/ClimateTech framing in the Energy section above.
+
+**Global Warming: Understanding the Forecast**
+- **Author:** David Archer
+- **What it covers:** The greenhouse effect, carbon cycle, and climate modeling mechanics, written for an undergraduate non-science audience.
+- **Goal:** Get the technical counterpart to Weart — the actual atmospheric-science mechanics, still accessible without a science degree.
