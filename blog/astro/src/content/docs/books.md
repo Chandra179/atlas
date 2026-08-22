@@ -3,7 +3,22 @@ title: Books
 modified: '2026-08-18'
 ---
 
-# Engineering & Supply Chain Reading List
+# Optimized Engineering & Supply Chain Reading List
+
+**Dropped from redundant pairs (technical/specialized counterpart removed):**
+- The Machine That Changed the World
+- Predictably Irrational
+- The Code Breaker
+- Purchasing and Supply Chain Management
+- Rare Earth and Critical Mineral Operations and Processing
+- Microchip Fabrication
+- Water 4.0
+- Global Warming: Understanding the Forecast
+- Commodity Conversations
+- Petrochemicals: The Rise of an Industry
+- Order Without Design
+
+---
 
 ## Core Systems & Performance
 
@@ -92,10 +107,7 @@ modified: '2026-08-18'
 
 ### Sourcing & Procurement
 
-**Purchasing and Supply Chain Management**
-- **Author:** Robert B. Handfield & Robert M. Monczka
-- **What it covers:** Supplier selection, contract negotiations, procurement risk management, and strategic purchasing frameworks.
-- **Goal:** Build resilient vendor networks, manage strategic purchasing budgets, and mitigate supply disruption risks.
+*Dropped: Purchasing and Supply Chain Management (overlaps with Chopra's Supply Chain Management). No separate sourcing book retained.*
 
 ### Manufacturing & Lean Operations
 
@@ -108,11 +120,6 @@ modified: '2026-08-18'
 - **Author:** Joshua B. Freeman
 - **What it covers:** The factory as an institution, from early English/New England textile mills through Soviet and modern Chinese/Vietnamese mega-factories.
 - **Goal:** See the factory itself as the subject — its social, political, and economic footprint — rather than its internal management methodology (a broader lens than Toyota Way).
-
-**The Machine That Changed the World**
-- **Author:** James P. Womack, Daniel T. Jones, & Daniel Roos
-- **What it covers:** The original MIT International Motor Vehicle Program study comparing craft, mass, and lean production — the research that first documented and named the Toyota Production System for a Western audience.
-- **Goal:** Get the rigorous, data-driven research base underneath Toyota Way's popularized management framing.
 
 ### Freight, Transportation & Last-Mile Delivery
 
@@ -140,11 +147,6 @@ modified: '2026-08-18'
 - **What it covers:** The mining, refining, and geopolitics of rare earth elements and critical minerals (lithium, cobalt, neodymium) that clean energy, EVs, and electronics all depend on — and China's dominant grip on the supply chain.
 - **Goal:** Understand the extraction/geopolitical layer underneath every battery and wind turbine — the physical supply chain the New Map's energy transition actually runs on.
 
-**Rare Earth and Critical Mineral Operations and Processing**
-- **Author:** Richard Skiba
-- **What it covers:** The technical value chain — mining, beneficiation, leaching, separation/purification — plus case studies from projects in Australia, the US, and Asia, and the economic/geopolitical forces shaping supply-chain resilience.
-- **Goal:** Get the engineering/operations-level detail underneath Pitron's geopolitical narrative — how rare earth actually gets extracted and processed.
-
 ---
 
 ## FinTech & Financial Infrastructure
@@ -164,11 +166,6 @@ modified: '2026-08-18'
 - **Author:** Siddhartha Mukherjee
 - **What it covers:** The history of genetics — from Mendel through the Human Genome Project to CRISPR — woven with the author's own family history of mental illness.
 - **Goal:** Build a foundational, narrative-driven mental model of how genes work and how the science got here, written explicitly for a lay audience.
-
-**The Code Breaker: Jennifer Doudna, Gene Editing, and the Future of the Human Race**
-- **Author:** Walter Isaacson
-- **What it covers:** The discovery and commercialization of CRISPR gene editing, told through Jennifer Doudna's career, the race to patent the technology, and its use during COVID-19.
-- **Goal:** Understand how a foundational biology discovery turns into a biotech industry — the science, the personalities, and the commercial/ethical stakes.
 
 **The Billion Dollar Molecule: One Company's Quest for the Perfect Drug**
 - **Author:** Barry Werth
@@ -232,17 +229,12 @@ modified: '2026-08-18'
 - **What it covers:** The history of the trading houses (Cargill, Bunge, Louis Dreyfus, Continental, André) that control global grain flows.
 - **Goal:** Understand the historical roots of agricultural commodity trading and global food-flow infrastructure.
 
-**Commodity Conversations: An Introduction to Trading Agricultural Commodities**
-- **Author:** Jonathan Kingsman
-- **What it covers:** Present-day mechanics of trading grains, oilseeds, and sugar — contracts, hedging, physical vs. futures markets.
-- **Goal:** Learn the operational and financial mechanics underlying agricultural commodity markets today, as a practitioner-level complement to Merchants of Grain's history.
-
-**Note — industrial-scale precision agriculture:** *Precision Agriculture Technology for Crop Farming* (Qin Zhang) covers the sensing/data/modeling stack, but it's an academic technical text, not general-reader accessible. Flagging as a gap.
-
 **The Future of Smallholder Farming in Asia**
 - **Author:** Asian Development Bank
 - **What it covers:** Policy and investment strategies for smallholder viability across South/Southeast Asia.
 - **Goal:** Understand technology adoption constraints at smallholder scale — the opposite context from the large-mechanized-farm precision ag above.
+
+**Note — industrial-scale precision agriculture:** *Precision Agriculture Technology for Crop Farming* (Qin Zhang) covers the sensing/data/modeling stack, but it's an academic technical text, not general-reader accessible. Flagging as a gap.
 
 ---
 
@@ -270,11 +262,6 @@ modified: '2026-08-18'
 - **What it covers:** The history of the global semiconductor industry, the TSMC/ASML supply chain, and the geopolitics of chip manufacturing (Taiwan, Korea, US-China tensions).
 - **Goal:** Understand why chips are the chokepoint underlying modern technology, economics, and great-power competition — FT Business Book of the Year, widely regarded as the definitive book on this subject.
 
-**Microchip Fabrication: A Practical Guide to Semiconductor Processing**
-- **Author:** Peter Van Zant
-- **What it covers:** The physical fab process — photolithography, EUV, etching, doping, deposition — the standard industry/academic reference for how chips are actually manufactured.
-- **Goal:** Get the engineering-level detail underneath Chip War's geopolitical narrative — how a wafer actually becomes a chip.
-
 ---
 
 ## Mining & Metals
@@ -300,11 +287,6 @@ modified: '2026-08-18'
 - **What it covers:** Dammed and diverted rivers, political corruption, and economic greed over water rights in the American West.
 - **Goal:** Understand the historical politics and infrastructure fights behind water rights and allocation.
 
-**Water 4.0: The Past, Present, and Future of the World's Most Vital Resource**
-- **Author:** David Sedlak
-- **What it covers:** The engineering history of water systems — from Roman aqueducts through modern treatment, desalination, and recycling.
-- **Goal:** Get the systems/engineering layer of municipal water infrastructure and desalination underneath Reisner's political narrative.
-
 ---
 
 ## Behavioral Economics & Decision-Making
@@ -313,11 +295,6 @@ modified: '2026-08-18'
 - **Author:** Daniel Kahneman
 - **What it covers:** The dual-process theory of cognition (System 1 fast/intuitive vs. System 2 slow/deliberate), heuristics, biases, and prospect theory.
 - **Goal:** Build the core mental model of how human judgment under uncertainty actually works — the canonical starting point.
-
-**Predictably Irrational: The Hidden Forces That Shape Our Decisions**
-- **Author:** Dan Ariely
-- **What it covers:** Experiment-driven look at specific irrational patterns — anchoring, the "zero price effect," social vs. market norms.
-- **Goal:** See the biases from Kahneman's theory demonstrated through concrete, memorable experiments — an applied complement, not a repeat of the same ground.
 
 ---
 
@@ -353,11 +330,6 @@ modified: '2026-08-18'
 - **What it covers:** The strategic evolution of the global chemical and pharma industries — who won, who lost, and why — covering DuPont, BASF, Dow, and Bayer over a century.
 - **Goal:** Understand how major chemical companies built and lost competitive advantage, from a top-tier business historian.
 
-**Petrochemicals: The Rise of an Industry**
-- **Author:** Peter H. Spitz
-- **What it covers:** The petrochemical industry's growth from the 1920s–1970s — a practitioner account of how plastics, fibers, and synthetic rubber production became foundational industries.
-- **Goal:** Get an industry-insider, more operational complement to Chandler's strategy-level history.
-
 ---
 
 ## Urban Planning & Cities
@@ -367,11 +339,6 @@ modified: '2026-08-18'
 - **What it covers:** A critique of 1950s top-down urban renewal, arguing for density, mixed use, and "eyes on the street" as what actually makes cities work.
 - **Goal:** Get the foundational, general-reader framework for how cities function organically — called by the NYT "perhaps the most influential single work in the history of town planning." Complements Real Estate and Construction above.
 
-**Order Without Design: How Markets Shape Cities**
-- **Author:** Alain Bertaud
-- **What it covers:** Economic logic and quantitative analysis applied to zoning, land markets, and urban planning decisions, from a 55-year career as a global urban planner.
-- **Goal:** Get the technical/analytical counterpart to Jacobs — how land markets and regulation actually shape city form, not just why density matters.
-
 ---
 
 ## Environmental & Climate Science
@@ -380,8 +347,3 @@ modified: '2026-08-18'
 - **Author:** Spencer Weart
 - **What it covers:** The history of climate science itself — how researchers built the case for climate change from 19th-century physics through modern climate models.
 - **Goal:** Get an accessible account of the actual science and its evidentiary history, distinct from the energy-policy/ClimateTech framing in the Energy section above.
-
-**Global Warming: Understanding the Forecast**
-- **Author:** David Archer
-- **What it covers:** The greenhouse effect, carbon cycle, and climate modeling mechanics, written for an undergraduate non-science audience.
-- **Goal:** Get the technical counterpart to Weart — the actual atmospheric-science mechanics, still accessible without a science degree.
