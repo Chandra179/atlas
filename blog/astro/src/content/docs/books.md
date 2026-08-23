@@ -1,6 +1,6 @@
 ---
 title: Books
-modified: '2026-08-18'
+modified: '2026-08-22'
 ---
 
 # Optimized Engineering & Supply Chain Reading List
