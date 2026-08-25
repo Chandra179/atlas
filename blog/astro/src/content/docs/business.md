@@ -1,9 +1,16 @@
 ---
-title: "Business Knowledge Map"
-description: "A knowledge map of business models, industries, and market trends, organized through a first-principles chain from scarcity to the mechanisms reshaping each industry today."
-tags: [business, frameworks]
-created: 2026-08-08
+title: Business Knowledge Map
+description: >-
+  A knowledge map of business models, industries, and market trends, organized
+  through a first-principles chain from scarcity to the mechanisms reshaping
+  each industry today.
+tags:
+  - business
+  - frameworks
+created: 2026-08-08T00:00:00.000Z
+modified: '2026-08-16'
 ---
+
 # Business
 
 This framework is a **first-principles taxonomy of modern business and technology**. Instead of viewing industries and software applications as isolated entities, this map traces how every commercial activity, from a local retail POS system to generative AI platforms, stems from a single foundational reality.
