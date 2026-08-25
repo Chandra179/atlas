@@ -1,6 +1,6 @@
 ---
 title: Books
-modified: '2026-08-22'
+modified: '2026-08-25'
 ---
 
 # Engineering, Business Systems & Supply Chain Reading List
