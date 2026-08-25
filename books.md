@@ -1,17 +1,75 @@
-# Optimized Engineering & Supply Chain Reading List
+# Engineering, Business Systems & Supply Chain Reading List
 
-**Dropped from redundant pairs (technical/specialized counterpart removed):**
-- The Machine That Changed the World
-- Predictably Irrational
-- The Code Breaker
-- Purchasing and Supply Chain Management
-- Rare Earth and Critical Mineral Operations and Processing
-- Microchip Fabrication
-- Water 4.0
-- Global Warming: Understanding the Forecast
-- Commodity Conversations
-- Petrochemicals: The Rise of an Industry
-- Order Without Design
+---
+
+## First-Principles Business Systems & Economic Foundations
+
+### Absolute Core: Scarcity & Thermodynamics
+
+**Energy and Civilization: A History**
+- **Author:** Vaclav Smil
+- **What it covers:** A comprehensive physical account of how energy flows, material thermodynamics, and physical constraints have dictated human economic development, civilizational growth, and societal limits throughout history.
+- **Goal:** Understand the absolute physical core of human existence and resource scarcity that precedes all economic and technological systems.
+
+**Basic Economics: A Common Sense Guide to the Economy**
+- **Author:** Thomas Sowell
+- **What it covers:** First-principles economic concepts focusing on resource trade-offs, opportunity costs, price mechanisms, and finite inputs evaluated against infinite human wants.
+- **Goal:** Master foundational economic reasoning on how scarcity forces allocation decisions without relying on complex mathematical jargon or dogma.
+
+### Allocation Mechanisms & Problem Solving
+
+**Who Gets What — and Why: The New Economics of Matchmaking and Market Design**
+- **Author:** Alvin E. Roth
+- **What it covers:** How structural allocation mechanisms, matching algorithms, and market design resolve resource distribution problems in environments where traditional price signals fail or are absent.
+- **Goal:** Learn how allocation mechanisms function to solve supply and demand alignment when raw price clearing is insufficient.
+
+### Institutional Frameworks & Trust Systems
+
+**Institutions, Institutional Change and Economic Performance**
+- **Author:** Douglass C. North
+- **What it covers:** The formal and informal rules of the game (laws, property rights, contracts, social norms) that humans create to reduce transaction costs, govern trust, and align incentives.
+- **Goal:** Grasp how foundational institutions emerge to solve structural sub-problems of trust, coordination, and incentive alignment.
+
+**The Ascent of Money: A Financial History of the World**
+- **Author:** Niall Ferguson
+- **What it covers:** The historical development of financial systems, credit, banking, bond markets, and currency as artificial human tools created to aggregate trust and coordinate capital over time and space.
+- **Goal:** Trace financial technology and trust mechanisms from early credit ledgers to modern complex financial structures.
+
+### Applied Abstractions & Primitives
+
+**The Nature of Technology: What It Is and How It Evolves**
+- **Author:** W. Brian Arthur
+- **What it covers:** An examination of technology as a system of captured phenomena and modular primitives that continuously recombine to form complex tools, platforms, and software layers.
+- **Goal:** Understand how foundational tools build upon institutional abstractions to form the structural basis of applied technology.
+
+**The Box: How the Shipping Container Made the World Smaller and the World Economy Bigger**
+- **Author:** Marc Levinson
+- **What it covers:** The historical invention of the standardized shipping container and its role in slashing freight costs, enabling globalization, and shaping modern international trade.
+- **Goal:** Understand the historical infrastructure, economics, and logistics mechanics of global trade transport.
+
+### Evolution of Tech Industries & Infrastructure
+
+**Technological Revolutions and Financial Capital: The Dynamics of Bubbles and Golden Ages**
+- **Author:** Carlota Perez
+- **What it covers:** The recurring historical cycles of technological deployment (from steam and electricity to computing) and how capital shifts from installation phases to full deployment across industries.
+- **Goal:** Frame how software and core technology primitives evolve from isolated tools into dominant paradigms across major industry sectors.
+
+**Bank 4.0: Banking Everywhere, Never at a Bank**
+- **Author:** Brett King
+- **What it covers:** The transition of monetary and credit tools from physical institutional branch networks into embedded, real-time software layers and open API platforms.
+- **Goal:** Understand how financial services decouple from traditional bank infrastructure into pure software abstractions.
+
+### Modern Industrial Mechanics & Platform Dynamics
+
+**Platform Revolution: How Networked Markets Are Transforming the Economy**
+- **Author:** Geoffrey G. Parker, Marshall W. Van Alstyne, & Sangeet Paul Choudary
+- **What it covers:** Multi-sided market platforms, ecosystem architecture, API integration layers, and structural moats in digital ecosystems.
+- **Goal:** Analyze the mechanism designs that allow embedded fintech, social commerce, and software platforms to scale zero-marginal-cost value creation.
+
+**Arriving Today: From Factory to Front Door**
+- **Author:** Christopher Mims
+- **What it covers:** A modern deep dive into automated fulfillment centers, last-mile robotic routing algorithms, and algorithmic trade logistics powering global consumer supply chains.
+- **Goal:** See how software control systems, AI, and robotics actively reshape physical commerce and movement tools.
 
 ---
 
@@ -90,19 +148,10 @@
 - **What it covers:** The Theory of Constraints (identifying and resolving operational bottlenecks) presented in a business novel narrative.
 - **Goal:** Learn how to identify system constraints, eliminate operational bottlenecks, and maximize manufacturing throughput.
 
-**Supply Chain Management: Strategy, Planning, and Operation**
-- **Author:** Sunil Chopra
-- **What it covers:** Quantitative models and strategic frameworks for supply chain network design, inventory drivers, and global operations.
-- **Goal:** Master the mathematical and strategic foundations required to design, manage, and optimize end-to-end supply chain networks.
-
 **The Box: How the Shipping Container Made the World Smaller and the World Economy Bigger**
 - **Author:** Marc Levinson
 - **What it covers:** The historical invention of the standardized shipping container and its role in slashing freight costs, enabling globalization, and shaping modern international trade.
 - **Goal:** Understand the historical infrastructure, economics, and logistics mechanics of global trade transport.
-
-### Sourcing & Procurement
-
-*Dropped: Purchasing and Supply Chain Management (overlaps with Chopra's Supply Chain Management). No separate sourcing book retained.*
 
 ### Manufacturing & Lean Operations
 
@@ -110,11 +159,6 @@
 - **Author:** Jeffrey K. Liker
 - **What it covers:** The Toyota Production System (TPS), Just-In-Time (JIT) manufacturing, waste reduction (*Muda*), and continuous improvement (*Kaizen*).
 - **Goal:** Eliminate process waste, build a culture of continuous operational improvement, and optimize assembly flow.
-
-**Behemoth: A History of the Factory and the Making of the Modern World**
-- **Author:** Joshua B. Freeman
-- **What it covers:** The factory as an institution, from early English/New England textile mills through Soviet and modern Chinese/Vietnamese mega-factories.
-- **Goal:** See the factory itself as the subject — its social, political, and economic footprint — rather than its internal management methodology (a broader lens than Toyota Way).
 
 ### Freight, Transportation & Last-Mile Delivery
 
@@ -171,11 +215,6 @@
 
 ## Telecommunications
 
-**Fundamentals of EMS, NMS and OSS/BSS**
-- **Author:** Jithesh Sathyan
-- **What it covers:** Element/network management systems and Operations/Business Support Systems — the software that provisions, monitors, and bills telecom networks, including charging architecture across GSM/3G/LTE/IMS. Built on TM Forum frameworks used by carriers worldwide.
-- **Goal:** Understand the operational software stack behind carrier networks, distinct from RF/radio engineering.
-
 **Note — EU telecom regulation:** No general-reader book found; the only material is an academic legal text (Edward Elgar), aimed at law faculty/policy researchers rather than practitioners. Flagging as a gap.
 
 ---
@@ -186,11 +225,6 @@
 - **Author:** Dror Poleg
 - **What it covers:** How digitization, remote work, and tech platforms are restructuring real estate as an asset class — leasing, valuation, and ownership models.
 - **Goal:** Frame how PropTech platforms are reshaping the economics of the world's largest asset class.
-
-**An Introduction to Real Estate Finance**
-- **Author:** Edward Glickman
-- **What it covers:** Mortgage structuring, capital markets, REITs, and real estate accounting/tax fundamentals — the US financial-infrastructure view.
-- **Goal:** Learn the mortgage/capital-markets machinery underlying US real estate specifically.
 
 **Note — China's real estate/land-tenure system:** *Understanding China's Real Estate Markets* (Springer) covers the state-ownership/leased-use-rights model, but it's an academic multi-author volume, not general-reader accessible. Flagging as a gap.
 
@@ -209,11 +243,6 @@
 - **Author:** Duncan Clark
 - **What it covers:** Alibaba's "Iron Triangle" — e-commerce + logistics + Alipay finance — and its asset-light marketplace strategy, structurally opposite to Amazon's inventory-owning approach.
 - **Goal:** Understand the platform/super-app commerce model that dominates Chinese and much of Southeast Asian retail.
-
-**Inventory Optimization**
-- **Author:** Nicolas Vandeput
-- **What it covers:** EOQ through stochastic single-echelon and multi-echelon inventory models, with Python implementations throughout.
-- **Goal:** Get hands-on, code-level grounding in the inventory math underlying retail systems.
 
 ---
 
@@ -320,10 +349,7 @@
 
 ## Chemical Industry
 
-**Shaping the Industrial Century: The Remarkable Story of the Evolution of the Modern Chemical and Pharmaceutical Industries**
-- **Author:** Alfred D. Chandler Jr.
-- **What it covers:** The strategic evolution of the global chemical and pharma industries — who won, who lost, and why — covering DuPont, BASF, Dow, and Bayer over a century.
-- **Goal:** Understand how major chemical companies built and lost competitive advantage, from a top-tier business historian.
+*No general-reader accessible titles retained in this section (previously held dense academic institutional history).*
 
 ---
 
