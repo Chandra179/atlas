@@ -6,8 +6,8 @@ created: 2026-06-21
 ---
 
 # Experience
-
-### Book Cabin, Software Engineer, Feb 2026 – May 2026
+ 
+### Book Cabin, Software Engineer
 * Core Order & Booking Engine: Rewrite of the legacy order system into a high-performance Go microservice, handling end-to-end checkout and fulfillment for prebook and postbook flights.
 * Identity & Authentication Engine: Designed and built a standalone internal Identity microservice in Go to centralize user authentication (JWT, OTP, RBAC) and deliver secure, role-based access management across platforms.
 * CMS & SEO Platforms: Architected a WordPress-style block-editor CMS backend (versioned articles, multi-language publishing, taxonomy) and built a separate SEO data platform with Excel-to-JSON extraction pipelines and an in-memory caching layer.
