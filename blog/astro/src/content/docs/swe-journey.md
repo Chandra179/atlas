@@ -12,7 +12,7 @@ description: >-
   Practical lessons on variable naming, abstraction, data types, logging,
   idempotency, caching, message brokers, and deployment from real-world
   engineering experience.
-modified: '2026-08-16'
+modified: '2026-08-29'
 ---
 
 # Software Engineering Journey
@@ -572,7 +572,7 @@ func main() {
 
 Go applies this exact same design principle to other major structural types, using lightweight headers or internal descriptors to point to a shared space in memory:
 
-- **Slices:** Just like strings, passing a slice by value only copies a small 24-byte header containing a data pointer, length, and capacity. It points to a shared backing array. _The big difference:_ Slices are mutable. If you modify the elements of a copied slice, you will directly alter the data in the original backing array.
+- **Slices:** Like strings, passing a slice by value only copies a small 24-byte header containing a data pointer, length, and capacity. It points to a shared backing array. _The big difference:_ Slices are mutable. If you modify the elements of a copied slice, you will directly alter the data in the original backing array.
 - **Maps and Channels:** Under the hood, maps and channels are direct pointers to complex internal runtime structures (`hmap` and `hchan`). Copying a map or channel variable only copies a tiny 8-byte memory address. Both the original variable and the copy point to the exact same live data buckets.
 
 **Note on Primitives:** Primitives like integers, floats, and booleans do not use headers or pointer descriptors at all. Because their raw values are already tiny (1 to 8 bytes), Go duplicates the value directly from one stack slot to another. It fits perfectly inside a single CPU register, making it fast.

@@ -20,13 +20,11 @@ const ALLOWED_FILES = new Set([
   'order-inventory-system.md',
   'real-time-chat.md',
   'uber-architecture.md',
-  // 'business.md',
   'cache.md',
   'routing-mechanism.md',
   'change-data-capture.md',
   'youtube-architecture.md',
   'system-performance.md',
-  // 'books.md'
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })

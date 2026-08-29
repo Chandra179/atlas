@@ -32,7 +32,7 @@
 
 **The Ascent of Money: A Financial History of the World**
 - **Author:** Niall Ferguson
-- **What it covers:** The historical development of financial systems, credit, banking, bond markets, and currency as artificial human tools created to aggregate trust and coordinate capital over time and space.
+	- **What it covers:** The historical development of financial systems, credit, banking, bond markets, and currency as artificial human tools created to aggregate trust and coordinate capital over time and space.
 - **Goal:** Trace financial technology and trust mechanisms from early credit ledgers to modern complex financial structures.
 
 ### Applied Abstractions & Primitives

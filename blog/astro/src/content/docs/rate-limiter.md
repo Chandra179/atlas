@@ -1,6 +1,6 @@
 ---
 title: Rate Limiter
-modified: '2026-08-16'
+modified: '2026-08-29'
 description: >-
   Designing a distributed rate limiter with per-client burst and quota limits,
   tiered limits, and IP-based fallback, favoring fail-open availability over
