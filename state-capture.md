@@ -124,7 +124,7 @@ This playbook maps specific, actionable solutions to each of the 14 diagnosed is
 
 ---
 
-## Action Plan by Execution Phase
+	## Action Plan by Execution Phase
 
 ### Phase 1: Immediate Civilian Exposure Strategy (Months 0–6)
 1. **Financial OSINT Coalitions:** Form investigative units uniting tech-workers, journalists, and legal experts to track unexplained wealth, corporate shell structures, and vendor links among DPR members and judges.
