@@ -1,3 +1,8 @@
+---
+title: Knowledge Graph
+modified: '2026-08-29'
+---
+
 To build a graph that retains semantic clarity, modern graph architectures use four core engineering patterns to control entropy.
 
 ## Entity Resolution (ER) & Canonicalization

@@ -25,6 +25,7 @@ const ALLOWED_FILES = new Set([
   'change-data-capture.md',
   'youtube-architecture.md',
   'system-performance.md',
+  'knowledge-graph.md'
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })
