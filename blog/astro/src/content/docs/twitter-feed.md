@@ -37,7 +37,7 @@ modified: '2026-08-16'
 
 *  **Write QPS:** 10M posts/day ÷ 86,400s ≈ **116/sec avg**, ~**1-2K/sec peak**. Writing posts is not the hard part; fanout is.
 *  **Read QPS:** 100M DAU × 20 opens/day = 2B feed requests/day ≈ **23K/sec avg**, **~100-200K/sec peak**. This is the real scaling challenge.
-*  **Celebrity Fanout Load:** Naive fanout-on-write for a 50M-follower celebrity = **50,000,000 cache writes for a single post** → clogs queues, breaks the "few seconds" latency requirement. This one number motivates the entire push/pull design in Deep Dive 1; say it out loud, don't just compute it.
+*  **Celebrity Fanout Load:** Naive fanout-on-write for a 50M-follower celebrity = **50,000,000 cache writes for a single post** → clogs queues, breaks the "few seconds" latency requirement. This one number motivates the entire push/pull design in Deep Dive 1; say it out loud, don't compute it.
 
 ---
 
@@ -105,7 +105,7 @@ flowchart TD
     2. For each followed user, pull their last N posts from the per-user "recent posts" cache, in parallel, not a full historical scan.
     3. K-way merge all fetched lists by `created_at`, take top ~200, batch-write into the Timeline Cache ZSet.
     4. Serve the original request from the now-populated cache.
-    *   **Risk:** users who follow a very large number of accounts make this fan-in proportionally expensive, a mirror image of the celebrity fanout problem. Mitigate with follow-count caps or caching "recently rebuilt" status.
+    *   **Risk:** users who follow a large number of accounts make this fan-in proportionally expensive, a mirror image of the celebrity fanout problem. Mitigate with follow-count caps or caching "recently rebuilt" status.
 
 ---
 
@@ -116,5 +116,5 @@ flowchart TD
 *  **Queue Partitioning:** Shard celebrity fanout so large jobs can't starve normal-user throughput.
 *  **Idempotent Writes:** Idempotent `ZADD` + at-least-once delivery instead of exactly-once guarantees.
 *  **Good closing line (cheap, shows breadth, costs 30 seconds):** name open gaps you'd explore with more time rather than solving them:
-    *   Read-path fallback if Timeline Cache (Redis) is down entirely: degrade to pure pull-based reconstruction for all users? Survivable at 100-200K QPS?
+    *   Read-path fallback if Timeline Cache (Redis) is down: degrade to pure pull-based reconstruction for all users? Survivable at 100-200K QPS?
     *   Feed staleness/cursor stability while new posts arrive mid-scroll.

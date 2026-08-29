@@ -43,7 +43,7 @@ flowchart TD
 When you run an INSERT, UPDATE, or DELETE query, the database engine does not immediately write the changes to the main database tables on disk, because writing to structured table files (B-Trees, data pages) requires slow random disk I/O. Instead, imagine you run `INSERT INTO users (id, name) VALUES (1, 'Alex')`:
 
 1. **Step 1 (RAM):** The database writes the row into its in-memory Buffer Pool in RAM.
-2. **Step 2 (Disk - WAL Log):** The database immediately appends a record of this change to the WAL file on disk. Appending to the end of a log file uses sequential disk write, which is extremely fast (even on old HDDs, and blazing fast on NVMe SSDs).
+2. **Step 2 (Disk - WAL Log):** The database immediately appends a record of this change to the WAL file on disk. Appending to the end of a log file uses sequential disk write, which is fast (even on old HDDs, and blazing fast on NVMe SSDs).
 3. **Transaction Committed:** As soon as the WAL write hits the disk, the database tells your app: "Success! Data saved."
 4. **Step 3 (Disk - Main Table):** The main table files on disk are NOT updated immediately. They are updated later in the background by a process called **Checkpointing**. Updating tables requires finding exact pages and writing to specific locations (random disk I/O), which is much slower, so the database defers this work to keep your queries fast.
 
@@ -53,16 +53,16 @@ If both live on disk, why keep two separate formats?
 
 | Storage File | Primary Purpose | Write Pattern |
 | --- | --- | --- |
-| Write-Ahead Log (WAL) | Durability & Crash Recovery: Ensures no data is lost if the server loses power or crashes. | Sequential Writes (append to end of file, very fast) |
+| Write-Ahead Log (WAL) | Durability & Crash Recovery: Ensures no data is lost if the server loses power or crashes. | Sequential Writes (append to end of file, fast) |
 | Table Data & Indexes | Querying Efficiency: Formatted in B-Trees / Pages so `SELECT * WHERE id = 1` returns instantly without scanning the whole log. | Random Writes (modifying specific blocks on disk, slower) |
 
 **What happens if power cuts out mid-operation?**
 
-The data in RAM is completely wiped out, and the table files on disk might be outdated because the background checkpoint hadn't written to them yet. When the database boots back up, it opens the WAL file on disk, reads the recent transactions, and replays them into the table files. Zero data loss. This is why the Write-Ahead Log is the true "source of truth" for durability in relational databases.
+The data in RAM is wiped out, and the table files on disk might be outdated because the background checkpoint hadn't written to them yet. When the database boots back up, it opens the WAL file on disk, reads the recent transactions, and replays them into the table files. Zero data loss. This is why the Write-Ahead Log is the true "source of truth" for durability in relational databases.
 
 #### Why Appending Is Fast: Sequential vs. Random I/O
 
-The speed of appending to a log file comes down to hardware physics and Sequential I/O vs. Random I/O, rather than just algorithmic complexity like O(1).
+The speed of appending to a log file comes down to hardware physics and Sequential I/O vs. Random I/O, rather than algorithmic complexity like O(1).
 
 **1. Is it fast because it's O(1) appending?**
 
@@ -86,7 +86,7 @@ How it behaves in practice:
 - **Reading behavior for CDC (FIFO):** CDC engines (like Debezium) read the log chronologically from top to bottom, processing the oldest unread event first to ensure system updates occur in order.
 - **Crash Recovery behavior (Sequential Replay / FIFO):** If the database crashes, it reads the WAL from the last committed checkpoint forward (FIFO) to restore memory state.
 
-Why isn't it a Linked List? A linked list uses pointers (node.next -> node.next) stored across scattered memory or disk addresses. Traversing a linked list on disk requires random disk lookups, which would ruin the performance benefits of sequential logging. Instead, a WAL uses contiguous byte offsets where the next record simply starts where the previous record ends.
+Why isn't it a Linked List? A linked list uses pointers (node.next -> node.next) stored across scattered memory or disk addresses. Traversing a linked list on disk requires random disk lookups, which would ruin the performance benefits of sequential logging. Instead, a WAL uses contiguous byte offsets where the next record starts where the previous record ends.
 
 **3. How the log avoids filling up disk space**
 
@@ -121,7 +121,7 @@ Every single byte written to a database's Write-Ahead Log is given an incrementa
 flowchart TD
   L100["LSN 100: INSERT INTO users (id=1, name='Alex')"]
   L250["LSN 250: UPDATE users SET name='Alexander' WHERE id=1"]
-  L410["LSN 410: DELETE FROM users WHERE id=2 (CDC just processed this)"]
+  L410["LSN 410: DELETE FROM users WHERE id=2 (CDC processed this)"]
   L580["LSN 580: INSERT INTO orders (id=99, user_id=1)"]
   L100 --> L250 --> L410 --> L580
 ```
@@ -241,7 +241,7 @@ flowchart TD
 
 The event plays three key roles:
 
-- **Decoupling:** The database doesn't know or care who needs the data. It just writes to its log.
+- **Decoupling:** The database doesn't know or care who needs the data. It writes to its log.
 - **Standardization:** The CDC engine translates database-specific binary bytes into a standardized, language-agnostic event (like JSON or Avro).
 - **Broadcasting:** The event bus (Kafka) allows 10 different microservices to listen to the exact same change event independently without slowing down the primary database.
 

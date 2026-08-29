@@ -37,7 +37,7 @@ modified: '2026-08-16'
 - **Write QPS (messages):** ~500K/sec avg, ~2M/sec peak.
 - **Connections:** Up to 100M concurrent WebSocket connections at peak (multiplied further by multi-device sessions).
 - **Storage:** Small text payload per message (~1-2KB with metadata) × 500K/sec ≈ manageable steady-state write volume for a wide-column store; media stored separately in blob storage, referenced by URL.
-- **Read-receipt writes:** Not written per group member at send time (would cause write amplification); only written lazily, one row per user, as each person actually reads a message.
+- **Read-receipt writes:** Not written per group member at send time (would cause write amplification); only written lazily, one row per user, as each person reads a message.
 
 ---
 
@@ -93,7 +93,7 @@ A WebSocket connection is stateful and pinned to one specific server instance. W
 Naively fetching "history before current time" then subscribing to live messages leaves a race window: a message could arrive live while history is still being fetched, causing duplication or a silent gap. Fix:
 
 - Dedupe by `message_id` (UUID, generated at creation) rather than timestamp, since timestamps aren't guaranteed unique.
-- Track a **last-seen sequence marker per conversation** and fetch history as "everything after `last_seen_message_id`," not "everything before now." If a gap in sequence is detected between history and incoming live messages, trigger a targeted backfill for just the missing range.
+- Track a **last-seen sequence marker per conversation** and fetch history as "everything after `last_seen_message_id`," not "everything before now." If a gap in sequence is detected between history and incoming live messages, trigger a targeted backfill for the missing range.
 - This same mechanism doubles as resilience against routing failures (Deep Dive 3): if live delivery is delayed or dropped, the recipient still recovers the message on next reconnect/fetch via the backfill query, so failure degrades to latency, not data loss.
 
 **Deep Dive 3: Group chat read receipts at scale**  
@@ -103,7 +103,7 @@ Real systems (per WhatsApp's public behavior) track granular per-recipient read 
 
 ## Scaling & Trade-offs
 
-- **Connection Registry (Redis) as a SPOF:** if it goes down, live routing breaks, but messages aren't lost, since they're durably written to the message store regardless; delivery just falls back to the history/backfill fetch path on reconnect (higher latency, not data loss). Mitigate further with Redis replication and considering a degraded fallback (e.g., push notification via APNs/FCM) to at least notify the recipient while live routing is impaired.
+- **Connection Registry (Redis) as a SPOF:** if it goes down, live routing breaks, but messages aren't lost, since they're durably written to the message store regardless; delivery falls back to the history/backfill fetch path on reconnect (higher latency, not data loss). Mitigate further with Redis replication and considering a degraded fallback (e.g., push notification via APNs/FCM) to at least notify the recipient while live routing is impaired.
 - **Read-receipt state loss:** if Redis holding `read_by` sets is lost, worst case is a message reverting from "read" to "delivered" in the UI until the recipient's client re-triggers the read event, self-healing, not permanent data loss.
 - **Write amplification avoided:** read-receipt rows are written lazily (one per actual read event), not pre-created for all group members at send time, spreading cost over time instead of spiking it at send.
-- **Open question for further scaling:** at very large group sizes (beyond ~500), per-recipient read tracking and live fan-out both become more expensive. Would need to reassess whether full per-user read receipts remain worth maintaining, or whether large "channel"-style groups should drop granular read tracking entirely (as many large-scale broadcast-style chat systems do).
+- **Open question for further scaling:** at large group sizes (beyond ~500), per-recipient read tracking and live fan-out both become more expensive. Would need to reassess whether full per-user read receipts remain worth maintaining, or whether large "channel"-style groups should drop granular read tracking (as many large-scale broadcast-style chat systems do).

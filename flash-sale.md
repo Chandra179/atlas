@@ -14,7 +14,7 @@ created: 2026-06-13
 A limited-edition sneaker release or a highly discounted electronics sale. 100,000+ users land on a single product page and click "Buy Now" at the exact same second.
 
 ### Goals
-* **Strict Business Accuracy:** Never oversell the item. If we have 1,000 units, exactly 1,000 orders must be created.
+* **Strict Business Accuracy:** Never oversell the item. If we have 1,000 units, 1,000 orders must be created.
 * **System Resilience:** Prevent cascading failures. Under extreme load, the API must remain responsive and fail gracefully.
 * **Low Latency:** Keep checkout response times (p99) under **30ms** for the user's initial interaction.
 
@@ -65,4 +65,4 @@ graph TD
 
 ## Room for Scalability
 
-If load exceeds these targets: **rate limit at the edge** (API gateway, token bucket, fail fast with 429), **cache reads at the CDN** (product page detail + buy-button state, keep read traffic off origin entirely), and for extreme-demand events, **a virtual waiting room** to convert the traffic spike into a flat, controlled admission rate.
+If load exceeds these targets: **rate limit at the edge** (API gateway, token bucket, fail fast with 429), **cache reads at the CDN** (product page detail + buy-button state, keep read traffic off origin), and for extreme-demand events, **a virtual waiting room** to convert the traffic spike into a flat, controlled admission rate.

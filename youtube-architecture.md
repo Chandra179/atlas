@@ -208,7 +208,7 @@ A Group of Pictures (GOP) is a self-contained group of frames that begins with a
 
 ### Why Encode into Multiple Codecs? (Is It For Resolution?)
 
-Resolution is just the dimensions of the screen (e.g., $1920 \times 1080$). A codec (Encoder/Decoder) is the mathematical formula used to compress those pixels into bytes. YouTube encodes videos into multiple codecs for compatibility and bandwidth cost:
+Resolution is the dimensions of the screen (e.g., $1920 \times 1080$). A codec (Encoder/Decoder) is the mathematical formula used to compress those pixels into bytes. YouTube encodes videos into multiple codecs for compatibility and bandwidth cost:
 
 - **H.264 (AVC)**: The legacy standard. It produces larger file sizes, but virtually every device on Earth (old smart TVs, legacy smartphones, older web browsers) has a physical hardware chip built to play it.
 - **VP9**: Developed by Google. It compresses video roughly 30%-40% better than H.264 at the same visual quality. Most modern web browsers and Android devices support it.

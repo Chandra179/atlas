@@ -33,7 +33,7 @@ If you have $3$ servers ($N = 3$):
 - Hash("user_B") = 11 $\rightarrow$ $11 \pmod 3 = \mathbf{2}$ (Server 2)
 - Hash("user_C") = 12 $\rightarrow$ $12 \pmod 3 = \mathbf{0}$ (Server 0)
 
-What happens when Server 2 crashes or a 4th server is added? $N$ changes from $3$ to $4$. Now, almost every single key calculates a completely different server index:
+What happens when Server 2 crashes or a 4th server is added? $N$ changes from $3$ to $4$. Now, almost every single key calculates a different server index:
 
 - Hash("user_A") = 10 $\rightarrow$ $10 \pmod 4 = \mathbf{2}$ (Was 1 $\rightarrow$ Moved!)
 - Hash("user_B") = 11 $\rightarrow$ $11 \pmod 4 = \mathbf{3}$ (Was 2 $\rightarrow$ Moved!)
@@ -73,7 +73,7 @@ When a request comes in for Key "user_1":
 
 ### Why Is It Called "Consistent"?
 
-It is called consistent because adding or removing a server does NOT disrupt the rest of the ring. The mapping of keys to servers remains almost entirely consistent.
+It is called consistent because adding or removing a server does NOT disrupt the rest of the ring. The mapping of keys to servers remains almost consistent.
 
 #### Scenario A: A Server Fails (Node B Crashes)
 
@@ -108,7 +108,7 @@ A scenario where 50% of all incoming keys hash into a single narrow range like 1
 **Why a Good Hash Function Never Does This.** A proper hash function behaves like a pseudo-random number generator with two strict properties:
 
 - **Uniform Distribution:** Output values are distributed evenly across the entire $0$ to $2^{32}-1$ spectrum. Every number has equal probability.
-- **The Avalanche Effect:** Changing just 1 bit or 1 letter in the input completely changes every byte of the output hash.
+- **The Avalanche Effect:** Changing 1 bit or 1 letter in the input changes every byte of the output hash.
 
 Example using MurmurHash3 with sequential keys:
 
@@ -117,7 +117,7 @@ Example using MurmurHash3 with sequential keys:
 - Key: "user_1003" $\rightarrow$ 0x0A2FE41C (170,910,748)
 - Key: "user_1004" $\rightarrow$ 0xE2051189 (3,791,983,113)
 
-user_1001 and user_1002 are almost identical strings, yet their hashes land in completely opposite quadrants of the ring.
+user_1001 and user_1002 are almost identical strings, yet their hashes land in opposite quadrants of the ring.
 
 **What Would Cause Keys to Pile Up in Practice?** If you observe keys clustering in production, one of two bugs is occurring:
 
@@ -159,7 +159,7 @@ graph TD
     PC --> VC3["C#3 ... C#100"]
 ```
 
-Scattering hundreds of virtual points for every physical server across the ring means the 1,000,000-2,000,000 range no longer belongs to just one server. It contains virtual slices belonging to Server A, Server B, and Server C. If keys land in that range, they get evenly divided among all physical machines in the cluster.
+Scattering hundreds of virtual points for every physical server across the ring means the 1,000,000-2,000,000 range no longer belongs to one server. It contains virtual slices belonging to Server A, Server B, and Server C. If keys land in that range, they get evenly divided among all physical machines in the cluster.
 
 ```mermaid
 graph LR
@@ -178,7 +178,7 @@ graph LR
 ### Why Virtual Nodes are Crucial
 
 - **Uniform Distribution:** Interleaving hundreds of virtual points across the ring ensures data is split near-perfectly ($33.3\%$ per server across 3 nodes).
-- **Heterogeneous Hardware:** If Server A has $2\times$ the RAM/CPU of Server B, you simply give Server A $200$ virtual nodes and Server B $100$ virtual nodes. Server A will naturally take double the load.
+- **Heterogeneous Hardware:** If Server A has $2\times$ the RAM/CPU of Server B, you give Server A $200$ virtual nodes and Server B $100$ virtual nodes. Server A will naturally take double the load.
 
 ## How Vnodes Actually Land on the Ring
 
@@ -195,7 +195,7 @@ Imagine 2 physical servers (Server_A, Server_B) with 3 Vnodes each:
 - Hash("Server_B#2") $\rightarrow$ 100,000
 - Hash("Server_B#3") $\rightarrow$ 9,800,000
 
-The hash numbers look completely random and scattered.
+The hash numbers look random and scattered.
 
 ### Step 2: Sort the Hashes Numerically
 
@@ -218,7 +218,7 @@ A key comes in: Hash("user_99") = 4,000,000. Binary search finds the first hash 
 
 ## How We Guarantee "Clockwise" Lookup
 
-"Walking clockwise around the ring" sounds like a physical action, but in code, the hash ring is just an ordered array (or balanced binary search tree) of integers.
+"Walking clockwise around the ring" sounds like a physical action, but in code, the hash ring is an ordered array (or balanced binary search tree) of integers.
 
 ### The Ring Data Structure
 
@@ -240,9 +240,9 @@ When a request comes in for Key_X with Hash("Key_X") = 450000:
 
 1. **Perform Binary Search:** The system looks for the first server hash that is greater than or equal to 450,000.
 2. **Find the Match:** In the array above, 700,000 is the smallest number greater than 450,000. This corresponds to Server_C. That is mathematically identical to "walking clockwise."
-3. **Wrap Around (The End of the Ring):** If Hash("Key_Y") = 950000 (greater than the highest server hash on the ring), binary search finds no match. The code simply wraps around to index 0 (Server_A at 100,000).
+3. **Wrap Around (The End of the Ring):** If Hash("Key_Y") = 950000 (greater than the highest server hash on the ring), binary search finds no match. The code wraps around to index 0 (Server_A at 100,000).
 
-In code (such as Java's TreeMap), this is literally a single $O(\log N)$ operation:
+In code (such as Java's TreeMap), this is a single $O(\log N)$ operation:
 
 ```java
 public String getServer(String key) {

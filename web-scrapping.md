@@ -110,9 +110,9 @@ If we apply an aggressive **10-minute TTL (Time-To-Live)** on the Redis keys, we
 - **Concurrent data in flight (10 mins / 600 seconds):** 139 jobs/sec × 600 seconds ≈ 83,400 active HTML payloads in cache at any single moment.
 - **Total RAM required:** 83,400 payloads × 50 KB ≈ **4.2 GB of RAM**
 
-A ~4.2 GB Redis cluster (round up to ~5 GB with headroom) is still cheap and manageable, well under a hundred dollars/month on AWS ElastiCache, but it's the number that could actually break under load, not the average-case number that would silently under-provision the cache during the exact traffic spike it exists to absorb.
+A ~4.2 GB Redis cluster (round up to ~5 GB with headroom) is still cheap and manageable, well under a hundred dollars/month on AWS ElastiCache, but it's the number that could break under load, not the average-case number that would silently under-provision the cache during the exact traffic spike it exists to absorb.
 
-**TTL vs. backpressure:** a 10-minute TTL races the Parser Queue's lag. If parsing falls behind for over 10 minutes, HTML expires in Redis before it's read, and the job is lost silently, with no retry and no DLQ entry. To fix this: producers watch Parser Queue lag. At 5 minutes (half the TTL), the Gatekeeper throttles new scrape admissions, and any key close to expiring without a parser ack is copied to a DLQ first, instead of just vanishing.
+**TTL vs. backpressure:** a 10-minute TTL races the Parser Queue's lag. If parsing falls behind for over 10 minutes, HTML expires in Redis before it's read, and the job is lost silently, with no retry and no DLQ entry. To fix this: producers watch Parser Queue lag. At 5 minutes (half the TTL), the Gatekeeper throttles new scrape admissions, and any key close to expiring without a parser ack is copied to a DLQ first, instead of vanishing.
 
 ---
 
@@ -122,7 +122,7 @@ A ~4.2 GB Redis cluster (round up to ~5 GB with headroom) is still cheap and man
 
 - **SSRF Mitigation (The Pre-Flight Gatekeeper):** Accepting any URLs introduces high risk. Before passing a payload to a heavy worker, a Gatekeeper node validates the target domain against internal address spaces (localhost, Private Subnets, Cloud Provider metadata endpoints like 169.254.169.254). It runs an HTTP HEAD metadata query via a fast HTTP client to drop non-HTML large streams (>50 MB) before they can crash browser worker allocations.
 
-- A domain-only check at pre-flight time is bypassable: an attacker's DNS can resolve to a public IP during the Gatekeeper's validation HEAD request, then re-resolve to `169.254.169.254` or a private-subnet address by the time the browser worker actually fetches it moments later. To close this, the Gatekeeper pins the resolved IP at validation time and passes that exact IP (not the hostname) down to the browser worker, which connects to the pinned IP directly (with the original `Host` header preserved for TLS/vhost routing), so re-resolution between check and use can't smuggle a private-address fetch through.
+- A domain-only check at pre-flight time is bypassable: an attacker's DNS can resolve to a public IP during the Gatekeeper's validation HEAD request, then re-resolve to `169.254.169.254` or a private-subnet address by the time the browser worker fetches it moments later. To close this, the Gatekeeper pins the resolved IP at validation time and passes that exact IP (not the hostname) down to the browser worker, which connects to the pinned IP directly (with the original `Host` header preserved for TLS/vhost routing), so re-resolution between check and use can't smuggle a private-address fetch through.
 
 ### Redis TTL Sizing & Backpressure Race
 

@@ -115,7 +115,7 @@ type AuditCache struct {
 **Why this works:**
 
 - **Memory:** Unpins the 64 KB buffer, allowing `sync.Pool` to safely reuse memory across requests.
-- **GC Latency:** In Go, if a map contains no pointers in its key or value types, the compiler marks the map bucket as pointer-free. The GC skips scanning the map entirely during `runtime.gcDrain`, dropping GC scan time and P99 latency back to under 5 ms.
+- **GC Latency:** In Go, if a map contains no pointers in its key or value types, the compiler marks the map bucket as pointer-free. The GC skips scanning the map during `runtime.gcDrain`, dropping GC scan time and P99 latency back to under 5 ms.
 
 ### Deep Dive: sync.Pool Mechanics
 
@@ -129,7 +129,7 @@ type AuditCache struct {
 
 **2. When the GC cleans it up (victim cache mechanism):** Since Go 1.13, `sync.Pool` avoids sudden performance drops using a two-generation victim cache (local and victim pools):
 - **GC cycle 1 (demotion):** The GC moves all unused objects from the active local pool into the victim pool and empties local. If traffic arrives right after, `pool.Get()` checks local (empty), falls back to victim, and rescues the object back to the active pool.
-- **GC cycle 2 (eviction):** On the next GC run, any objects still in the victim pool that were not rescued by a `Get()` between the two cycles are completely dropped and reclaimed by heap GC.
+- **GC cycle 2 (eviction):** On the next GC run, any objects still in the victim pool that were not rescued by a `Get()` between the two cycles are dropped and reclaimed by heap GC.
 
 | Event | Status of unused pooled object |
 |---|---|

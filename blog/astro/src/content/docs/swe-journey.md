@@ -19,9 +19,9 @@ modified: '2026-08-16'
 
 ## Variable Naming & Function Design
 
-Determine when to use descriptive or short variable names; it really depends on how long the function process is. A long function with short variable names will lose context as we navigate the logic in that function.
+Determine when to use descriptive or short variable names; it depends on how long the function process is. A long function with short variable names will lose context as we navigate the logic in that function.
 
-A function name should also have a clear intent, like `GetProductDetail`. We don't really care how complex the logic is in that function, as long as the intent is GETTING data, not modifying it.
+A function name should also have a clear intent, like `GetProductDetail`. We don't care how complex the logic is in that function, as long as the intent is GETTING data, not modifying it.
 Use abstraction when needed for example:
 
 ```go
@@ -42,7 +42,7 @@ type NewsAPI interface {
 }
 ```
 
-Here we defined struct like `NewsReq` and `NewsResp`. The purpose of this is to act as a translation layer, because every news API might have a different API response, so we map it to our data format. So if we want to change news API we can just change the concrete implementation
+Here we defined struct like `NewsReq` and `NewsResp`. The purpose is to be a translation layer, because every news API might have a different API response, so we map it to our data format. So if we want to change news API we can change the concrete implementation
 
 ```go
 // news/dependencies.go
@@ -57,6 +57,8 @@ func (r *RedditNews) GetNews(req NewsReq) (NewsResp, error) {}
 func (r *YahooNews) GetNews(req NewsReq) (NewsResp, error) {}
 
 // server.go
+import "news"
+
 rn := &RedditNews{}
 yn := &YahooNews{}
 
@@ -66,7 +68,7 @@ news := news.NewNews(rn)
 
 ## Abstraction with Interfaces
 
-A little tip that might be helpful if the codebase is large is to put a type assertion in the concrete implementation. This way, while we are still coding, we can know immediately if there is an error (meaning the function is not properly implementing the abstraction).
+Put a type assertion in the concrete implementation. This way, while we are still coding, we can know immediately if there is an error (meaning the function is not properly implementing the abstraction).
 
 ```go
 // external/news.go
@@ -117,7 +119,7 @@ func main() {
 }
 ```
 
-There are ways to handle this properly, like using the Stripe approach. With this method, we use the smallest unit of the currency, like "cents," and use an integer data type. Because integers don't have decimals, there will be absolutely no inaccuracy with decimal points. Ref: https://docs.stripe.com/api/charges/object
+There are ways to handle this properly, like using the Stripe approach. With this method, we use the smallest unit of the currency, like "cents," and use an integer data type. Because integers don't have decimals, there will be no inaccuracy with decimal points. Ref: https://docs.stripe.com/api/charges/object
 
 | **Actual Amount** | **Value Stored in Database / Code (as Integer)** |
 | --- | --- |
@@ -127,11 +129,11 @@ There are ways to handle this properly, like using the Stripe approach. With thi
 
 Next is the return values of the fields in the API. Go has default zero values. For example, an integer defaults to `0`, a float to `0.0`, and a string to `""`.
 
-In finance, `0` might actually mean something. You have to be very careful when deciding how to handle this, because an admin fee of `0` means something entirely different from a missing or unconfigured admin fee.
+In finance, `0` might mean something. Careful when deciding how to handle this, because an admin fee of `0` means something different from a missing or unconfigured admin fee.
 
 ```go
 type FeeResponse struct {
-    // If AdminFee is 0, omitempty completely deletes it from the JSON output!
+    // If AdminFee is 0, omitempty deletes it from the JSON output!
     AdminFee int64 `json:"admin_fee,omitempty"`
 }
 ```
@@ -198,11 +200,11 @@ While this approach makes the initial application startup a bit slower, it resul
 
 I applied a similar approach to some of our external APIs, like our weather data endpoint. I built an in-memory cache but added strict guardrails like a maximum memory limit and a Time-To-Live (TTL) expiration mechanism to keep memory leaks in check.
 
-Why skip a dedicated cache like Redis entirely here? It comes down to **cost and realism**. A company blog isn't going to get millions of visitors overnight. Setting up, paying for, and maintaining a separate infrastructure piece like Redis for a low-traffic service is over-engineering. Local in-memory storage is faster, cheaper, and perfectly sufficient.
+Why skip a dedicated cache like Redis here? It comes down to **cost and realism**. A company blog isn't going to get millions of visitors overnight. Setting up, paying for, and maintaining a separate infrastructure piece like Redis for a low-traffic service is over-engineering. Local in-memory storage is faster, cheaper, and perfectly sufficient.
 
 ## Eager Initialization (Boot-time Singleton)
 
-When the data we depend on is static and predefined, there is no need to use Redis or other cloud storage. Instead, we can fetch it once at startup and keep it in memory as a singleton. However, we must keep in mind the memory footprint, concurrent access, and how to handle a failed API call (e.g., whether to ignore it, throw an error, or panic). It all depends on the system's goals: if it is a non-blocking operation, we can simply ignore the failure or return an empty default; if it is critical, we should throw an error or panic to fail fast.
+When the data we depend on is static and predefined, there is no need to use Redis or other cloud storage. Instead, we can fetch it once at startup and keep it in memory as a singleton. However, we must keep in mind the memory footprint, concurrent access, and how to handle a failed API call (e.g., whether to ignore it, throw an error, or panic). It all depends on the system's goals: if it is a non-blocking operation, we can ignore the failure or return an empty default; if it is critical, we should throw an error or panic to fail fast.
 
 ```go
 var (
@@ -222,11 +224,11 @@ func LoadConfig() *StaticConfig {
 
 ## Message Broker Selection
 
-Choosing the right message broker whether it's Kafka, RabbitMQ, NATS, or AWS SNS/SQS depends entirely on your specific use case, scale requirements, and team expertise. While Kafka is fantastic for real-time data streaming and event replayability due to its append-only log architecture, you have to look at your team.
+Choosing the right message broker whether it's Kafka, RabbitMQ, NATS, or AWS SNS/SQS depends on your specific use case, scale requirements, and team expertise. While Kafka is fantastic for real-time data streaming and event replayability due to its append-only log architecture, you have to look at your team.
 
-If your company or team only has deep knowledge of AWS SNS/SQS, it often makes more sense to choose that tool to achieve the same business functionality. The main concern is service cost, but setting up and maintaining a complex message broker architecture yourself if not done right can quickly equal or exceed the infrastructure and maintenance costs of a managed third-party serverless solution.
+If your company or team only has deep knowledge of AWS SNS/SQS, it often makes more sense to choose that tool to achieve the same business functionality. The main concern is service cost, but setting up and maintaining a complex message broker architecture yourself if not done right can go wrong for the infrastructure scalability and maintenance costs
 
-If your system doesn't require the full, heavy feature set of a traditional message broker, you can opt for a highly performant, lightweight option like **NATS**. It provides incredibly fast pub/sub messaging without the operational footprint of bigger tools.
+If your system doesn't require the full, heavy feature set of a traditional message broker, you can opt for a highly performant, lightweight option like **NATS**. It provides fast pub/sub messaging without the operational footprint of bigger tools.
 
 And again it depends on your specific use case and how it scales:
 - **AWS SNS/SQS:** Best for cloud-native, zero-maintenance, standard asynchronous queuing where you want to pay only for what you use.
@@ -238,13 +240,13 @@ And again it depends on your specific use case and how it scales:
 
 From my perspective, infrastructure is the foundation for long-term and sustainable software. It is something that must be built right first. An application developer's program depends heavily on how the infrastructure is set up, including things like system availability, data durability, and stability. If a company doesn't have proper observability, like distributed tracing to correlate logs between different microservices, or if they have painfully slow deployment times, it makes the software unsustainable for the future.
 
-At the same time, application developers are responsible for keeping the system healthy. Our role is to ensure the code follows best practices. For example, even if the infrastructure is stable, bad code without proper timeouts can still crash the system.
+Application developers also responsible for keeping the system healthy. Our role is to ensure the code follows best practices. For example, even if the infrastructure is stable, bad code without proper timeouts can still crash the system.
 
 ## Overthinking vs Underthinking
 
 How deep should you dive into a problem? When do you decide you are overthinking or underthinking?
 
-I believe there is a specific level where you must stop because diving deeper is simply not worth the time, effort, or cost. A classic example of overthinking is designing an idempotency cache:
+I believe there is a specific level where you must stop because diving deeper is not worth the time, effort, or cost. A classic example of overthinking is designing an idempotency cache:
 
 1. You start with an **in-memory cache** for idempotency, but realize it won't survive an app crash.
 2. So, you decide to use **Redis**. But what if Redis crashes?
@@ -259,30 +261,11 @@ While this covers every single disaster scenario, it is complete overkill to do 
 | **Underthinking** | Throwing a quick fix together without considering basic failures (e.g., using a local map for idempotency in a multi-instance, autoscaling environment). | The app breaks immediately under standard production conditions.                                                                     |
 | **Overthinking**  | Designing for "Six Nines" ($99.9999\%$) availability for a service that has low traffic or low business criticality.                                     | You waste months building complex infrastructure, delay the product launch, and create a system that is too complicated to maintain. |
 
-You need to stop at a reasonable level that satisfies your **current business constraints and immediate next phase of growth**. The best approach is to build the simplest version that safely handles standard production requirements, and then **gradually improve it step-by-step** if you actually encounter issues related to that scale. Don't solve problems you don't have yet. Solve the problems you have today, design the system so it is flexible enough to change tomorrow
-
-## Go Container Deployment
-
-When deploying Go applications, it is crucial to understand how concurrency and parallelism affect your container's CPU and memory usage.
-
-If you deploy a Go application inside a container (like Docker or Kubernetes), **the application still consumes physical memory from the underlying host Virtual Machine (VM).**
-
-By default, the Go runtime is "container-blind." It looks past the container boundaries and sees the full resource capacity of the host VM. This mismatch can cause major performance and stability issues if you don't configure your limits properly.
-
-```go
-import _ "go.uber.org/automaxprocs" // Automatically matches GOMAXPROCS to the container quota
-```
-
-Also golang Garbage Collector (GC) doesn't know your container has a memory limit. If your container is limited to 512 MB, but the host VM has 16 GB of RAM, Go might let its memory usage balloon past 512 MB before it decides to trigger a garbage collection\
-
-```go
-// In your Dockerfile or Kubernetes YAML (leave ~10% headroom for the OS)
-GOMEMLIMIT=450MiB
-```
+You need to stop at a reasonable level that satisfies your **current business constraints and immediate next phase of growth**. The best approach is to build the simplest version that safely handles standard production requirements, and then **gradually improve it step-by-step** if you encounter issues related to that scale. Don't solve problems you don't have yet. Solve the problems you have today, design the system so it is flexible enough to change tomorrow.
 
 ## Choosing a SQL Database
 
-When choosing an SQL database, it is important to evaluate its storage architecture and indexing mechanics. PostgreSQL uses a heap storage engine, meaning that table data is stored independently of its indexes.
+When choosing an SQL database, it is important to evaluate its storage architecture and indexing mechanics. PostgreSQL uses a heap storage engine, meaning that table data is stored independently of its indexes. For example choosing PostgreSQL vs SqlServer
 
 Indexing in Postgres uses a B-Tree structure, so a query lookup requires the engine to find the tuple identifier (CTID) in the index and then perform a secondary lookup in the heap to retrieve the row data.
 
@@ -329,15 +312,15 @@ graph TD
 
 PostgreSQL performs best in High-Volume Catalogs with Heavy Updates:
 - Product updates (like stock or price changes) append a new version of the row directly to the heap space.
-- If the updated column is not indexed, Postgres uses Heap-Only Tuples (HOT) to skip modifying the index entirely, avoiding massive disk write overhead.
+- If the updated column is not indexed, Postgres uses Heap-Only Tuples (HOT) to skip modifying the index, avoiding massive disk write overhead.
 
 SQL Server performs best in Sequential Ledgers and Time-Series Logs:
-- Chronological or auto-incrementing inserts are appended straight to the very last page of the clustered index B-Tree.
-- This sequential fill eliminates the overhead of searching for data placement and completely prevents internal page splits.
+- Chronological or auto-incrementing inserts are appended straight to the last page of the clustered index B-Tree.
+- This sequential fill eliminates the overhead of searching for data placement and prevents internal page splits.
 
 ## Error Wrapping and Centered Logging
 
-When building layered applications, adding log statements to every layer creates code noise and duplicate logs. A better approach is to wrap errors with contextual information at each layer, letting the error chain move upward naturally. By logging the accumulated error chain once at the presentation layer (such as the HTTP API handler), you eliminate redundant logs while preserving the execution context.
+When building layered applications, adding log statements to every layer creates code noise and duplicate logs. A better approach is to wrap errors with contextual information at each layer, letting the error chain move upward. By logging the accumulated error chain once at the presentation layer (such as the HTTP API handler), you eliminate redundant logs while preserving the execution context.
 
 ```go
 package main
@@ -388,11 +371,11 @@ func main() {
 
 ## Concurrency Lifecycles and Failure Strategies
 
-When you writing concurrent code, managing how your goroutines live and die is your top priority. You have to check for common traps like deadlocks, operations that hang forever without a timeout, out of memory issues, data races, and accessing corrupted or deleted data. For advanced systems, you also have to consider data modification across distributed environments, which heavily depends on your specific use case.
+When you writing concurrent code, managing how your goroutines live and die is your top priority. You have to check traps like deadlocks, operations that hang forever without a timeout, out of memory issues, data races, and accessing corrupted or deleted data. 
 
-For instance, if you need to fire off one hundred API calls at once, your approach depends entirely on your design requirements. If you allow partial failures so one bad call does not block the others, you can simply log the errors and let the remaining calls finish. But if a single failure means the whole batch should stop immediately, an error group is the perfect tool to manage the context cancellation.
+For instance, if you need to fire off one hundred API calls at once, your approach depends on your design requirements. If you allow partial failures so one bad call does not block the others, you can log the errors and let the remaining calls finish. But if a single failure means the whole batch should stop immediately, an error group is the perfect tool to manage the context cancellation.
 
-You also need to evaluate if each API call requires an independent timeout context, and whether they are completely separate or dependent on each other. When API calls depend on the output of previous ones, you can use channels to coordinate it. Just remember to always clean up your resources using defer to cancel your contexts, check for channel closure before processing data, and define default fallback behaviors so your app never sits around doing nothing.
+You also need to evaluate if each API call requires an independent timeout context, and whether they are separate or dependent on each other. When API calls depend on the output of previous ones, you can use channels to coordinate it. Remember to always clean up your resources using defer to cancel your contexts, check for channel closure before processing data, and define default fallback behaviors so your app never sits around doing nothing.
 
 #### Example 1: Handling Partial Failures
 Use this approach when you want to run all API calls to completion, even if some of them fail. A failure in one call does not stop the others.
@@ -519,9 +502,9 @@ If you have a background in C++, you will find familiar mechanics in Go when it 
 
 A common misunderstanding is how pointers become `nil`. A pointer does not dynamically turn `nil` because the garbage collector cleared the underlying data, nor does it become `nil` during an out-of-memory event or an application crash. In fact, Go's tracing garbage collector guarantees that as long as an active pointer points to a memory allocation, that data will never be collected.
 
-Instead, a nil pointer exception occurs simply because a pointer variable was never initialized to point to a valid memory address in the first place. If an application encounters an unmanaged out-of-memory error or a severe internal system fault, the entire application process terminates immediately rather than resetting individual pointer values.
+	Instead, a nil pointer exception occurs because a pointer variable was never initialized to point to a valid memory address in the first place. If an application encounters an unmanaged out-of-memory error or a severe internal system fault, the entire application process terminates immediately rather than resetting individual pointer values.
 
-#### Valid Memory Pointer
+### Valid Memory Pointer
 The pointer holds a real, trackable memory address. Dereferencing it safely reads the data block.
 
 ```mermaid
@@ -539,7 +522,7 @@ graph LR
     style Data fill:#eee,stroke:#333
 ```
 
-#### Invalid Memory Pointer (Nil)
+### Invalid Memory Pointer (Nil)
 The pointer holds the default zero-value address (`0x0`). Attempting to read it forces the runtime to panic instantly to prevent system corruption.
 ```mermaid
 graph LR
@@ -556,7 +539,9 @@ graph LR
     style Void fill:#eee,stroke:#333
 ```
 
-When you initialize a basic string variable, such as `test := "apple"`, Go allocates memory using a specific internal structure known as a string header. On a 64-bit architecture, this header consumes exactly 16 bytes of storage on the stack, split into two distinct fields:
+## String Header
+
+When you initialize a basic string variable, such as `test := "apple"`, Go allocates memory using a specific internal structure known as a string header. On a 64-bit architecture, this header consumes 16 bytes of storage on the stack, split into two distinct fields:
 
 - **Data Pointer (8 bytes):** Stores the memory address pointing to the underlying immutable byte array where the character text is kept.
 - **Length (8 bytes):** Stores the total size of the string in bytes.
@@ -590,11 +575,11 @@ Go applies this exact same design principle to other major structural types, usi
 - **Slices:** Just like strings, passing a slice by value only copies a small 24-byte header containing a data pointer, length, and capacity. It points to a shared backing array. _The big difference:_ Slices are mutable. If you modify the elements of a copied slice, you will directly alter the data in the original backing array.
 - **Maps and Channels:** Under the hood, maps and channels are direct pointers to complex internal runtime structures (`hmap` and `hchan`). Copying a map or channel variable only copies a tiny 8-byte memory address. Both the original variable and the copy point to the exact same live data buckets.
 
-**Note on Primitives:** Primitives like integers, floats, and booleans do not use headers or pointer descriptors at all. Because their raw values are already tiny (1 to 8 bytes), Go simply duplicates the value directly from one stack slot to another. It fits perfectly inside a single CPU register, making it incredibly fast.
+**Note on Primitives:** Primitives like integers, floats, and booleans do not use headers or pointer descriptors at all. Because their raw values are already tiny (1 to 8 bytes), Go duplicates the value directly from one stack slot to another. It fits perfectly inside a single CPU register, making it fast.
 
-Because strings, slices, and maps are already just lightweight headers or pointers under the hood, **you almost never need to pass them as pointers (`*string`, `*[]int`, `*map`) for performance reasons.** You only use a pointer if you explicitly need to change the header itself, like reallocating a new slice or replacing the entire map reference.
+Because strings, slices, and maps are already lightweight headers or pointers under the hood, **you almost never need to pass them as pointers (`*string`, `*[]int`, `*map`) for performance reasons.** You only use a pointer if you explicitly need to change the header itself, like reallocating a new slice or replacing the entire map reference.
 
-#### Stack vs. Heap
+## Stack vs. Heap
 Deciding whether to pass a data structure by value or by pointer requires an understanding of how the Go compiler conducts escape analysis to choose between stack and heap distribution:
 
 - **Passing by Value (Stack Allocation):** Copying values keeps data isolated within the local execution stack frame. The moment the function finishes its execution, the entire stack frame is discarded. This releases the memory with zero processing overhead and places no strain on the garbage collector.
@@ -621,7 +606,7 @@ func main() {
 }
 ```
 
-Overusing pointers to avoid value copying can easily backfire. Flooding the heap with unnecessary pointers forces the garbage collector to run more frequently, which spikes CPU utilization. If long-running application loops continuously create heap references faster than the garbage collector can reclaim them, memory usage will compound over time, ultimately leading to an out-of-memory crash.
+Overusing pointers to avoid value copying can easily backfire. Flooding the heap with unnecessary pointers forces the garbage collector to run more frequently, which spikes CPU utilization. If long-running application loops continuously create heap references faster than the garbage collector can reclaim them, memory usage will compound over time, leading to an out-of-memory crash.
 
 **As a general rule**: pass basic types, small structures, and header types by value, and reserve pointers for large custom data objects or states that require direct modification.
 

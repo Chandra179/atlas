@@ -32,7 +32,7 @@ If 1,000 requests compete for a lock, 999 requests sit idle waiting for the lock
 | Use Case Scenario | Use Atomic Operation | Use Distributed Lock | Why? |
 |---|---|---|---|
 | Increment a view counter / balance | YES (INCRBY) | No | Single numeric mutation in Redis memory ($<1\text{ms}$). |
-| Claim an available driver | YES (Lua Script) | No | Reading status + setting status happens entirely inside Redis memory in sub-milliseconds. |
+| Claim an available driver | YES (Lua Script) | No | Reading status + setting status happens inside Redis memory in sub-milliseconds. |
 | Charge a credit card via Stripe | No | YES (SETNX) | Calling Stripe's API takes $500\text{ms}$ over the internet. You cannot hold Redis atomic operations during external network I/O. |
 | Multi-database write across 3 services | No | YES | You need to lock the resource while multiple microservices complete slow SQL/HTTP steps. |
 
@@ -63,14 +63,14 @@ Here is what happens under the hood when Redis executes a command or a Lua scrip
 
 - **No Disk I/O during execution**: Unlike traditional databases (like MySQL or PostgreSQL) that must read and write data to a disk drive (SSD/HDD), Redis stores 100% of its working data directly in RAM.
 - **Zero Disk Bottlenecks**: Memory access speeds (RAM) are measured in nanoseconds, whereas disk read/write speeds are measured in milliseconds (100,000x slower).
-- **Pure CPU Logic**: When a command or Lua script runs, the CPU simply modifies data structures (like HashMaps, SkipLists, or Sets) located directly inside RAM. This is why a simple Redis operation takes less than 1 millisecond.
+- **Pure CPU Logic**: When a command or Lua script runs, the CPU modifies data structures (like HashMaps, SkipLists, or Sets) located directly inside RAM. This is why a simple Redis operation takes less than 1 millisecond.
 
 **2. Single-Threaded Event Loop (No CPU Context Switching)**
 
 - Redis handles incoming requests using a single-threaded CPU event loop.
 - Because it is single-threaded, it handles requests sequentially (one after another).
 - There are no thread locks, context switches, or race conditions inside the Redis engine itself.
-- When you run an atomic operation or a Lua Script, the single CPU core executes your script completely from start to finish before moving to the next command in the queue.
+- When you run an atomic operation or a Lua Script, the single CPU core executes your script from start to finish before moving to the next command in the queue.
 
 ```mermaid
 flowchart LR
@@ -125,7 +125,7 @@ While data operations happen in RAM via the CPU, Redis still interacts with the 
 Think of a computer like a kitchen:
 
 - **The CPU is the Chef (Processor)**: The chef does the actual work (cooking, chopping, computing). A Single-Threaded system means there is only 1 chef in the kitchen working on orders one by one.
-- **RAM is the Countertop (Memory)**: The countertop holds the ingredients (data). RAM is just physical storage space. It doesn't "run" code or have threads; it just holds data that the CPU reads from or writes to.
+- **RAM is the Countertop (Memory)**: The countertop holds the ingredients (data). RAM is physical storage space. It doesn't "run" code or have threads; it holds data that the CPU reads from or writes to.
 
 **2. How Redis Uses the CPU and RAM**
 
@@ -137,7 +137,7 @@ Think of a computer like a kitchen:
 You might wonder: If having 8 or 16 CPU cores is faster for most applications, why would Redis use only 1 CPU core?
 
 - **No Locking Needed**: If multiple CPU threads try to change the same memory location in RAM at the exact same time, they collide and corrupt the data. To prevent this, multi-threaded programs have to use locks, which slow things down.
-- **No CPU Context Switching**: When a CPU switches between different threads, it loses time. A single thread running in a continuous loop avoids this overhead entirely.
+- **No CPU Context Switching**: When a CPU switches between different threads, it loses time. A single thread running in a continuous loop avoids this overhead.
 - **RAM is Already Fast**: Reading/writing to RAM takes nanoseconds. Because memory access is so fast, one CPU core can process over 100,000 requests per second without getting bottlenecked.
 
 ## Memcached vs. Redis: Multi-Threaded vs. Single-Threaded
@@ -175,7 +175,7 @@ flowchart TD
 
 **3. Why Would You Choose Memcached over Redis?**
 
-Because Memcached is multi-threaded and extremely simple, it excels in specific high-scale scenarios:
+Because Memcached is multi-threaded and simple, it excels in specific high-scale scenarios:
 
 - **Scaling Up a Single Node (Vertical Scaling)**: If you give Memcached a massive 64-core, 256 GB RAM server, it will utilize all 64 CPU cores natively. A single Redis instance can only utilize 1 CPU core for its command loop (requiring you to run 64 separate Redis processes/shards on that same machine to achieve the same CPU utilization).
 - **Pure, Simple Key-Value Caching**: Ideal for caching rendered HTML fragments, database SQL query results, or JSON blobs where you only need basic GET and SET operations.
@@ -233,7 +233,7 @@ sequenceDiagram
 
 1. **Guaranteed Atomicity (No Race Conditions)**: Because Redis's core engine is single-threaded, when Redis runs a Lua script, it blocks all other incoming commands until the script finishes. No other client can read or write to the keys touched by your script midway through. You eliminate the need for complex distributed locks (SETNX or Redlock) for in-memory operations.
 
-2. **Massively Reduced Network Latency**: Instead of sending 5 or 10 separate commands back and forth over TCP/IP, you send 1 network request containing the script. Redis runs all 5-10 commands locally in RAM at CPU speed (nanoseconds) and returns just the final result.
+2. **Massively Reduced Network Latency**: Instead of sending 5 or 10 separate commands back and forth over TCP/IP, you send 1 network request containing the script. Redis runs all 5-10 commands locally in RAM at CPU speed (nanoseconds) and returns the final result.
 
 3. **Building Custom Atomic Operations**: Redis gives you basic primitives (INCR, HSET, ZADD). Lua lets you combine these primitives to create brand new, complex atomic database operations tailored to your business logic (like checking inventory before deducting a balance).
 
@@ -269,7 +269,7 @@ Because this runs inside Redis via Lua:
 To avoid sending the full script text over the network every time:
 
 - **SCRIPT LOAD**: You send the script text to Redis once. Redis saves it in memory and gives you a SHA1 Hash (e.g., 438883e...).
-- **EVALSHA**: For subsequent requests, your application just sends the tiny 40-character SHA1 hash instead of the whole script string.
+- **EVALSHA**: For subsequent requests, your application sends the tiny 40-character SHA1 hash instead of the whole script string.
 
 **Summary Rules to Remember for Interviews**
 
@@ -366,7 +366,7 @@ To understand how atomic operations work in a distributed Redis environment, we 
 
 **1. Single-Node Atomicity: The Single-Threaded Event Loop**
 
-At the hardware level, "atomic" means an operation happens as a single, indivisible unit of work. It either completely succeeds or completely fails. Nothing else can read or modify the data midway through.
+At the hardware level, "atomic" means an operation happens as a single, indivisible unit of work. It either succeeds or fails. Nothing else can read or modify the data midway through.
 
 Redis achieves this on a single node through its Single-Threaded Event Loop:
 
@@ -432,7 +432,7 @@ Because both keys share `{group_123}`, Redis guarantees they map to the exact sa
 
 **2. Distributed Locks (Redlock Algorithm for Multi-Node Systems)**
 
-When keys must reside on completely different servers or datacenters, you must elevate atomicity from the database layer to the application distribution layer using Distributed Consensus Locks (such as Redlock).
+When keys must reside on different servers or datacenters, you must elevate atomicity from the database layer to the application distribution layer using Distributed Consensus Locks (such as Redlock).
 
 ```
 Application Worker

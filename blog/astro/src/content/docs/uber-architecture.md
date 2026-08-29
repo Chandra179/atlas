@@ -43,7 +43,7 @@ The foundation of Uber's location system is Earth partitioning. Because calculat
 
 **Cell Mapping:** S2 projects the Earth onto a cube and uses a Hilbert space-filling curve to divide it into hierarchical cells (each assigned a unique 64-bit Cell ID). Level 13 cells (~0.5 km²) or Level 14 (~0.1 km²) are typically used for neighborhood-level dispatching.
 
-**Searching:** When a rider opens the app, the backend translates their coordinate into an S2 Cell ID. Instead of searching the whole database, the system simply queries drivers registered inside that specific Cell ID and its 8 immediate neighbors.
+**Searching:** When a rider opens the app, the backend translates their coordinate into an S2 Cell ID. Instead of searching the whole database, the system queries drivers registered inside that specific Cell ID and its 8 immediate neighbors.
 
 ## The Core Ride Loop Architecture
 
@@ -86,7 +86,7 @@ To manage thousands of individual microservices, Uber introduced Domain-Oriented
 
 ## Core Design Drivers: Ratio, CQRS & CAP Trade-Offs
 
-The `1:10` driver-to-rider ratio and the AP vs. CP split directly dictate how you choose your databases, write protocols, and partition strategy. Here is exactly how those two insights shaped the blueprint.
+The `1:10` driver-to-rider ratio and the AP vs. CP split directly dictate how you choose your databases, write protocols, and partition strategy. Here is how those two insights shaped the blueprint.
 
 ### How the `1:10` Driver-to-Rider Ratio Shapes the System
 
@@ -99,7 +99,7 @@ While there are more riders overall, drivers write far more frequently (every 4 
 
 **1. Ingestion Protocol Choice (gRPC over HTTP/2 vs. REST):** Without the 1:10 write-heavy ratio, you might use standard REST HTTP/1.1 POST calls for location pings. With 250,000 writes/sec, establishing 250,000 new TCP/TLS connections every second would crash your API gateways due to handshake overhead. The high write ratio forced us to use long-lived gRPC streaming connections over HTTP/2, allowing 1,000,000 drivers to keep persistent sockets open and stream tiny binary Protobuf payloads with minimal CPU overhead.
 
-**2. CQRS Pattern (Command Query Responsibility Segregation):** Because driver updates happen on a relentless 4-second ticker, you cannot let rider search queries hit the same database table or lock the same rows. We completely separated the Write Path (Driver → Kafka → Redis Primary) from the Read Path (Rider → Redis Read Replicas). Riders reading nearby drivers never block drivers writing their new locations.
+**2. CQRS Pattern (Command Query Responsibility Segregation):** Because driver updates happen on a relentless 4-second ticker, you cannot let rider search queries hit the same database table or lock the same rows. We separated the Write Path (Driver → Kafka → Redis Primary) from the Read Path (Rider → Redis Read Replicas). Riders reading nearby drivers never block drivers writing their new locations.
 
 ### How the AP vs. CP Trade-Off Shapes the System
 
@@ -110,7 +110,7 @@ Instead of choosing one CAP trade-off for the entire platform, we split the syst
 | Location Tracking Engine | High Availability & Sub-second Latency | AP Eventual Consistency | Redis Spatial Cluster | → feeds into → |
 | Matching & Trip State Engine | Zero Double-Bookings, Financial Integrity | CP Strong Consistency | Distributed RDBMS (CockroachDB / Postgres) | |
 
-**The AP Engine (Location Streaming):** If a driver drops connection for 3 seconds, or if a rider sees a driver's icon 50 meters away from where they actually are, nobody loses money. We chose Redis + Kafka configured for speed over strict ACID guarantees. Writes are non-blocking. If a location ping fails due to a momentary network partition, we simply drop it and wait for the next ping 4 seconds later. No distributed database transactions are used for pings.
+**The AP Engine (Location Streaming):** If a driver drops connection for 3 seconds, or if a rider sees a driver's icon 50 meters away from where they are, nobody loses money. We chose Redis + Kafka configured for speed over strict ACID guarantees. Writes are non-blocking. If a location ping fails due to a momentary network partition, we drop it and wait for the next ping 4 seconds later. No distributed database transactions are used for pings.
 
 **The CP Engine (Match & Dispatch Execution):** If two riders press "Request Ride" at the exact same millisecond for the exact same driver, and both get confirmed, the business loses trust and money. Availability must yield to absolute consistency here. We switched from the AP fast-path (Redis) to a CP transactional execution path with Distributed Locks (Redlock) + Atomic Lua Scripts + Relational DB ACID Transactions (SELECT FOR UPDATE or Optimistic Locking). If a network partition occurs during a match, the system fails the request and asks the rider to try again (sacrificing Availability) rather than risk double-booking the driver (preserving Consistency).
 
@@ -195,7 +195,7 @@ Both are separate microservices with different roles:
 | Driver Ingestion | WebSocket → API Gateway → Kafka → Redis | Async (event-driven) |
 | Rider Search / Match | HTTPS → DISCO → Direct Redis Query | Sync (sub-second RPC) |
 | ETA Calculation | DISCO → ETA Engine (gRPC) | Sync (inline during match) |
-| Surge / Analytics | Kafka Stream → Flink → Surge Cache | Async (completely out-of-band) |
+| Surge / Analytics | Kafka Stream → Flink → Surge Cache | Async (out-of-band) |
 
 ### Dispatch Flow: Four-Phase Sequence
 
@@ -596,7 +596,7 @@ graph TB
 
 **How Hudi Handles CDC Incremental Writes:**
 
-- **Upserts via Record Key Indexing:** Hudi maintains a record key index (e.g., indexed by trip_uuid). When a CDC record arrives in Kafka for an existing trip, Hudi knows exactly which Parquet data file on HDFS contains that trip.
+- **Upserts via Record Key Indexing:** Hudi maintains a record key index (e.g., indexed by trip_uuid). When a CDC record arrives in Kafka for an existing trip, Hudi knows which Parquet data file on HDFS contains that trip.
 - **Copy-on-Write (COW) vs. Merge-on-Read (MOR):**
   - **Merge-on-Read (MOR):** Incoming CDC updates are appended to fast, lightweight Delta Logs (Avro format).
   - **Compaction:** A background compaction job periodically merges the Delta Logs with the historical base files (Parquet format), creating a fresh, highly compressed columnar snapshot for analytical queries.
@@ -645,7 +645,7 @@ graph TB
 
 To achieve crash resilience, Cadence strictly splits code into two concepts:
 
-- **Workflows (State Logic):** Written as standard, imperative code (Go, Java, Python). They must be completely deterministic: they cannot make API calls, access the system clock, or generate random numbers directly. They simply dictate order: "Execute Step A, wait for signal X, then execute Step B."
+- **Workflows (State Logic):** Written as standard, imperative code (Go, Java, Python). They must be deterministic: they cannot make API calls, access the system clock, or generate random numbers directly. They dictate order: "Execute Step A, wait for signal X, then execute Step B."
 - **Activities (Side Effects):** Non-deterministic actions live here: charging a credit card, sending an SMS, or calling a third-party API. Activities can fail, time out, and be retried independently using automatic backoff policies defined by the workflow.
 
 **Replay-Based Recovery (Durable Execution):**
@@ -690,7 +690,7 @@ In Gulfstream, every monetary movement is represented as an immutable transactio
 
 $$\sum \text{Debits} = \sum \text{Credits}$$
 
-Every balance is simply the sum total of its history of ledger entries.
+Every balance is the sum total of its history of ledger entries.
 
 **Example: $20 Fare with a $5 Promo Code**
 
@@ -834,7 +834,7 @@ graph TB
 
 **Flow B: Restaurant Fulfillment** Uses a Temporal Selector to wait concurrently for `AcceptOrder(prepTimeMinutes)`, `RejectOrder(reason)`, or a 5-minute timeout (auto-reject if tablet unresponsive).
 
-**Flow C: Courier Dispatch & Matching** Delayed launch using a workflow timer so the courier arrives just as food finishes cooking:
+**Flow C: Courier Dispatch & Matching** Delayed launch using a workflow timer so the courier arrives as food finishes cooking:
 
 $$\text{Dispatch Delay} = \text{Target Pickup Time} - \text{Estimated Driver Transit Time}$$
 

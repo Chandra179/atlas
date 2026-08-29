@@ -82,7 +82,7 @@ Multiple LB/gateway instances handle traffic in parallel, so a client's requests
 
 **Deep Dive 2: Choosing the rate-limiting algorithm**
 
-- **Fixed window counter** (simple `INCR` + TTL) is cheap but has a boundary-burst flaw: a client could send a full limit's worth of requests at the very end of one window and another full limit's worth at the start of the next, producing 2x the intended burst within milliseconds.
+- **Fixed window counter** (simple `INCR` + TTL) is cheap but has a boundary-burst flaw: a client could send a full limit's worth of requests at the end of one window and another full limit's worth at the start of the next, producing 2x the intended burst within milliseconds.
 - **Token bucket** avoids this: tokens refill continuously based on elapsed time rather than resetting to zero at fixed boundaries, so there's no artificial "topping up" moment. Chosen for the **per-second burst limit**.
 - **Fixed window counter** is still perfectly fine for the **daily quota**: at a 1M-request/day scale, the boundary-burst effect is negligible, and it's simpler than maintaining token-bucket state over a 24h horizon.
 - Final design: a request must pass **both** checks, token bucket (burst/sec) **and** fixed window (daily quota), to be allowed.
@@ -92,11 +92,11 @@ Rate-limit state doesn't need strong durability. Worst case on data loss is a br
 
 - Redis native persistence (AOF/RDB) for approximate state recovery on restart.
 - Primary + replica for availability/failover.
-- **Fail open** if Redis is fully unavailable: allow requests through rather than blocking all traffic platform-wide; resume normal enforcement once Redis recovers. The bounded cost (a short unmetered window during a rare full outage) is preferable to synchronous DB writes on every request, which would blow the 5ms latency budget and require the DB to sustain 200K writes/sec just for rate-limiter bookkeeping.
+- **Fail open** if Redis is fully unavailable: allow requests through rather than blocking all traffic platform-wide; resume normal enforcement once Redis recovers. The bounded cost (a short unmetered window during a rare full outage) is preferable to synchronous DB writes on every request, which would blow the 5ms latency budget and require the DB to sustain 200K writes/sec for rate-limiter bookkeeping.
 
 ## Scaling & Trade-offs
 
 - **Single point of failure**: Redis itself, mitigated via replica failover and fail-open behavior rather than blocking all traffic on Redis unavailability.
-- **Hot key problem**: A single very high-traffic client's counter could become a hot key in Redis. Consider client-side sharding of the counter (e.g., split into N sub-counters summed at check time) if this becomes an issue at extreme scale.
+- **Hot key problem**: A single high-traffic client's counter could become a hot key in Redis. Consider client-side sharding of the counter (e.g., split into N sub-counters summed at check time) if this becomes an issue at extreme scale.
 - **Consistency trade-off**: Chose approximate/eventual accuracy over strict correctness, acceptable because rate limiting is a best-effort protection mechanism, not a system requiring exact guarantees, and this buys significant latency/throughput headroom.
 - **Open question for further scaling**: is the celebrity-style "different limits per tier" static, or should limit tiers be dynamically adjustable based on current system load (mentioned as a follow-up in discussion, not fully explored)?
