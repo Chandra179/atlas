@@ -3,6 +3,8 @@ title: Knowledge Graph
 modified: '2026-08-29'
 ---
 
+# Knowledge Graph
+
 To build a graph that retains semantic clarity, modern graph architectures use four core engineering patterns to control entropy.
 
 ## Entity Resolution (ER) & Canonicalization
@@ -61,10 +63,20 @@ Determining that three independent sentences from across the web describe the ex
 
 Systems resolve this by converting unstructured text into structured relational frames, aligning their entities and predicates, and verifying that their contextual metadata matches.
 
-The Step-by-Step Resolution Pipeline
-[Sentence 1 (Source A)] ──┐
-[Sentence 2 (Source B)] ──┼─> 1. Frame Extraction ─> 2. Canonicalization ─> 3. Slot Matching ─> Unified Single Edge
-[Sentence 3 (Source C)] ──┘
+```mermaid
+flowchart TD
+    subgraph Sources
+        SA["Sentence 1 (Source A)"]
+        SB["Sentence 2 (Source B)"]
+        SC["Sentence 3 (Source C)"]
+    end
+    SA --> FE[1. Frame Extraction]
+    SB --> FE
+    SC --> FE
+    FE --> CAN[2. Canonicalization]
+    CAN --> SM[3. Slot Matching]
+    SM --> UNI[Unified Single Edge]
+```
 
 ### Frame Extraction (Deconstructing Text into Tuples)
 
@@ -90,11 +102,10 @@ Relation Alignment (Ontology Mapping): The predicates "acquired", "buyout of", a
 
 After canonicalization, all three sentences produce the identical core predicate structure:
 
-Entity(Q47821) 
-ACQUIRED
-
-​
-Entity(Q1572111)
+```mermaid
+flowchart LR
+    A["Entity(Q47821)"] -->|ACQUIRED| B["Entity(Q1572111)"]
+```
 
 ### Slot & Attribute Matching (Verifying Reality Boundaries)
 
@@ -114,10 +125,7 @@ For complex or ambiguous sentences where rigid slot matching fails, systems use 
 
 The system projects the extracted relation tuples into a high-dimensional vector space:
 
-v 
-fact
-​
-=Encoder(Subject,Predicate,Object,Context)
+$v_{\text{fact}} = \text{Encoder}(\text{Subject}, \text{Predicate}, \text{Object}, \text{Context})$
 
 Sentences describing the exact same relationship form a dense cluster in vector space. Clustering algorithms (like HDBSCAN or cosine thresholding) group these vectors together into a single Fact Cluster.
 
@@ -170,23 +178,20 @@ You need predefined rules (or a predefined schema/ontology) for three critical t
 
 Instead of feeding millions of raw web pages straight into an LLM, production pipelines cascade data from cheapest to most expensive:
 
-```
-Raw Web Text
-    │
-    ▼
-[Rules & Regex] ──────────────────► Parse dates, financial figures, drop spam text.
-    │
-    ▼
-[Small NLP Models] ───────────────► Extract raw entities & basic triples via SpaCy/BERT.
-    │                               Calculate vector embeddings for similarity clustering.
-    ▼
-[LLM Stage] ──────────────────────► Process ONLY ambiguous nodes, complex cross-document
-    │                               coreferences, and final edge consolidation.
-    ▼
-[Rule Validation] ───────────────► Enforce ontology constraints before writing to DB.
-    │
-    ▼
-Clean Knowledge Graph
+```mermaid
+flowchart TD
+    A[Raw Web Text] --> B([Rules & Regex])
+    B --> C([Small NLP Models])
+    C --> D[LLM Stage]
+    D --> E([Rule Validation])
+    E --> F[Clean Knowledge Graph]
+    
+    style A fill:#f9f,stroke:#333,stroke-width:2px
+    style B fill:#bbf,stroke:#333,stroke-width:2px
+    style C fill:#bfb,stroke:#333,stroke-width:2px
+    style D fill:#ffb,stroke:#333,stroke-width:2px
+    style E fill:#fbb,stroke:#333,stroke-width:2px
+    style F fill:#bff,stroke:#333,stroke-width:2px
 ```
 
 Why this approach works:
@@ -275,12 +280,12 @@ You do not need an LLM or an extraction pipeline to explicitly extract every sin
 
 When you connect a Knowledge Graph to a downstream LLM or reasoning system, you face a scaling bottleneck: you cannot fit a 50,000-node graph into a context window. Modern GraphRAG architectures solve this through two sub-graph retrieval patterns:
 
-```
-Full Knowledge Graph
-       │
-       ├─► Global Query ──► Hierarchical Community Summarization (Leiden Clusters)
-       │
-       └─► Local Query   ──► k-Hop Subgraph Expansion (Ego-Graph Pruning)
+```mermaid
+flowchart TD
+    A[Full Knowledge Graph] --> B[Global Query]
+    A --> C[Local Query]
+    B --> D[Hierarchical Community Summarization<br>Leiden Clusters]
+    C --> E[k-Hop Subgraph Expansion<br>Ego-Graph Pruning]
 ```
 
 **Hierarchical Community Summarization (Global Queries):** The graph is clustered into micro-communities, which are then clustered into macro-communities. Summaries are generated for each cluster, allowing an LLM to answer high-level questions ("What are the overarching trends across the dataset?") by reading top-level community reports instead of raw nodes.
@@ -309,11 +314,12 @@ If you break this into multiple separate binary edges, you lose the atomic conte
 
 Modern AI architectures no longer treat Vector Databases and Graph Databases as separate silos. They merge them into Graph-Vector Hybrid Engines:
 
-```
-[User Query] ──► Dense Vector Search ──► "Land" on top 3 candidate nodes
-                        │
-                        ▼
-                Graph Traversal ──► "Walk" 2-hops outward to gather structural context
+```mermaid
+flowchart LR
+    A[User Query] --> B[Dense Vector Search]
+    B --> C["Land on top 3 candidate nodes"]
+    C --> D[Graph Traversal]
+    D --> E["Walk 2-hops outward to gather structural context"]
 ```
 
 Vector embeddings excel at fuzzy, semantic "landing" (finding where to start looking), while Knowledge Graphs excel at precise, deterministic "walking" (following explicit causal paths). Unifying them gives you both deep intuition and strict logical precision.
