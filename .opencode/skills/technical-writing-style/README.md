@@ -1,2 +1,0 @@
-# technical-writing-style
-
