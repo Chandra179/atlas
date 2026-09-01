@@ -12,6 +12,7 @@
 /* Custom styles ported from the original blog */
 @import "./base.css";
 @import "./prose.css";
+@import "./mermaid.css";
 @import "./math.css";
 @import "./landing.css";
 @import "./dark.css";

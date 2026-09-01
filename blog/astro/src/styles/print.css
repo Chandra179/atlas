@@ -19,6 +19,26 @@
   padding-top: 0 !important;
 }
 
+/* Client-rendered mermaid diagrams laid out statically for print (no
+   pan/zoom viewport — the client script skips it in pdf-mode). Browser Run
+   gets the same rules via an injected <style> with precise px caps. */
+.pdf-mode .mermaid-diagram {
+  max-width: none !important;
+  width: auto !important;
+  text-align: center !important;
+}
+
+.pdf-mode .mermaid-diagram svg {
+  display: inline-block !important;
+  max-width: 100% !important;
+  height: auto !important;
+  width: auto !important;
+}
+
+.pdf-mode .mermaid-diagram[data-orientation="vertical"] svg {
+  max-height: 70vh !important;
+}
+
 .pdf-mode body {
   background: #fff !important;
   color: #111827 !important;

@@ -1,18 +1,18 @@
 # PDF-only mermaid diagram sizing.
 #
 # The web view's size is controlled per-diagram by `width=` on the fence
-# (see src/lib/remark-mermaid-preserve.js). This file affects the Browser
-# Run PDF path (src/worker/index.ts applies these caps directly to the DOM,
-# since that's the one path guaranteed to run regardless of whether Browser
-# Run honors @media print). The values here should stay in sync with the
-# @media print rules in src/styles/print.css, which apply the same caps for
-# users printing via their own browser (Ctrl+P) instead of downloading a
-# Browser Run-generated PDF.
+# (see src/lib/remark-mermaid-preserve.js) inside an interactive pan/zoom
+# viewport (see src/scripts/mermaid-viewer.js). This file affects the Browser
+# Run PDF path: diagrams render client-side in Browser Run (which doesn't
+# honor @media print), so the worker injects a <style> with these caps into
+# the cleaned HTML (src/worker/index.ts). The values here should stay in sync
+# with the @media print rules in src/styles/print.css, which apply the same
+# caps for users printing via their own browser (Ctrl+P).
 
 # PDF cache key version (KV key: `pdf:v<cacheVersion>:<slug>:<hash>`). Bump
 # this whenever cleanHtmlForPdf's cleaning/sizing logic changes incompatibly,
 # so previously cached PDFs aren't served stale under the old behavior.
-cacheVersion: 10
+cacheVersion: 11
 
 # Printable page geometry — must match pdfOptions in src/worker/index.ts.
 page:

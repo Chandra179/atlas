@@ -1,0 +1,146 @@
+/* Client-rendered mermaid diagrams with pan/zoom
+   (see src/scripts/mermaid-viewer.js). */
+
+.prose .mermaid-diagram {
+    margin: 2em auto;
+}
+
+/* Raw source, visible as a fallback while JS renders (or for no-JS). */
+.prose .mermaid-diagram pre.mermaid {
+    margin: 0;
+    font-size: 0.8em;
+    line-height: 1.5;
+    overflow-x: auto;
+    white-space: pre-wrap;
+    color: #6b7280;
+    background: #f8fafc;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    padding: 0.75rem 1rem;
+}
+
+.mermaid-viewport {
+    position: relative;
+    max-height: min(70vh, 640px);
+    overflow: hidden;
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    background: #fff;
+    touch-action: none;
+    cursor: grab;
+    user-select: none;
+}
+
+.mermaid-viewport:active {
+    cursor: grabbing;
+}
+
+.mermaid-stage {
+    transform-origin: 0 0;
+    will-change: transform;
+}
+
+.mermaid-stage svg {
+    display: block;
+}
+
+.mermaid-stage svg foreignObject {
+    overflow: visible;
+}
+
+.mermaid-stage svg foreignObject p {
+    margin: 0;
+}
+
+.mermaid-controls {
+    position: absolute;
+    top: 0.5rem;
+    right: 0.5rem;
+    display: flex;
+    gap: 0.25rem;
+    padding: 0.25rem;
+    background: rgba(255, 255, 255, 0.9);
+    border: 1px solid #e5e7eb;
+    border-radius: 0.5rem;
+    opacity: 0.35;
+    transition: opacity 0.15s;
+}
+
+.mermaid-viewport:hover .mermaid-controls {
+    opacity: 1;
+}
+
+.mermaid-controls button {
+    width: 1.75rem;
+    height: 1.75rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border: none;
+    border-radius: 0.375rem;
+    background: transparent;
+    color: #374151;
+    font-size: 0.9rem;
+    cursor: pointer;
+}
+
+.mermaid-controls button:hover {
+    background: #eef2ff;
+    color: #1d4ed8;
+}
+
+/* Fullscreen overlay */
+.mermaid-diagram.mermaid-fullscreen .mermaid-viewport {
+    position: fixed;
+    inset: 0;
+    max-height: none;
+    z-index: 100;
+    border-radius: 0;
+}
+
+.mermaid-diagram.mermaid-fullscreen .mermaid-controls {
+    opacity: 1;
+}
+
+.dark .prose .mermaid-diagram pre.mermaid {
+    color: #94a3b8;
+    background: #0f172a;
+    border-color: #334155;
+}
+
+.dark .mermaid-viewport {
+    background: #0f172a;
+    border-color: #334155;
+}
+
+.dark .mermaid-controls {
+    background: rgba(15, 23, 42, 0.9);
+    border-color: #334155;
+}
+
+.dark .mermaid-controls button {
+    color: #e5e7eb;
+}
+
+.dark .mermaid-controls button:hover {
+    background: #1e293b;
+    color: #93c5fd;
+}
+
+/* Interactive chrome must not leak into print */
+@media print {
+    .mermaid-viewport {
+        max-height: none;
+        overflow: visible;
+        border: none;
+        background: transparent;
+    }
+
+    .mermaid-controls {
+        display: none;
+    }
+
+    .mermaid-stage {
+        transform: none !important;
+    }
+}

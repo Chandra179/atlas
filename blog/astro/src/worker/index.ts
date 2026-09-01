@@ -73,6 +73,11 @@ async function sleep(ms: number): Promise<void> {
 function cleanHtmlForPdf(html: string, origin: string, slug: string): string {
   const { document } = parseHTML(html);
 
+  // Mark the document as PDF mode. The client-side mermaid renderer
+  // (src/scripts/mermaid-viewer.js) reads this class to render diagrams
+  // statically with the light theme and skip the pan/zoom viewport.
+  document.documentElement.classList.add('pdf-mode');
+
   // Remove UI chrome
   const selectors = [
     'header',
@@ -116,36 +121,29 @@ function cleanHtmlForPdf(html: string, origin: string, slug: string): string {
     (contentWrapper as HTMLElement).style.maxWidth = 'none';
   }
 
-  // Cap mermaid diagram size for print. A4 pages are much narrower (and, for
-  // a tall diagram, much shorter per page) than the web content column, and
-  // Browser Run doesn't appear to honor @media print, so size caps have to be
-  // forced here directly instead of relying on print.css. Config lives in
-  // src/config/mermaid.config.yaml.
+  // Cap mermaid diagram size for print via injected CSS instead of DOM
+  // mutation: diagrams render client-side inside Browser Run (which doesn't
+  // honor @media print), so static styling rules are the only reliable way
+  // to size them. Config lives in src/config/mermaid.config.yaml.
   //
   // Vertical (TB/TD) diagrams tend to run tall, so they're capped by height
-  // (a % of the printable page height) rather than width — the wrapper's own
-  // width= (sized for the web) is cleared so it doesn't fight with that.
-  // Horizontal (LR/RL) diagrams are already short and are left untouched.
+  // (a % of the printable page height) rather than width. Horizontal
+  // (LR/RL) diagrams are already short and are left untouched unless
+  // `horizontal.constrain` is set.
   const maxHeightPx = verticalMaxHeightPx(mermaidConfig);
-  for (const el of Array.from(document.querySelectorAll('.mermaid-diagram'))) {
-    const wrapper = el as HTMLElement;
-    if (wrapper.getAttribute('data-orientation') === 'horizontal') {
-      if (!mermaidConfig.horizontal.constrain) continue;
-    }
-
-    const svg = wrapper.querySelector('svg');
-    if (!svg) continue;
-
-    wrapper.style.maxWidth = 'none';
-    wrapper.style.textAlign = 'center';
-
-    const svgStyle = (svg as unknown as HTMLElement).style;
-    svgStyle.display = 'inline-block';
-    svgStyle.height = 'auto';
-    svgStyle.width = 'auto';
-    svgStyle.maxHeight = `${maxHeightPx}px`;
-    svgStyle.maxWidth = '100%';
+  const capRules = [
+    '.mermaid-diagram{max-width:none!important;width:auto!important;text-align:center!important}',
+    '.mermaid-diagram svg{display:inline-block!important;max-width:100%!important;height:auto!important;width:auto!important}',
+  ];
+  if (mermaidConfig.horizontal.constrain) {
+    capRules.push(`.mermaid-diagram svg{max-height:${maxHeightPx}px!important}`);
   }
+  capRules.push(`.mermaid-diagram[data-orientation="vertical"] svg{max-height:${maxHeightPx}px!important}`);
+
+  const styleEl = document.createElement('style');
+  styleEl.setAttribute('data-mermaid-print-cap', '');
+  styleEl.textContent = capRules.join('');
+  document.head.appendChild(styleEl);
 
   // Convert relative URLs to absolute so resources load when using html option
   for (const el of Array.from(document.querySelectorAll('[href^="/"], [src^="/"]'))) {

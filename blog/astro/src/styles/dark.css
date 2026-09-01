@@ -147,10 +147,8 @@
 
 /* Code block dark theme is handled by astro-expressive-code via .dark CSS variables */
 
-/* Mermaid SVGs are baked light-theme at build time; invert to approximate dark mode without a re-render. */
-.dark .prose svg[id^="mermaid-"] {
-    filter: invert(0.9) hue-rotate(180deg);
-}
+/* Mermaid diagrams are rendered client-side with the native dark theme;
+   their viewport chrome is styled in mermaid.css. */
 
 .dark .prose blockquote {
     color: #94a3b8;

@@ -373,30 +373,4 @@
 }
 
 /* ========== Mermaid Diagrams ========== */
-.prose .mermaid-diagram {
-    margin: 2em auto;
-}
-
-.prose svg[id^="mermaid-"] {
-    display: block;
-    margin: 0 auto;
-    max-width: 100%;
-    height: auto;
-    overflow: visible;
-    background: #ffffff;
-    border-radius: 0.5rem;
-    padding: 0.5rem;
-}
-
-.prose .mermaid-diagram svg[id^="mermaid-"] {
-    margin: 0;
-    width: 100%;
-}
-
-.prose svg[id^="mermaid-"] foreignObject {
-    overflow: visible;
-}
-
-.prose svg[id^="mermaid-"] foreignObject p {
-    margin: 0;
-}
+/* Styling lives in mermaid.css (client-rendered, pan/zoom viewport). */

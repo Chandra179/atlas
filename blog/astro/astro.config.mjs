@@ -11,7 +11,6 @@ import remarkMath from 'remark-math';
 import remarkDirective from 'remark-directive';
 import rehypeKatex from 'rehype-katex';
 import rehypeRaw from 'rehype-raw';
-import rehypeMermaid from 'rehype-mermaid';
 export default defineConfig({
   site: 'https://chan179.com',
   output: 'static',
@@ -38,20 +37,6 @@ export default defineConfig({
     ],
     rehypePlugins: [
       rehypeRaw,
-      [rehypeMermaid, {
-        strategy: 'inline-svg',
-        errorFallback: (el, diagram) => ({
-          type: 'element',
-          tagName: 'pre',
-          properties: {},
-          children: [{
-            type: 'element',
-            tagName: 'code',
-            properties: { className: ['language-mermaid'] },
-            children: [{ type: 'text', value: diagram }],
-          }],
-        }),
-      }],
       [rehypeKatex, { throwOnError: false, strict: false }],
       rehypeRewriteAssets,
     ],

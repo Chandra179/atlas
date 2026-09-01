@@ -36,12 +36,14 @@ This is an Astro static blog (output: 'static') deployed to Cloudflare Workers, 
 
 Custom remark/rehype plugins in `src/lib/` run in this pipeline order:
 - remark: math → GitBook embeds → link rewriting → mermaid-preserve → directives → callouts
-- rehype: raw HTML → mermaid (inline SVG rendering, with a code-block fallback on error) → katex → asset rewriting
+- rehype: raw HTML → katex → asset rewriting
 
 These plugins port behavior from an earlier non-Astro build (`blog/scripts/lib/*.js` — see comments referencing "Ported from" / "gen-nav.js").
 
+Mermaid diagrams are rendered **client-side**: `remark-mermaid-preserve.js` escapes each ` ```mermaid ` fence into a `<pre class="mermaid">` inside a `.mermaid-diagram` wrapper (no build-time SVG). `src/scripts/mermaid-viewer.js` (loaded in `DocLayout.astro`) lazily imports the mermaid runtime, renders the source in the browser, and wraps each diagram in a pan/zoom viewport (wheel zoom, drag pan, pinch, on-hover controls, fullscreen). It re-renders when the `.dark` class toggles. In pdf-mode (the worker stamps a `pdf-mode` class on `<html>`) it renders statically with the light theme and no viewport.
+
 When writing mermaid diagrams in content:
-- Do not use `<br>` or `\n` for line breaks inside node labels — put line breaks via separate nodes/lines or omit them; `<br>`/`\n` breaks rendering through `remark-mermaid-preserve.js`.
+- `<br>` in node labels is fine — it's escaped to literal text and mermaid interprets it client-side.
 - Do not use all-uppercase words in labels.
 - Keep node label text short — avoid long/wrapping text in a single node.
 

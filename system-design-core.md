@@ -39,7 +39,7 @@
     - Applied in:
         - Inventory
         - PDF generation
-- **At-least-once delivery & duplicate handling**
+	- **At-least-once delivery & duplicate handling**
     - Applied in:
         - Inventory
         - PDF generation

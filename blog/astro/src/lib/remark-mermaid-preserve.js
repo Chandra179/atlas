@@ -5,22 +5,25 @@
 // At the mdast level, a fenced code block is:
 //   { type: 'code', lang: 'mermaid', value: 'graph TD\n...' }
 // We replace it with:
-//   { type: 'html', value: '<pre class="mermaid">graph TD\n...</pre>' }
+//   { type: 'html', value: '<div class="mermaid-diagram" ...><pre class="mermaid">graph TD\n...</pre></div>' }
 //
-// A <pre class="mermaid"> is used so rehype-mermaid can match it at the
-// hast level and render it to an inline <svg> at build time.
+// Rendering is fully client-side: src/scripts/mermaid-viewer.js reads the
+// source back via pre.textContent and renders it in the browser with the
+// mermaid runtime. Nothing is rendered at build time.
+//
+// The whole source is HTML-escaped (including any inline label markup like
+// <br>) so it survives rehype-raw as literal text; the client reads the
+// decoded textContent and mermaid itself interprets label markup.
 //
 // The fence's meta string supports an optional `width=` to cap the
-// rendered diagram's size on the web, e.g.:
+// diagram's initial width on the web, e.g.:
 //   ```mermaid width=60%
 //   ```mermaid width=400px
-// The <pre> is always wrapped in a <div class="mermaid-diagram"
-// data-orientation="vertical|horizontal">: the orientation is read from the
-// diagram's own `graph`/`flowchart` direction (TB/TD/BT vs LR/RL) and is used
-// by the PDF worker (src/worker/index.ts) to size diagrams differently for
-// print, independent of whatever `width=` was set for the web (rehype-mermaid
-// swaps the <pre> for the rendered <svg> in place, leaving the wrapping div
-// intact).
+// The wrapper's data-orientation ("vertical|horizontal") is read from the
+// diagram's own `graph`/`flowchart` direction (TB/TD/BT vs LR/RL) and is
+// used by the print CSS (src/styles/print.css) and the PDF worker
+// (src/worker/index.ts) to size diagrams differently for print, independent
+// of whatever `width=` was set for the web.
 import { visit } from 'unist-util-visit';
 
 /** Escape HTML special characters in text. */
@@ -53,14 +56,9 @@ export function remarkMermaidPreserve() {
       if (!parent || typeof index !== 'number') return;
       if (node.lang !== 'mermaid') return;
 
-      // Require a letter right after `<` so a lone comparison like "< 2-3%"
-      // isn't mistaken for the start of a tag and matched through to the
-      // next unrelated `>` (e.g. an arrow's `-->`), which would silently
-      // delete everything in between.
-      const cleaned = (node.value || '').replace(/<(?!\/?br\s*\/?>)\/?[a-zA-Z][^<>]*>/g, '');
       const width = parseWidth(node.meta);
       const orientation = detectOrientation(node.value);
-      const pre = `<pre class="mermaid">${escapeHtml(cleaned)}</pre>`;
+      const pre = `<pre class="mermaid">${escapeHtml(node.value || '')}</pre>`;
       const style = width ? ` style="max-width: ${width}"` : '';
 
       parent.children[index] = {

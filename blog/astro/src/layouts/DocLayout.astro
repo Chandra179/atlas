@@ -227,6 +227,10 @@ const modifiedDiffersFromCreated =
   <TOC headings={headings} />
 
   <script>
+    import '../scripts/mermaid-viewer.js';
+  </script>
+
+  <script>
     async function downloadPdf() {
       const heading = document.querySelector('#content h1');
       const title = heading?.textContent?.trim() || document.title?.trim() || 'document';
