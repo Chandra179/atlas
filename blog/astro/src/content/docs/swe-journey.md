@@ -1,5 +1,5 @@
 ---
-title: Software Engineering Journey
+title: Software Engineering
 created: 2026-07-12T00:00:00.000Z
 author: Koala
 tags:
@@ -15,7 +15,7 @@ description: >-
 modified: '2026-08-29'
 ---
 
-# Software Engineering Journey
+# Software Engineering
 
 ## Variable Naming & Function Design
 
