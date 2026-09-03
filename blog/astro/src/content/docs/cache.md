@@ -55,7 +55,7 @@ A Lua Script lets you package multiple logical steps into a single script that y
 
 ## Redis Internals: Why It's So Fast
 
-In fact, understanding that Redis is primarily a CPU + RAM operation in memory is one of the most important concepts in system design.
+Understanding that Redis is primarily a CPU + RAM operation in memory is one of the most important concepts in system design.
 
 Here is what happens under the hood when Redis executes a command or a Lua script:
 
@@ -106,7 +106,7 @@ flowchart LR
 While data operations happen in RAM via the CPU, Redis still interacts with the network and disk in specific, controlled ways:
 
 - **Network I/O (The Real Bottleneck)**: Before the CPU can run your operation, the data must travel over the network via TCP/IP from your app server to the Redis server. Network latency (e.g., 1ms to 5ms) is usually the slowest part of a Redis request, not the Redis CPU execution itself.
-- **Disk Persistence (Asynchronous Background Thread)**: While Redis serves requests from RAM, it can periodically save data to disk (RDB snapshots or AOF logs) so data isn't lost if the server reboots. Crucially, Redis offloads disk persistence to separate background process threads, ensuring that disk writes do not block the main CPU core from executing your real-time operations.
+- **Disk Persistence (Asynchronous Background Thread)**: While Redis serves requests from RAM, it can periodically save data to disk (RDB snapshots or AOF logs) so data isn't lost if the server reboots. Redis offloads disk persistence to separate background process threads, ensuring that disk writes do not block the main CPU core from executing your real-time operations.
 
 **Summary Checklist for System Design**
 
@@ -136,7 +136,7 @@ Think of a computer like a kitchen:
 
 You might wonder: If having 8 or 16 CPU cores is faster for most applications, why would Redis use only 1 CPU core?
 
-- **No Locking Needed**: If multiple CPU threads try to change the same memory location in RAM at the exact same time, they collide and corrupt the data. To prevent this, multi-threaded programs have to use locks, which slow things down.
+- **No Locking Needed**: If multiple CPU threads try to change the same memory location in RAM at the same time, they collide and corrupt the data. To prevent this, multi-threaded programs have to use locks, which slow things down.
 - **No CPU Context Switching**: When a CPU switches between different threads, it loses time. A single thread running in a continuous loop avoids this overhead.
 - **RAM is Already Fast**: Reading/writing to RAM takes nanoseconds. Because memory access is so fast, one CPU core can process over 100,000 requests per second without getting bottlenecked.
 
@@ -161,7 +161,7 @@ flowchart TD
 
 - **Main Thread**: Listens for incoming TCP connections and distributes client sockets to worker threads.
 - **Worker Threads**: Multiple CPU cores process GET and SET commands in parallel simultaneously.
-- **Internal Memory Locking**: Because multiple CPU threads are reading and writing to the exact same RAM space at the same time, Memcached uses fine-grained mutex locks internally inside its C code to prevent memory corruption.
+- **Internal Memory Locking**: Because multiple CPU threads are reading and writing to the same RAM space at the same time, Memcached uses fine-grained mutex locks internally inside its C code to prevent memory corruption.
 
 **2. Memcached vs. Redis: Head-to-Head Comparison**
 
@@ -177,7 +177,7 @@ flowchart TD
 
 Because Memcached is multi-threaded and simple, it excels in specific high-scale scenarios:
 
-- **Scaling Up a Single Node (Vertical Scaling)**: If you give Memcached a massive 64-core, 256 GB RAM server, it will utilize all 64 CPU cores natively. A single Redis instance can only utilize 1 CPU core for its command loop (requiring you to run 64 separate Redis processes/shards on that same machine to achieve the same CPU utilization).
+- **Scaling Up a Single Node (Vertical Scaling)**: If you give Memcached a 64-core, 256 GB RAM server, it will utilize all 64 CPU cores natively. A single Redis instance can only utilize 1 CPU core for its command loop (requiring you to run 64 separate Redis processes/shards on that same machine to achieve the same CPU utilization).
 - **Pure, Simple Key-Value Caching**: Ideal for caching rendered HTML fragments, database SQL query results, or JSON blobs where you only need basic GET and SET operations.
 
 **4. Why Has Redis Become More Popular for System Design?**
@@ -233,7 +233,7 @@ sequenceDiagram
 
 1. **Guaranteed Atomicity (No Race Conditions)**: Because Redis's core engine is single-threaded, when Redis runs a Lua script, it blocks all other incoming commands until the script finishes. No other client can read or write to the keys touched by your script midway through. You eliminate the need for complex distributed locks (SETNX or Redlock) for in-memory operations.
 
-2. **Massively Reduced Network Latency**: Instead of sending 5 or 10 separate commands back and forth over TCP/IP, you send 1 network request containing the script. Redis runs all 5-10 commands locally in RAM at CPU speed (nanoseconds) and returns the final result.
+2. **Reduced Network Latency**: Instead of sending 5 or 10 separate commands back and forth over TCP/IP, you send 1 network request containing the script. Redis runs all 5-10 commands locally in RAM at CPU speed (nanoseconds) and returns the final result.
 
 3. **Building Custom Atomic Operations**: Redis gives you basic primitives (INCR, HSET, ZADD). Lua lets you combine these primitives to create brand new, complex atomic database operations tailored to your business logic (like checking inventory before deducting a balance).
 
@@ -279,7 +279,7 @@ To avoid sending the full script text over the network every time:
 
 ## Case Study: Ride-Hailing Double-Booking Prevention
 
-We use a Redis Lua script to guarantee that two riders searching for a ride at the exact same millisecond never get matched to the same driver (Zero Double-Booking) without paying a heavy latency penalty.
+We use a Redis Lua script to guarantee that two riders searching for a ride at the same millisecond never get matched to the same driver (Zero Double-Booking) without paying a heavy latency penalty.
 
 **The Problem: The Simultaneous Tap Race Condition**
 
@@ -428,7 +428,7 @@ By wrapping a specific part of the key in curly braces {...}, you tell Redis Clu
 - Key A: `user:{group_123}:balance`
 - Key B: `user:{group_123}:discount_coupon`
 
-Because both keys share `{group_123}`, Redis guarantees they map to the exact same Hash Slot and the exact same physical node. Now, a multi-key Lua script can run atomically over both keys without network hops.
+Because both keys share `{group_123}`, Redis guarantees they map to the same Hash Slot and the same physical node. Now, a multi-key Lua script can run atomically over both keys without network hops.
 
 **2. Distributed Locks (Redlock Algorithm for Multi-Node Systems)**
 

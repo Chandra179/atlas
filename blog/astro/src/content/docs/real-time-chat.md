@@ -49,7 +49,7 @@ modified: '2026-08-29'
 - `POST /v1/messages` -> durably accept a message (returns "sent" ack to sender).
 - `GET /v1/messages?room_id=X&after=last_seen_message_id` -> fetch conversation history after a given point (not "before current time"; see Deep Dive 2).
 
-#### Database Schema (Highly Abstract)
+#### Database Schema (Abstract)
 
 - **Room/Conversation Table:** `room_id` (PK), shared by all participants (avoids each user storing only their own sent messages, which would force querying two places to reconstruct a conversation).
 - **Message Table (wide-column store):** `room_id`, `message_id` (UUID), `sender_id`, `content`, `timestamp`.

@@ -161,7 +161,7 @@ Because committing the offset happens after sending the event to Kafka, a crash 
 
 How downstream consumers handle duplicates (Idempotency):
 
-- **Using Primary Key / Idempotent Writes:** In Elasticsearch or Redis, performing `SET user:1 {name: 'Alexander'}` 5 times yields the exact same result as doing it once.
+- **Using Primary Key / Idempotent Writes:** In Elasticsearch or Redis, performing `SET user:1 {name: 'Alexander'}` 5 times yields the same result as doing it once.
 - **LSN / Timestamp Comparison:** A consumer compares incoming LSNs: if `incoming_lsn <= last_processed_lsn`, discard it as a duplicate.
 
 Why Log-Based CDC Wins:
@@ -238,7 +238,7 @@ The event plays three key roles:
 
 - **Decoupling:** The database doesn't know or care who needs the data. It writes to its log.
 - **Standardization:** The CDC engine translates database-specific binary bytes into a standardized, language-agnostic event (like JSON or Avro).
-- **Broadcasting:** The event bus (Kafka) allows 10 different microservices to listen to the exact same change event independently without slowing down the primary database.
+- **Broadcasting:** The event bus (Kafka) allows 10 different microservices to listen to the same change event independently without slowing down the primary database.
 
 ## Key Production Challenges & Patterns in CDC
 
@@ -256,7 +256,7 @@ When you enable CDC on a legacy database with 500 million rows, the transaction 
 
 If an order's status changes PENDING -> PAID -> SHIPPED, downstream services must process events in exact chronological order.
 
-Solution: CDC engines map the database Primary Key as the partition key in Kafka (`partition_key = order_id`). Because Kafka guarantees ordering within a single partition, all updates for a specific order land on the exact same partition and are processed strictly in order.
+Solution: CDC engines map the database Primary Key as the partition key in Kafka (`partition_key = order_id`). Because Kafka guarantees ordering within a single partition, all updates for a specific order land on the same partition and are processed strictly in order.
 
 ### C. Schema Evolution (Schema Drift)
 

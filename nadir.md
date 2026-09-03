@@ -1,13 +1,5 @@
 # Nadir RFCs
 
-Status: draft · Applies to: `nadir` semantic document search engine
-
-This document records the architecture of nadir as a set of Requests for
-Comments. Each RFC describes one subsystem: the problem it solves, the chosen
-design, the alternatives considered, and the open questions. Diagrams are
-Mermaid. Headers are intentionally unnumbered so sections can be added,
-removed, and reordered without churn.
-
 ---
 
 ## System Overview
@@ -26,23 +18,23 @@ flowchart LR
     end
 
     subgraph Nadir["nadir (Go, single binary)"]
-        API["internal/api<br/>HTTP handlers"]
-        CHAT["internal/chat<br/>use-case"]
-        SEARCH["internal/search<br/>hybrid + rerank + cache"]
-        INGEST["internal/ingest<br/>pipeline"]
-        GEN["internal/generator"]
-        ENRICH["internal/enrichment"]
-        HIST["internal/history"]
-        CACHE["internal/cache"]
+        API["HTTP handlers"]
+        CHAT["chat use-case"]
+        SEARCH["hybrid search + rerank + cache"]
+        INGEST["ingest pipeline"]
+        GEN["generator"]
+        ENRICH["enrichment"]
+        HIST["history"]
+        CACHE["cache"]
     end
 
     subgraph Sidecars["Docker sidecars"]
-        QDRANT["Qdrant<br/>:6333 REST / :6334 gRPC"]
-        RERANK["reranker (Python)<br/>:5002"]
-        DOCLING["docling (Python)<br/>PDF → MD (not wired)"]
+        QDRANT["Qdrant"]
+        RERANK["reranker"]
+        DOCLING["docling (not wired)"]
     end
 
-    OLLAMA["Ollama<br/>:11434<br/>embed + LLM"]
+    OLLAMA["Ollama<br/>embed + LLM"]
 
     UI --> API
     CURL --> API
@@ -67,13 +59,11 @@ flowchart LR
 
 Design constants that shape everything downstream:
 
-- One Go binary (`cmd/server`); wiring lives in `internal/server/server.go`,
-  which acts as the composition root.
+- One Go binary; a composition root wires everything together.
 - Qdrant is the only durable store. Three collections share one gRPC
   connection: `documents_chunks`, `search_cache`, `chat_history`.
 - All model calls (embeddings, LLM answers, enrichment) go to Ollama.
-- Domain packages (`internal/*` outside `api/server/middleware`) must not
-  import transport or wiring packages.
+- Domain packages must not import transport or wiring packages.
 - Every auxiliary feature (reranker, generator, cache, history, enrichment)
   is best-effort and config-gated: the system degrades to plain hybrid search
   when any of them is disabled or unreachable.
@@ -90,11 +80,11 @@ into domain packages.
 
 ### Design
 
-Middleware is registered outermost-first in `internal/server/server.go`:
+Middleware is registered outermost-first:
 
 `Recovery → RequestID → Timeout → RequestLog → Metrics`
 
-Routes (see `internal/api/router.go`):
+Routes:
 
 | Method | Route | Purpose |
 |--------|-------|---------|
@@ -126,12 +116,10 @@ sequenceDiagram
 
 Handlers are pure HTTP: parse request, invoke a domain use-case, map the
 result to a view, render. No markup lives in Go source; templates are embedded
-from `dashboard/` and parsed once at startup.
+and parsed once at startup.
 
 ### Open questions
 
-- `Metrics()` middleware is currently a stub — the Prometheus registry is
-  constructed but no recording happens.
 - Cancellation semantics: the middleware timeout bounds each request, but
   detached persistence (below) deliberately outlives it via
   `context.WithoutCancel`.
@@ -143,12 +131,12 @@ from `dashboard/` and parsed once at startup.
 ### Motivation
 
 Users upload markdown files through the chat UI or `curl -F`. Ingestion must
-be idempotent, crash-tolerant, and safe to re-run on every server start
-(`./scripts/local.sh` re-ingests automatically).
+be idempotent, crash-tolerant, and safe to re-run on every server start (ingest
+re-runs automatically).
 
 ### Design
 
-`internal/ingest` runs a worker pool (8 workers) over uploaded files:
+The ingest pipeline runs a worker pool (8 workers) over uploaded files:
 
 ```mermaid
 flowchart TD
@@ -183,7 +171,7 @@ Key decisions:
   (attempts, initial/max interval, multiplier) is ingest config; domain
   clients stay single-shot.
 - **Cache invalidation is conditional.** The semantic cache is cleared only
-  when at least one file was actually processed — an all-skipped sweep has
+  when at least one file was processed — an all-skipped sweep has
   nothing stale to invalidate.
 - **Batched embedding preferred.** `embedWithRetry` type-asserts
   `BatchEmbedder` and uses one `EmbedBatch` call per file; the loop fallback
@@ -209,7 +197,7 @@ callers.
 
 ### Design
 
-`internal/chunker` exposes:
+The chunker exposes:
 
 ```go
 type Chunker interface {
@@ -225,18 +213,10 @@ Providers:
 - **sentence-window** — each sentence becomes an anchor with `window_size`
   sentences of context before and after, stored as `WindowText`.
 
-```mermaid
-flowchart LR
-    subgraph Chunk["Chunk value type"]
-        T["Text"]
-        W["WindowText (optional)"]
-        P["FilePath"]
-        H["Header"]
-        L["LineStart"]
-        I["ChunkIndex"]
-    end
-    T -->|"consumers prefer<br/>WindowText when present"| CONSUMERS["generator.buildContext<br/>reranker passages<br/>history snapshots"]
-```
+A `Chunk` carries `Text`, `FilePath`, `Header`, `LineStart`, and `ChunkIndex`,
+plus an optional `WindowText` (set by the sentence-window provider). Consumers —
+`generator.buildContext`, reranker passages, history snapshots — prefer
+`WindowText` when present.
 
 `ContextualText` is the shared "identity prefix" format
 (`filePath > header\nbody`). Both retrieval legs index the same string, which
@@ -260,7 +240,7 @@ changes.
 
 ### Design
 
-`internal/embedder` defines two interfaces:
+The embedder defines two interfaces:
 
 ```go
 type Embedder interface {
@@ -275,19 +255,14 @@ type BatchEmbedder interface {
 
 Task prefixes are applied **at call sites**, not inside the embedder:
 
-| Prefix | Config | Applied by |
-|--------|--------|-----------|
-| `search_document: ` | `embedder.document_prefix` | ingest, before embedding chunk/contextual text and HyPE questions |
-| `search_query: ` | `embedder.query_prefix` | search, before embedding query fragments |
+| Prefix | Applied by |
+|--------|-----------|
+| `search_document: ` | ingest, before embedding chunk/contextual text and HyPE questions |
+| `search_query: ` | search, before embedding query fragments |
 
-```mermaid
-flowchart LR
-    CFG["config.yaml<br/>embedder.*"] -->|"env override<br/>OLLAMA_ADDR, EMBEDDER_API_KEY"| E["embedder.Dependencies<br/>(Ollama HTTP client)"]
-    E --> ING["ingest: prefix + batch"]
-    E --> SRCH["search: prefix + batch per fragment set"]
-    E --> CCH["cache: raw query, no prefix"]
-    E --> HIST["history: raw session title, no prefix"]
-```
+One shared embedder serves ingest (task prefix + batch), search (query prefix +
+batch per fragment set), cache (raw query, no prefix), and history (raw session
+title, no prefix).
 
 Consequences:
 
@@ -309,7 +284,7 @@ per-sentence attention.
 
 ### Design
 
-`internal/search` implements the top-level `Search.Query` entry point:
+The search package implements the top-level `Query` entry point:
 
 ```mermaid
 flowchart TD
@@ -331,20 +306,11 @@ flowchart TD
     OUT --> CACHESET["async cache.Set (miss path)"]
 ```
 
-Inside `internal/store`, `HybridSearch` executes as **one Qdrant query** with
-two server-side prefetches fused by RRF:
-
-```mermaid
-flowchart LR
-    subgraph QD["Qdrant QueryPoints (single round trip)"]
-        P1["prefetch: dense vector<br/>limit = topK × prefetch_mul"]
-        P2["prefetch: sparse BM25 vector<br/>(named 'bm25', Idf modifier)<br/>limit = topK × prefetch_mul"]
-        F["fusion: RRF"]
-        P1 --> F
-        P2 --> F
-    end
-    F --> RES["topK ScoredChunks<br/>(score = fused RRF rank score)"]
-```
+Inside the store, `HybridSearch` executes as **one Qdrant query**
+(`QueryPoints`) in a single round trip: it prefetches `topK × prefetch_mul`
+candidates via a dense vector and the same number via a sparse BM25 vector
+(named `bm25`, with Qdrant's `Idf` modifier), then fuses both legs with RRF and
+returns the top `topK` `ScoredChunks` (score = fused RRF rank score).
 
 Decisions and rationale:
 
@@ -387,15 +353,14 @@ significant CPU latency cost (~3.2s p50 for bge-reranker-v2-m3 on CPU).
 
 ### Design
 
-`internal/reranker` is a thin HTTP client to a Python sidecar (FastAPI,
-`:5002`) hosting a swappable cross-encoder (`reranker.model`, default
-`BAAI/bge-reranker-v2-m3`).
+The reranker is a thin HTTP client to a Python sidecar hosting a swappable
+cross-encoder (default `BAAI/bge-reranker-v2-m3`).
 
 ```mermaid
 sequenceDiagram
     participant S as search.rerankTopK
     participant R as reranker client
-    participant SC as sidecar :5002
+    participant SC as sidecar
 
     Note over S: candidates = topK × candidate_mul<br/>passages prefer WindowText
     S->>R: Rerank(query, chunks)
@@ -413,15 +378,14 @@ sequenceDiagram
 - **Concurrency-limited:** a semaphore (`max_concurrent`, default 10) bounds
   concurrent sidecar calls; context cancellation abandons the wait and
   falls back.
-- **Model swap is config-only:** `RERANKER_MODEL` env propagates through
-  docker-compose to the sidecar; reverting to the tiny
+- **Model swap is config-only:** reverting to the tiny
   `ms-marco-MiniLM-L-6-v2` baseline is a config change plus sidecar restart.
 
 ### Open questions
 
 - fp32 CPU latency (~3.2s p50) exceeds the 1–2s budget. Options on the
   roadmap: ONNX/int8-quantized bge-reranker-v2-m3, or the smaller
-  bge-reranker-base. Should be measured with `cmd/evalbench` before
+  bge-reranker-base. Should be measured with `evalbench` before
   switching.
 
 ---
@@ -436,7 +400,7 @@ Qdrant is already deployed and embedding is cheap.
 
 ### Design
 
-`internal/cache` stores whole result lists as JSON in a dedicated Qdrant
+The cache stores whole result lists as JSON in a dedicated Qdrant
 collection (`search_cache`), keyed by the embedding of the raw query:
 
 ```mermaid
@@ -465,7 +429,7 @@ sequenceDiagram
 - **TTL enforced read-side:** expired entries are treated as misses
   (`cached_at` payload, checked on read); TTL 0 disables expiry.
 - **Invalidation is composite and centralized:**
-  - ingest clears the cache when any file was actually processed;
+  - ingest clears the cache when any file was processed;
   - `POST /store/reset` must drop the document collection *and* clear the
     cache — enforced once at the composition root via the
     `cacheInvalidatingStore` decorator so every caller gets it for free.
@@ -492,7 +456,7 @@ always render — even when its stages fail.
 
 ### Design
 
-`internal/chat.Ask` runs one full turn:
+`chat.Ask` runs one full turn:
 
 ```mermaid
 sequenceDiagram
@@ -564,7 +528,7 @@ must produce grounded, cited answers within a small model's context budget
 
 ### Design
 
-`internal/generator` builds a prompt and returns an Ollama token stream:
+The generator builds a prompt and returns an Ollama token stream:
 
 ```mermaid
 flowchart TD
@@ -615,15 +579,15 @@ ingest and add zero query-time latency:
 
 ### Design
 
-Both are implemented in `internal/enrichment` (an `Enricher` over Ollama
+Both are implemented in an `Enricher` over Ollama
 chat, non-streaming, temperature 0.2, lenient JSON parsing) and consumed by
 the ingest pipeline behind feature flags, default **off**:
 
 ```mermaid
 flowchart TD
-    subgraph Flags["config: enrichment.hype / contextual (env HYPE_ENABLED / CONTEXTUAL_ENABLED)"]
-        H["hype.enabled<br/>questions_per_chunk (default 3)"]
-        CTX["contextual.enabled"]
+    subgraph Flags["config flags, default off"]
+        H["HyPE:<br/>questions per chunk (default 3)"]
+        CTX["Contextual retrieval"]
     end
 
     H --> HQ["HypotheticalQuestions per chunk<br/>(system: standalone questions, JSON array)"]
@@ -642,9 +606,8 @@ flowchart TD
     SIB --> Identity
 ```
 
-Enrichment address/model fall back through a chain resolved at wiring time:
-`enrichment.*.ollama_addr → generator.ollama_addr → embedder.ollama_addr`,
-and `enrichment.*.model → generator.model`.
+Enrichment address/model fall back through a chain resolved at wiring time
+(enrichment own config → generator → embedder).
 
 Rules:
 
@@ -673,7 +636,7 @@ infrastructure.
 
 ### Design
 
-`internal/history` stores sessions and turns in a Qdrant collection
+The history store persists sessions and turns in a Qdrant collection
 (`chat_history`) reusing the shared gRPC connection and embedder:
 
 ```mermaid
@@ -719,8 +682,6 @@ erDiagram
   fallback.
 - `DeleteSession` removes a session and all its turns; the API exposes it as
   `DELETE /history/sessions/:id`.
-- `DeleteSession` removes a session and all its turns; the API exposes it as
-  `DELETE /history/sessions/:id`.
 - Replay renders persisted turns through the same `turnView` mapping as live
   turns, so templates don't distinguish live from replayed data. Relative
   score bars are recomputed at render time (RRF and reranker scores have
@@ -738,40 +699,30 @@ running without reading Go.
 
 ### Design
 
-`config/config.yaml` → `config.Load` → `applyEnv()` → `Validate()`. Env vars
-win over YAML; validation applies defaults for derived values
-(`prefetch_mul` = 5, reranker model, HyPE question count, history collection
-name).
-
-```mermaid
-flowchart LR
-    YAML["config/config.yaml"] --> LOAD["config.Load"]
-    ENV["env overrides:<br/>QDRANT_ADDR, QDRANT_COLLECTION, OLLAMA_ADDR,<br/>EMBEDDER_API_KEY, RERANKER_ADDR/ENABLED/MODEL,<br/>LOGGER_LEVEL, SEMANTIC_CACHE_THRESHOLD,<br/>HISTORY_ENABLED/COLLECTION, HYPE_ENABLED, CONTEXTUAL_ENABLED"] --> LOAD
-    LOAD --> VAL["Validate + defaults"]
-    VAL --> SRV["server.Server(ctx, cfg)<br/>composition root"]
-    SRV --> UI["GET /settings<br/>read-only effective config"]
-```
+Config loads from YAML, then env overrides win over YAML, then validation
+applies defaults for derived values (e.g. `prefetch_mul` = 5, reranker model,
+HyPE question count, history collection name). The effective config is exposed
+read-only via `GET /settings`.
 
 Feature matrix:
 
-| Feature | Config | Default | Requires | Degradation when off/unreachable |
-|---------|--------|---------|----------|----------------------------------|
-| Answer generation | `generator.enabled` | on | Ollama LLM | turns return retrieval-only |
-| Semantic cache | `semantic_cache.enabled` | on | — (reuses Qdrant) | every query searches fresh |
-| Reranker | `reranker.enabled` | on | sidecar :5002 | fused candidates, un-reranked |
-| HyPE | `enrichment.hype.enabled` | off | Ollama LLM + reindex | no question siblings |
-| Contextual retrieval | `enrichment.contextual.enabled` | off | Ollama LLM + reindex | static path/header prefix only |
-| Chat history | `history.enabled` | on | — (reuses Qdrant) | stateless chat, empty sidebar |
-| Sentence-window chunking | `chunker.provider` | recursive | reindex | recursive chunking |
+| Feature | Default | Requires | Degradation when off/unreachable |
+|---------|---------|----------|----------------------------------|
+| Answer generation | on | Ollama LLM | turns return retrieval-only |
+| Semantic cache | on | — (reuses Qdrant) | every query searches fresh |
+| Reranker | on | sidecar | fused candidates, un-reranked |
+| HyPE | off | Ollama LLM + reindex | no question siblings |
+| Contextual retrieval | off | Ollama LLM + reindex | static path/header prefix only |
+| Chat history | on | — (reuses Qdrant) | stateless chat, empty sidebar |
+| Sentence-window chunking | recursive | reindex | recursive chunking |
 
 Address fallback chains (resolved at wiring, not per-call):
 
-- generator/enrichment ollama_addr: own → `embedder.ollama_addr`
-- enrichment model: own → `generator.model`
+- generator/enrichment address: own config → embedder's
+- enrichment model: own config → generator's
 
-Local vs Docker: `./scripts/local.sh` runs the host server straight against
-localhost addresses from config; `docker-compose.yml` overrides via env
-(Qdrant `qdrant:6334`, reranker `reranker:5002`, Ollama `host.docker.internal:11434`).
+Local dev runs the host server straight against localhost addresses from config;
+Docker overrides the hostnames via env.
 
 ---
 
@@ -784,7 +735,7 @@ measured, not vibes-approved, and A/B-compared against a fixed golden set.
 
 ### Design
 
-`cmd/evalbench` (CLI) + `internal/eval` (domain):
+An eval CLI plus a domain package:
 
 ```mermaid
 flowchart LR

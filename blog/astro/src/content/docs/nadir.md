@@ -176,7 +176,7 @@ Key decisions:
   (attempts, initial/max interval, multiplier) is ingest config; domain
   clients stay single-shot.
 - **Cache invalidation is conditional.** The semantic cache is cleared only
-  when at least one file was actually processed — an all-skipped sweep has
+  when at least one file was processed — an all-skipped sweep has
   nothing stale to invalidate.
 - **Batched embedding preferred.** `embedWithRetry` type-asserts
   `BatchEmbedder` and uses one `EmbedBatch` call per file; the loop fallback
@@ -434,7 +434,7 @@ sequenceDiagram
 - **TTL enforced read-side:** expired entries are treated as misses
   (`cached_at` payload, checked on read); TTL 0 disables expiry.
 - **Invalidation is composite and centralized:**
-  - ingest clears the cache when any file was actually processed;
+  - ingest clears the cache when any file was processed;
   - `POST /store/reset` must drop the document collection *and* clear the
     cache — enforced once at the composition root via the
     `cacheInvalidatingStore` decorator so every caller gets it for free.

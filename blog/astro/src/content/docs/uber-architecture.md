@@ -13,7 +13,7 @@ modified: '2026-08-29'
 
 # Uber Architecture
 
-Uber's system is built around a single core problem: matching real-time location supply (drivers) with real-time location demand (riders) at massive scale, with low latency and high availability.
+Uber's system is built around a single core problem: matching real-time location supply (drivers) with real-time location demand (riders) at scale, with low latency and high availability.
 
 At a high level, Uber evolved from a single monolithic server into a Domain-Oriented Microservice Architecture (DOMA) operating across thousands of services.
 
@@ -112,7 +112,7 @@ Instead of choosing one CAP trade-off for the entire platform, we split the syst
 
 **The AP Engine (Location Streaming):** If a driver drops connection for 3 seconds, or if a rider sees a driver's icon 50 meters away from where they are, nobody loses money. We chose Redis + Kafka configured for speed over strict ACID guarantees. Writes are non-blocking. If a location ping fails due to a momentary network partition, we drop it and wait for the next ping 4 seconds later. No distributed database transactions are used for pings.
 
-**The CP Engine (Match & Dispatch Execution):** If two riders press "Request Ride" at the exact same millisecond for the exact same driver, and both get confirmed, the business loses trust and money. Availability must yield to absolute consistency here. We switched from the AP fast-path (Redis) to a CP transactional execution path with Distributed Locks (Redlock) + Atomic Lua Scripts + Relational DB ACID Transactions (SELECT FOR UPDATE or Optimistic Locking). If a network partition occurs during a match, the system fails the request and asks the rider to try again (sacrificing Availability) rather than risk double-booking the driver (preserving Consistency).
+**The CP Engine (Match & Dispatch Execution):** If two riders press "Request Ride" at the same millisecond for the same driver, and both get confirmed, the business loses trust and money. Availability must yield to consistency here. We switched from the AP fast-path (Redis) to a CP transactional execution path with Distributed Locks (Redlock) + Atomic Lua Scripts + Relational DB ACID Transactions (SELECT FOR UPDATE or Optimistic Locking). If a network partition occurs during a match, the system fails the request and asks the rider to try again (sacrificing Availability) rather than risk double-booking the driver (preserving Consistency).
 
 ### Summary Matrix
 
@@ -174,7 +174,7 @@ graph LR
 
 A rider's ride request does NOT go through Kafka. Kafka is an asynchronous event log for writes/streaming, not a synchronous database query engine. DISCO queries Redis directly.
 
-### ETA vs. Real-Time Analytics: Fully Decoupled
+### ETA vs. Real-Time Analytics: Decoupled
 
 Both are separate microservices with different roles:
 
@@ -270,7 +270,7 @@ To guarantee that two riders never match with the same driver at the same time (
 
 #### The Core Problem: Race Conditions
 
-Two riders request a ride at the exact same millisecond in the same neighborhood. Without strict concurrency control, two DISCO instances both pick Driver X, send offers simultaneously, and corrupt trip states.
+Two riders request a ride at the same millisecond in the same neighborhood. Without strict concurrency control, two DISCO instances both pick Driver X, send offers simultaneously, and corrupt trip states.
 
 #### Basic Redis Atomic Lock (SETNX)
 
@@ -321,7 +321,7 @@ end
 
 #### Enterprise-Grade Locking: Redlock & Distributed State
 
-In a single Redis node, SETNX works perfectly. But Uber runs multi-region Redis Clusters. If the Redis primary receives the lock but crashes before replicating it, the lock is lost.
+In a single Redis node, SETNX works. But Uber runs multi-region Redis Clusters. If the Redis primary receives the lock but crashes before replicating it, the lock is lost.
 
 **Redlock (Multi-Node Consensus):**
 DISCO writes to 5 independent Redis master nodes. A lock is only granted if at least 3 out of 5 nodes confirm the SETNX within a strict timeout (~5ms).
@@ -707,7 +707,7 @@ $$\text{Total Debits } (\$15 + \$5 = \$20) \equiv \text{Total Credits } (\$17 + 
 
 **High-Throughput Account Scaling (Batching & Concurrency):**
 
-A major engineering challenge with double-entry ledgers is hotspot write contention. When thousands of riders finish trips at 5:00 PM, Uber's central accounts (like Uber:Revenue or global driver payout pools) experience tens of thousands of concurrent writes per second. Standard database row-locking causes massive bottlenecking.
+A major engineering challenge with double-entry ledgers is hotspot write contention. When thousands of riders finish trips at 5:00 PM, Uber's central accounts (like Uber:Revenue or global driver payout pools) experience tens of thousands of concurrent writes per second. Standard database row-locking causes bottlenecking.
 
 Uber solved this by building a 250ms User Account Batch Processing Engine:
 

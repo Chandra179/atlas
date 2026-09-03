@@ -40,7 +40,7 @@ created: 2026-07-25
 *  `POST /v1/posts` -> Creates a post; returns `201 Created` immediately after durable write + queue emit (does not wait for fanout).
 *  `GET /v1/feed?cursor=<cursor>&limit=20` -> Returns 20 personalized post IDs (hydrated with content), cursor-paginated for infinite scroll.
 
-### Database Schema (Highly Abstract)
+### Database Schema (Abstract)
 *  **Post Table (Post DB):** `post_id` (PK), `user_id` (FK), `content`, `created_at`, `visibility` (`ACTIVE`/`DELETED`)
 *  **User/Social Graph:** `user_id` (PK), `following` (set), `followers` (set), `is_celebrity` (denormalized flag, updated async)
 *  **Timeline Cache (Redis ZSet, per user):** member = `post_id`, score = `published_at` (Unix timestamp)

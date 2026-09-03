@@ -40,7 +40,7 @@ Not all extracted statements carry equal factual or causal weight. An unverified
 
 ## Link Prediction (Bridging Disconnected Subgraphs)
 
-When data is extracted from fragmented sources, two highly related clusters often sit side by side without a connecting edge simply because no single article explicitly stated their connection.
+When data is extracted from fragmented sources, two related clusters often sit side by side without a connecting edge simply because no single article explicitly stated their connection.
 
 **Graph Embeddings (TransE, RotatE) & GNNs:** Machine learning models project nodes into vector spaces based on graph topology. If Node $A$ and Node $B$ share identical structural positions across separate subgraphs, link prediction algorithms propose a candidate edge with a probabilistic weight:
 
@@ -59,7 +59,7 @@ By enforcing these constraints, the extracted graph transitions from a chaotic w
 
 ## Cross-Document Fact Coreference
 
-Determining that three independent sentences from across the web describe the exact same real-world relationship is known as Cross-Document Fact Coreference (or Relation Consolidation).
+Determining that three independent sentences from across the web describe the same real-world relationship is known as Cross-Document Fact Coreference (or Relation Consolidation).
 
 Systems resolve this by converting unstructured text into structured relational frames, aligning their entities and predicates, and verifying that their contextual metadata matches.
 
@@ -117,7 +117,7 @@ The system checks Contextual Slots:
 - **Numerical Alignment:** Do values ($2.6B, all-stock) reinforce or at least not contradict each other?
 - **Directional Consistency:** Was Subject → Object active, or Object ← Subject passive?
 
-If the slots align without logical contradictions, the confidence that these three sources refer to the exact same event approaches 100%.
+If the slots align without logical contradictions, the confidence that these three sources refer to the same event approaches 100%.
 
 ### Vector Embedding Clustering (Semantic Coreference)
 
@@ -127,7 +127,7 @@ The system projects the extracted relation tuples into a high-dimensional vector
 
 $v_{\text{fact}} = \text{Encoder}(\text{Subject}, \text{Predicate}, \text{Object}, \text{Context})$
 
-Sentences describing the exact same relationship form a dense cluster in vector space. Clustering algorithms (like HDBSCAN or cosine thresholding) group these vectors together into a single Fact Cluster.
+Sentences describing the same relationship form a dense cluster in vector space. Clustering algorithms (like HDBSCAN or cosine thresholding) group these vectors together into a single Fact Cluster.
 
 ### Edge Consolidation & Provenance Weighting
 
@@ -164,7 +164,7 @@ By using this pipeline, independent web sources don't create noise; they reinfor
 |---|---|---|---|---|
 | Predefined Rules & Ontologies | Regex, SHACL, OWL schemas, SPARQL constraints | Boundary Enforcement: Validating schemas, parsing numbers/dates, enforcing hard logic. | 100% deterministic, instant, zero compute cost. | Brittle; breaks if sentence structure changes slightly. |
 | Specialized Small Models | SpaCy, BERT-based NER, OpenIE, Vector Embeddings | Bulk High-Throughput Extraction: Filtering text, tagging named entities, candidate matching. | Fast (thousands of docs/sec), cheap, predictable. | Struggles with nuanced, implicit context or multi-sentence logic. |
-| Large Language Models (LLMs) | GPT-4o, Claude 3.5, Llama 3.3, DeepSeek | Complex Reasoning & Fusion: Disambiguating entities, canonicalizing triples, resolving edge conflicts. | Highly flexible, understands context, handles edge cases. | Expensive at scale, slower, potential for hallucination. |
+| Large Language Models (LLMs) | GPT-4o, Claude 3.5, Llama 3.3, DeepSeek | Complex Reasoning & Fusion: Disambiguating entities, canonicalizing triples, resolving edge conflicts. | flexible, understands context, handles edge cases. | Expensive at scale, slower, potential for hallucination. |
 
 ## When Do You Need Predefined Rules?
 
@@ -260,7 +260,7 @@ You don't just extract information from what nodes say; you extract intelligence
 
 **Centrality Metrics (Power Brokers & Bottlenecks):**
 
-- **Betweenness Centrality:** Identifies nodes that bridge isolated subgraphs. If a single person or event has high betweenness, removing them completely severs communication between two groups.
+- **Betweenness Centrality:** Identifies nodes that bridge isolated subgraphs. If a single person or event has high betweenness, removing them severs communication between two groups.
 - **PageRank / Eigenvector:** Identifies influential nodes based not just on how many links they have (Degree), but on how important their neighbors are.
 
 **Community Detection (Leiden & Louvain Algorithms):** Algorithms automatically partition a graph of millions of nodes into densely connected "communities" or factions without human labeling. This reveals implicit leagues, syndicates, or hidden thematic clusters.

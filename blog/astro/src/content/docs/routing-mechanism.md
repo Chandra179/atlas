@@ -39,11 +39,11 @@ What happens when Server 2 crashes or a 4th server is added? $N$ changes from $3
 - Hash("user_B") = 11 $\rightarrow$ $11 \pmod 4 = \mathbf{3}$ (Was 2 $\rightarrow$ Moved!)
 - Hash("user_C") = 12 $\rightarrow$ $12 \pmod 4 = \mathbf{0}$ (Unchanged)
 
-In a database or cache with millions of keys, $90\%+$ of your data suddenly maps to the wrong node. In a cache, this causes a catastrophic cache stampede; in a database, it causes massive network congestion as entire datasets move between servers.
+In a database or cache with millions of keys, $90\%+$ of your data suddenly maps to the wrong node. In a cache, this causes a catastrophic cache stampede; in a database, it causes network congestion as entire datasets move between servers.
 
 ## How Consistent Hashing Works: The Hash Ring
 
-Instead of taking the hash modulo $N$ (the number of servers), consistent hashing takes the hash modulo a fixed, enormous number, typically $2^{32} - 1$ (the maximum value of a 32-bit integer). Imagine wrapping the number range from $0$ to $2^{32}-1$ into a circle: the hash ring.
+Instead of taking the hash modulo $N$ (the number of servers), consistent hashing takes the hash modulo a fixed number, typically $2^{32} - 1$ (the maximum value of a 32-bit integer). Imagine wrapping the number range from $0$ to $2^{32}-1$ into a circle: the hash ring.
 
 ```mermaid
 graph LR
@@ -55,7 +55,7 @@ graph LR
 
 ### Step 1: Mapping Servers onto the Ring
 
-Both servers and data keys are passed through the exact same hash function (e.g., MD5 or MurmurHash). Hash the server IP addresses/names to position them on the ring:
+Both servers and data keys are passed through the same hash function (e.g., MD5 or MurmurHash). Hash the server IP addresses/names to position them on the ring:
 
 - Hash("Server_A") = 1,000,000
 - Hash("Server_B") = 2,000,000
@@ -180,7 +180,7 @@ graph LR
 - **Uniform Distribution:** Interleaving hundreds of virtual points across the ring ensures data is split near-perfectly ($33.3\%$ per server across 3 nodes).
 - **Heterogeneous Hardware:** If Server A has $2\times$ the RAM/CPU of Server B, you give Server A $200$ virtual nodes and Server B $100$ virtual nodes. Server A will naturally take double the load.
 
-## How Vnodes Actually Land on the Ring
+## How Vnodes Land on the Ring
 
 Vnodes are generated randomly, then sorted in numerical order to form the clockwise ring.
 

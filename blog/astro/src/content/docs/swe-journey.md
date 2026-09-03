@@ -98,7 +98,7 @@ Variable data types is matter. Most of the time, we create API contracts for the
 
 So, returning number bigger than that like **Big Integer** will cause the number to be automatically rounded and corrupted by JavaScript. The solution to this problem is to convert that big integer into a **String** before sending it in the API response.
 
-Another thing related to numbers is floating/decimal numbers. A lot of companies I worked at before used float data types for money, which results in number inaccuracy. For example, if you add small amounts together using floats, the math will eventually break:
+Another thing related to numbers is floating/decimal numbers. Many companies I worked at before used float data types for money, which results in number inaccuracy. For example, if you add small amounts together using floats, the math will eventually break:
 
 ```go
 package main
@@ -161,7 +161,7 @@ When it comes to logging, if we use third-party tools like CloudWatch or Datadog
 
 ## Idempotency
 
-**Idempotency** is often used in use cases involving **retries and accidental data duplication** whether it is implemented by data hashing, unique ID generation on multiple requests, or other techniques. Its to guarantee that performing the exact same request multiple times will have the exact same result as performing it once
+**Idempotency** is often used in use cases involving **retries and accidental data duplication** whether it is implemented by data hashing, unique ID generation on multiple requests, or other techniques. Its to guarantee that performing the same request multiple times will have the same result as performing it once
 
 ## Context & Timeouts
 
@@ -200,7 +200,7 @@ While this approach makes the initial application startup a bit slower, it resul
 
 I applied a similar approach to some of our external APIs, like our weather data endpoint. I built an in-memory cache but added strict guardrails like a maximum memory limit and a Time-To-Live (TTL) expiration mechanism to keep memory leaks in check.
 
-Why skip a dedicated cache like Redis here? It comes down to **cost and realism**. A company blog isn't going to get millions of visitors overnight. Setting up, paying for, and maintaining a separate infrastructure piece like Redis for a low-traffic service is over-engineering. Local in-memory storage is faster, cheaper, and perfectly sufficient.
+Why skip a dedicated cache like Redis here? It comes down to **cost and realism**. A company blog isn't going to get millions of visitors overnight. Setting up, paying for, and maintaining a separate infrastructure piece like Redis for a low-traffic service is over-engineering. Local in-memory storage is faster, cheaper, and sufficient.
 
 ## Eager Initialization (Boot-time Singleton)
 
@@ -228,7 +228,7 @@ Choosing the right message broker whether it's Kafka, RabbitMQ, NATS, or AWS SNS
 
 If your company or team only has deep knowledge of AWS SNS/SQS, it often makes more sense to choose that tool to achieve the same business functionality. The main concern is service cost, but setting up and maintaining a complex message broker architecture yourself if not done right can go wrong for the infrastructure scalability and maintenance costs
 
-If your system doesn't require the full, heavy feature set of a traditional message broker, you can opt for a highly performant, lightweight option like **NATS**. It provides fast pub/sub messaging without the operational footprint of bigger tools.
+If your system doesn't require the full, heavy feature set of a traditional message broker, you can opt for a performant, lightweight option like **NATS**. It provides fast pub/sub messaging without the operational footprint of bigger tools.
 
 And again it depends on your specific use case and how it scales:
 - **AWS SNS/SQS:** Best for cloud-native, zero-maintenance, standard asynchronous queuing where you want to pay only for what you use.
@@ -312,7 +312,7 @@ graph TD
 
 PostgreSQL performs best in High-Volume Catalogs with Heavy Updates:
 - Product updates (like stock or price changes) append a new version of the row directly to the heap space.
-- If the updated column is not indexed, Postgres uses Heap-Only Tuples (HOT) to skip modifying the index, avoiding massive disk write overhead.
+- If the updated column is not indexed, Postgres uses Heap-Only Tuples (HOT) to skip modifying the index, avoiding disk write overhead.
 
 SQL Server performs best in Sequential Ledgers and Time-Series Logs:
 - Chronological or auto-incrementing inserts are appended straight to the last page of the clustered index B-Tree.
@@ -498,9 +498,9 @@ func main() {
 
 ## Memory and Pointers
 
-If you have a background in C++, you will find familiar mechanics in Go when it comes to memory management. Go uses the exact same symbols for pointer operations: the `&` operator retrieves the memory address of a variable, while the `*` operator dereferences a pointer to access the actual value stored at that specific memory location.
+If you have a background in C++, you will find familiar mechanics in Go when it comes to memory management. Go uses the same symbols for pointer operations: the `&` operator retrieves the memory address of a variable, while the `*` operator dereferences a pointer to access the actual value stored at that specific memory location.
 
-A common misunderstanding is how pointers become `nil`. A pointer does not dynamically turn `nil` because the garbage collector cleared the underlying data, nor does it become `nil` during an out-of-memory event or an application crash. In fact, Go's tracing garbage collector guarantees that as long as an active pointer points to a memory allocation, that data will never be collected.
+A common misunderstanding is how pointers become `nil`. A pointer does not dynamically turn `nil` because the garbage collector cleared the underlying data, nor does it become `nil` during an out-of-memory event or an application crash. Go's tracing garbage collector guarantees that as long as an active pointer points to a memory allocation, that data will never be collected.
 
 	Instead, a nil pointer exception occurs because a pointer variable was never initialized to point to a valid memory address in the first place. If an application encounters an unmanaged out-of-memory error or a severe internal system fault, the entire application process terminates immediately rather than resetting individual pointer values.
 
@@ -546,7 +546,7 @@ When you initialize a basic string variable, such as `test := "apple"`, Go alloc
 - **Data Pointer (8 bytes):** Stores the memory address pointing to the underlying immutable byte array where the character text is kept.
 - **Length (8 bytes):** Stores the total size of the string in bytes.
 
-When you pass a string to a function or assign it to another variable without using a pointer, Go does not copy the entire body text of the string. Because strings are designed to be strictly immutable, multiple string headers can safely point to the exact same backing array. Therefore, copying a string value only copies the lightweight 16-byte header, making it a highly efficient operation.
+When you pass a string to a function or assign it to another variable without using a pointer, Go does not copy the entire body text of the string. Because strings are designed to be strictly immutable, multiple string headers can safely point to the same backing array. Therefore, copying a string value only copies the lightweight 16-byte header, making it an efficient operation.
 
 ```go
 package main
@@ -564,18 +564,18 @@ func main() {
 	fmt.Printf("Original header stack location: %p\n", &original)
 	fmt.Printf("Copied header stack location:   %p\n\n", &copied)
 
-	// 2. Both headers point to the exact same byte array in memory
+	// 2. Both headers point to the same byte array in memory
 	fmt.Printf("Original backing array pointer: %p\n", unsafe.StringData(original))
 	fmt.Printf("Copied backing array pointer:   %p\n", unsafe.StringData(copied))
 }
 ```
 
-Go applies this exact same design principle to other major structural types, using lightweight headers or internal descriptors to point to a shared space in memory:
+Go applies this same design principle to other major structural types, using lightweight headers or internal descriptors to point to a shared space in memory:
 
 - **Slices:** Like strings, passing a slice by value only copies a small 24-byte header containing a data pointer, length, and capacity. It points to a shared backing array. _The big difference:_ Slices are mutable. If you modify the elements of a copied slice, you will directly alter the data in the original backing array.
-- **Maps and Channels:** Under the hood, maps and channels are direct pointers to complex internal runtime structures (`hmap` and `hchan`). Copying a map or channel variable only copies a tiny 8-byte memory address. Both the original variable and the copy point to the exact same live data buckets.
+- **Maps and Channels:** Under the hood, maps and channels are direct pointers to complex internal runtime structures (`hmap` and `hchan`). Copying a map or channel variable only copies a tiny 8-byte memory address. Both the original variable and the copy point to the same live data buckets.
 
-**Note on Primitives:** Primitives like integers, floats, and booleans do not use headers or pointer descriptors at all. Because their raw values are already tiny (1 to 8 bytes), Go duplicates the value directly from one stack slot to another. It fits perfectly inside a single CPU register, making it fast.
+**Note on Primitives:** Primitives like integers, floats, and booleans do not use headers or pointer descriptors at all. Because their raw values are already tiny (1 to 8 bytes), Go duplicates the value directly from one stack slot to another. It fits inside a single CPU register, making it fast.
 
 Because strings, slices, and maps are already lightweight headers or pointers under the hood, **you almost never need to pass them as pointers (`*string`, `*[]int`, `*map`) for performance reasons.** You only use a pointer if you explicitly need to change the header itself, like reallocating a new slice or replacing the entire map reference.
 
@@ -622,4 +622,4 @@ Carefully design how the fields behave in the API response. For example:
 
 We need to consider the worst-case scenario if we depend on an API, whether communicating between internal company services or external services. We cannot be sure that their service is consistent or free of production bugs. By using schema validation, we define what the structure is so that only API responses matching our definition will be parsed, allowing us to validate data early (such as checking whether they return `null` or empty data).
 
-Each API may originate from the same base URL, but their response times and authentication can be different. Other things like headers can vary too, so we need to make them independent in terms of timeouts, headers, cookies, and related settings.
+Each API may originate from the same base URL, but their response times and authentication can be different. Other things like headers can vary too, so we need to make them independent for timeouts, headers, cookies, and related settings.

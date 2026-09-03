@@ -5,7 +5,7 @@ modified: '2026-08-29'
 
 # YouTube Architecture
 
-YouTube's system design is a massively distributed microservice architecture engineered to ingest over 500 hours of video every minute and serve billions of hours of stream daily with sub-second latency.
+YouTube's system design is a distributed microservice architecture engineered to ingest over 500 hours of video every minute and serve billions of hours of stream daily with sub-second latency.
 
 ## Video Ingestion & DAG Transcoding
 
@@ -217,7 +217,7 @@ Resolution is the dimensions of the screen (e.g., $1920 \times 1080$). A codec (
 
 - **H.264 (AVC)**: The legacy standard. It produces larger file sizes, but virtually every device on Earth (old smart TVs, legacy smartphones, older web browsers) has a physical hardware chip built to play it.
 - **VP9**: Developed by Google. It compresses video roughly 30%-40% better than H.264 at the same visual quality. Most modern web browsers and Android devices support it.
-- **AV1**: The latest open-source codec. It offers extreme compression (saving massive amounts of mobile data), but encoding it requires heavy computing power.
+- **AV1**: The latest open-source codec. It offers extreme compression (saving mobile data), but encoding it requires heavy computing power.
 
 YouTube serves AV1 or VP9 to modern devices with fast processors to save server bandwidth, while falling back to H.264 for older or low-power devices.
 
@@ -289,7 +289,7 @@ flowchart LR
 - The web addresses of every video chunk broken down by resolution and codec.
 - The exact timestamp alignment for every chunk.
 
-**How Playback Actually Works:**
+**How Playback Works:**
 1. The YouTube client app downloads the Manifest File.
 2. The app monitors your network speed. If your connection is fast, it requests `audio_chunk_1.m4s` + `video_4k_chunk_1.m4s`.
 3. If your network slows down, for chunk #2 it requests `audio_chunk_2.m4s` + `video_720p_chunk_2.m4s`.
