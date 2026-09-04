@@ -10,7 +10,7 @@ tags:
   - fintech
   - distributed-systems
 created: 2026-06-21T00:00:00.000Z
-modified: '2026-08-26'
+modified: '2026-09-04'
 ---
 
 # Experience

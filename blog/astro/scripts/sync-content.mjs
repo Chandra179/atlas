@@ -23,7 +23,7 @@ const ALLOWED_FILES = new Set([
   'youtube-architecture.md',
   // 'system-performance.md',
   'knowledge-graph.md',
-  'nadir.md'
+  // 'nadir.md'
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })
