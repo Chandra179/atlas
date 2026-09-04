@@ -33,17 +33,11 @@ created: 2026-06-21
 
 # Project
 
-### Brook
-- Golang Boilerplate
-- integration test, modularity, abstraction, middleware
-- [https://github.com/Chandra179/brook](https://github.com/Chandra179/brook)
-
 ### Nadir
-- Production grade RAG
+- RAG & LLM  chat
 - [https://github.com/Chandra179/nadir](https://github.com/Chandra179/nadir)
 
 ### Pyro
-- Turns any company's engineering blog into a system map
 - Scrapper, Ontology, Graph
 - [https://github.com/Chandra179/pyro](https://github.com/Chandra179/pyro)
 

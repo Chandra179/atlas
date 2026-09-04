@@ -1,6 +1,6 @@
 ---
 title: Youtube Architecture
-modified: '2026-08-29'
+modified: '2026-09-03'
 ---
 
 # YouTube Architecture

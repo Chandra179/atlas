@@ -11,17 +11,17 @@ const BLOG_DIR = path.join(ROOT, 'blog/astro/src/content/docs');
 const ALLOWED_FILES = new Set([
   'introduction.md',
   'swe-journey.md',
-  'pdf-generation.md',
+  // 'pdf-generation.md',
   'twitter-feed.md',
   'rate-limiter.md',
   'order-inventory-system.md',
-  'real-time-chat.md',
+  // 'real-time-chat.md',
   'uber-architecture.md',
   'cache.md',
   'routing-mechanism.md',
   'change-data-capture.md',
   'youtube-architecture.md',
-  'system-performance.md',
+  // 'system-performance.md',
   'knowledge-graph.md',
   'nadir.md'
 ]);

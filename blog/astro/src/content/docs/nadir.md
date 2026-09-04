@@ -1,6 +1,6 @@
 ---
 title: Nadir
-modified: '2026-09-01'
+modified: '2026-09-03'
 ---
 
 # Nadir RFCs

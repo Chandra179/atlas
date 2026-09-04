@@ -5,7 +5,7 @@ author: "Koala"
 tags: [go, architecture, best-practices, backend, software-design]
 description: "Practical lessons on variable naming, abstraction, data types, logging, idempotency, caching, message brokers, and deployment from real-world engineering experience."
 ---
-
+	
 # Software Engineering
 
 ## Variable Naming & Function Design

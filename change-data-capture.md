@@ -89,8 +89,8 @@ Because a WAL is an append-only log file, it would eventually fill up the entire
 
 ```mermaid
 flowchart LR
-  Active["Active: [ wal_segment_003.log ] - Appending live transactions"]
-  Completed["Completed: [ wal_segment_001.log ] [ wal_segment_002.log ]"]
+  Active["Active: [ wal_seg_003.log ] - Appending live transactions"]
+  Completed["Completed: [ wal_seg_001.log ] [ wal_seg_002.log ]"]
   Completed -->|"Once checkpointed or synced by CDC"| Purge["Safely deleted or archived"]
 ```
 

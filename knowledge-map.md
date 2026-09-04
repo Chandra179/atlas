@@ -42,7 +42,7 @@ created: 2026-06-29
 - flash sale: failure recovery, reservation expiry, duplicate-order prevention
 - PDF generation: exactly-once semantics, retry/idempotency, queue backpressure
 - reconciliation: partitioning correctness, late-arriving data, reprocessing strategy
-- 
+
 ## Math
 - Calculus 1: chain rule, product rule, quotient rule, related rates, optimization
 - Calculus 2: integration by substitution, by parts, trigonometric integrals, improper integrals
