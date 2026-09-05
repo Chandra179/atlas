@@ -45,10 +45,6 @@ modified: '2026-09-05'
 - RAG & LLM  chat
 - [https://github.com/Chandra179/nadir](https://github.com/Chandra179/nadir)
 
-### Pyro
-- Scrapper, Ontology, Graph
-- [https://github.com/Chandra179/pyro](https://github.com/Chandra179/pyro)
-
 ### GoSys
 - Profile-guided static analyzer for Go memory anti-patterns
 - [https://github.com/Chandra179/pyro](https://github.com/Chandra179/pyro)

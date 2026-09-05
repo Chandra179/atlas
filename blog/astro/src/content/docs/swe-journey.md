@@ -527,7 +527,7 @@ func main() {
 }
 ```
 
-Overusing pointers to avoid value copying can easily backfire. Flooding the heap with unnecessary pointers forces the garbage collector to run more frequently, which spikes CPU utilization. If long-running application loops continuously create heap references faster than the garbage collector can reclaim them, memory usage will compound over time, leading to an out-of-memory crash.
+Overusing pointers to avoid value copying can backfire. Flooding the heap with unnecessary pointers forces the garbage collector to run more frequently, which spikes CPU utilization. If long-running application loops continuously create heap references faster than the garbage collector can reclaim them, memory usage will compound over time, leading to an out-of-memory crash.
 
 **As a general rule**: pass basic types, small structures, and header types by value, and reserve pointers for large custom data objects or states that require direct modification.
 

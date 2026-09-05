@@ -7,36 +7,36 @@ created: 2026-09-05
 # System Design Core
 ## Fundamentals
 
-- **Requirements gathering / scoping**
-- **Capacity estimation (RPS, storage, bandwidth, peak RPS)**
-- **Consistency models (strong vs eventual, and applicability)**
-- **Atomic operations vs locks (mutex)**
-- **Fan-out (push vs pull, pub/sub) event**
-- **Caching**
+- Requirements gathering / scoping
+- Capacity estimation (RPS, storage, bandwidth, peak RPS)
+- Consistency models (strong vs eventual, and applicability)
+- Atomic operations vs locks (mutex)
+- Fan-out (push vs pull, pub/sub) event
+- Caching
 	- cold, warm cache
 	- eviction
 	- read / write sync async
-- **Queues + asynchronous workers**
-- **Reservation / hold pattern + TTL expiry, Backpressure race**
-- **Idempotency in message processing**
-    - **At-least-once delivery
+- Queues + asynchronous workers
+- Reservation / hold pattern + TTL expiry, Backpressure race
+- Idempotency in message processing
+    - At-least-once delivery
     - Exactly once delivery
-- **Fail-open vs fail-closed (rate limiter)** 
-- **Tradeoffs CAP theorem**
-- **SQL vs NoSQL decisions**
-- **Saga pattern / compensating actions**
-- **Transactional Outbox pattern**
-- **Change Data Capture (CDC)**
-- **Database partitioning / sharding (hash-based)**
-- **Hot-partition / hot-key mitigation**
-- **Cost-driven architecture decisions**
-- **Autoscaling signal selection (queue lag vs CPU)**
-- **Schema evolution / contract enforcement**
-- **Security considerations (SSRF, TOCTOU, DNS rebinding)**
-- **Dead Letter Queues (DLQ) / poison pill handling**
-- **Staged escalation / grace-period design**
+- Fail-open vs fail-closed (rate limiter) 
+- Tradeoffs CAP theorem
+- SQL vs NoSQL decisions
+- Saga pattern / compensating actions
+- Transactional Outbox pattern
+- Change Data Capture (CDC)
+- Database partitioning / sharding (hash-based)
+- Hot-partition / hot-key mitigation
+- Cost-driven architecture decisions
+- Autoscaling signal selection (queue lag vs CPU)
+- Schema evolution / contract enforcement
+- Security considerations (SSRF, TOCTOU, DNS rebinding)
+- Dead Letter Queues (DLQ) / poison pill handling
+- Staged escalation / grace-period design
     - Reconciliation (soft-fail → hard-fail progression)
-- **Source-of-truth arbitration (multi async sources)**
+- Source-of-truth arbitration (multi async sources)
 
 ## Still Not Covered
 
