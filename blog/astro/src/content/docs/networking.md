@@ -1,10 +1,16 @@
 ---
-title: "Networking"
+title: Networking
+description: >-
+  What happens between keystroke and response: DNS, TCP/IP, HTTP, and the
+  network stack for software engineers.
 aliases: []
-tags: [cs, cs/networking]
-created: "2026-06-13"
+tags:
+  - cs
+  - cs/networking
+created: '2026-06-13'
+modified: '2026-09-05'
 ---
-	
+
 # Networking
 
 For software engineers who want to understand what happens between keystroke and response. Assumes basic programming knowledge but no prior networking experience.

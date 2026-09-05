@@ -9,21 +9,26 @@ const ROOT = path.resolve(DIR, '../../..');
 const BLOG_DIR = path.join(ROOT, 'blog/astro/src/content/docs');
 
 const ALLOWED_FILES = new Set([
-  'introduction.md',
-  'swe-journey.md',
-  // 'pdf-generation.md',
-  'twitter-feed.md',
-  'rate-limiter.md',
-  'order-inventory-system.md',
+  'about/introduction.md',
+  'swe/swe-journey.md',
+  // 'system-design/pdf-generation.md',
+  'system-design/twitter-feed.md',
+  'system-design/rate-limiter.md',
+  'system-design/order-inventory-system.md',
   // 'real-time-chat.md',
-  'uber-architecture.md',
-  'cache.md',
-  'routing-mechanism.md',
-  'change-data-capture.md',
-  'youtube-architecture.md',
+  'system-design/uber-architecture.md',
+  'system-design/cache.md',
+  'system-design/routing-mechanism.md',
+  'system-design/change-data-capture.md',
+  'system-design/youtube-architecture.md',
   // 'system-performance.md',
-  'knowledge-graph.md',
+  'system-design/knowledge-graph.md',
   // 'nadir.md'
+  'swe/fundamentals/api-design-guidelines.md',
+  'swe/fundamentals/computing.md',
+  'swe/fundamentals/kafka.md',
+  'swe/fundamentals/networking.md',
+  'swe/fundamentals/rabbitmq.md',
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })
@@ -121,7 +126,7 @@ for (const entry of blogFiles) {
   }
 }
 
-// Sync allowed files from subdirectories (e.g. backend-engineering/cache.md) — flattened to root
+// Sync allowed files from subdirectories (e.g. system-design/cache.md) — flattened to root
 const subdirFiles = [...ALLOWED_FILES].filter(f => f.includes('/'));
 
 for (const file of subdirFiles) {

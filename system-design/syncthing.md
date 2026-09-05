@@ -1,5 +1,6 @@
 ---
 title: "Syncthing"
+description: "Syncthing, the open-source peer-to-peer file synchronization tool: continuous end-to-end encrypted sync across devices with no central server."
 aliases: []
 tags: [distributed-systems, distributed-systems/syncthing]
 created: "2026-06-13"

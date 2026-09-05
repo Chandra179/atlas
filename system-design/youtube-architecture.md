@@ -1,3 +1,9 @@
+---
+title: "YouTube Architecture"
+description: "How YouTube ingests 500+ hours of video per minute: chunked DAG transcoding, adaptive-bitrate packaging, and the distributed design behind sub-second global streaming."
+tags: [system-design, distributed-systems]
+created: 2026-09-05
+---
 # YouTube Architecture
 
 YouTube's system design is a distributed microservice architecture engineered to ingest over 500 hours of video every minute and serve billions of hours of stream daily with sub-second latency.

@@ -1,6 +1,5 @@
 ---
 title: Routing Mechanism
-modified: '2026-09-03'
 description: >-
   The hash ring, virtual nodes, clockwise lookup, binary-search routing, and how
   Cassandra/DynamoDB/Discord partition data across dynamic node clusters.
@@ -15,6 +14,7 @@ tags:
   - system-design/caching
   - distributed-systems
 created: 2026-06-13T00:00:00.000Z
+modified: '2026-09-05'
 ---
 
 # Consistent Hashing

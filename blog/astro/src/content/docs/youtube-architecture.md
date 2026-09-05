@@ -1,6 +1,14 @@
 ---
-title: Youtube Architecture
-modified: '2026-09-03'
+title: YouTube Architecture
+description: >-
+  How YouTube ingests 500+ hours of video per minute: chunked DAG transcoding,
+  adaptive-bitrate packaging, and the distributed design behind sub-second
+  global streaming.
+tags:
+  - system-design
+  - distributed-systems
+created: 2026-09-05T00:00:00.000Z
+modified: '2026-09-05'
 ---
 
 # YouTube Architecture

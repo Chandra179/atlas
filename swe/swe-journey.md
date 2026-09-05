@@ -260,54 +260,8 @@ When choosing an SQL database, it is important to evaluate its storage architect
 
 Indexing in Postgres uses a B-Tree structure, so a query lookup requires the engine to find the tuple identifier (CTID) in the index and then perform a secondary lookup in the heap to retrieve the row data.
 
-```mermaid
-graph TD
-    subgraph PostgreSQL Storage Engine
-        subgraph Indexes
-            Idx1[B-Tree Index: User ID 105] -->|Contains Pointer| CTID[CTID: Page 4, Offset 2]
-        end
-        subgraph Table Data
-            Heap[Heap Storage Space]
-            Row1[Row: ID 99, John] --> Heap
-            Row2[Row: ID 105, Alice] --> Heap
-            Row3[Row: ID 42, Bob] --> Heap
-        end
-        CTID -->|Secondary Lookup| Row2
-    end
-    
-    style Heap fill:#f9f,stroke:#333,stroke-width:2px
-    style Indexes fill:#bbf,stroke:#333,stroke-width:1px
-```
-
 For SQL Server, the engine defaults to a clustered index architecture, where the table data itself is physically stored directly inside the B-Tree leaf nodes. As a result, SQL Server performs exceptionally well with sequential primary keys, as new inserts can be cleanly appended to the end of the clustered B-Tree without causing heavy page splits.
 
-```mermaid
-graph TD
-    subgraph SQL Server Storage Engine
-        subgraph Clustered Index B-Tree
-            Root[Root Node] --> Internal[Internal / Intermediate Nodes]
-            Internal --> Leaf1[Leaf Page 1: IDs 101 - 103]
-            Internal --> Leaf2[Leaf Page 2: IDs 104 - 106]
-            
-            subgraph Leaf Nodes Contain Actual Rows
-                RowA[Row 104: Bob] --> Leaf2
-                RowB[Row 105: Alice] --> Leaf2
-                RowC[Row 106: Charlie] --> Leaf2
-            end
-        end
-    end
-    
-    style Leaf2 fill:#dfd,stroke:#333,stroke-width:2px
-    style LeafNodes fill:#eee,stroke:#333,stroke-width:1px
-```
-
-PostgreSQL performs best in High-Volume Catalogs with Heavy Updates:
-- Product updates (like stock or price changes) append a new version of the row directly to the heap space.
-- If the updated column is not indexed, Postgres uses Heap-Only Tuples (HOT) to skip modifying the index, avoiding disk write overhead.
-
-SQL Server performs best in Sequential Ledgers and Time-Series Logs:
-- Chronological or auto-incrementing inserts are appended straight to the last page of the clustered index B-Tree.
-- This sequential fill eliminates the overhead of searching for data placement and prevents internal page splits.
 
 ## Error Wrapping and Centered Logging
 
@@ -362,7 +316,7 @@ func main() {
 
 ## Concurrency Lifecycles and Failure Strategies
 
-When you writing concurrent code, managing how your goroutines live and die is your top priority. You have to check traps like deadlocks, operations that hang forever without a timeout, out of memory issues, data races, and accessing corrupted or deleted data. 
+When writing concurrent code you need to check traps like deadlocks, operations that hang forever without a timeout, out of memory issues, data races, and accessing corrupted or deleted data. 
 
 For instance, if you need to fire off one hundred API calls at once, your approach depends on your design requirements. If you allow partial failures so one bad call does not block the others, you can log the errors and let the remaining calls finish. But if a single failure means the whole batch should stop immediately, an error group is the perfect tool to manage the context cancellation.
 
@@ -489,55 +443,22 @@ func main() {
 
 ## Memory and Pointers
 
-If you have a background in C++, you will find familiar mechanics in Go when it comes to memory management. Go uses the same symbols for pointer operations: the `&` operator retrieves the memory address of a variable, while the `*` operator dereferences a pointer to access the actual value stored at that specific memory location.
+ the `&` operator retrieves the memory address of a variable, while the `*` operator dereferences a pointer to access the actual value stored at that specific memory location.
 
 A common misunderstanding is how pointers become `nil`. A pointer does not dynamically turn `nil` because the garbage collector cleared the underlying data, nor does it become `nil` during an out-of-memory event or an application crash. Go's tracing garbage collector guarantees that as long as an active pointer points to a memory allocation, that data will never be collected.
 
 	Instead, a nil pointer exception occurs because a pointer variable was never initialized to point to a valid memory address in the first place. If an application encounters an unmanaged out-of-memory error or a severe internal system fault, the entire application process terminates immediately rather than resetting individual pointer values.
 
-### Valid Memory Pointer
-The pointer holds a real, trackable memory address. Dereferencing it safely reads the data block.
-
-```mermaid
-graph LR
-    subgraph Pointer [Pointer Variable]
-        val[Holds Address: 0x14000010230]
-    end
-
-    subgraph Data [Actual Memory Allocation]
-        addr[Address: 0x14000010230] --> payload["'a' | 'p' | 'p' | 'l' | 'e'"]
-    end
-
-    val -->|Points to| addr
-    style Pointer fill:#dfd,stroke:#333
-    style Data fill:#eee,stroke:#333
-```
-
-### Invalid Memory Pointer (Nil)
-The pointer holds the default zero-value address (`0x0`). Attempting to read it forces the runtime to panic instantly to prevent system corruption.
-```mermaid
-graph LR
-    subgraph Pointer2 [Pointer Variable]
-        val2[Holds Address: 0x0 / nil]
-    end
-
-    subgraph Void [Invalid Memory space]
-        panicX[CRASH: Cannot read address 0]
-    end
-
-    val2 -->|Attempts to dereference| panicX
-    style Pointer2 fill:#fdd,stroke:#333
-    style Void fill:#eee,stroke:#333
-```
+Invalid pointer when it holds the default zero-value address (`0x0`). Attempting to read it forces the runtime to panic instantly to prevent system corruption.
 
 ## String Header
 
-When you initialize a basic string variable, such as `test := "apple"`, Go allocates memory using a specific internal structure known as a string header. On a 64-bit architecture, this header consumes 16 bytes of storage on the stack, split into two distinct fields:
+When you initialize a basic string variable, such as `test := "apple"`, Go allocates memory using string header. On a 64-bit architecture, this header consumes 16 bytes of storage on the stack, split into two distinct fields:
 
 - **Data Pointer (8 bytes):** Stores the memory address pointing to the underlying immutable byte array where the character text is kept.
 - **Length (8 bytes):** Stores the total size of the string in bytes.
 
-When you pass a string to a function or assign it to another variable without using a pointer, Go does not copy the entire body text of the string. Because strings are designed to be strictly immutable, multiple string headers can safely point to the same backing array. Therefore, copying a string value only copies the lightweight 16-byte header, making it an efficient operation.
+When you pass a string to a function or assign it to another variable without using a pointer, Go does not copy the entire body text of the string. Because strings are designed to be immutable, multiple string headers can safely point to the same backing array. Therefore, copying a string value only copies the lightweight 16-byte header, making it an efficient operation.
 
 ```go
 package main
@@ -561,9 +482,9 @@ func main() {
 }
 ```
 
-Go applies this same design principle to other major structural types, using lightweight headers or internal descriptors to point to a shared space in memory:
+Go applies this same design principle to other structural types
 
-- **Slices:** Like strings, passing a slice by value only copies a small 24-byte header containing a data pointer, length, and capacity. It points to a shared backing array. _The big difference:_ Slices are mutable. If you modify the elements of a copied slice, you will directly alter the data in the original backing array.
+- **Slices:** Like strings, passing a slice by value only copies a small 24-byte header containing a data pointer, length, and capacity. It points to a shared backing array. Slices are mutable. If you modify the elements of a copied slice, you will directly alter the data in the original backing array.
 - **Maps and Channels:** Under the hood, maps and channels are direct pointers to complex internal runtime structures (`hmap` and `hchan`). Copying a map or channel variable only copies a tiny 8-byte memory address. Both the original variable and the copy point to the same live data buckets.
 
 **Note on Primitives:** Primitives like integers, floats, and booleans do not use headers or pointer descriptors at all. Because their raw values are already tiny (1 to 8 bytes), Go duplicates the value directly from one stack slot to another. It fits inside a single CPU register, making it fast.

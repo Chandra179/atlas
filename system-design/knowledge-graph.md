@@ -1,3 +1,9 @@
+---
+title: "Knowledge Graph"
+description: "Four engineering patterns that keep graph data semantically clean: entity resolution and canonicalization, ontology enforcement, and edge hierarchies."
+tags: [system-design, knowledge-graph]
+created: 2026-09-05
+---
 # Knowledge Graph
 
 To build a graph that retains semantic clarity, modern graph architectures use four core engineering patterns to control entropy.

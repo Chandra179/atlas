@@ -1,5 +1,6 @@
 ---
 title: "RabbitMQ"
+description: "Core building blocks of RabbitMQ / AMQP 0-9-1: exchanges, queues, publisher confirms, and robust message-delivery patterns."
 aliases: []
 tags: [system-design, system-design/messaging]
 created: "2026-06-13"

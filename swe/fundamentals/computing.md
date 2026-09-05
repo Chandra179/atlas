@@ -1,5 +1,6 @@
 ---
 title: "Computing"
+description: "How computers actually work: CPU caches, memory hierarchies, and the hardware fundamentals that explain latency and performance."
 aliases: []
 tags: [cs, cs/computing]
 created: "2026-06-13"

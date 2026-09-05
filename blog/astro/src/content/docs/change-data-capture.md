@@ -1,6 +1,14 @@
 ---
 title: Change Data Capture
-modified: '2026-09-04'
+description: >-
+  How CDC taps the database write-ahead log to stream row-level changes to data
+  warehouses, search indexes, and event buses — without expensive bulk
+  extraction queries.
+tags:
+  - system-design
+  - database
+created: 2026-09-05T00:00:00.000Z
+modified: '2026-09-05'
 ---
 
 # Change Data Capture (CDC)

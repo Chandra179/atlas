@@ -1,5 +1,6 @@
 ---
 title: "API Design Guidelines"
+description: "Mandatory API design conventions for internal services: data integrity rules, naming, error handling, and versioning for backend HTTP APIs."
 aliases: []
 tags: [cs, cs/api]
 created: "2026-06-13"

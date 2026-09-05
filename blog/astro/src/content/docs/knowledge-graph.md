@@ -1,6 +1,13 @@
 ---
 title: Knowledge Graph
-modified: '2026-09-03'
+description: >-
+  Four engineering patterns that keep graph data semantically clean: entity
+  resolution and canonicalization, ontology enforcement, and edge hierarchies.
+tags:
+  - system-design
+  - knowledge-graph
+created: 2026-09-05T00:00:00.000Z
+modified: '2026-09-05'
 ---
 
 # Knowledge Graph

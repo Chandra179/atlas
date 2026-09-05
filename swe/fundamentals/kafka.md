@@ -1,5 +1,6 @@
 ---
 title: Kafka
+description: "Why 50 microservices can't talk point-to-point over HTTP: Kafka topics, partitions, and consumer groups as the backbone of event-driven architecture."
 aliases: []
 created: '2026-06-13'
 tags:
