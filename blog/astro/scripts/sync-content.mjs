@@ -11,24 +11,20 @@ const BLOG_DIR = path.join(ROOT, 'blog/astro/src/content/docs');
 const ALLOWED_FILES = new Set([
   'about/introduction.md',
   'swe/swe-journey.md',
-  // 'system-design/pdf-generation.md',
   'system-design/twitter-feed.md',
   'system-design/rate-limiter.md',
   'system-design/order-inventory-system.md',
-  // 'real-time-chat.md',
   'system-design/uber-architecture.md',
   'system-design/cache.md',
   'system-design/routing-mechanism.md',
-  'system-design/change-data-capture.md',
+  // 'system-design/change-data-capture.md',
   'system-design/youtube-architecture.md',
-  // 'system-performance.md',
   'system-design/knowledge-graph.md',
-  // 'nadir.md'
-  'swe/fundamentals/api-design-guidelines.md',
-  'swe/fundamentals/computing.md',
-  'swe/fundamentals/kafka.md',
-  'swe/fundamentals/networking.md',
-  'swe/fundamentals/rabbitmq.md',
+  // 'swe/fundamentals/api-design-guidelines.md',
+  // 'swe/fundamentals/computing.md',
+  // 'swe/fundamentals/kafka.md',
+  // 'swe/fundamentals/networking.md',
+  // 'swe/fundamentals/rabbitmq.md',
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })
