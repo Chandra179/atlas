@@ -20,6 +20,7 @@ const ALLOWED_FILES = new Set([
   // 'system-design/change-data-capture.md',
   'system-design/youtube-architecture.md',
   'system-design/knowledge-graph.md',
+  'system-design/nadir.md',
   // 'swe/fundamentals/api-design-guidelines.md',
   // 'swe/fundamentals/computing.md',
   // 'swe/fundamentals/kafka.md',

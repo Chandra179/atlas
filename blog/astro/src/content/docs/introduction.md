@@ -48,3 +48,7 @@ modified: '2026-09-05'
 ### GoSys
 - Profile-guided static analyzer for Go memory anti-patterns
 - [https://github.com/Chandra179/pyro](https://github.com/Chandra179/pyro)
+
+### Ohara
+- Multimodal data pipeline: scrape, clean, graphRag
+- [https://github.com/Chandra179/ohara](https://github.com/Chandra179/ohara)
