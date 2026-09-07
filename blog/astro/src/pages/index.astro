@@ -43,27 +43,66 @@ const projects = [
     description: 'High-throughput terminal rendering pipeline built with WebGPU and Go WebAssembly. Zero-overhead frame streaming for real-time cluster observability.',
     type: 'video',
     tag: '● VIDEO DEMO',
+    tagColor: 'text-red-400 bg-red-500/20 border-red-500/30',
     tech: ['Go', 'WebAssembly', 'WebGPU', 'Video/MP4'],
     demoUrl: 'https://github.com/Chandra179/atlas',
     githubUrl: 'https://github.com/Chandra179/atlas',
+    previewSnippet: 'atlas-engine --stream --fps 60',
   },
   {
     title: 'Synapse Node Mesh',
     description: 'Interactive physics-based graph layout simulator. Visualizes distributed consensus gossip propagation with reactive canvas dynamics.',
     type: 'animation',
     tag: '⚡ LIVE INTERACTIVE',
+    tagColor: 'text-indigo-400 bg-indigo-500/20 border-indigo-500/30',
     tech: ['TypeScript', 'Canvas2D', 'Verlet Physics'],
     demoUrl: '#interactive-canvas',
     githubUrl: 'https://github.com/Chandra179',
+    previewSnippet: 'particle-mesh --nodes 48 --radius 100',
   },
   {
     title: 'Nadir Distributed KV',
     description: 'Fault-tolerant, consensus-backed key-value store with lease-based cache eviction and zero-lock reader guarantees.',
     type: 'image',
     tag: 'SCHEMATIC IMAGE',
+    tagColor: 'text-amber-400 bg-amber-500/20 border-amber-500/30',
     tech: ['Raft', 'Go', 'Distributed Systems'],
     demoUrl: '/nadir',
     githubUrl: 'https://github.com/Chandra179',
+    previewSnippet: 'raft-quorum --nodes 5 --lease 300ms',
+  },
+  {
+    title: 'Kube-Replay Trace Proxy',
+    description: 'Low-latency eBPF network packet recorder reproducing production gRPC ingress traffic locally with sub-millisecond precision.',
+    type: 'terminal',
+    tag: 'eBPF / K8S',
+    tagColor: 'text-cyan-400 bg-cyan-500/20 border-cyan-500/30',
+    tech: ['Rust', 'eBPF', 'gRPC', 'Linux Kernel'],
+    demoUrl: 'https://github.com/Chandra179',
+    githubUrl: 'https://github.com/Chandra179',
+    previewSnippet: 'tc-bpf egress filter attached',
+  },
+  {
+    title: 'Vortex WAL Engine',
+    description: 'Append-only write ahead log with sequential zero-copy memory mapping and vectorized index scans for high-ingest time-series workloads.',
+    type: 'terminal',
+    tag: 'STORAGE ENGINE',
+    tagColor: 'text-purple-400 bg-purple-500/20 border-purple-500/30',
+    tech: ['Go', 'mmap', 'SIMD', 'LSM-Tree'],
+    demoUrl: 'https://github.com/Chandra179',
+    githubUrl: 'https://github.com/Chandra179',
+    previewSnippet: 'wal-sync: 1.4M ops/sec throughput',
+  },
+  {
+    title: 'Hyperion Edge Router',
+    description: 'Consistent hashing reverse proxy with distributed token-bucket rate limiters and autonomous health-check failover rings.',
+    type: 'terminal',
+    tag: 'NETWORKING',
+    tagColor: 'text-emerald-400 bg-emerald-500/20 border-emerald-500/30',
+    tech: ['Go', 'HTTP/3', 'Consistent Hashing'],
+    demoUrl: 'https://github.com/Chandra179',
+    githubUrl: 'https://github.com/Chandra179',
+    previewSnippet: 'quic-stream listener :443 [READY]',
   },
 ];
 
@@ -118,18 +157,75 @@ const homepageJsonLd = [
     </button>
   </aside>
 
-  <!-- MAIN WRAPPER -->
-  <main class="max-w-3xl mx-auto px-6 py-20 lg:py-24 transition-colors duration-300">
+  <!-- MAIN WRAPPER WITH DYNAMIC GRID RESPONSIVENESS -->
+  <main
+    x-data={`{
+      projectCols: 2,
+      projectPage: 1,
+      projectPageSize: 4,
+      totalProjects: ${projects.length},
+      get totalProjectPages() {
+        if (this.projectPageSize === 'all') return 1;
+        return Math.ceil(this.totalProjects / this.projectPageSize);
+      },
+      isProjectVisible(idx) {
+        if (this.projectPageSize === 'all') return true;
+        const start = (this.projectPage - 1) * this.projectPageSize;
+        return idx >= start && idx < (start + this.projectPageSize);
+      },
+      get projectStartIdx() {
+        if (this.totalProjects === 0) return 0;
+        return (this.projectPage - 1) * (this.projectPageSize === 'all' ? this.totalProjects : this.projectPageSize) + 1;
+      },
+      get projectEndIdx() {
+        if (this.projectPageSize === 'all') return this.totalProjects;
+        return Math.min(this.projectPage * this.projectPageSize, this.totalProjects);
+      },
+      setProjectCols(c) {
+        this.projectCols = c;
+      },
+      setProjectPageSize(s) {
+        this.projectPageSize = s;
+        this.projectPage = 1;
+      },
+      goToProjectPage(p) {
+        if (p >= 1 && p <= this.totalProjectPages) this.projectPage = p;
+      },
+
+      writingPage: 1,
+      writingPageSize: 5,
+      totalPosts: ${posts.length},
+      get totalWritingPages() {
+        if (this.writingPageSize === 'all') return 1;
+        return Math.ceil(this.totalPosts / this.writingPageSize);
+      },
+      isWritingVisible(idx) {
+        if (this.writingPageSize === 'all') return true;
+        const start = (this.writingPage - 1) * this.writingPageSize;
+        return idx >= start && idx < (start + this.writingPageSize);
+      },
+      get writingStartIdx() {
+        if (this.totalPosts === 0) return 0;
+        return (this.writingPage - 1) * (this.writingPageSize === 'all' ? this.totalPosts : this.writingPageSize) + 1;
+      },
+      get writingEndIdx() {
+        if (this.writingPageSize === 'all') return this.totalPosts;
+        return Math.min(this.writingPage * this.writingPageSize, this.totalPosts);
+      },
+      setWritingPageSize(s) {
+        this.writingPageSize = s;
+        this.writingPage = 1;
+      },
+      goToWritingPage(p) {
+        if (p >= 1 && p <= this.totalWritingPages) this.writingPage = p;
+      }
+    }`}
+    :class="projectCols === 2 ? 'max-w-5xl' : (projectCols === 3 ? 'max-w-6xl' : 'max-w-7xl')"
+    class="mx-auto px-6 py-20 lg:py-24 transition-all duration-300"
+  >
 
     <!-- HERO / IDENTITY -->
-    <header class="mb-20">
-      <div class="flex items-center gap-2 text-xs font-mono text-emerald-600 dark:text-emerald-400 mb-4 tracking-wider uppercase">
-        <span class="relative flex h-2 w-2">
-          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
-        </span>
-        Available for selected engineering & advisory
-      </div>
+    <header class="mb-20 max-w-3xl">
 
       <h1 class="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 mb-4">
         Chandra
@@ -146,11 +242,6 @@ const homepageJsonLd = [
           <span class="text-zinc-400 dark:text-zinc-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">↗</span>
         </a>
         <span class="text-zinc-300 dark:text-zinc-700">/</span>
-        <a href="https://x.com/chandra179" target="_blank" rel="noopener noreferrer" class="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1 group">
-          <span>twitter/x</span>
-          <span class="text-zinc-400 dark:text-zinc-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">↗</span>
-        </a>
-        <span class="text-zinc-300 dark:text-zinc-700">/</span>
         <a href="https://www.linkedin.com/in/chandraa17/" target="_blank" rel="noopener noreferrer" class="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1 group">
           <span>linkedin</span>
           <span class="text-zinc-400 dark:text-zinc-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">↗</span>
@@ -163,200 +254,425 @@ const homepageJsonLd = [
       </div>
     </header>
 
-    <!-- SECTION: FEATURED WORK (MEDIA SHOWCASE) -->
-    <section class="mb-24">
-      <div class="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3 mb-8">
-        <h2 class="text-xs font-mono uppercase tracking-widest text-zinc-500 font-medium">
-          Selected Projects (Media Showcase)
-        </h2>
-        <span class="text-xs font-mono text-zinc-400 dark:text-zinc-600">03 items</span>
+    <!-- SECTION: FEATURED WORK (TERMINAL MEDIA SHOWCASE WITH GRID FILTER & PAGINATION) -->
+    <section id="projects-section" class="mb-24 scroll-mt-20">
+      
+      <!-- Section Header with Grid Column Filter (No pagination on top) -->
+      <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-zinc-200 dark:border-zinc-800 pb-4 mb-8">
+        <div>
+          <div class="flex items-center gap-2">
+            <h2 class="text-xs font-mono uppercase tracking-widest text-zinc-500 font-medium">
+              Projects
+            </h2>
+          </div>
+          <p class="text-xs text-zinc-400 dark:text-zinc-500 mt-1 font-mono">
+            Live demos, WebAssembly engines, and distributed architectures
+          </p>
+        </div>
+
+        <!-- Grid Column Filter Switcher (2 Col, 3 Col, max 4 Col) -->
+        <div class="flex items-center gap-1.5 p-1 rounded-xl bg-zinc-100 dark:bg-zinc-900 border border-zinc-200 dark:border-zinc-800">
+          <span class="text-[11px] font-mono text-zinc-400 px-2 select-none">Grid:</span>
+          
+          <!-- 2 Columns Button -->
+          <button
+            type="button"
+            @click="setProjectCols(2)"
+            :class="projectCols === 2 ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-zinc-700' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 border border-transparent'"
+            class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition cursor-pointer"
+            title="Display 2 Columns"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+              <rect x="2" y="2" width="5" height="12" rx="1.5"/>
+              <rect x="9" y="2" width="5" height="12" rx="1.5"/>
+            </svg>
+            <span>2 Col</span>
+          </button>
+
+          <!-- 3 Columns Button -->
+          <button
+            type="button"
+            @click="setProjectCols(3)"
+            :class="projectCols === 3 ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-zinc-700' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 border border-transparent'"
+            class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition cursor-pointer"
+            title="Display 3 Columns"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+              <rect x="1.5" y="2" width="3.5" height="12" rx="1"/>
+              <rect x="6.25" y="2" width="3.5" height="12" rx="1"/>
+              <rect x="11" y="2" width="3.5" height="12" rx="1"/>
+            </svg>
+            <span>3 Col</span>
+          </button>
+
+          <!-- 4 Columns Button -->
+          <button
+            type="button"
+            @click="setProjectCols(4)"
+            :class="projectCols === 4 ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 shadow-sm border border-zinc-200 dark:border-zinc-700' : 'text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-200 border border-transparent'"
+            class="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-mono font-medium transition cursor-pointer"
+            title="Display 4 Columns (Max)"
+          >
+            <svg class="w-3.5 h-3.5" viewBox="0 0 16 16" fill="currentColor">
+              <rect x="1" y="2" width="2.7" height="12" rx="0.8"/>
+              <rect x="4.7" y="2" width="2.7" height="12" rx="0.8"/>
+              <rect x="8.4" y="2" width="2.7" height="12" rx="0.8"/>
+              <rect x="12.1" y="2" width="2.7" height="12" rx="0.8"/>
+            </svg>
+            <span>4 Col</span>
+          </button>
+        </div>
       </div>
 
-      <div class="space-y-12">
-        <!-- 1. VIDEO SHOWCASE PROJECT -->
-        <article class="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50 dark:bg-zinc-900/30 overflow-hidden hover:border-zinc-300 dark:hover:border-zinc-700 transition duration-300">
-          <div class="relative aspect-[16/9] w-full bg-zinc-950 flex items-center justify-center overflow-hidden border-b border-zinc-200 dark:border-zinc-800/60">
-            <div class="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-zinc-900 to-zinc-950 flex flex-col justify-between p-5 font-mono text-xs">
-              <div class="flex items-center justify-between text-zinc-400 border-b border-zinc-800/80 pb-2">
-                <div class="flex items-center gap-2">
-                  <span class="h-2.5 w-2.5 rounded-full bg-red-500/80"></span>
-                  <span class="h-2.5 w-2.5 rounded-full bg-yellow-500/80"></span>
-                  <span class="h-2.5 w-2.5 rounded-full bg-emerald-500/80"></span>
-                  <span class="ml-2 text-zinc-300">atlas-engine --stream --fps 60</span>
+      <!-- DYNAMIC PROJECTS GRID -->
+      <div
+        :class="projectCols === 2 ? 'grid grid-cols-1 md:grid-cols-2 gap-6' : (projectCols === 3 ? 'grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5' : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4')"
+        class="transition-all duration-300"
+      >
+        {projects.map((project, idx) => (
+          <article
+            x-show={`isProjectVisible(${idx})`}
+            class="group rounded-xl sm:rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50 dark:bg-zinc-900/30 overflow-hidden hover:border-zinc-300 dark:hover:border-zinc-700 transition duration-300 flex flex-col justify-between shadow-xs"
+          >
+            <div>
+              <!-- Media Showcase Window Header -->
+              <div class="relative aspect-[16/9] w-full bg-zinc-950 flex items-center justify-center overflow-hidden border-b border-zinc-200 dark:border-zinc-800/60 select-none">
+                {project.type === 'animation' ? (
+                  <>
+                    <canvas id="interactive-canvas" class="absolute inset-0 w-full h-full cursor-crosshair"></canvas>
+                    <div class="absolute inset-0 pointer-events-none flex flex-col justify-between p-3.5 sm:p-4 font-mono text-xs">
+                      <div class="flex items-center justify-between text-zinc-400 border-b border-zinc-800/80 pb-1.5">
+                        <div class="flex items-center gap-1.5">
+                          <span class="h-2 w-2 rounded-full bg-red-500/80"></span>
+                          <span class="h-2 w-2 rounded-full bg-yellow-500/80"></span>
+                          <span class="h-2 w-2 rounded-full bg-emerald-500/80"></span>
+                        </div>
+                        <span class="text-[9px] font-semibold tracking-wide px-1.5 py-0.5 rounded border border-indigo-500/30 text-indigo-400 bg-indigo-500/20">
+                          {project.tag}
+                        </span>
+                      </div>
+                      <div class="flex justify-between items-center text-[9px] text-zinc-500 pt-1">
+                        <span>#02</span>
+                        <span class="text-indigo-400">interactive canvas ↗</span>
+                      </div>
+                    </div>
+                  </>
+                ) : project.type === 'image' ? (
+                  <div class="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-zinc-900 to-zinc-950 flex flex-col justify-between p-3.5 sm:p-4 font-mono text-xs">
+                    <div class="flex items-center justify-between text-zinc-400 border-b border-zinc-800/80 pb-1.5">
+                      <div class="flex items-center gap-1.5">
+                        <span class="h-2 w-2 rounded-full bg-red-500/80"></span>
+                        <span class="h-2 w-2 rounded-full bg-yellow-500/80"></span>
+                        <span class="h-2 w-2 rounded-full bg-emerald-500/80"></span>
+                      </div>
+                      <span class="text-[9px] font-semibold tracking-wide px-1.5 py-0.5 rounded border border-amber-500/30 text-amber-400 bg-amber-500/20">
+                        {project.tag}
+                      </span>
+                    </div>
+                    <div class="my-auto py-2 text-center">
+                      <div class="grid grid-cols-3 gap-1.5 text-[9px] text-zinc-300 max-w-xs mx-auto">
+                        <div class="p-1.5 rounded bg-zinc-800/80 border border-zinc-700/60">Client Leases</div>
+                        <div class="p-1.5 rounded bg-indigo-950/70 border border-indigo-700/60 font-bold text-indigo-300">Raft Quorum</div>
+                        <div class="p-1.5 rounded bg-zinc-800/80 border border-zinc-700/60">WAL Log</div>
+                      </div>
+                    </div>
+                    <div class="flex justify-between items-center text-[9px] text-zinc-500 pt-1">
+                      <span>#03</span>
+                      <span class="text-amber-400">p99: 1.2ms</span>
+                    </div>
+                  </div>
+                ) : (
+                  <div class="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-zinc-900 to-zinc-950 flex flex-col justify-between p-3.5 sm:p-4 font-mono text-xs">
+                    <div class="flex items-center justify-between text-zinc-400 border-b border-zinc-800/80 pb-1.5">
+                      <div class="flex items-center gap-1.5">
+                        <span class="h-2 w-2 rounded-full bg-red-500/80"></span>
+                        <span class="h-2 w-2 rounded-full bg-yellow-500/80"></span>
+                        <span class="h-2 w-2 rounded-full bg-emerald-500/80"></span>
+                      </div>
+                      <span class={`text-[9px] font-semibold tracking-wide px-1.5 py-0.5 rounded border ${project.tagColor}`}>
+                        {project.tag}
+                      </span>
+                    </div>
+                    
+                    <div class="my-auto text-center py-2 space-y-1">
+                      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-lg bg-zinc-800/70 border border-zinc-700/50 backdrop-blur-xs text-[11px] text-zinc-200">
+                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+                        <span>{project.previewSnippet}</span>
+                      </div>
+                    </div>
+
+                    <div class="flex justify-between items-center text-[9px] text-zinc-500 pt-1">
+                      <span>#{String(idx + 1).padStart(2, '0')}</span>
+                      <span class="text-zinc-400 group-hover:text-emerald-400 transition-colors">inspect ↗</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              <!-- Content Body -->
+              <div class="p-5" :class="projectCols >= 4 ? 'p-4' : 'p-5'">
+                <div class="flex items-start justify-between gap-2 mb-1.5">
+                  <h3
+                    class="text-base font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors"
+                    :class="projectCols >= 4 ? 'text-sm font-semibold' : 'text-base font-semibold'"
+                  >
+                    {project.title}
+                  </h3>
                 </div>
-                <span class="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded border border-red-500/30 font-semibold tracking-wide">
-                  {projects[0].tag}
-                </span>
+                <p
+                  class="text-xs sm:text-sm text-zinc-600 dark:text-zinc-400 mb-4 font-light leading-relaxed"
+                  :class="projectCols >= 4 ? 'text-xs line-clamp-2' : 'line-clamp-3'"
+                >
+                  {project.description}
+                </p>
               </div>
-              
-              <div class="my-auto text-center space-y-2 py-6">
-                <div class="inline-flex items-center gap-3 px-4 py-2 rounded-lg bg-zinc-800/80 border border-zinc-700/50 backdrop-blur-sm shadow-xl">
-                  <svg class="w-5 h-5 text-emerald-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                  </svg>
-                  <span class="text-zinc-200 font-mono text-sm">Autoplay Looping Video / Stream</span>
+            </div>
+
+            <!-- Footer Meta & Links -->
+            <div class="p-5 pt-0" :class="projectCols >= 4 ? 'p-4 pt-0' : 'p-5 pt-0'">
+              <div class="flex flex-wrap gap-1.5 text-[10px] font-mono mb-3">
+                {project.tech.map((t) => (
+                  <span class="px-2 py-0.5 rounded-md bg-zinc-200/70 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border border-zinc-300/60 dark:border-zinc-700/50">
+                    {t}
+                  </span>
+                ))}
+              </div>
+
+              <div class="flex items-center justify-between pt-2.5 border-t border-zinc-200/70 dark:border-zinc-800/70 text-xs font-mono">
+                <div class="flex items-center gap-3">
+                  {project.demoUrl && (
+                    <a href={project.demoUrl} target={project.demoUrl.startsWith('http') ? '_blank' : undefined} rel={project.demoUrl.startsWith('http') ? 'noopener noreferrer' : undefined} class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition flex items-center gap-0.5">
+                      <span>demo</span>
+                      <span class="text-[10px]">↗</span>
+                    </a>
+                  )}
+                  {project.githubUrl && (
+                    <a href={project.githubUrl} target="_blank" rel="noopener noreferrer" class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition flex items-center gap-0.5">
+                      <span>code</span>
+                      <span class="text-[10px]">↗</span>
+                    </a>
+                  )}
                 </div>
-                <p class="text-xs text-zinc-400 font-mono">Simulates real-time telemetry streaming in WebAssembly</p>
+                <span class="text-[10px] text-zinc-400">active</span>
               </div>
+            </div>
+          </article>
+        ))}
+      </div>
 
-              <div class="w-full bg-zinc-800/80 h-1 rounded-full overflow-hidden">
-                <div class="bg-emerald-500 h-full w-2/3 animate-pulse"></div>
-              </div>
-            </div>
+      <!-- PROJECTS PAGINATION TOOLBAR (Unified at bottom, matches Writing & Notes) -->
+      <div class="mt-8 pt-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="text-zinc-500 dark:text-zinc-400">
+            Showing <span class="font-medium text-zinc-800 dark:text-zinc-200" x-text="projectStartIdx"></span>–<span class="font-medium text-zinc-800 dark:text-zinc-200" x-text="projectEndIdx"></span> of <span class="font-medium text-zinc-800 dark:text-zinc-200">{projects.length}</span> projects
           </div>
+          <span class="text-zinc-300 dark:text-zinc-700">|</span>
+          <div class="flex items-center gap-1 text-zinc-500">
+            <span class="text-[11px] text-zinc-400">Page size:</span>
+            <button
+              type="button"
+              @click="setProjectPageSize(2)"
+              :class="projectPageSize === 2 ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold' : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'"
+              class="px-2 py-0.5 rounded cursor-pointer transition"
+            >2</button>
+            <button
+              type="button"
+              @click="setProjectPageSize(4)"
+              :class="projectPageSize === 4 ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold' : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'"
+              class="px-2 py-0.5 rounded cursor-pointer transition"
+            >4</button>
+            <button
+              type="button"
+              @click="setProjectPageSize(6)"
+              :class="projectPageSize === 6 ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold' : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'"
+              class="px-2 py-0.5 rounded cursor-pointer transition"
+            >6</button>
+            <button
+              type="button"
+              @click="setProjectPageSize('all')"
+              :class="projectPageSize === 'all' ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold' : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'"
+              class="px-2 py-0.5 rounded cursor-pointer transition"
+            >All</button>
+          </div>
+        </div>
 
-          <div class="p-6">
-            <div class="flex items-start justify-between gap-4 mb-2">
-              <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                {projects[0].title}
-              </h3>
-              <div class="flex items-center gap-3 text-xs font-mono">
-                {projects[0].demoUrl && (
-                  <a href={projects[0].demoUrl} target="_blank" rel="noopener noreferrer" class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition flex items-center gap-1">demo ↗</a>
-                )}
-                {projects[0].githubUrl && (
-                  <a href={projects[0].githubUrl} target="_blank" rel="noopener noreferrer" class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition flex items-center gap-1">code ↗</a>
-                )}
-              </div>
-            </div>
-            <p class="text-sm text-zinc-600 dark:text-zinc-400 mb-4 font-light leading-relaxed">
-              {projects[0].description}
-            </p>
-            <div class="flex flex-wrap gap-2 text-[11px] font-mono">
-              {projects[0].tech.map((t) => (
-                <span class="px-2.5 py-1 rounded-md bg-zinc-200/70 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border border-zinc-300/60 dark:border-zinc-700/50">
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-        </article>
+        <!-- Prev / Next & Page Buttons -->
+        <div class="flex items-center gap-1.5">
+          <button
+            type="button"
+            @click="goToProjectPage(projectPage - 1)"
+            :disabled="projectPage <= 1"
+            class="px-2.5 py-1 rounded-md border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+          >
+            ← Prev
+          </button>
+          
+          <template x-for="p in totalProjectPages" :key="p">
+            <button
+              type="button"
+              @click="goToProjectPage(p)"
+              :class="projectPage === p ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-semibold' : 'border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400'"
+              class="w-7 h-7 flex items-center justify-center rounded-md text-xs font-mono transition cursor-pointer"
+              x-text="p"
+            >
+            </button>
+          </template>
 
-        <!-- 2. INTERACTIVE ANIMATION SHOWCASE PROJECT -->
-        <article class="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50 dark:bg-zinc-900/30 overflow-hidden hover:border-zinc-300 dark:hover:border-zinc-700 transition duration-300">
-          <div class="relative aspect-[16/9] w-full bg-zinc-950 flex items-center justify-center overflow-hidden border-b border-zinc-200 dark:border-zinc-800/60 cursor-crosshair">
-            <canvas id="interactive-canvas" class="absolute inset-0 w-full h-full"></canvas>
-            
-            <div class="absolute top-4 left-4 z-10 font-mono text-[10px] bg-zinc-900/80 backdrop-blur-md px-2.5 py-1 rounded border border-zinc-700/70 text-indigo-400">
-              {projects[1].tag} (MOVE CURSOR)
-            </div>
-            
-            <div class="absolute bottom-4 right-4 z-10 font-mono text-[11px] text-zinc-400 bg-zinc-950/70 px-2 py-1 rounded">
-              Particle Mesh / Kinetic Physics
-            </div>
-          </div>
-
-          <div class="p-6">
-            <div class="flex items-start justify-between gap-4 mb-2">
-              <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                {projects[1].title}
-              </h3>
-              <div class="flex items-center gap-3 text-xs font-mono">
-                {projects[1].demoUrl && (
-                  <a href={projects[1].demoUrl} class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition flex items-center gap-1">demo ↗</a>
-                )}
-                {projects[1].githubUrl && (
-                  <a href={projects[1].githubUrl} target="_blank" rel="noopener noreferrer" class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition flex items-center gap-1">code ↗</a>
-                )}
-              </div>
-            </div>
-            <p class="text-sm text-zinc-600 dark:text-zinc-400 mb-4 font-light leading-relaxed">
-              {projects[1].description}
-            </p>
-            <div class="flex flex-wrap gap-2 text-[11px] font-mono">
-              {projects[1].tech.map((t) => (
-                <span class="px-2.5 py-1 rounded-md bg-zinc-200/70 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border border-zinc-300/60 dark:border-zinc-700/50">
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-        </article>
-
-        <!-- 3. IMAGE / ARCHITECTURE VISUAL SHOWCASE -->
-        <article class="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50 dark:bg-zinc-900/30 overflow-hidden hover:border-zinc-300 dark:hover:border-zinc-700 transition duration-300">
-          <div class="relative aspect-[16/9] w-full bg-zinc-950 flex items-center justify-center p-8 overflow-hidden border-b border-zinc-200 dark:border-zinc-800/60">
-            <div class="w-full max-w-md p-4 rounded-xl bg-zinc-900/90 border border-zinc-800 text-xs font-mono text-zinc-400 space-y-3 shadow-2xl group-hover:scale-[1.01] transition-transform duration-500">
-              <div class="flex justify-between items-center pb-2 border-b border-zinc-800">
-                <span class="text-zinc-200 font-semibold">Distributed Cache Topology</span>
-                <span class="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
-                  {projects[2].tag}
-                </span>
-              </div>
-              <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
-                <div class="p-2 rounded bg-zinc-800/70 border border-zinc-700/60 text-zinc-300">Client Leases</div>
-                <div class="p-2 rounded bg-indigo-950/60 border border-indigo-700/60 text-indigo-300 font-bold">Raft Quorum</div>
-                <div class="p-2 rounded bg-zinc-800/70 border border-zinc-700/60 text-zinc-300">WAL Storage</div>
-              </div>
-              <div class="flex justify-between text-[9px] text-zinc-400 pt-1">
-                <span>p99: 1.2ms</span>
-                <span>Idempotency Key: sha256</span>
-                <span>Nodes: 5</span>
-              </div>
-            </div>
-          </div>
-
-          <div class="p-6">
-            <div class="flex items-start justify-between gap-4 mb-2">
-              <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                {projects[2].title}
-              </h3>
-              <div class="flex items-center gap-3 text-xs font-mono">
-                {projects[2].demoUrl && (
-                  <a href={projects[2].demoUrl} class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition flex items-center gap-1">article ↗</a>
-                )}
-                {projects[2].githubUrl && (
-                  <a href={projects[2].githubUrl} target="_blank" rel="noopener noreferrer" class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition flex items-center gap-1">code ↗</a>
-                )}
-              </div>
-            </div>
-            <p class="text-sm text-zinc-600 dark:text-zinc-400 mb-4 font-light leading-relaxed">
-              {projects[2].description}
-            </p>
-            <div class="flex flex-wrap gap-2 text-[11px] font-mono">
-              {projects[2].tech.map((t) => (
-                <span class="px-2.5 py-1 rounded-md bg-zinc-200/70 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border border-zinc-300/60 dark:border-zinc-700/50">
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-        </article>
+          <button
+            type="button"
+            @click="goToProjectPage(projectPage + 1)"
+            :disabled="projectPage >= totalProjectPages"
+            class="px-2.5 py-1 rounded-md border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+          >
+            Next →
+          </button>
+        </div>
       </div>
     </section>
 
-    <!-- SECTION: WRITING & BLOG (EDITORIAL SCANNABLE LIST) -->
-    <section class="mb-20">
-      <div class="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3 mb-8">
-        <h2 class="text-xs font-mono uppercase tracking-widest text-zinc-500 font-medium">
-          Writing & Notes
-        </h2>
-        <span class="text-xs font-mono text-zinc-400 dark:text-zinc-600">{posts.length} articles</span>
+    <!-- SECTION: WRITING & NOTES (EDITORIAL INDEX WITHOUT TOPIC) -->
+    <section id="writing-section" class="mb-20 scroll-mt-30">
+      
+      <!-- Editorial Column Header (Desktop) -->
+      <div class="hidden sm:grid grid-cols-12 gap-4 px-3 py-2 text-[11px] font-mono text-zinc-400 dark:text-zinc-500 uppercase tracking-wider border-b border-zinc-200/60 dark:border-zinc-800/60">
+        <div class="col-span-2">Date</div>
+        <div class="col-span-7">Title & Summary</div>
+        <div class="col-span-2 text-right">Read Time</div>
+        <div class="col-span-1 text-right">Link</div>
       </div>
 
-      <div class="divide-y divide-zinc-200 dark:divide-zinc-800/60 border-y border-zinc-200 dark:border-zinc-800/60">
-        {posts.map((post) => (
+      <!-- Editorial Rows (Without Topic) -->
+      <div class="divide-y divide-zinc-200 dark:divide-zinc-800/60 border-b border-zinc-200 dark:border-zinc-800/60">
+        {posts.map((post, idx) => (
           <a
             href={post.url}
-            class="group flex flex-col sm:flex-row sm:items-baseline justify-between py-4 px-2 -mx-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800/30 transition duration-200"
+            x-show={`isWritingVisible(${idx})`}
+            class="group block py-4 px-3 -mx-3 rounded-xl hover:bg-zinc-100/80 dark:hover:bg-zinc-800/30 transition-all duration-200"
           >
-            <div class="flex items-baseline gap-3">
-              {post.formattedDate && (
-                <span class="text-xs font-mono text-zinc-400 dark:text-zinc-500 shrink-0">
-                  {post.formattedDate}
-                </span>
-              )}
-              <span class="text-sm font-medium text-zinc-800 dark:text-zinc-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                {post.title}
-              </span>
+            <!-- Desktop Layout -->
+            <div class="hidden sm:grid grid-cols-12 gap-4 items-center">
+              
+              <!-- Date Column -->
+              <div class="col-span-2 text-xs font-mono text-zinc-400 dark:text-zinc-500 flex items-center gap-2 shrink-0">
+                <span class="w-1.5 h-1.5 rounded-full bg-zinc-300 dark:bg-zinc-700 group-hover:bg-emerald-500 transition-colors"></span>
+                <span>{post.formattedDate || 'Note'}</span>
+              </div>
+
+              <!-- Title & Summary Column -->
+              <div class="col-span-7 pr-4">
+                <div class="text-sm font-medium text-zinc-800 dark:text-zinc-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                  {post.title}
+                </div>
+                {post.description && (
+                  <p class="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-1 mt-0.5 font-light">
+                    {post.description}
+                  </p>
+                )}
+              </div>
+
+              <!-- Read Time Column -->
+              <div class="col-span-2 text-right text-xs font-mono text-zinc-400 dark:text-zinc-500 shrink-0">
+                {post.readTime}
+              </div>
+
+              <!-- Link Arrow Column (NO TOPIC) -->
+              <div class="col-span-1 text-right text-xs font-mono text-zinc-400 dark:text-zinc-600 group-hover:text-emerald-500 transition-colors shrink-0">
+                <span class="group-hover:translate-x-1 inline-block transition-transform">→</span>
+              </div>
             </div>
-            <div class="flex items-center gap-2 text-xs font-mono text-zinc-400 dark:text-zinc-500 mt-1 sm:mt-0 shrink-0">
-              <span>{post.tag}</span>
-              <span class="text-zinc-400 dark:text-zinc-600 group-hover:translate-x-1 transition-transform">→</span>
+
+            <!-- Mobile Layout -->
+            <div class="sm:hidden flex flex-col gap-1.5">
+              <div class="flex items-center justify-between text-xs font-mono text-zinc-400 dark:text-zinc-500">
+                <span>{post.formattedDate || 'Note'}</span>
+                <span>{post.readTime}</span>
+              </div>
+              <div class="text-sm font-medium text-zinc-800 dark:text-zinc-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                {post.title}
+              </div>
+              {post.description && (
+                <p class="text-xs text-zinc-500 dark:text-zinc-400 line-clamp-2 font-light">
+                  {post.description}
+                </p>
+              )}
+              <div class="flex items-center justify-end text-xs font-mono text-zinc-400 dark:text-zinc-500 pt-0.5">
+                <span class="group-hover:text-emerald-500 group-hover:translate-x-1 transition-all flex items-center gap-1">
+                  <span>read</span>
+                  <span>→</span>
+                </span>
+              </div>
             </div>
           </a>
         ))}
+      </div>
+
+      <!-- WRITING PAGINATION TOOLBAR (Matches Selected Projects bottom toolbar) -->
+      <div class="mt-6 pt-4 border-t border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs">
+        <div class="flex flex-wrap items-center gap-3">
+          <div class="text-zinc-500 dark:text-zinc-400">
+            Showing <span class="font-medium text-zinc-800 dark:text-zinc-200" x-text="writingStartIdx"></span>–<span class="font-medium text-zinc-800 dark:text-zinc-200" x-text="writingEndIdx"></span> of <span class="font-medium text-zinc-800 dark:text-zinc-200">{posts.length}</span> articles
+          </div>
+          <span class="text-zinc-300 dark:text-zinc-700">|</span>
+          <div class="flex items-center gap-1 text-zinc-500">
+            <span class="text-[11px] text-zinc-400">Page size:</span>
+            <button
+              type="button"
+              @click="setWritingPageSize(2)"
+              :class="writingPageSize === 2 ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold' : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'"
+              class="px-2 py-0.5 rounded cursor-pointer transition"
+            >2</button>
+            <button
+              type="button"
+              @click="setWritingPageSize(3)"
+              :class="writingPageSize === 3 ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold' : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'"
+              class="px-2 py-0.5 rounded cursor-pointer transition"
+            >3</button>
+            <button
+              type="button"
+              @click="setWritingPageSize(5)"
+              :class="writingPageSize === 5 ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold' : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'"
+              class="px-2 py-0.5 rounded cursor-pointer transition"
+            >5</button>
+            <button
+              type="button"
+              @click="setWritingPageSize('all')"
+              :class="writingPageSize === 'all' ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold' : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'"
+              class="px-2 py-0.5 rounded cursor-pointer transition"
+            >All</button>
+          </div>
+        </div>
+
+        <!-- Prev / Next & Page Buttons -->
+        <div class="flex items-center gap-1.5">
+          <button
+            type="button"
+            @click="goToWritingPage(writingPage - 1)"
+            :disabled="writingPage <= 1"
+            class="px-2.5 py-1 rounded-md border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+          >
+            ← Prev
+          </button>
+          
+          <template x-for="p in totalWritingPages" :key="p">
+            <button
+              type="button"
+              @click="goToWritingPage(p)"
+              :class="writingPage === p ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-semibold' : 'border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400'"
+              class="w-7 h-7 flex items-center justify-center rounded-md text-xs font-mono transition cursor-pointer"
+              x-text="p"
+            >
+            </button>
+          </template>
+
+          <button
+            type="button"
+            @click="goToWritingPage(writingPage + 1)"
+            :disabled="writingPage >= totalWritingPages"
+            class="px-2.5 py-1 rounded-md border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
+          >
+            Next →
+          </button>
+        </div>
       </div>
     </section>
 
