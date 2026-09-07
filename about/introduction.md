@@ -8,21 +8,21 @@ created: 2026-06-21
 # Experience
  
 ### Book Cabin, Software Engineer
-* Core Order & Booking Engine: Rewrite of the legacy order system into a high-performance Go microservice, handling end-to-end checkout and fulfillment for prebook and postbook flights.
-* Identity & Authentication Engine: Designed and built a standalone internal Identity microservice in Go to centralize user authentication (JWT, OTP, RBAC) and deliver secure, role-based access management across platforms.
-* CMS & SEO Platforms: Architected a WordPress-style block-editor CMS backend (versioned articles, multi-language publishing, taxonomy) and built a separate SEO data platform with Excel-to-JSON extraction pipelines and an in-memory caching layer.
+* Core Order & Booking Engine: Rewrite of the legacy order system from C# to Golang, handling end-to-end checkout and fulfillment for prebook and postbook flights.
+* Identity & Authentication Engine: Designed and built a standalone internal Identity microservice in Go to centralize user authentication (JWT, OTP, RBAC)
+* CMS & SEO Platforms: Architected a WordPress-style block-editor CMS backend and built a SEO data platform with data extraction pipelines.
 * Event Orchestration & Document Services: Engineered AWS SQS event listeners for post-payment and ticketing fulfillment with an automated, multi-language PDF/email templating engine (invoices, e-tickets).
-* Reliability, Performance & DevOps: Resolved critical production incidents (OOM crashes, SQL deadlocks) and established repository-wide standards by setting up automated CI/CD pipelines, strict pre-push quality gates (Lefthook, golangci-lint), and structured logging.
+* Resolved critical production incidents (OOM crashes, SQL deadlocks) and established repository standards for automated CI/CD pipelines, (Lefthook, golangci-lint), and structured logging.
 
 ### BFI Finance, Software Engineer, Jul 2022 – Feb 2026
-* Migrated Multi-Asset: Migrated the core loan system from a single-product to a multi-asset framework, enabling users to submit multiple collateral assets within a single application while preserving backward compatibility.
-* Engineered KYC & Identity Verification Pipeline: Built integration pipelines connecting third-party KYC vendors (Dukcapil, OCR, liveness testing, forgery detection) with automated manual fallback (mKYC) capabilities.
-* Developed Mobile Backend & Security Features: Built the mobile loan application security using a passwordless authentication system with token authorization and Role-Based Access Control (RBAC).
+* Migrated the core loan system from a single-product to a multi-asset framework, enabling users to submit multiple collateral assets within a single application
+* Built integration pipelines connecting third-party KYC vendors (Dukcapil, OCR, liveness testing, forgery detection) with automated manual fallback (mKYC) capabilities.
+* Built the mobile loan application security using a passwordless authentication system with token authorization and Role-Based Access Control (RBAC).
 * Data Driven Business Workflow: Developed automated workflow features for surveyor leads management.
 
 ### MPlus Software, Software Engineer, Sep 2021 – Jan 2022
-* Engineered backend features for Allnex, including a Windcave multi-payment API integration and a centralized order management dashboard.
-* Executed system and data migrations, upgrading Predige's Odoo system from v12 to v14 and automating site-to-database transfers using custom Python web scraping scripts.
+* Odoo Windcave multi-payment API integration and a centralized order management dashboard.
+* Executed system and data migrations, upgrading Odoo system from v12 to v14 and automating site-to-database transfers using custom Python web scraping scripts.
 
 ### Skills
 * Programming: Golang, JavaScript, SQL
