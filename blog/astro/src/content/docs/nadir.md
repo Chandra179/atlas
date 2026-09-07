@@ -1,6 +1,6 @@
 ---
 title: Nadir
-modified: '2026-09-06'
+modified: '2026-09-07'
 ---
 
 # Nadir Architecture
