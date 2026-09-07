@@ -1,63 +1,81 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
-import { buildNav } from '../lib/nav';
-import { extractDescription } from '../lib/description';
 import { getValidEntries } from '../lib/entries';
+import { entryIdToUrl, deriveTitle } from '../lib/nav';
+import { extractDescription } from '../lib/description';
 
 const validEntries = await getValidEntries();
 
-const nav = buildNav(validEntries);
+// Sort entries by created date (newest first)
+const posts = validEntries
+  .filter((e) => !e.data.noindex && e.id.toLowerCase() !== 'readme')
+  .map((e) => {
+    const slug = e.id.split('/').pop() || e.id;
+    const title = e.data.title || deriveTitle(slug, e.data.title);
+    const url = entryIdToUrl(e.id);
+    const date = e.data.created ? new Date(e.data.created) : undefined;
+    const formattedDate = date
+      ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
+      : '';
+    const tag = e.data.tags && e.data.tags.length > 0 ? e.data.tags[0] : 'note';
+    const wordCount = e.body ? e.body.split(/\s+/).filter(Boolean).length : 0;
+    const readTime = Math.max(1, Math.round(wordCount / 200)) + ' min read';
 
-// Build landing cards from nav sections (mirrors gen-landing-index.js).
-const cards: Array<{
-  title: string;
-  path: string;
-  description: string;
-}> = [];
-
-function pushCard(title: string, url: string, entryId: string | undefined) {
-  const entry = entryId ? validEntries.find((e) => e.id === entryId) : undefined;
-  cards.push({
-    title,
-    path: url.replace(/^\//, ''),
-    description: entry ? extractDescription(entry.body) : '',
+    return {
+      title,
+      url,
+      date,
+      formattedDate,
+      tag,
+      readTime,
+      description: e.data.description || extractDescription(e.body),
+    };
+  })
+  .sort((a, b) => {
+    const aTime = a.date ? a.date.getTime() : 0;
+    const bTime = b.date ? b.date.getTime() : 0;
+    return bTime - aTime;
   });
-}
 
-for (const section of nav) {
-  if (section.standalone) {
-    pushCard(section.name, section.url, section.entryId);
-  } else {
-    if (section.entryId) {
-      pushCard(section.name, section.url, section.entryId);
-    }
+const projects = [
+  {
+    title: 'Atlas Telemetry Canvas',
+    description: 'High-throughput terminal rendering pipeline built with WebGPU and Go WebAssembly. Zero-overhead frame streaming for real-time cluster observability.',
+    type: 'video',
+    tag: '● VIDEO DEMO',
+    tech: ['Go', 'WebAssembly', 'WebGPU', 'Video/MP4'],
+    demoUrl: 'https://github.com/Chandra179/atlas',
+    githubUrl: 'https://github.com/Chandra179/atlas',
+  },
+  {
+    title: 'Synapse Node Mesh',
+    description: 'Interactive physics-based graph layout simulator. Visualizes distributed consensus gossip propagation with reactive canvas dynamics.',
+    type: 'animation',
+    tag: '⚡ LIVE INTERACTIVE',
+    tech: ['TypeScript', 'Canvas2D', 'Verlet Physics'],
+    demoUrl: '#interactive-canvas',
+    githubUrl: 'https://github.com/Chandra179',
+  },
+  {
+    title: 'Nadir Distributed KV',
+    description: 'Fault-tolerant, consensus-backed key-value store with lease-based cache eviction and zero-lock reader guarantees.',
+    type: 'image',
+    tag: 'SCHEMATIC IMAGE',
+    tech: ['Raft', 'Go', 'Distributed Systems'],
+    demoUrl: '/nadir',
+    githubUrl: 'https://github.com/Chandra179',
+  },
+];
 
-    if (section.pages) {
-      for (const page of section.pages) {
-        if (page.isFolder && page.pages) {
-          if (page.entryId) {
-            pushCard(page.name, page.url, page.entryId);
-          }
-          for (const subpage of page.pages) {
-            pushCard(subpage.name, subpage.url, subpage.entryId);
-          }
-        } else {
-          pushCard(page.name, page.url, page.entryId);
-        }
-      }
-    }
-  }
-}
-
-const siteName = 'Chan179';
-const baseDescription = 'Personal blog on software engineering, system design';
+const siteName = 'Chandra';
+const baseDescription = 'Software engineer focusing on distributed systems, Go, developer infrastructure, and minimal web experiences.';
 
 const homepageJsonLd = [
   {
     '@context': 'https://schema.org',
     '@type': 'Person',
     '@id': 'https://chan179.com/#author',
-    name: 'Chandra179',
+    name: 'Chandra',
     url: 'https://chan179.com',
     sameAs: [
       'https://github.com/Chandra179',
@@ -67,42 +85,403 @@ const homepageJsonLd = [
   },
   {
     '@context': 'https://schema.org',
-    '@type': 'Organization',
-    '@id': 'https://chan179.com/#publisher',
-    name: siteName,
-    url: 'https://chan179.com',
-    logo: 'https://chan179.com/og-image.png',
-  },
-  {
-    '@context': 'https://schema.org',
     '@type': 'WebSite',
     name: siteName,
     url: 'https://chan179.com',
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: {
-        '@type': 'EntryPoint',
-        urlTemplate: 'https://chan179.com/?q={search_term_string}',
-      },
-      'query-input': 'required name=search_term_string',
-    },
   },
 ];
 ---
 
-<BaseLayout title={siteName} description={baseDescription} canonical="/" minimal jsonLd={homepageJsonLd}>
-  <main class="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden pt-20">
-    <div class="mx-auto px-4 sm:px-6 py-8 lg:py-12 max-w-6xl">
-      <!-- Card grid (server-rendered for SEO) -->
-      <div class="landing-grid" style="--landing-cols: 2;">
-        {cards.map((card) => (
-          <a href={'/' + card.path} class="landing-card">
-            <div class="card-badge-wrapper"></div>
-            <h3 class="card-title">{card.title}</h3>
-            <p class="card-desc">{card.description || 'No description available.'}</p>
+<BaseLayout
+  title={siteName}
+  description={baseDescription}
+  canonical="/"
+  noNav={true}
+  jsonLd={homepageJsonLd}
+>
+  <!-- FLOATING THEME TOGGLE (NO NAVBAR) -->
+  <aside class="fixed top-6 right-6 z-50 flex items-center gap-3">
+    <button
+      @click="isDark = !isDark; document.documentElement.classList.toggle('dark', isDark); localStorage.setItem('darkMode', isDark)"
+      class="p-2.5 rounded-full bg-zinc-100/80 dark:bg-zinc-900/80 backdrop-blur-md border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white shadow-sm hover:scale-105 transition-all duration-200 cursor-pointer"
+      aria-label="Toggle dark mode"
+      title="Toggle theme (Light / Dark)"
+    >
+      <!-- Sun Icon (shown in dark mode) -->
+      <svg x-show="isDark" class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+      </svg>
+      <!-- Moon Icon (shown in light mode) -->
+      <svg x-show="!isDark" class="w-4 h-4 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+      </svg>
+    </button>
+  </aside>
+
+  <!-- MAIN WRAPPER -->
+  <main class="max-w-3xl mx-auto px-6 py-20 lg:py-24 transition-colors duration-300">
+
+    <!-- HERO / IDENTITY -->
+    <header class="mb-20">
+      <div class="flex items-center gap-2 text-xs font-mono text-emerald-600 dark:text-emerald-400 mb-4 tracking-wider uppercase">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        Available for selected engineering & advisory
+      </div>
+
+      <h1 class="text-3xl sm:text-4xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100 mb-4">
+        Chandra
+      </h1>
+
+      <p class="text-lg text-zinc-600 dark:text-zinc-400 leading-relaxed max-w-xl mb-6 font-light">
+        Software engineer focusing on distributed systems, Go, developer infrastructure, and minimal web experiences.
+      </p>
+
+      <!-- SOCIAL & CONTACT LINKS -->
+      <div class="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm font-mono text-zinc-500 dark:text-zinc-400">
+        <a href="https://github.com/Chandra179" target="_blank" rel="noopener noreferrer" class="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1 group">
+          <span>github</span>
+          <span class="text-zinc-400 dark:text-zinc-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">↗</span>
+        </a>
+        <span class="text-zinc-300 dark:text-zinc-700">/</span>
+        <a href="https://x.com/chandra179" target="_blank" rel="noopener noreferrer" class="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1 group">
+          <span>twitter/x</span>
+          <span class="text-zinc-400 dark:text-zinc-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">↗</span>
+        </a>
+        <span class="text-zinc-300 dark:text-zinc-700">/</span>
+        <a href="https://www.linkedin.com/in/chandraa17/" target="_blank" rel="noopener noreferrer" class="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1 group">
+          <span>linkedin</span>
+          <span class="text-zinc-400 dark:text-zinc-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">↗</span>
+        </a>
+        <span class="text-zinc-300 dark:text-zinc-700">/</span>
+        <a href="mailto:hello@chan179.com" class="hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors flex items-center gap-1 group">
+          <span>email</span>
+          <span class="text-zinc-400 dark:text-zinc-600 group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform">↗</span>
+        </a>
+      </div>
+    </header>
+
+    <!-- SECTION: FEATURED WORK (MEDIA SHOWCASE) -->
+    <section class="mb-24">
+      <div class="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3 mb-8">
+        <h2 class="text-xs font-mono uppercase tracking-widest text-zinc-500 font-medium">
+          Selected Projects (Media Showcase)
+        </h2>
+        <span class="text-xs font-mono text-zinc-400 dark:text-zinc-600">03 items</span>
+      </div>
+
+      <div class="space-y-12">
+        <!-- 1. VIDEO SHOWCASE PROJECT -->
+        <article class="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50 dark:bg-zinc-900/30 overflow-hidden hover:border-zinc-300 dark:hover:border-zinc-700 transition duration-300">
+          <div class="relative aspect-[16/9] w-full bg-zinc-950 flex items-center justify-center overflow-hidden border-b border-zinc-200 dark:border-zinc-800/60">
+            <div class="absolute inset-0 bg-gradient-to-tr from-zinc-950 via-zinc-900 to-zinc-950 flex flex-col justify-between p-5 font-mono text-xs">
+              <div class="flex items-center justify-between text-zinc-400 border-b border-zinc-800/80 pb-2">
+                <div class="flex items-center gap-2">
+                  <span class="h-2.5 w-2.5 rounded-full bg-red-500/80"></span>
+                  <span class="h-2.5 w-2.5 rounded-full bg-yellow-500/80"></span>
+                  <span class="h-2.5 w-2.5 rounded-full bg-emerald-500/80"></span>
+                  <span class="ml-2 text-zinc-300">atlas-engine --stream --fps 60</span>
+                </div>
+                <span class="text-[10px] bg-red-500/20 text-red-400 px-2 py-0.5 rounded border border-red-500/30 font-semibold tracking-wide">
+                  {projects[0].tag}
+                </span>
+              </div>
+              
+              <div class="my-auto text-center space-y-2 py-6">
+                <div class="inline-flex items-center gap-3 px-4 py-2 rounded-lg bg-zinc-800/80 border border-zinc-700/50 backdrop-blur-sm shadow-xl">
+                  <svg class="w-5 h-5 text-emerald-400 animate-pulse" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                  </svg>
+                  <span class="text-zinc-200 font-mono text-sm">Autoplay Looping Video / Stream</span>
+                </div>
+                <p class="text-xs text-zinc-400 font-mono">Simulates real-time telemetry streaming in WebAssembly</p>
+              </div>
+
+              <div class="w-full bg-zinc-800/80 h-1 rounded-full overflow-hidden">
+                <div class="bg-emerald-500 h-full w-2/3 animate-pulse"></div>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-6">
+            <div class="flex items-start justify-between gap-4 mb-2">
+              <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                {projects[0].title}
+              </h3>
+              <div class="flex items-center gap-3 text-xs font-mono">
+                {projects[0].demoUrl && (
+                  <a href={projects[0].demoUrl} target="_blank" rel="noopener noreferrer" class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition flex items-center gap-1">demo ↗</a>
+                )}
+                {projects[0].githubUrl && (
+                  <a href={projects[0].githubUrl} target="_blank" rel="noopener noreferrer" class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition flex items-center gap-1">code ↗</a>
+                )}
+              </div>
+            </div>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400 mb-4 font-light leading-relaxed">
+              {projects[0].description}
+            </p>
+            <div class="flex flex-wrap gap-2 text-[11px] font-mono">
+              {projects[0].tech.map((t) => (
+                <span class="px-2.5 py-1 rounded-md bg-zinc-200/70 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border border-zinc-300/60 dark:border-zinc-700/50">
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        </article>
+
+        <!-- 2. INTERACTIVE ANIMATION SHOWCASE PROJECT -->
+        <article class="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50 dark:bg-zinc-900/30 overflow-hidden hover:border-zinc-300 dark:hover:border-zinc-700 transition duration-300">
+          <div class="relative aspect-[16/9] w-full bg-zinc-950 flex items-center justify-center overflow-hidden border-b border-zinc-200 dark:border-zinc-800/60 cursor-crosshair">
+            <canvas id="interactive-canvas" class="absolute inset-0 w-full h-full"></canvas>
+            
+            <div class="absolute top-4 left-4 z-10 font-mono text-[10px] bg-zinc-900/80 backdrop-blur-md px-2.5 py-1 rounded border border-zinc-700/70 text-indigo-400">
+              {projects[1].tag} (MOVE CURSOR)
+            </div>
+            
+            <div class="absolute bottom-4 right-4 z-10 font-mono text-[11px] text-zinc-400 bg-zinc-950/70 px-2 py-1 rounded">
+              Particle Mesh / Kinetic Physics
+            </div>
+          </div>
+
+          <div class="p-6">
+            <div class="flex items-start justify-between gap-4 mb-2">
+              <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                {projects[1].title}
+              </h3>
+              <div class="flex items-center gap-3 text-xs font-mono">
+                {projects[1].demoUrl && (
+                  <a href={projects[1].demoUrl} class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition flex items-center gap-1">demo ↗</a>
+                )}
+                {projects[1].githubUrl && (
+                  <a href={projects[1].githubUrl} target="_blank" rel="noopener noreferrer" class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition flex items-center gap-1">code ↗</a>
+                )}
+              </div>
+            </div>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400 mb-4 font-light leading-relaxed">
+              {projects[1].description}
+            </p>
+            <div class="flex flex-wrap gap-2 text-[11px] font-mono">
+              {projects[1].tech.map((t) => (
+                <span class="px-2.5 py-1 rounded-md bg-zinc-200/70 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border border-zinc-300/60 dark:border-zinc-700/50">
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        </article>
+
+        <!-- 3. IMAGE / ARCHITECTURE VISUAL SHOWCASE -->
+        <article class="group rounded-2xl border border-zinc-200 dark:border-zinc-800/80 bg-zinc-50 dark:bg-zinc-900/30 overflow-hidden hover:border-zinc-300 dark:hover:border-zinc-700 transition duration-300">
+          <div class="relative aspect-[16/9] w-full bg-zinc-950 flex items-center justify-center p-8 overflow-hidden border-b border-zinc-200 dark:border-zinc-800/60">
+            <div class="w-full max-w-md p-4 rounded-xl bg-zinc-900/90 border border-zinc-800 text-xs font-mono text-zinc-400 space-y-3 shadow-2xl group-hover:scale-[1.01] transition-transform duration-500">
+              <div class="flex justify-between items-center pb-2 border-b border-zinc-800">
+                <span class="text-zinc-200 font-semibold">Distributed Cache Topology</span>
+                <span class="text-[10px] text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded border border-amber-500/20">
+                  {projects[2].tag}
+                </span>
+              </div>
+              <div class="grid grid-cols-3 gap-2 text-center text-[10px]">
+                <div class="p-2 rounded bg-zinc-800/70 border border-zinc-700/60 text-zinc-300">Client Leases</div>
+                <div class="p-2 rounded bg-indigo-950/60 border border-indigo-700/60 text-indigo-300 font-bold">Raft Quorum</div>
+                <div class="p-2 rounded bg-zinc-800/70 border border-zinc-700/60 text-zinc-300">WAL Storage</div>
+              </div>
+              <div class="flex justify-between text-[9px] text-zinc-400 pt-1">
+                <span>p99: 1.2ms</span>
+                <span>Idempotency Key: sha256</span>
+                <span>Nodes: 5</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="p-6">
+            <div class="flex items-start justify-between gap-4 mb-2">
+              <h3 class="text-base font-semibold text-zinc-900 dark:text-zinc-100 group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                {projects[2].title}
+              </h3>
+              <div class="flex items-center gap-3 text-xs font-mono">
+                {projects[2].demoUrl && (
+                  <a href={projects[2].demoUrl} class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition flex items-center gap-1">article ↗</a>
+                )}
+                {projects[2].githubUrl && (
+                  <a href={projects[2].githubUrl} target="_blank" rel="noopener noreferrer" class="text-zinc-500 hover:text-zinc-900 dark:hover:text-zinc-100 transition flex items-center gap-1">code ↗</a>
+                )}
+              </div>
+            </div>
+            <p class="text-sm text-zinc-600 dark:text-zinc-400 mb-4 font-light leading-relaxed">
+              {projects[2].description}
+            </p>
+            <div class="flex flex-wrap gap-2 text-[11px] font-mono">
+              {projects[2].tech.map((t) => (
+                <span class="px-2.5 py-1 rounded-md bg-zinc-200/70 dark:bg-zinc-800/80 text-zinc-700 dark:text-zinc-300 border border-zinc-300/60 dark:border-zinc-700/50">
+                  {t}
+                </span>
+              ))}
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- SECTION: WRITING & BLOG (EDITORIAL SCANNABLE LIST) -->
+    <section class="mb-20">
+      <div class="flex items-center justify-between border-b border-zinc-200 dark:border-zinc-800 pb-3 mb-8">
+        <h2 class="text-xs font-mono uppercase tracking-widest text-zinc-500 font-medium">
+          Writing & Notes
+        </h2>
+        <span class="text-xs font-mono text-zinc-400 dark:text-zinc-600">{posts.length} articles</span>
+      </div>
+
+      <div class="divide-y divide-zinc-200 dark:divide-zinc-800/60 border-y border-zinc-200 dark:border-zinc-800/60">
+        {posts.map((post) => (
+          <a
+            href={post.url}
+            class="group flex flex-col sm:flex-row sm:items-baseline justify-between py-4 px-2 -mx-2 rounded-lg hover:bg-zinc-100 dark:hover:bg-zinc-800/30 transition duration-200"
+          >
+            <div class="flex items-baseline gap-3">
+              {post.formattedDate && (
+                <span class="text-xs font-mono text-zinc-400 dark:text-zinc-500 shrink-0">
+                  {post.formattedDate}
+                </span>
+              )}
+              <span class="text-sm font-medium text-zinc-800 dark:text-zinc-200 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                {post.title}
+              </span>
+            </div>
+            <div class="flex items-center gap-2 text-xs font-mono text-zinc-400 dark:text-zinc-500 mt-1 sm:mt-0 shrink-0">
+              <span>{post.tag}</span>
+              <span class="text-zinc-400 dark:text-zinc-600 group-hover:translate-x-1 transition-transform">→</span>
+            </div>
           </a>
         ))}
       </div>
-    </div>
+    </section>
+
+    <!-- MINIMALIST FOOTER -->
+    <footer class="pt-8 border-t border-zinc-200 dark:border-zinc-800/60 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-zinc-500">
+      <div>
+        © {new Date().getFullYear()} Chandra
+      </div>
+      <div class="flex items-center gap-4">
+        <span>Astro + Tailwind</span>
+        <span>•</span>
+        <a href="/rss.xml" class="hover:text-zinc-800 dark:hover:text-zinc-300 transition">RSS</a>
+      </div>
+    </footer>
+
   </main>
+
+  <!-- INTERACTIVE CANVAS LOGIC -->
+  <script is:inline>
+    (function () {
+      var canvas = document.getElementById('interactive-canvas');
+      if (!canvas) return;
+      var ctx = canvas.getContext('2d');
+      if (!ctx) return;
+
+      var width, height;
+      var particles = [];
+      var mouse = { x: null, y: null, radius: 100 };
+
+      function resize() {
+        if (!canvas || !canvas.parentElement) return;
+        width = canvas.width = canvas.parentElement.offsetWidth;
+        height = canvas.height = canvas.parentElement.offsetHeight;
+        initParticles();
+      }
+
+      function Particle() {
+        this.x = Math.random() * width;
+        this.y = Math.random() * height;
+        this.vx = (Math.random() - 0.5) * 0.8;
+        this.vy = (Math.random() - 0.5) * 0.8;
+        this.radius = 2;
+      }
+
+      Particle.prototype.update = function () {
+        this.x += this.vx;
+        this.y += this.vy;
+
+        if (this.x < 0 || this.x > width) this.vx *= -1;
+        if (this.y < 0 || this.y > height) this.vy *= -1;
+
+        if (mouse.x !== null && mouse.y !== null) {
+          var dx = mouse.x - this.x;
+          var dy = mouse.y - this.y;
+          var distance = Math.sqrt(dx * dx + dy * dy);
+          if (distance < mouse.radius) {
+            var force = (mouse.radius - distance) / mouse.radius;
+            this.x -= (dx / distance) * force * 3;
+            this.y -= (dy / distance) * force * 3;
+          }
+        }
+      };
+
+      Particle.prototype.draw = function () {
+        var isDark = document.documentElement.classList.contains('dark');
+        ctx.fillStyle = isDark ? '#818cf8' : '#6366f1';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+        ctx.fill();
+      };
+
+      function initParticles() {
+        particles = [];
+        var count = Math.floor((width * height) / 7000);
+        for (var i = 0; i < count; i++) {
+          particles.push(new Particle());
+        }
+      }
+
+      function animate() {
+        if (!ctx) return;
+        ctx.clearRect(0, 0, width, height);
+
+        var isDark = document.documentElement.classList.contains('dark');
+
+        for (var i = 0; i < particles.length; i++) {
+          for (var j = i + 1; j < particles.length; j++) {
+            var dx = particles[i].x - particles[j].x;
+            var dy = particles[i].y - particles[j].y;
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (dist < 80) {
+              ctx.strokeStyle = isDark
+                ? 'rgba(129, 140, 248, ' + (0.25 * (1 - dist / 80)) + ')'
+                : 'rgba(99, 102, 241, ' + (0.25 * (1 - dist / 80)) + ')';
+              ctx.lineWidth = 0.8;
+              ctx.beginPath();
+              ctx.moveTo(particles[i].x, particles[i].y);
+              ctx.lineTo(particles[j].x, particles[j].y);
+              ctx.stroke();
+            }
+          }
+        }
+
+        for (var k = 0; k < particles.length; k++) {
+          particles[k].update();
+          particles[k].draw();
+        }
+
+        requestAnimationFrame(animate);
+      }
+
+      window.addEventListener('resize', resize);
+      canvas.addEventListener('mousemove', function (e) {
+        var rect = canvas.getBoundingClientRect();
+        mouse.x = e.clientX - rect.left;
+        mouse.y = e.clientY - rect.top;
+      });
+      canvas.addEventListener('mouseleave', function () {
+        mouse.x = null;
+        mouse.y = null;
+      });
+
+      resize();
+      animate();
+    })();
+  </script>
 </BaseLayout>
+

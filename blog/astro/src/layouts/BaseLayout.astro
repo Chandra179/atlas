@@ -15,6 +15,7 @@ interface Props {
   ogImage?: string;
   jsonLd?: object | object[];
   minimal?: boolean;
+  noNav?: boolean;
   created?: Date;
   modified?: Date;
   tags?: string[];
@@ -32,6 +33,7 @@ const {
   ogImage = '/og-image.png',
   jsonLd,
   minimal = false,
+  noNav = false,
   created,
   modified,
   tags = [],
@@ -105,7 +107,7 @@ const resolvedOgImage = new URL(ogImage, Astro.site).href;
     Skip to content
   </a>
 
-  {!minimal && (
+  {!noNav && !minimal && (
     <>
       <!-- Mobile Header -->
       <div
@@ -163,7 +165,7 @@ const resolvedOgImage = new URL(ogImage, Astro.site).href;
     </>
   )}
 
-  {minimal && (
+  {!noNav && minimal && (
     <header class="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 z-50 flex items-center justify-between px-6">
       <a href="/" class="font-bold text-xl text-gray-900 dark:text-white">Chandra</a>
       <button @click="isDark = !isDark; document.documentElement.classList.toggle('dark', isDark); localStorage.setItem('darkMode', isDark)"

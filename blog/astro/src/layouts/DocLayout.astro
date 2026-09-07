@@ -117,13 +117,43 @@ const modifiedDiffersFromCreated =
   tags={tags}
   author={author}
   noindex={noindex}
+  noNav={true}
 >
-  <Sidebar nav={nav} currentPath={url} />
+  <!-- READING PROGRESS BAR -->
+  <div id="progress-bar" class="fixed top-0 left-0 h-[2px] bg-emerald-500 z-50 transition-all duration-75" style="width: 0%;"></div>
 
-  <main class="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden transition-all duration-300 pt-16 lg:ml-64 xl:mr-64">
-    <div id="doc-content-wrapper" class="mx-auto px-4 sm:px-6 py-8 lg:py-12 max-w-3xl">
+  <!-- FLOATING BACK BUTTON -->
+  <aside class="fixed top-6 left-6 z-50">
+    <a
+      href="/"
+      class="flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-zinc-100/80 dark:bg-zinc-900/80 backdrop-blur-md border border-zinc-200 dark:border-zinc-800 text-xs font-mono text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:border-zinc-300 dark:hover:border-zinc-700 shadow-sm transition group"
+    >
+      <span class="group-hover:-translate-x-0.5 transition-transform">←</span>
+      <span>Chandra</span>
+    </a>
+  </aside>
+
+  <!-- FLOATING THEME TOGGLE -->
+  <aside class="fixed top-6 right-6 z-50 flex items-center gap-3">
+    <button
+      @click="isDark = !isDark; document.documentElement.classList.toggle('dark', isDark); localStorage.setItem('darkMode', isDark)"
+      class="p-2.5 rounded-full bg-zinc-100/80 dark:bg-zinc-900/80 backdrop-blur-md border border-zinc-200 dark:border-zinc-800 text-zinc-600 dark:text-zinc-300 hover:text-black dark:hover:text-white shadow-sm hover:scale-105 transition-all duration-200 cursor-pointer"
+      aria-label="Toggle dark mode"
+      title="Toggle theme (Light / Dark)"
+    >
+      <svg x-show="isDark" class="w-4 h-4 text-amber-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M12 8a4 4 0 100 8 4 4 0 000-8z"/>
+      </svg>
+      <svg x-show="!isDark" class="w-4 h-4 text-zinc-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+      </svg>
+    </button>
+  </aside>
+
+  <main class="min-h-screen bg-white dark:bg-gray-900 overflow-x-hidden transition-colors duration-300 pt-24 pb-20">
+    <div id="doc-content-wrapper" class="mx-auto px-6 max-w-2xl">
       <div class="flex justify-between items-center mb-6 gap-4">
-        <nav aria-label="Breadcrumb" class="text-sm">
+        <nav aria-label="Breadcrumb" class="text-xs font-mono">
           <ol class="flex flex-wrap items-center gap-1 text-gray-400 dark:text-gray-500">
             {crumbNames.map((name, i) => (
               <li class="flex items-center gap-1">
@@ -133,9 +163,7 @@ const modifiedDiffersFromCreated =
                   <span class="text-gray-700 dark:text-gray-300 font-medium">{name}</span>
                 )}
                 {i < crumbNames.length - 1 && (
-                  <svg class="w-3 h-3 mx-1" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                  </svg>
+                  <span class="text-zinc-400 dark:text-zinc-600">/</span>
                 )}
               </li>
             ))}
@@ -150,7 +178,7 @@ const modifiedDiffersFromCreated =
               @click="copy"
               aria-label="Copy as Markdown"
               title="Copy as Markdown"
-              class="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400"
+              class="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400 cursor-pointer"
             >
               <svg x-show="!copied" class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect>
@@ -164,7 +192,7 @@ const modifiedDiffersFromCreated =
               @click="downloadPdf"
               aria-label="Download as PDF"
               title="Download as PDF"
-              class="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400"
+              class="p-1.5 rounded-lg border border-gray-200 dark:border-gray-700 bg-white/80 dark:bg-gray-800/80 backdrop-blur-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400 cursor-pointer"
             >
               <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
                 <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
@@ -178,7 +206,7 @@ const modifiedDiffersFromCreated =
       </div>
 
       {created && (
-        <p class="text-sm text-gray-400 dark:text-gray-500 mb-6">
+        <p class="text-xs font-mono text-gray-400 dark:text-gray-500 mb-6">
           Published {dateFormatter.format(created)}
           {modifiedDiffersFromCreated && <> · Updated {dateFormatter.format(modified!)}</>}
         </p>
@@ -190,11 +218,11 @@ const modifiedDiffersFromCreated =
 
       {relatedPosts.length > 0 && (
         <nav aria-label="Related articles" class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
-          <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3">Related</h2>
+          <h2 class="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3 font-mono">Related</h2>
           <ul class="flex flex-col gap-2">
             {relatedPosts.map((post) => (
               <li>
-                <a href={post.url} class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                <a href={post.url} class="text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
                   {post.title}
                 </a>
               </li>
@@ -207,24 +235,57 @@ const modifiedDiffersFromCreated =
         <nav aria-label="Previous and next articles" class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">
           <div class="grid grid-cols-2 gap-4">
             {prev ? (
-              <a href={prev.url} class="group p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
-                <span class="text-xs text-gray-400 dark:text-gray-500">Previous</span>
-                <span class="block mt-1 text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{prev.name}</span>
+              <a href={prev.url} class="group p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-600 transition-colors">
+                <span class="text-xs text-gray-400 dark:text-gray-500 font-mono">Previous</span>
+                <span class="block mt-1 text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{prev.name}</span>
               </a>
             ) : <div></div>}
             {next ? (
-              <a href={next.url} class="group p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 transition-colors text-right">
-                <span class="text-xs text-gray-400 dark:text-gray-500">Next</span>
-                <span class="block mt-1 text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">{next.name}</span>
+              <a href={next.url} class="group p-4 rounded-lg border border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-600 transition-colors text-right">
+                <span class="text-xs text-gray-400 dark:text-gray-500 font-mono">Next</span>
+                <span class="block mt-1 text-sm font-medium text-gray-700 dark:text-gray-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">{next.name}</span>
               </a>
             ) : <div></div>}
           </div>
         </nav>
       )}
+
+      <!-- MINIMAL ARTICLE FOOTER -->
+      <footer class="mt-16 pt-8 border-t border-zinc-200 dark:border-zinc-800 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs font-mono text-zinc-500">
+        <div class="flex items-center gap-3">
+          <a href="/" class="hover:text-zinc-900 dark:hover:text-zinc-200 transition flex items-center gap-1 group">
+            <span class="group-hover:-translate-x-0.5 transition-transform">←</span>
+            <span>back to all notes</span>
+          </a>
+          <span>·</span>
+          <button
+            x-data="{ copied: false }"
+            @click="navigator.clipboard.writeText(window.location.href); copied = true; setTimeout(() => copied = false, 2000)"
+            class="hover:text-zinc-900 dark:hover:text-zinc-200 transition cursor-pointer"
+          >
+            <span x-show="!copied">copy link</span>
+            <span x-show="copied" class="text-emerald-500">copied ✓</span>
+          </button>
+        </div>
+
+        <div class="flex items-center gap-3 text-zinc-400 dark:text-zinc-600">
+          <span>chan179.com</span>
+          <span>•</span>
+          <a href="/rss.xml" class="hover:text-zinc-700 dark:hover:text-zinc-300 transition">rss</a>
+        </div>
+      </footer>
     </div>
   </main>
 
-  <TOC headings={headings} />
+  <script is:inline>
+    window.addEventListener('scroll', function () {
+      var winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+      var height = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+      var scrolled = height > 0 ? (winScroll / height) * 100 : 0;
+      var bar = document.getElementById('progress-bar');
+      if (bar) bar.style.width = scrolled + '%';
+    });
+  </script>
 
   <script>
     import '../scripts/mermaid-viewer.js';
