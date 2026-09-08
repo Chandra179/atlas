@@ -15,45 +15,48 @@ modified: '2026-09-08'
 
 Nadir RAG search engine with Chat based conversatiion
 
-## Big Picture
+## Request and retrieval flow
+
+The public request path stays intentionally small. Nadir is one Go server, with
+Qdrant and Ollama providing the main external dependencies.
 
 ```mermaid
-flowchart TB
-    Client[Browser / curl]
-    Ollama[("Ollama<br/>embeddings + LLM")]
-    Qdrant[("Qdrant<br/>vector store")]
-    RerankerSvc["Reranker sidecar"]
-    DoclingSvc["Docling sidecar · optional"]
+flowchart LR
+    CLIENT[Client] --> API[HTTP API]
+    API --> CHAT[Chat use-case]
+    CHAT --> SEARCH[Hybrid search]
+    SEARCH --> QDRANT[(Qdrant)]
+    SEARCH --> RERANK[Reranker]
+    CHAT --> OLLAMA[(Ollama<br/>rewrite + generation)]
+```
 
-    subgraph Nadir["Nadir server"]
-        direction TB
-        API["HTTP API + middleware"]
-        CHAT["Chat use-case"]
-        REWRITE["Query rewrite<br/>Rewrite-Retrieve-Read"]
-        SEARCH["Search<br/>hybrid search → rerank → cache"]
-        CACHE["Semantic cache"]
-        INGEST["Ingest<br/>dedup + pipeline"]
-        GEN["Answer generation"]
-        HIST["Chat history"]
-    end
+## Ingestion flow
 
-    Client -->|HTTP| API
-    API -->|ingest| INGEST
-    API -->|search| CHAT
-    CHAT -->|rewrite follow-ups| REWRITE
-    REWRITE -->|standalone query| Ollama
-    CHAT --> SEARCH
-    CHAT -->|generate answers| GEN
-    CHAT -->|persist turns · best-effort| HIST
-    SEARCH -->|hybrid search| Qdrant
-    SEARCH -->|near-repeat queries| CACHE
-    SEARCH -->|re-rank| RerankerSvc
-    INGEST -->|index chunks| Qdrant
-    INGEST -->|index-time enrichment| Ollama
-    GEN -->|generate| Ollama
-    CACHE -->|cache collection| Qdrant
-    HIST -->|history collection| Qdrant
-    DoclingSvc -.->|PDF→Markdown · standalone, not wired| INGEST
+Ingestion is a separate path from question answering, so it can be understood
+without the chat and retrieval internals.
+
+```mermaid
+flowchart LR
+    CLIENT[Client] --> API[HTTP API]
+    API --> INGEST[Ingest and deduplicate]
+    INGEST --> QDRANT[(Qdrant)]
+    INGEST --> OLLAMA[(Ollama enrichment)]
+    DOCLING[Docling PDF parser] -.-> INGEST
+```
+
+## State and supporting services
+
+Chat history and the semantic cache are both stored as separate Qdrant
+collections. Query rewriting is optional and only applies to follow-up turns.
+
+```mermaid
+flowchart LR
+    CHAT[Chat use-case] --> REWRITE[Query rewrite]
+    CHAT --> CACHE[Semantic cache]
+    CHAT --> HISTORY[Chat history]
+    REWRITE --> OLLAMA[(Ollama)]
+    CACHE --> QDRANT[(Qdrant)]
+    HISTORY --> QDRANT
 ```
 
 

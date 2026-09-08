@@ -81,15 +81,15 @@ flowchart LR
 
     subgraph Redis["Redis Server"]
         direction TB
-        NIC[Network Interface TCP/IP Socket]
-        Q[FIFO Queue Single-Threaded]
-        CPU[CPU Event Loop]
-        RAM[In-Memory Data RAM]
-        BG[Background Fork Disk Persistence]
+        NIC[TCP socket]
+        Q[FIFO queue]
+        CPU[CPU event loop]
+        RAM[Working data in RAM]
+        BG[Async persistence]
     end
 
     subgraph Disk["Disk (SSD)"]
-        RDB[(RDB Snapshot AOF Log)]
+        RDB[(RDB / AOF)]
     end
 
     A1 -->|"Request A (1-5ms network)"| NIC
@@ -198,18 +198,6 @@ Instead of sending multiple round-trip network requests from your app server to 
 
 Before Lua support was added (in Redis 2.6), if you wanted to read data, make a decision, and then write data to Redis, you had to perform multiple network round-trips:
 
-```mermaid
-sequenceDiagram
-    participant App as Application Server
-    participant Redis as Redis Server
-
-    App->>Redis: GET user:123:balance
-    Redis-->>App: $100 (Network Delay 1)
-    Note over App: App logic: Does user have $20? Yes!
-    App->>Redis: SET user:123:balance $80
-    Redis-->>App: OK (Network Delay 2)
-```
-
 Two Major Problems with this approach:
 
 - **Network Latency**: You pay the network ping tax twice (or more).
@@ -218,16 +206,6 @@ Two Major Problems with this approach:
 **How Lua Changes the Game**
 
 With embedded Lua, you move the logic to the data, rather than bringing the data across the network to your logic:
-
-```mermaid
-sequenceDiagram
-    participant App as Application Server
-    participant Redis as Redis Server
-
-    App->>Redis: EVAL Lua Script (check balance + DECRBY atomically)
-    Note over Redis: Executes ENTIRELY in RAM atomically
-    Redis-->>App: 1 (Success) in < 1 millisecond
-```
 
 **The 3 Big Benefits of Redis + Lua**
 
@@ -289,22 +267,6 @@ Imagine Rider A and Rider B both tap "Request Ride" in Downtown San Francisco at
 
 If your app server handles the checking and setting logic using standard Redis commands:
 
-```mermaid
-sequenceDiagram
-    participant AppA as Rider A App Server
-    participant AppB as Rider B App Server
-    participant Redis as Redis Server
-
-    Note over AppA,AppB: Both Request Ride at 5:00:00.000 PM
-    AppA->>Redis: GET driver:123:status
-    AppB->>Redis: GET driver:123:status
-    Redis-->>AppA: AVAILABLE
-    Redis-->>AppB: AVAILABLE
-    AppA->>Redis: SET driver:123:status BUSY
-    AppB->>Redis: SET driver:123:status BUSY
-    Note over AppA,AppB: Both told Driver 123 is on the way
-```
-
 Outcome: Double-Booking Failure! Both riders are told "Driver 123 is on the way." Driver 123 receives two conflicting trip requests.
 
 **Approach 2: Traditional Distributed Locks (SETNX or Redlock)**
@@ -336,19 +298,6 @@ if current_status == "AVAILABLE" then
 else
     return 0 -- FAILURE: Driver already claimed
 end
-```
-
-```mermaid
-sequenceDiagram
-    participant AppA as Rider A App Server
-    participant AppB as Rider B App Server
-    participant Redis as Redis Server
-
-    AppA->>Redis: EVAL Lua Script (check + atomically set)
-    Redis-->>AppA: 1 - Success, Driver claimed
-    AppB->>Redis: EVAL Lua Script (check + atomically set)
-    Redis-->>AppB: 0 - Failure, Driver already BUSY
-    Note over AppA,AppB: Zero double-booking guaranteed
 ```
 
 **Why the Lua Script Wins**
@@ -393,16 +342,6 @@ Each key is mapped to a slot via CRC16 hashing:
 
 ```
 Slot = CRC16(Key) mod 16384
-```
-
-```mermaid
-flowchart LR
-    subgraph Cluster[Redis Cluster]
-        N1[Node 1 - Slots 0-8191]
-        N2[Node 2 - Slots 8192-16383]
-    end
-    K1[user:101 - Slot 5] --> N1
-    K2[driver:99 - Slot 9000] --> N2
 ```
 
 This leads to two distinct scenarios for atomic operations in a distributed system:

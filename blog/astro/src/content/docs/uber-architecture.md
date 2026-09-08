@@ -23,17 +23,17 @@ Here is a breakdown of how the architecture works step-by-step.
 
 ```mermaid
 graph TB
-    RC["Rider App"]
-    DC["Driver App"]
-    RC --> EG[Edge Gateway]
+    RC[Rider app]
+    DC[Driver app]
+    RC --> EG[Edge gateway]
     DC --> EG
-    EG --> SS[Supply Service]
-    EG --> DS[Demand Service]
-    SS --> DE[DISCO Engine]
+    EG --> SS[Supply service]
+    EG --> DS[Demand service]
+    SS --> DE[DISCO]
     DS --> DE
-    DE --> RTE[Real-Time Event Stream Kafka / Flink Pipe]
-    DE --> INF[Infrastructure Multi-Region DCs]
-    RTE --> MLB[ML & Business Michelangelo, Payments, Safety]
+    DE --> RTE[Kafka / Flink]
+    DE --> INF[Multi-region infra]
+    RTE --> MLB[ML / payments / safety]
     INF --> MLB
 ```
 
@@ -49,11 +49,11 @@ The foundation of Uber's location system is Earth partitioning. Because calculat
 
 ```mermaid
 graph TB
-    RA[Rider App] -->|WebSocket/HTTP| DS[Demand Service]
-    DA[Driver App] -->|WebSocket Location ping every 4s| SS[Supply Service]
+    RA[Rider app] -->|WebSocket / HTTP| DS[Demand service]
+    DA[Driver app] -->|Location ping| SS[Supply service]
     DS --> DISCO[DISCO Dispatch]
     SS --> DISCO
-    DISCO --> ETA[ETA Engine & Routing Map Matching]
+    DISCO --> ETA[ETA / routing]
 ```
 
 **Step A: Supply Service (Tracking Drivers)**
@@ -140,16 +140,24 @@ Instead of choosing one CAP trade-off for the entire platform, we split the syst
 
 ### Pipeline Architecture
 
+**Driver write path:**
+
 ```mermaid
 graph LR
-    DA[Driver App] -->|WebSocket| AG[API Gateway]
+    DA[Driver app] -->|WebSocket| AG[API gateway]
     AG --> K[Kafka]
-    K --> LTS[Location Tracking Service]
-    LTS --> RC1[Redis Cluster]
-    RA[Rider App] -->|HTTPS/gRPC| AG
-    AG --> DISCO[Dispatch Service DISCO]
-    DISCO -->|query nearby drivers| RC2[Redis Cluster]
-    DISCO -->|gRPC| ETA[ETA Engine]
+    K --> LTS[Location tracking]
+    LTS --> RC1[Redis cluster]
+```
+
+**Rider read and matching path:**
+
+```mermaid
+graph LR
+    RA[Rider app] -->|HTTPS/gRPC| AG[API gateway]
+    AG --> DISCO[DISCO dispatch]
+    DISCO -->|nearby drivers| RC2[Redis cluster]
+    DISCO -->|gRPC| ETA[ETA engine]
 ```
 
 **The Write Path (Driver Ingestion):**
@@ -283,18 +291,6 @@ SET driver:lock:drv_98765 "trip_id:ride_111" NX EX 15
 - `NX`: Only set if the key does not already exist (atomic check-and-set).
 - `EX 15`: Auto-expire after 15 seconds (safety net).
 
-```mermaid
-flowchart TD
-    DISCO[DISCO Engine]
-    SETNX["SET driver:lock:drv_98765 ride_111 NX EX 15"]
-    SEND["Send Offer to Driver drv_98765"]
-    SKIP["Skip to Candidate #2 (Driver Y)"]
-
-    DISCO --> SETNX
-    SETNX -->|Success 1| SEND
-    SETNX -->|Failure 0| SKIP
-```
-
 #### Edge Cases & State Machines
 
 **Case A: Driver Accepts**
@@ -353,17 +349,6 @@ App instances (Node.js, Go, Java microservices like DISCO) are stateless and sca
 #### Redis Cluster Node Topology
 
 In a production Redis Cluster, each node (Master or Replica) runs as its own process on a dedicated VM. Running 3 masters on the same VM would defeat the purpose of clustering: one hardware failure takes everything down.
-
-```mermaid
-graph TB
-    subgraph VM1["Physical Host / VM 1"]
-        M1["Redis Master 1 Handles Slots 0-5460"]
-    end
-    M1 -->|Replication stream| R1
-    subgraph VM2["Physical Host / VM 2"]
-        R1["Redis Replica 1 Standby copy of Master 1"]
-    end
-```
 
 #### Communication Protocols
 
@@ -496,13 +481,6 @@ Trip data is separated logically by domain so high-volume operations don't impac
 
 Keeping decades of trip history in expensive high-speed transactional databases is not viable. Uber moves data through a tiered lifecycle:
 
-```mermaid
-graph TB
-    ACTIVE["Active / Recent Trips"] --> HOT["Schemaless MySQL / NVMe SSDs Hot Data: 0-30 Days"]
-    HOT -->|Kafka CDC| WARM["Cassandra / HBase Cluster Warm Data: 30+ Days"]
-    WARM -->|Batch Ingestion| COLD["Hadoop HDFS / Apache Iceberg Cold Data: Permanent"]
-```
-
 - **Hot Tier (Schemaless / NVMe SSDs):** Active and recent trips (0-30 days). Optimized for fast API reads (e.g., viewing a recent receipt).
 - **Warm Tier (Cassandra / HBase):** Older trips where high-throughput reads are infrequent, but individual point lookups (e.g., auditing a trip from 2 years ago) must still complete under 100ms.
 - **Cold Tier / Data Lake (Hadoop HDFS, Parquet, Apache Iceberg):** Changes in Schemaless are published to Kafka via Change Data Capture (CDC). Stream ingestion pipelines write these into columnar Parquet files in a Hadoop Data Lake. Data teams query this tier using Presto/Trino or Spark for long-term trends, ETA model retraining, and fraud pattern recognition.
@@ -510,20 +488,6 @@ graph TB
 ### Multi-Region Data Replication
 
 Uber operates in an Active-Active configuration across regions:
-
-```mermaid
-graph TB
-    subgraph WEST["US-West Data Center"]
-        P1["Schemaless Primary Shard 1"]
-        R2["Schemaless Replica Shard 2"]
-    end
-    subgraph EAST["US-East Data Center"]
-        P2["Schemaless Primary Shard 2"]
-        R1["Schemaless Replica Shard 1"]
-    end
-    P1 -->|Async Cross-Region Kafka Replication| R1
-    P2 -->|Async Cross-Region Kafka Replication| R2
-```
 
 - **Asynchronous Multi-Master Replication:** Each region acts as primary master for its local shards while asynchronously replicating writes to other regions via Kafka event pipelines.
 - **Conflict Resolution:** Because Schemaless uses append-only rows with incremental Ref Keys, concurrent writes across two regions do not overwrite each other; they append new versions resolved at read time using deterministic timestamp rules.
@@ -548,11 +512,11 @@ graph TB
         BINLOG["Transaction Binlog"]
         MYSQL --> BINLOG
     end
-    BINLOG -->|Reads Raw Binlog Bytes| ST["StorageTapper CDC Service Parses mutations → Schematizes via Avro Schema"]
-    ST -->|Publishes Events| KAFKA["Apache Kafka Cluster Topic: schemaless.trip_events"]
-    KAFKA -->|Real-Time Path| FLINK["Apache Flink / Pinot Real-time Surge & Fraud"]
-    KAFKA -->|Batch Data Lake Path| MH["Marmaray / Hoodi Data Lake Ingestion Engine"]
-    MH --> HDFS["Hadoop HDFS / S3 Columnar Storage Parquet"]
+    BINLOG -->|reads| ST[StorageTapper CDC]
+    ST -->|publishes| KAFKA[Kafka events]
+    KAFKA -->|real-time| FLINK[Flink / Pinot]
+    KAFKA -->|batch| MH[Marmaray / Hudi]
+    MH --> HDFS[HDFS / S3 Parquet]
 ```
 
 #### Step-by-Step Data Journey
@@ -626,20 +590,6 @@ To handle complex multi-step processes and maintain financial accuracy, Uber rel
 When a trip is canceled mid-route, several microservices must execute steps in a precise sequence: charge a cancellation fee, notify the driver, update driver availability, issue promo credits, and recalibrate matching algorithms. Standard microservices using HTTP calls or message queues risk losing state if the payment service drops connection halfway through, leading to duplicate charges or orphaned transactions.
 
 Uber created Cadence (now evolved in the open-source community as Temporal) to solve this via Durable Execution.
-
-```mermaid
-graph TB
-    subgraph CADENCE["Cadence Cluster"]
-        WS["Workflow Service Orchestrator"]
-        EHS["Event History Store Cassandra / Database"]
-        WS --> EHS
-    end
-    WS -->|Task Queues gRPC| WORKERS
-    subgraph WORKERS["Worker Processes"]
-        WW["Workflow Worker Deterministic Business Logic"]
-        AW["Activity Worker Non-deterministic Side Effects / APIs"]
-    end
-```
 
 **Workflows vs. Activities:**
 
@@ -737,17 +687,6 @@ graph TB
 
 Determining how to decompose a system into Steps (Activities), Flows (Child/Parent Workflows), and Journeys (Entities) is the most critical design decision in durable execution. If boundaries are too granular, you hit Event History limits (default 51,200 events per execution). If they are too broad, your code becomes monolithic and hard to recover or test.
 
-```mermaid
-graph TB
-    T4["Tier 4: Journey entity workflow"]
-    T3["Tier 3: Flow / business sub-workflow"]
-    T2["Tier 2: Step / activity"]
-    T1["Tier 1: Local function / code"]
-    T4 -->|Signals / Child Calls| T3
-    T3 -->|Schedules| T2
-    T2 -->|Internal Call| T1
-```
-
 **Tier 2: Step (Activity)** A unit of work that interacts with the real world or performs non-deterministic logic. Make it an Activity if it involves network I/O, non-deterministic operations (time.Now(), random UUID), requires failure retries with exponential backoff, or heavy CPU computation. Keep it inline in the Workflow if it's pure data manipulation (validating input, mapping JSON, basic math).
 
 **Tier 3: Flow (Child / Sub-Workflow)** A self-contained, bounded business sequence. Make it a Sub-Workflow if it is a reusable business unit (e.g., Refund & Cancellation Flow invoked by multiple parents), generates thousands of events (so its history completes independently), needs an independent failure domain, or is owned by a different team.
@@ -806,17 +745,6 @@ func DocumentVerificationFlow(ctx workflow.Context, driverID string) error {
 
 The 4-tier hierarchy applied to Uber Eats, where a single order coordinates a customer, restaurant, and courier through a ~45-minute lifecycle.
 
-```mermaid
-graph TB
-    T4["Tier 4: Journeys entity workflows"]
-    T3["Tier 3: Flows sub-workflows"]
-    T2["Tier 2: Steps activities"]
-    T1["Tier 1: Local functions"]
-    T4 -->|Coordinates / Spawns| T3
-    T3 -->|Schedules| T2
-    T2 -->|Pure Code| T1
-```
-
 **OrderFulfillmentJourney:**
 
 ```mermaid
@@ -825,10 +753,9 @@ graph TB
     PAY --> REST["Restaurant Preparation Flow"]
     REST --> COURIER["Courier Dispatch & Pickup"]
     COURIER --> DELIVERY["Delivery & Hand-off Flow"]
-    SIG1["Signal: Restaurant Accepts Est. Prep 15m"] -.-> REST
-    SIG2["Signal: Courier Arrived / Picked Up"] -.-> COURIER
-    SIG3["Signal: Order Delivered PIN verified"] -.-> DELIVERY
 ```
+
+Signals update the active stage asynchronously: restaurant acceptance updates preparation, courier arrival updates pickup, and delivery confirmation closes the flow.
 
 **Flow A: Payment Authorization** Runs as a child workflow to fail fast before notifying the restaurant. If payment fails, no food waste.
 
@@ -909,13 +836,6 @@ At Uber's scale, handling millions of concurrent mobile clients, web application
 
 Uber's edge topology relies on a two-tier gateway design to separate threat mitigation from business routing.
 
-```mermaid
-graph TB
-    CLIENTS["Mobile app / Client APIs"] -->|https / http/3 grpc| CF["1. Cloudflare / Anycast edge layer"]
-    CF -->|cleaned traffic| GW["2. Uber edge gateway Envoy proxy"]
-    GW -->|internal mTLS + SPIFFE passport| MS["3. Core microservices Passenger service | Driver dispatch"]
-```
-
 **Tier 1: Anycast & Public Edge (Cloudflare WAF)**
 
 - Anycast IP routing sends traffic to the nearest global PoP, minimizing TCP/TLS handshake latency.
@@ -933,23 +853,6 @@ Once inside Uber's network, the Envoy-based gateway performs four critical funct
 ### Security, OAuth2 & Identity Engineering
 
 Managing session state for millions of riders and drivers requires a dual-token identity pipeline: external OAuth2 tokens for public transport and internal Passports for microservices.
-
-```mermaid
-sequenceDiagram
-    participant Client
-    participant EG as Edge Gateway
-    participant IS as Identity Service
-    participant MS as Internal Microservice
-
-    Client->>EG: POST /oauth/token
-    EG->>IS: Validate Credentials
-    IS-->>EG: Generate Access Token
-    EG-->>Client: Return Access Token
-    Client->>EG: GET /v1/trips (Bearer Token)
-    EG->>IS: Exchange Token
-    IS-->>EG: Return HMAC Passport
-    EG->>MS: Forward Request + Passport
-```
 
 **External Authentication (OAuth2):** When a user logs in, the Identity Service issues a short-lived OAuth2 Access Token (1 hour) and a Refresh Token (stored in device Keychain/Keystore). Mobile clients send the access token in the `Authorization: Bearer <token>` header.
 
