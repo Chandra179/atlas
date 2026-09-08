@@ -1,8 +1,13 @@
 ---
 title: Nadir
-description: Nadir RAG Search Engine
+description: Nadir RAG Search Engine with Qdrant, LLM
+tags:
+  - system-design
+  - llm
+  - rag
 links:
   github: https://github.com/Chandra179
+created: 2026-09-08T00:00:00.000Z
 modified: '2026-09-08'
 ---
 
