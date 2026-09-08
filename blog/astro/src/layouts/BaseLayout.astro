@@ -43,7 +43,7 @@ const {
   noindex = false,
 } = Astro.props;
 
-const siteName = 'Chan179';
+const siteName = 'Chandra179';
 const fullTitle = title === siteName ? title : `${title} — ${siteName}`;
 const canonicalUrl = new URL(canonical, Astro.site).href;
 const resolvedOgImage = new URL(ogImage, Astro.site).href;
@@ -98,6 +98,20 @@ const resolvedOgImage = new URL(ogImage, Astro.site).href;
       if (stored === 'true' || (stored === null && prefersDark)) {
         document.documentElement.classList.add('dark');
       }
+
+      // Astro swaps the document during client-side navigation. Carry the
+      // current theme class to the incoming document so the preference does
+      // not flash back to light mode on article pages.
+      document.addEventListener('astro:before-swap', function (event) {
+        var isDark = document.documentElement.classList.contains('dark');
+        event.newDocument.documentElement.classList.toggle('dark', isDark);
+      });
+
+      document.addEventListener('astro:page-load', function () {
+        var saved = localStorage.getItem('darkMode');
+        if (saved === 'true') document.documentElement.classList.add('dark');
+        if (saved === 'false') document.documentElement.classList.remove('dark');
+      });
     })();
   </script>
 </head>
@@ -121,7 +135,7 @@ const resolvedOgImage = new URL(ogImage, Astro.site).href;
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
           </svg>
         </button>
-        <a href="/" class="font-bold text-lg text-gray-900 dark:text-white flex-1">Chandra</a>
+        <a href="/" class="font-bold text-lg text-gray-900 dark:text-white flex-1">Chandra179</a>
         <button @click="isDark = !isDark; document.documentElement.classList.toggle('dark', isDark); localStorage.setItem('darkMode', isDark)"
           class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg flex-shrink-0" aria-label="Toggle dark mode">
           <svg x-show="isDark" class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -136,7 +150,7 @@ const resolvedOgImage = new URL(ogImage, Astro.site).href;
       <!-- Desktop Header -->
       <header class="hidden lg:flex fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 z-50 items-center justify-between">
         <div class="flex items-center w-64 pl-6">
-          <a href="/" class="font-bold text-xl text-gray-900 dark:text-white">Chandra</a>
+          <a href="/" class="font-bold text-xl text-gray-900 dark:text-white">Chandra179</a>
         </div>
         <div class="flex-1 min-w-0">
           <div class="max-w-3xl mx-auto px-6 w-full">
@@ -167,7 +181,7 @@ const resolvedOgImage = new URL(ogImage, Astro.site).href;
 
   {!noNav && minimal && (
     <header class="fixed top-0 left-0 right-0 h-16 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-700 z-50 flex items-center justify-between px-6">
-      <a href="/" class="font-bold text-xl text-gray-900 dark:text-white">Chandra</a>
+      <a href="/" class="font-bold text-xl text-gray-900 dark:text-white">Chandra179</a>
       <button @click="isDark = !isDark; document.documentElement.classList.toggle('dark', isDark); localStorage.setItem('darkMode', isDark)"
         class="p-2 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg" aria-label="Toggle dark mode">
         <svg x-show="isDark" class="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">

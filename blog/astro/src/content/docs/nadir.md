@@ -1,5 +1,8 @@
 ---
 title: Nadir
+description: Nadir RAG Search Engine
+links:
+  github: https://github.com/Chandra179
 modified: '2026-09-07'
 ---
 

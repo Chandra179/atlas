@@ -1,3 +1,10 @@
+---
+title: "Nadir"
+description: "Nadir RAG Search Engine"
+links:
+  github: "https://github.com/Chandra179"
+---
+
 # Nadir Architecture
 
 Nadir RAG search engine with Chat based conversatiion
