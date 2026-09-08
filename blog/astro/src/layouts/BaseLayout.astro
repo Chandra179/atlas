@@ -43,8 +43,8 @@ const {
   noindex = false,
 } = Astro.props;
 
-const siteName = 'Chandra179';
-const fullTitle = title === siteName ? title : `${title} — ${siteName}`;
+const siteName = 'Chandra';
+const fullTitle = title === siteName ? title : `${title} · ${siteName}`;
 const canonicalUrl = new URL(canonical, Astro.site).href;
 const resolvedOgImage = new URL(ogImage, Astro.site).href;
 ---
