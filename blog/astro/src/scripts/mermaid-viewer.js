@@ -62,6 +62,9 @@ class MermaidViewport {
 
     this.viewport = document.createElement('div');
     this.viewport.className = 'mermaid-viewport';
+    this.viewport.tabIndex = 0;
+    this.viewport.setAttribute('role', 'region');
+    this.viewport.setAttribute('aria-label', 'Interactive diagram. Drag to pan, use pinch or controls to zoom, and open fullscreen for more space.');
     this.stage = document.createElement('div');
     this.stage.className = 'mermaid-stage';
     this.stage.appendChild(svg);
@@ -76,6 +79,7 @@ class MermaidViewport {
     this.viewport.addEventListener('pointermove', (e) => this.onPointerMove(e));
     this.viewport.addEventListener('pointerup', (e) => this.onPointerUp(e));
     this.viewport.addEventListener('pointercancel', (e) => this.onPointerUp(e));
+    this.viewport.addEventListener('keydown', (e) => this.onKeyDown(e));
 
     activeViewports.add(this);
     this.fit();
@@ -156,6 +160,22 @@ class MermaidViewport {
     if (this.pointers.size < 2) this.pinch = null;
   }
 
+  onKeyDown(e) {
+    if (e.key === '+' || e.key === '=') {
+      e.preventDefault();
+      this.zoomAtCenter(1.25);
+    } else if (e.key === '-' || e.key === '_') {
+      e.preventDefault();
+      this.zoomAtCenter(0.8);
+    } else if (e.key === '0') {
+      e.preventDefault();
+      this.fit();
+    } else if (e.key.toLowerCase() === 'f') {
+      e.preventDefault();
+      this.toggleFullscreen();
+    }
+  }
+
   pan(dx, dy) {
     this.setTransform(this.scale, this.tx + dx, this.ty + dy);
   }
@@ -173,7 +193,15 @@ class MermaidViewport {
 
   fitScale() {
     const vw = this.viewport.clientWidth;
-    return vw > 0 ? Math.min(1, vw / this.size.w) : 1;
+    const vh = this.viewport.clientHeight;
+    if (vw <= 0 || vh <= 0) return 1;
+
+    const widthFit = vw / this.size.w;
+    const heightFit = vh / this.size.h;
+    // Keep tall diagrams readable at their natural width; users can pan
+    // vertically. Landscape diagrams fit both dimensions on first render.
+    const isTall = this.size.h > this.size.w * 1.2;
+    return Math.min(1, isTall ? widthFit : Math.min(widthFit, heightFit));
   }
 
   fit() {
@@ -292,6 +320,14 @@ new MutationObserver(() => {
 
 window.addEventListener('beforeprint', () => {
   for (const vp of activeViewports) vp.fit();
+});
+
+let resizeTimer = 0;
+window.addEventListener('resize', () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = setTimeout(() => {
+    for (const vp of activeViewports) vp.fit();
+  }, 120);
 });
 
 document.addEventListener('keydown', (e) => {
