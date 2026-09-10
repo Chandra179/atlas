@@ -15,49 +15,7 @@ modified: '2026-09-08'
 
 Nadir RAG search engine with Chat based conversatiion
 
-## Request and retrieval flow
-
-The public request path stays intentionally small. Nadir is one Go server, with
-Qdrant and Ollama providing the main external dependencies.
-
-```mermaid
-flowchart LR
-    CLIENT[Client] --> API[HTTP API]
-    API --> CHAT[Chat use-case]
-    CHAT --> SEARCH[Hybrid search]
-    SEARCH --> QDRANT[(Qdrant)]
-    SEARCH --> RERANK[Reranker]
-    CHAT --> OLLAMA[(Ollama<br/>rewrite + generation)]
-```
-
-## Ingestion flow
-
-Ingestion is a separate path from question answering, so it can be understood
-without the chat and retrieval internals.
-
-```mermaid
-flowchart LR
-    CLIENT[Client] --> API[HTTP API]
-    API --> INGEST[Ingest and deduplicate]
-    INGEST --> QDRANT[(Qdrant)]
-    INGEST --> OLLAMA[(Ollama enrichment)]
-    DOCLING[Docling PDF parser] -.-> INGEST
-```
-
-## State and supporting services
-
-Chat history and the semantic cache are both stored as separate Qdrant
-collections. Query rewriting is optional and only applies to follow-up turns.
-
-```mermaid
-flowchart LR
-    CHAT[Chat use-case] --> REWRITE[Query rewrite]
-    CHAT --> CACHE[Semantic cache]
-    CHAT --> HISTORY[Chat history]
-    REWRITE --> OLLAMA[(Ollama)]
-    CACHE --> QDRANT[(Qdrant)]
-    HISTORY --> QDRANT
-```
+## Big Picture
 
 
 ## Server

@@ -4,6 +4,37 @@
    not the OS `prefers-color-scheme`, so `dark:` utilities must key off that class. */
 @custom-variant dark (&:where(.dark, .dark *));
 
+/* Keep browser-owned UI (scrollbars, form controls, selection widgets) in
+   sync with the theme selected by the user. */
+:root {
+  color-scheme: light;
+}
+
+:root.dark {
+  color-scheme: dark;
+}
+
+/* Theme changes affect many Tailwind color utilities at once. Keep that
+   change visually cohesive without slowing normal hover/interaction motion. */
+html.theme-transition,
+html.theme-transition *,
+html.theme-transition *::before,
+html.theme-transition *::after {
+  transition-property: color, background-color, border-color,
+    text-decoration-color, fill, stroke, box-shadow !important;
+  transition-duration: 220ms !important;
+  transition-timing-function: ease-out !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.theme-transition,
+  html.theme-transition *,
+  html.theme-transition *::before,
+  html.theme-transition *::after {
+    transition-duration: 1ms !important;
+  }
+}
+
 @theme {
   --font-sans: 'Inter Variable', ui-sans-serif, system-ui, sans-serif;
   --font-mono: 'JetBrains Mono', ui-monospace, monospace;
