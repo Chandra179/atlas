@@ -12,6 +12,7 @@ const ALLOWED_FILES = new Set([
   'about/introduction.md',
   'swe/swe-journey.md',
   'system-design/uber-architecture.md',
+  'system-design/youtube-architecture.md',
   'system-design/cache.md',
   'system-design/nadir.md',
   'system-design/ohara.md',
