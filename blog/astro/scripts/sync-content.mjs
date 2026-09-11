@@ -14,6 +14,7 @@ const ALLOWED_FILES = new Set([
   'system-design/uber-architecture.md',
   'system-design/cache.md',
   'system-design/nadir.md',
+  'system-design/ohara.md',
 ]);
 
 const rootFiles = readdirSync(ROOT, { withFileTypes: true })
