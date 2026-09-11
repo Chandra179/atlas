@@ -8,7 +8,7 @@ tags:
 links:
   github: https://github.com/Chandra179
 created: 2026-09-08T00:00:00.000Z
-modified: '2026-09-08'
+modified: '2026-09-11'
 ---
 
 # Nadir Architecture

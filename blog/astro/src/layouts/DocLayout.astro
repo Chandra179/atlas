@@ -55,7 +55,7 @@ const wordCount = body ? body.split(/\s+/).filter(Boolean).length : 0;
 
 const resolvedOgImage = ogImage
   ? new URL(ogImage, Astro.site).href
-  : new URL('/og-image.png', Astro.site).href;
+  : new URL('/og-image.svg', Astro.site).href;
 
 const jsonLd = {
   '@context': 'https://schema.org',
