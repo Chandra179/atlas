@@ -1,6 +1,6 @@
 ---
 title: Nadir
-description: Nadir RAG Search Engine with Qdrant, LLM
+description: Private document search with Qdrant and an optional language model.
 tags:
   - system-design
   - llm
@@ -13,84 +13,76 @@ modified: '2026-09-11'
 
 # Nadir
 
-Nadir is a private document search and question-answering application. It
-turns your documents into a searchable knowledge base, then answers questions
-using the relevant passages from those documents.
+Nadir is a private document search app. It indexes documents and answers
+questions from relevant passages.
 
-It is useful for:
+Use it for:
 
 - personal notes and study material;
 - technical documentation;
 - research papers and manuals;
 - internal knowledge bases; and
-- any collection of text that needs reliable, document-grounded answers.
+- any text collection that needs document-grounded answers.
 
-Nadir can run locally, so your documents and questions do not need to leave
-your environment.
+Nadir can run locally; documents and questions stay in your environment.
 
 ## How it works
 
 ```text
-Documents → prepare and index → search knowledge base → generate grounded answer
-                                      ↑                         ↓
-                              your question ← conversation history
+Documents → index → search → grounded answer
+                         ↑          ↓
+                    question ← history
 ```
 
 ### 1. Add documents
 
-Nadir reads supported documents and breaks them into smaller passages. Each
-passage keeps useful context such as its source and position, so answers can
-be traced back to the original material.
+Nadir reads supported documents and splits them into passages. Each passage
+keeps its source and position so answers can be traced back.
 
 ### 2. Ask a question
 
-Nadir searches the indexed passages for the information most relevant to the
-question. Follow-up questions can use earlier turns in the same conversation.
+Nadir searches indexed passages for relevant information. Follow-up questions
+can use earlier turns in the same conversation.
 
 ### 3. Review the answer
 
-When answer generation is enabled, Nadir creates a response from the selected
-passages and shows the supporting context. The answer is streamed as it is
-generated, so the user can start reading immediately.
+When enabled, Nadir generates an answer from the selected passages and shows
+the supporting context. It streams the answer as it is generated.
 
 ## Main features
 
-- **Private local search** — documents, queries, and answers can remain on
-  your own machine or network.
-- **Semantic search** — finds passages with a similar meaning even when they
-  do not use exactly the same words.
+- **Private local search** — documents, queries, and answers can stay on your
+  machine or network.
+- **Semantic search** — finds passages with similar meaning, even with
+  different wording.
 - **Keyword search** — finds exact terms, names, numbers, and identifiers.
 - **Hybrid retrieval** — combines semantic and keyword results for better
   coverage.
-- **Optional reranking** — uses a stronger relevance model to improve the
-  order of the best candidates.
-- **Grounded answers** — generates answers from retrieved document passages
-  instead of relying only on the language model's memory.
+- **Optional reranking** — uses a stronger model to reorder the best matches.
+- **Grounded answers** — answers from retrieved passages instead of only model
+  memory.
 - **Conversation history** — keeps sessions and allows follow-up questions.
-- **In-place editing** — edit an earlier question and replace that point in
-  the conversation, including all later turns.
-- **Semantic caching** — reuses results for sufficiently similar questions to
-  reduce repeated work.
-- **Incremental indexing** — unchanged documents are skipped during later
-  indexing runs.
-- **Optional enrichment** — improves document discoverability by adding
-  contextual descriptions or hypothetical questions during indexing.
+- **In-place editing** — edit an earlier question and replace that turn and
+  all later turns.
+- **Semantic caching** — reuses results for similar questions.
+- **Incremental indexing** — skips unchanged documents on later runs.
+- **Optional enrichment** — adds contextual descriptions or hypothetical
+  questions during indexing.
 - **PDF support** — PDFs can be converted to searchable text when conversion
   support is enabled.
 
-## Algorithms in simple terms
+## Algorithms
 
 ### Chunking
 
-Large documents are divided at headings, paragraphs, and sentence boundaries.
-If a section is still too large, it is split into bounded pieces. This gives
-the search engine focused passages without losing the document structure.
+Large documents are split at headings, paragraphs, and sentence boundaries.
+Oversized sections are split into bounded pieces. This keeps passages focused
+without losing document structure.
 
 ### Embeddings
 
-An embedding model converts each passage and question into a numerical vector.
-Texts with similar meaning produce vectors that are close together, enabling
-meaning-based search.
+An embedding model converts each passage and question into a vector. Similar
+texts produce nearby vectors, enabling meaning-based search.
 
 ### BM25 keyword search
 
@@ -100,33 +92,29 @@ especially useful for names, commands, product terms, formulas, and numbers.
 ### Reciprocal Rank Fusion
 
 Semantic search and BM25 produce separate ranked lists. Reciprocal Rank Fusion
-combines their positions rather than comparing incompatible score values. A
-passage that ranks well in either list can therefore contribute to the final
-result.
+combines their positions instead of comparing incompatible scores. A passage
+that ranks well in either list can contribute to the final result.
 
 ### Reranking
 
-The first search stage retrieves a broader set of candidates quickly. An
-optional cross-encoder then reads the question and each leading passage
-together and gives them a more precise relevance order.
+The first stage retrieves candidates quickly. An optional cross-encoder then
+reads the question and each leading passage together to refine their order.
 
 ### Semantic cache
 
-Nadir compares a new question with cached questions using vector similarity.
-When the meaning is close enough, it can reuse the previous retrieval result
-instead of repeating the full search.
+Nadir compares a new question with cached questions by vector similarity. If
+the meaning is close enough, it reuses the previous retrieval result.
 
 ### Grounded generation
 
-The selected passages are placed into a prompt with their source context. The
-language model is instructed to answer from that material, which reduces
-unsupported claims and makes the result easier to verify.
+The selected passages and source context are placed in a prompt. The language
+model answers from that material, reducing unsupported claims.
 
 ## Conversations and data management
 
 Each conversation is an ordered list of question-and-answer turns. Editing a
-turn removes that turn and everything after it, then runs the edited question
-against the earlier conversation. This keeps the conversation timeline clear.
+turn removes it and everything after it, then runs the edited question against
+the earlier conversation.
 
 Chat history, indexed documents, and cached search results are separate types
 of data. Deleting chats does not delete indexed documents. Resetting the
@@ -134,10 +122,10 @@ document index does not need to delete conversation history.
 
 ## What Nadir is designed for
 
-Nadir is designed for private, document-grounded search on a single machine
-or a small local network. It prioritizes understandable results, local data
-control, and a simple operating model.
+Nadir is designed for private, document-grounded search on one machine or a
+small local network. It prioritizes clear results, local data control, and
+simple operation.
 
-For a larger multi-machine deployment, the search and storage services can be
-scaled separately. Live answer streaming also needs a shared event backend so
-that users can receive the same conversation from any application instance.
+For a larger deployment, search and storage can scale separately. Live answer
+streaming also needs a shared event backend so any app instance can deliver the
+same conversation.

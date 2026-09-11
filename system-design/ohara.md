@@ -1,6 +1,6 @@
 ---
 title: "Ohara"
-description: "Multimodal data pipeline in Rust"
+description: "Private document pipeline for search, relationships, and grounded answers."
 tags: [system-design, llm, rag]
 links:
   github: "https://github.com/Chandra179/ohara"
@@ -9,96 +9,87 @@ created: 2026-09-11
 
 # Ohara
 
-Ohara is a private knowledge-building application. It takes documents, learns
-their important text and relationships, and lets you ask questions over the
-resulting knowledge base.
+Ohara is a private knowledge app. It extracts text and relationships from
+documents, then lets you query the resulting knowledge base.
 
-It is designed for personal-scale collections on one computer. Local files and
-local models are the default. A cloud language model is optional and must be
-enabled deliberately.
+It targets personal collections on one computer. Local files and models are
+the default; cloud models are opt-in.
 
-## What can it do?
+## Capabilities
 
-- Fetch web pages while respecting robots rules and protecting the local network.
-- Remove boilerplate and keep useful headings, lists, tables, and code.
-- Reject content that is too short, paywalled, low quality, duplicated, or in an
+- Fetch web pages within robots rules and local-network limits.
+- Remove boilerplate while keeping headings, lists, tables, and code.
+- Reject content that is too short, paywalled, duplicated, low quality, or in an
   unsupported language.
-- Split long documents into meaningful, token-sized pieces.
+- Split long documents into token-sized pieces.
 - Search exact words, semantic meaning, and entity relationships together.
 - Identify people, organizations, places, events, concepts, and products.
-- Preserve evidence for every extracted fact and answer citation.
-- Retry temporary failures and recover safely after a process restart.
+- Keep evidence for every extracted fact and answer citation.
+- Retry temporary failures and recover after restarts.
 - Inspect progress, usage, failed work, and maintenance state locally.
 
-The product interface includes views for overview, documents, queries, entity
-review, and operations. The visual product is ahead of the live data connection:
-health, metrics, and query are connected today; document, entity, and lifecycle
-actions are still being connected.
+The interface includes overview, documents, queries, entity review, and
+operations. Health, metrics, and query are connected; document, entity, and
+lifecycle actions are still in progress.
 
 ## The architecture in one picture
 
 ```text
-                         user
-                           │
-                     local interface
-                           │
-                    runtime and operators
-                           │
-       ┌───────────────────┼───────────────────┐
-       │                   │                   │
-   control             pipeline            knowledge
- durable state        coordinates work    vectors + graph
-       ▲                   │                   ▲
-       │                   │                   │
-       └─────────────── fetch engine ──────────┘
-                         network input
+user
+  │
+  v
+local interface
+  │
+  v
+runtime / operators
+  ├─ control: durable state
+  ├─ pipeline: coordinates work
+  ├─ fetch: network input
+  └─ knowledge: vectors + graph
 ```
 
-The control area remembers what must happen and what already happened. The
-pipeline coordinates work. The fetch engine handles external network input.
-The knowledge area holds a rebuildable search and relationship index. The local
-interface presents results and operations without accessing storage directly.
+The control area tracks pending and completed work. The pipeline coordinates
+work, the fetch engine handles network input, and the knowledge area stores a
+rebuildable search and relationship index. The interface presents results and
+operations without direct storage access.
 
-Each area has one responsibility and communicates through small behavioral
-interfaces. This keeps provider changes, storage changes, and user-interface
-changes from spreading through the whole application.
+Each area has one responsibility and uses small behavioral interfaces. Provider,
+storage, and interface changes can therefore stay local.
 
 ## How a document becomes knowledge
 
 1. **Fetch** — retrieve a page and record its final location, status, and
-   validators for future recrawls.
+   validators for later recrawls.
 2. **Clean** — extract the primary content, normalize it, and apply quality
    checks.
-3. **Chunk** — split the content at headings and natural text boundaries. Each
-   piece carries a short heading breadcrumb so its context is not lost.
+3. **Chunk** — split the content at headings and natural boundaries. Each piece
+   carries a short heading breadcrumb.
 4. **Embed** — convert each piece into a numeric representation of its meaning.
 5. **Extract** — find typed entities and relationships, validate them, and keep
-   the original piece as evidence.
+   the source piece as evidence.
 6. **Index** — store word-search data, vectors, entity links, and fact edges.
-7. **Answer** — retrieve the strongest evidence and optionally write a bounded,
-   citation-preserving answer.
+7. **Answer** — retrieve the strongest evidence and optionally write a bounded
+   answer with citations.
 
-## Algorithms in plain language
+## Algorithms
 
 ### URL normalization and duplicate detection
 
-URLs are normalized before registration: irrelevant fragments and common tracking
-parameters are removed, host and scheme casing is standardized, and query
-parameters are made deterministic. This prevents the same page from being
-registered under several superficial URL forms.
+URLs are normalized before registration: irrelevant fragments and common
+tracking parameters are removed, casing is standardized, and query parameters
+are made deterministic. This prevents duplicate registrations for the same page.
 
-Clean content also receives a hash. If two documents have the same clean hash,
-the system can avoid doing the expensive downstream work twice.
+Clean content also receives a hash. Matching hashes let the system skip
+downstream work.
 
 ### Content cleaning and quality checks
 
-The cleaner prefers the main article content over navigation, advertisements,
-and boilerplate. It preserves useful structure, removes unsafe embedded data,
-and normalizes Unicode and whitespace.
+The cleaner prefers article content over navigation, ads, and boilerplate. It
+preserves useful structure, removes unsafe embedded data, and normalizes Unicode
+and whitespace.
 
-Quality checks are normal decisions, not system failures. A document can be
-rejected for insufficient content, paywall markers, boilerplate-only content,
-or unsupported language.
+Quality checks are normal decisions. A document can be rejected for insufficient
+content, paywall markers, boilerplate-only content, or unsupported language.
 
 ### Token-aware chunking
 
@@ -107,25 +98,24 @@ paragraphs, lines, and sentence boundaries, in that order. Tables and fenced
 code remain whole. Small overlap between neighboring pieces helps preserve
 meaning across a split.
 
-The size limit is measured using the embedding model's tokenizer, including the
-heading breadcrumb. This is more reliable than counting characters or spaces.
+The size limit uses the embedding model's tokenizer, including the heading
+breadcrumb. This is more reliable than counting characters or spaces.
 
 ### Embeddings and vector search
 
-An embedding is a list of numbers where nearby lists represent similar meaning.
-Ohara compares the query embedding with document embeddings using cosine
-similarity. The current implementation scans the exact vector index, which is
-simple and accurate for the intended personal-scale collection.
+An embedding is a list of numbers where nearby lists have similar meaning.
+Ohara compares query and document embeddings with cosine similarity. The
+current implementation scans the exact vector index for the target collection.
 
-HNSW is a faster approximate index that may be added later. It must first prove
-that its recall is close enough to exact search on the evaluation set.
+HNSW is a faster approximate index that may be added later. Its recall must be
+measured against exact search first.
 
 ### Entity resolution
 
-Entity matching is type-aware. An exact typed alias is preferred. If no alias
-matches, the system compares names within the same type and can compare their
-embeddings. Ambiguous matches are sent to review instead of being merged
-silently. Entity merges happen as explicit, auditable operations.
+Entity matching is type-aware. An exact typed alias is preferred. If none
+matches, names and embeddings are compared within the same type. Ambiguous
+matches go to review instead of being merged silently. Merges are explicit and
+auditable.
 
 ### GraphRAG retrieval
 
@@ -136,37 +126,34 @@ Ohara combines three kinds of evidence:
 3. **Graph search** finds passages that mention query entities and facts related
    to them.
 
-The lists are combined with reciprocal-rank fusion, which rewards results that
-appear near the top of several lists. A reranker may reorder the candidates. If
-the reranker fails, the fused order remains available.
+The lists are combined with reciprocal-rank fusion, which favors results near
+the top of several lists. A reranker may reorder the candidates; if it fails,
+the fused order remains available.
 
-The answer writer receives only a bounded set of passages and labeled facts. An
-answer is accepted only when it is non-empty and cites exact evidence ids.
-Otherwise the application returns the ranked passages instead of inventing an
-uncited answer.
+The answer writer receives a bounded set of passages and labeled facts. An
+answer is accepted only when it is non-empty and cites exact evidence IDs.
+Otherwise the application returns ranked passages instead of an uncited answer.
 
 ## Reliability and privacy
 
-Every processing stage has a durable job state. Temporary failures use bounded
-retries and backoff. Leases allow interrupted work to be recovered. Writes are
-idempotent, so replaying work does not duplicate knowledge.
+Every stage has durable job state. Temporary failures use bounded retries and
+backoff. Leases recover interrupted work. Idempotent writes prevent duplicate
+knowledge during replays.
 
-The durable control data is authoritative. Search vectors and graph data are
-derived and can be rebuilt. This is important because the two storage systems
-cannot commit one shared transaction; recovery uses an explicit safe ordering.
+Durable control data is authoritative. Search vectors and graph data are derived
+and can be rebuilt. Because the stores cannot share one transaction, recovery
+uses an explicit order.
 
-Fetched pages are treated as untrusted data. They are never executed as code.
-Network access is restricted, and cloud language-model use is disabled by
-default.
+Fetched pages are untrusted data and are never executed as code. Network access
+is restricted, and cloud language-model use is disabled by default.
 
 ## Current limitations
 
-- The default vector search is exact rather than HNSW-accelerated.
-- The production query path currently uses the deterministic identity reranker
-  baseline.
-- The live interface connection currently covers health, metrics, and query;
-  document, entity-review, and lifecycle data are next.
-- Entity-resolution thresholds are conservative configuration defaults and still
-  need measurement on larger, ambiguous collections.
-- Symspell correction, HyDE query expansion, stage throughput dashboards,
-  embedding migration, and cloud language-model providers are future work.
+- The default vector search is exact, not HNSW-accelerated.
+- The production query path uses a deterministic identity reranker baseline.
+- The live interface covers health, metrics, and query; document, entity-review,
+  and lifecycle data are next.
+- Entity-resolution thresholds still need measurement on larger, ambiguous
+  collections.
+- Symspell correction, HyDE expansion, throughput dashboards, embedding
+  migration, and cloud language-model providers are future work.

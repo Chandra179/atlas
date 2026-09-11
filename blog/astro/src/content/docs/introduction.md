@@ -1,8 +1,7 @@
 ---
 title: About Me
 description: >-
-  Chandra's background: 4 years in fintech, distributed systems, and workflow
-  automation, spanning itinerary services, SEO data pipelines, and marketing
+  Software engineer with 4 years in fintech, distributed systems, and workflow
   automation.
 tags:
   - about
@@ -16,39 +15,39 @@ modified: '2026-09-07'
 # Experience
  
 ### Book Cabin, Software Engineer
-* Core Order & Booking Engine: Rewrite of the legacy order system from C# to Golang, handling end-to-end checkout and fulfillment for prebook and postbook flights.
-* Identity & Authentication Engine: Designed and built a standalone internal Identity microservice in Go to centralize user authentication (JWT, OTP, RBAC)
-* CMS & SEO Platforms: Architected a WordPress-style block-editor CMS backend and built a SEO data platform with data extraction pipelines.
-* Event Orchestration & Document Services: Engineered AWS SQS event listeners for post-payment and ticketing fulfillment with an automated, multi-language PDF/email templating engine (invoices, e-tickets).
-* Resolved critical production incidents (OOM crashes, SQL deadlocks) and established repository standards for automated CI/CD pipelines, (Lefthook, golangci-lint), and structured logging.
+* Core Order & Booking Engine: Rewrote the legacy order system from C# to Go for prebook and postbook flight checkout and fulfillment.
+* Identity & Authentication: Built a Go service for central authentication with JWT, OTP, and RBAC.
+* CMS & SEO: Built a block-editor CMS and SEO data pipelines.
+* Event Orchestration & Documents: Built AWS SQS listeners and a multilingual PDF/email template service for payments and ticketing.
+* Resolved OOM and SQL deadlock incidents. Added CI/CD standards (Lefthook, golangci-lint) and structured logging.
 
 ### BFI Finance, Software Engineer, Jul 2022 – Feb 2026
-* Migrated the core loan system from a single-product to a multi-asset framework, enabling users to submit multiple collateral assets within a single application
-* Built integration pipelines connecting third-party KYC vendors (Dukcapil, OCR, liveness testing, forgery detection) with automated manual fallback (mKYC) capabilities.
-* Built the mobile loan application security using a passwordless authentication system with token authorization and Role-Based Access Control (RBAC).
-* Data Driven Business Workflow: Developed automated workflow features for surveyor leads management.
+* Migrated the loan system from one product to multiple asset types, allowing multiple collateral assets per application.
+* Built KYC integrations for Dukcapil, OCR, liveness, and forgery checks, with manual mKYC fallback.
+* Secured the mobile loan app with passwordless authentication, token authorization, and RBAC.
+* Built workflow features to manage surveyor leads.
 
 ### MPlus Software, Software Engineer, Sep 2021 – Jan 2022
-* Odoo Windcave multi-payment API integration and a centralized order management dashboard.
-* Executed system and data migrations, upgrading Odoo system from v12 to v14 and automating site-to-database transfers using custom Python web scraping scripts.
+* Integrated Odoo with Windcave and built an order management dashboard.
+* Migrated Odoo v12 to v14 and automated site-to-database transfers with Python scrapers.
 
 ### Skills
 * Programming: Golang, JavaScript, SQL
 * Infrastructure & Tools: AWS, Docker, Redis, PostgreSQL, SQL Server, RabbitMQ, SQS/SNS, Lambda, GCP
-* Architectures: gRPC, Temporal, OIDC, SolidJS, Otel
+* Architectures & tools: gRPC, Temporal, OIDC, SolidJS, OpenTelemetry
 
 ---
 
 # Project
 
 ### Nadir
-- RAG & LLM  chat
+- RAG and LLM chat
 - [https://github.com/Chandra179/nadir](https://github.com/Chandra179/nadir)
 
 ### GoSys
-- Profile-guided static analyzer for Go memory anti-patterns
+- Go memory anti-pattern analyzer
 - [https://github.com/Chandra179/pyro](https://github.com/Chandra179/pyro)
 
 ### Ohara
-- Multimodal data pipeline: scrape, clean, graphRag
+- Multimodal pipeline for scraping, cleaning, and GraphRAG
 - [https://github.com/Chandra179/ohara](https://github.com/Chandra179/ohara)

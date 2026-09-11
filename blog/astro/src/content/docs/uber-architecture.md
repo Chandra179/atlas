@@ -7,76 +7,66 @@ tags:
   - architecture
   - backend
   - software-design
-description: Uber architecture explanation in detail
+description: >-
+  A concise overview of Uber's ride matching, storage, workflows, and edge
+  services.
 modified: '2026-09-08'
 ---
 
 # Uber Architecture
 
-Uber's system is built around a single core problem: matching real-time location supply (drivers) with real-time location demand (riders) at scale, with low latency and high availability.
+Uber's system matches driver supply with rider demand in real time at low latency and high availability.
 
-At a high level, Uber evolved from a single monolithic server into a Domain-Oriented Microservice Architecture (DOMA) operating across thousands of services.
+Uber evolved from one monolithic server into a Domain-Oriented Microservice Architecture (DOMA) with thousands of services.
 
-Here is a breakdown of how the architecture works step-by-step.
-
-## Big Picture: The Complete System
-
-```mermaid
-graph TB
-    RC[Rider app]
-    DC[Driver app]
-    RC --> EG[Edge gateway]
-    DC --> EG
-    EG --> SS[Supply service]
-    EG --> DS[Demand service]
-    SS --> DE[DISCO]
-    DS --> DE
-    DE --> RTE[Kafka / Flink]
-    DE --> INF[Multi-region infra]
-    RTE --> MLB[ML / payments / safety]
-    INF --> MLB
-```
+The sections below cover the main parts.
 
 ## Geospatial Indexing (Google S2)
 
-The foundation of Uber's location system is Earth partitioning. Because calculating precise distances on a 3D sphere (latitude/longitude) in real-time for millions of users is too computationally expensive, Uber uses Google's S2 geometry library.
+Uber's location system partitions the Earth with Google's S2 geometry library.
+This avoids calculating precise spherical distances for every user in real time.
 
-**Cell Mapping:** S2 projects the Earth onto a cube and uses a Hilbert space-filling curve to divide it into hierarchical cells (each assigned a unique 64-bit Cell ID). Level 13 cells (~0.5 km²) or Level 14 (~0.1 km²) are typically used for neighborhood-level dispatching.
+**Cell mapping:** S2 projects the Earth onto a cube and divides it into
+hierarchical cells with unique 64-bit IDs. Level 13 (~0.5 km²) or Level 14
+(~0.1 km²) cells can support neighborhood dispatching.
 
-**Searching:** When a rider opens the app, the backend translates their coordinate into an S2 Cell ID. Instead of searching the whole database, the system queries drivers registered inside that specific Cell ID and its 8 immediate neighbors.
+**Searching:** The backend maps a rider's coordinate to an S2 Cell ID, then
+queries that cell and its eight neighbors instead of the whole database.
 
 ## The Core Ride Loop Architecture
 
-```mermaid
-graph TB
-    RA[Rider app] -->|WebSocket / HTTP| DS[Demand service]
-    DA[Driver app] -->|Location ping| SS[Supply service]
-    DS --> DISCO[DISCO Dispatch]
-    SS --> DISCO
-    DISCO --> ETA[ETA / routing]
+```text
+Driver app -- location --> Supply service --\
+                                               DISCO --> ETA / routing
+Rider app  -- request  --> Demand service --/
 ```
 
-**Step A: Supply Service (Tracking Drivers)**
-Every active driver app sends a location ping via WebSockets or HTTP back to the Supply Service roughly every 4 seconds. These pings stream into Apache Kafka (Uber's real-time message hub) and update an in-memory spatial index (like Redis) with the driver's current S2 Cell ID.
+**Step A: Supply Service (tracking drivers)**
+Active driver apps send location pings about every 4 seconds over WebSockets or
+HTTP. The pings go to Kafka and update an in-memory spatial index such as Redis.
 
-**Step B: Demand Service (Rider Request)**
-When a rider opens the app, the Demand Service picks up their GPS coordinates, destination, and selected vehicle tier (e.g., UberX, XL).
+**Step B: Demand Service (rider request)**
+The Demand Service receives the rider's coordinates, destination, and vehicle
+tier, such as UberX or XL.
 
-**Step C: The Matching Engine: DISCO (Dispatch Optimization)**
-Uber's core matching engine is called DISCO. DISCO receives a ride request from Demand Service. It queries Supply Service for candidate drivers within the local S2 cell radius. Instead of simple straight-line distance, DISCO passes candidates to the ETA Engine. The ETA Engine uses actual road networks, traffic conditions, and routing algorithms to compute real drive times for each driver. DISCO selects the optimal driver (minimizing overall wait time for the system, not just a single rider) and pushes a notification to that driver's phone.
+**Step C: Matching Engine (DISCO)**
+DISCO receives the request, queries nearby driver candidates, and sends them to
+the ETA Engine. The ETA Engine uses road networks, traffic, and routing data to
+estimate drive times. DISCO selects a driver and sends the offer to the phone.
 
 ## Data Architecture & Storage
 
-Uber processes petabytes of data daily and uses specialized storage for different speed requirements:
+Uber processes petabytes of data daily and uses different storage by access
+pattern:
 
-- **In-Memory Caching (Redis):** Stores transient, high-speed data like current driver locations, session states, and active ride statuses.
-- **Transactional Storage (Schemaless / MySQL):** Uber built Schemaless, a fault-tolerant, high-throughput key-value store layered on top of MySQL, to hold trip details, user profiles, and order records.
-- **Real-time Analytics (Apache Pinot & Flink):** Powers dynamic pricing (Surge), fraud detection, and driver incentives by processing streaming data in real time.
-- **Data Warehouse (Hadoop/HDFS & Parquet):** Stores historical trip data for long-term machine learning model training, ETA predictions, and business analytics.
+- **In-memory cache (Redis):** Current driver locations, sessions, and active ride status.
+- **Transactional storage (Schemaless / MySQL):** Trip details, user profiles, and order records.
+- **Real-time analytics (Apache Pinot and Flink):** Dynamic pricing, fraud detection, and driver incentives.
+- **Data warehouse (Hadoop/HDFS and Parquet):** Historical trips for ML training, ETA prediction, and analytics.
 
 ## Microservice Organization: DOMA
 
-To manage thousands of individual microservices, Uber introduced Domain-Oriented Microservice Architecture (DOMA). It organizes code into 5 distinct layers:
+DOMA organizes Uber's microservices into five layers:
 
 1. **Edge Layer:** The API Gateways exposing public endpoints to mobile apps.
 2. **Presentation Layer:** App-specific logic for iOS, Android, or Web interfaces.
@@ -86,7 +76,8 @@ To manage thousands of individual microservices, Uber introduced Domain-Oriented
 
 ## Core Design Drivers: Ratio, CQRS & CAP Trade-Offs
 
-The `1:10` driver-to-rider ratio and the AP vs. CP split directly dictate how you choose your databases, write protocols, and partition strategy. Here is how those two insights shaped the blueprint.
+The `1:10` driver-to-rider ratio and the AP/CP split guide the database, write
+protocol, and partition choices.
 
 ### How the `1:10` Driver-to-Rider Ratio Shapes the System
 
@@ -95,24 +86,35 @@ The ratio creates an asymmetric Read/Write profile:
 $$\text{Writes} = 250,000 \text{ pings/sec (Drivers sending updates)}$$
 $$\text{Reads} = 50,000\text{--}100,000 \text{ queries/sec (Riders opening maps, searching, polling)}$$
 
-While there are more riders overall, drivers write far more frequently (every 4 seconds) than riders query. This asymmetry forced three critical architectural choices:
+Drivers write far more often than riders query because they send updates every 4
+seconds. This leads to three design choices:
 
-**1. Ingestion Protocol Choice (gRPC over HTTP/2 vs. REST):** Without the 1:10 write-heavy ratio, you might use standard REST HTTP/1.1 POST calls for location pings. With 250,000 writes/sec, establishing 250,000 new TCP/TLS connections every second would crash your API gateways due to handshake overhead. The high write ratio forced us to use long-lived gRPC streaming connections over HTTP/2, allowing 1,000,000 drivers to keep persistent sockets open and stream tiny binary Protobuf payloads with minimal CPU overhead.
+**1. Ingestion protocol (gRPC over HTTP/2 vs. REST):** REST over HTTP/1.1
+would create too many connection handshakes at 250,000 writes/sec. Long-lived
+gRPC streams over HTTP/2 let up to 1,000,000 drivers keep persistent sockets
+open and send small Protobuf payloads.
 
-**2. CQRS Pattern (Command Query Responsibility Segregation):** Because driver updates happen on a relentless 4-second ticker, you cannot let rider search queries hit the same database table or lock the same rows. We separated the Write Path (Driver → Kafka → Redis Primary) from the Read Path (Rider → Redis Read Replicas). Riders reading nearby drivers never block drivers writing their new locations.
+**2. CQRS:** Driver updates and rider searches use separate paths. Writes go
+from drivers through Kafka to Redis primaries; reads use Redis replicas. Rider
+searches do not block location writes.
 
 ### How the AP vs. CP Trade-Off Shapes the System
 
-Instead of choosing one CAP trade-off for the entire platform, we split the system into two distinct sub-domains based on business requirements:
+The platform uses different CAP trade-offs for different sub-domains:
 
 | Engine | Requirement | Trade-off Choice | Storage Engine | Flow |
 |--------|-------------|----------------|----------------|------|
 | Location Tracking Engine | High Availability & Sub-second Latency | AP Eventual Consistency | Redis Spatial Cluster | → feeds into → |
 | Matching & Trip State Engine | Zero Double-Bookings, Financial Integrity | CP Strong Consistency | Distributed RDBMS (CockroachDB / Postgres) | |
 
-**The AP Engine (Location Streaming):** If a driver drops connection for 3 seconds, or if a rider sees a driver's icon 50 meters away from where they are, nobody loses money. We chose Redis + Kafka configured for speed over strict ACID guarantees. Writes are non-blocking. If a location ping fails due to a momentary network partition, we drop it and wait for the next ping 4 seconds later. No distributed database transactions are used for pings.
+**AP engine (location streaming):** A stale driver location does not affect a
+completed payment. Redis and Kafka favor speed over strict ACID guarantees. A
+failed location ping is dropped; the next ping arrives about 4 seconds later.
 
-**The CP Engine (Match & Dispatch Execution):** If two riders press "Request Ride" at the same millisecond for the same driver, and both get confirmed, the business loses trust and money. Availability must yield to consistency here. We switched from the AP fast-path (Redis) to a CP transactional execution path with Distributed Locks (Redlock) + Atomic Lua Scripts + Relational DB ACID Transactions (SELECT FOR UPDATE or Optimistic Locking). If a network partition occurs during a match, the system fails the request and asks the rider to try again (sacrificing Availability) rather than risk double-booking the driver (preserving Consistency).
+**CP engine (matching and dispatch):** Double-booking a driver loses trust and
+money, so consistency takes priority. Matching uses distributed locks, atomic
+Lua scripts, and relational ACID transactions. During a network partition, the
+request fails and the rider tries again instead of risking a double booking.
 
 ### Summary Matrix
 
@@ -127,46 +129,32 @@ Instead of choosing one CAP trade-off for the entire platform, we split the syst
 ### Requirements & Scale Expectations
 
 **Functional:**
-- Location tracking: Active drivers send GPS updates every 4 seconds.
+- Location tracking: Drivers send GPS updates every 4 seconds.
 - Nearby driver lookup: Riders see available drivers on a map in real time.
 - Ride request & matching: Select optimal driver based on ETA (not straight-line distance).
 - Offer acceptance: Assigned driver has 15 seconds to accept or decline.
 
-**Non-Functional:**
+**Non-functional:**
 - Low latency: Location ingestion < 50ms; matching decision < 1 second.
-- High throughput: Handle 1,000,000+ active drivers streaming location pings continuously.
-- Consistency: Strict single-assignment guarantee (no two riders assigned to the same driver simultaneously).
-- High availability: 99.99% uptime with zero single points of failure.
+- High throughput: Handle 1,000,000+ active drivers sending pings continuously.
+- Consistency: Assign each driver to at most one rider at a time.
+- High availability: 99.99% uptime without a single point of failure.
 
 ### Pipeline Architecture
 
-**Driver write path:**
-
-```mermaid
-graph LR
-    DA[Driver app] -->|WebSocket| AG[API gateway]
-    AG --> K[Kafka]
-    K --> LTS[Location tracking]
-    LTS --> RC1[Redis cluster]
+```text
+Driver app -- WebSocket --> gateway --> Kafka --> tracking --> Redis
+Rider app  -- HTTPS/gRPC -> gateway --> DISCO --> Redis (nearby drivers)
+                                             \--> ETA engine
 ```
 
-**Rider read and matching path:**
-
-```mermaid
-graph LR
-    RA[Rider app] -->|HTTPS/gRPC| AG[API gateway]
-    AG --> DISCO[DISCO dispatch]
-    DISCO -->|nearby drivers| RC2[Redis cluster]
-    DISCO -->|gRPC| ETA[ETA engine]
-```
-
-**The Write Path (Driver Ingestion):**
+**Write path (driver ingestion):**
 1. Driver app streams GPS pings every ~4 seconds over WebSocket.
-2. API Gateway terminates TLS and routes pings to Kafka.
-3. Kafka buffers the high-volume stream (millions of pings/sec) to shield downstream services from spikes.
+2. The API Gateway terminates TLS and routes pings to Kafka.
+3. Kafka buffers the stream and shields downstream services from spikes.
 4. Location Tracking Service consumes pings, calculates the S2 Cell ID, and updates Redis (driver state + spatial index).
 
-**The Read Path (Rider Match):**
+**Read path (rider match):**
 1. Rider sends an HTTPS POST to `/v1/trips/request` via the API Gateway.
 2. DISCO handles the request synchronously: it directly queries Redis for nearby driver candidates.
 3. DISCO calls the ETA Engine via gRPC with candidate coordinates for real drive times.
@@ -180,23 +168,24 @@ graph LR
 | Why | Streams location every 4s; needs persistent connection | Requesting a ride is a single action/command |
 | Post-match | Stays on WebSocket for dispatch offers | Switches to WebSocket after match (to see driver moving) |
 
-A rider's ride request does NOT go through Kafka. Kafka is an asynchronous event log for writes/streaming, not a synchronous database query engine. DISCO queries Redis directly.
+A rider's request does not go through Kafka. Kafka is an asynchronous event log,
+not a query engine; DISCO queries Redis directly.
 
 ### ETA vs. Real-Time Analytics: Decoupled
 
 Both are separate microservices with different roles:
 
-**A. ETA Engine (Synchronous, inline during match):**
+**A. ETA Engine (synchronous, inline during match):**
 - DISCO queries Redis for candidates (e.g., 10 available drivers in the S2 cell).
 - DISCO calls the ETA Service via gRPC with those 10 coordinates + rider pickup.
 - ETA returns drive times (Driver A: 3 min, Driver B: 5 min). DISCO picks the best match.
 
-**B. Real-Time Analytics / Surge Pricing (Asynchronous, out-of-band):**
-- Analytics does NOT sit inside the request-response loop for matching.
+**B. Real-time analytics / surge pricing (asynchronous):**
+- Analytics is outside the matching request-response loop.
 - Flink and Pinot consume raw location and search pings directly from Kafka in the background.
 - Stream 1: Driver location updates → calculate available supply per H3 cell.
 - Stream 2: Rider app opens/searches → calculate demand per H3 cell.
-- Flink computes the surge multiplier (e.g., 1.4x) and writes it to a cache. DISCO reads the pre-computed rate; it never waits for analytics.
+- Flink computes the surge multiplier (e.g., 1.4x) and writes it to a cache. DISCO reads the cached rate without waiting for analytics.
 
 | Action | Protocol / Tech | Sync or Async? |
 |--------|----------------|----------------|
@@ -207,51 +196,44 @@ Both are separate microservices with different roles:
 
 ### Dispatch Flow: Four-Phase Sequence
 
-DISCO does not simply query Redis and the ETA engine and immediately send driver details back to the rider. Instead, it follows a multi-stage workflow:
+DISCO follows a multi-stage workflow:
 
-**Phase 1: Pre-Request & Fare Estimate (Before Requesting)**
-When a rider opens the app and enters a destination (before tapping "Confirm"):
+**Phase 1: Pre-request and fare estimate**
+When a rider enters a destination, before tapping "Confirm":
 - The Ride Service calls the ETA Engine and Pricing Engine.
-- The client receives route ETAs and estimated fares (including any dynamic surge multipliers) to display on the UI.
+- The client receives route ETAs and estimated fares, including surge multipliers.
 - No driver is assigned or contacted yet.
 
-**Phase 2: Candidate Ranking (DISCO Matching Loop)**
+**Phase 2: Candidate ranking**
 Once the rider taps "Confirm Ride":
-1. Fetch Candidates: DISCO receives the pickup lat/lng, identifies the S2/H3 Cell ID, and queries Redis for available drivers in that cell and surrounding cells (k-ring).
-2. Batch Routing & Ranking: DISCO passes 10-20 candidate drivers to the ETA Engine, which computes actual road distance and drive time considering turn restrictions and live traffic, ranking drivers by lowest ETA.
-3. Multi-Objective Scoring: DISCO evaluates candidates based on minimum ETA, driver rating, acceptance probability, and vehicle type.
+1. Fetch candidates: DISCO maps the pickup to an S2/H3 cell and queries Redis for available drivers in that cell and its surrounding cells.
+2. Batch routing and ranking: DISCO sends 10–20 drivers to the ETA Engine, which estimates road distance and drive time using traffic data.
+3. Score candidates: DISCO considers ETA, driver rating, acceptance probability, and vehicle type.
 
-**Phase 3: The Lock & Dispatch Offer (Critical Step)**
-At this stage, the rider still does not know who their driver is; the selected driver has not yet accepted the job.
-1. Acquire Atomic Lock: DISCO attempts an atomic lock in Redis (`SETNX lock:driver_123 ride_999 EX 15`) to reserve the top-ranked driver for 15 seconds.
-2. Push Offer to Driver: If the lock succeeds, the Notification/Push Service sends a dispatch offer directly to the Driver App via WebSocket/Push Notification.
-3. Driver Decision Window:
-   - If Driver Accepts: The lock transitions into an active trip record in the primary database.
-   - If Driver Declines or Times Out (15s): The Redis lock expires, and DISCO automatically moves to Candidate #2 on the ranked list.
+**Phase 3: Lock and dispatch offer**
+The selected driver has not accepted yet.
+1. Acquire atomic lock: DISCO uses Redis (`SETNX lock:driver_123 ride_999 EX 15`) to reserve the top-ranked driver for 15 seconds.
+2. Send the offer: If the lock succeeds, the notification service sends an offer to the Driver App.
+3. Driver decision:
+   - If accepted: The lock becomes an active trip record in the primary database.
+   - If declined or timed out: The lock expires and DISCO tries Candidate #2.
 
-**Phase 4: Match Confirmation & Push to Rider**
-Only after a driver explicitly accepts:
+**Phase 4: Match confirmation**
+After the driver accepts:
 - The system updates the ride state to MATCHED.
-- The Notification Service pushes the matched driver's details (name, photo, license plate, vehicle model, current GPS position, and real-time ETA) to the Rider App via WebSocket.
-- The Rider App transitions from the "Finding your ride..." screen to the live vehicle map tracking view.
+- The Notification Service sends the driver's details and ETA to the Rider App.
+- The Rider App switches to the live vehicle map.
 
-```mermaid
-sequenceDiagram
-    participant Rider
-    participant DISCO
-    participant Redis
-    participant ETA
-    participant Driver
-
-    Rider->>DISCO: Request Ride
-    DISCO->>Redis: Fetch S2 Cells
-    DISCO->>ETA: Rank Candidates
-    ETA-->>DISCO: ETAs
-    DISCO->>Redis: Lock Top Driver
-    DISCO->>Driver: Push Offer
-    Driver-->>DISCO: Accepts
-    DISCO->>Redis: Update Database State
-    DISCO->>Rider: Push Driver Info
+```text
+Rider  → DISCO: request ride
+DISCO  → Redis: find drivers in nearby S2 cells
+DISCO  → ETA: rank candidates
+ETA    → DISCO: return ETAs
+DISCO  → Redis: lock the top driver
+DISCO  → Driver: send offer
+Driver → DISCO: accept
+DISCO  → Redis: save match state
+DISCO  → Rider: push driver details
 ```
 
 ### Data Model
@@ -274,38 +256,41 @@ sequenceDiagram
 
 ### Concurrency & Lock Management
 
-To guarantee that two riders never match with the same driver at the same time (a race condition), DISCO relies on atomic state transitions and distributed locks in Redis.
+DISCO uses atomic state transitions and Redis locks so two riders cannot match
+the same driver at once.
 
 #### The Core Problem: Race Conditions
 
-Two riders request a ride at the same millisecond in the same neighborhood. Without strict concurrency control, two DISCO instances both pick Driver X, send offers simultaneously, and corrupt trip states.
+If two riders request a ride at the same time, two DISCO instances could choose
+Driver X and send offers unless the match is protected.
 
 #### Basic Redis Atomic Lock (SETNX)
 
-DISCO uses Redis's atomic `SETNX` (Set if Not Exists) with a time-to-live:
+DISCO uses Redis `SETNX` (set if not exists) with a time-to-live:
 
 ```
 SET driver:lock:drv_98765 "trip_id:ride_111" NX EX 15
 ```
 
-- `NX`: Only set if the key does not already exist (atomic check-and-set).
-- `EX 15`: Auto-expire after 15 seconds (safety net).
+- `NX`: Set only if the key does not exist.
+- `EX 15`: Expire after 15 seconds.
 
 #### Edge Cases & State Machines
 
 **Case A: Driver Accepts**
-Driver taps Accept within 15 seconds. DISCO updates driver status in Redis:
+If the driver accepts within 15 seconds, DISCO updates the status in Redis:
 ```
 HSET driver:state:drv_98765 "status" "EN_ROUTE_TO_PICKUP"
 ```
-The lock key is deleted or naturally expires. The driver is no longer in the AVAILABLE spatial index.
+The lock is deleted or expires, and the driver leaves the AVAILABLE spatial index.
 
 **Case B: Driver Declines or Times Out**
-- If Declined: DISCO immediately deletes the lock key with `DEL driver:lock:drv_98765`.
-- If Timed Out: Redis automatically expires the key after 15 seconds. DISCO's background timer fetches Candidate #2 and acquires a lock on that driver.
+- If declined: DISCO deletes the lock with `DEL driver:lock:drv_98765`.
+- If timed out: Redis expires the key after 15 seconds. A background timer then tries Candidate #2.
 
 **Case C: Lock Deletion Safety (Lua Script)**
-If Thread A's lock expired (15s TTL) and Thread B now holds the lock, a raw `DEL` by Thread A would delete Thread B's valid lock. DISCO uses an atomic Lua script to prevent this:
+If Thread A's lock expires and Thread B acquires the key, Thread A's raw `DEL`
+could remove Thread B's lock. DISCO checks the trip ID in an atomic Lua script:
 
 ```lua
 if redis.call("get", KEYS[1]) == ARGV[1] then
@@ -315,15 +300,16 @@ else
 end
 ```
 
-#### Enterprise-Grade Locking: Redlock & Distributed State
+#### Redlock and distributed state
 
-In a single Redis node, SETNX works. But Uber runs multi-region Redis Clusters. If the Redis primary receives the lock but crashes before replicating it, the lock is lost.
+SETNX works on one Redis node. In a multi-region cluster, a primary could crash
+before replicating the lock.
 
-**Redlock (Multi-Node Consensus):**
-DISCO writes to 5 independent Redis master nodes. A lock is only granted if at least 3 out of 5 nodes confirm the SETNX within a strict timeout (~5ms).
+**Redlock:** DISCO writes to five independent Redis masters. It grants a lock
+when at least three confirm `SETNX` within the timeout.
 
-**State Machine Double-Check (Database Safeguard):**
-Before writing a final trip record to the persistent database (Schemaless), DISCO executes a conditional update:
+**Database check:** Before writing the trip record to Schemaless, DISCO runs a
+conditional update:
 
 ```sql
 UPDATE drivers
@@ -331,7 +317,8 @@ SET status = 'ON_TRIP', current_trip_id = 'ride_111'
 WHERE driver_id = 'drv_98765' AND status = 'AVAILABLE';
 ```
 
-If `affected_rows == 0`, another thread updated the driver first, and the transaction safely aborts.
+If `affected_rows == 0`, another request updated the driver first, so the
+transaction aborts.
 
 | Scenario | Solution |
 |----------|---------|
@@ -344,17 +331,24 @@ If `affected_rows == 0`, another thread updated the driver first, and the transa
 
 #### App Instances vs. Redis Instances
 
-App instances (Node.js, Go, Java microservices like DISCO) are stateless and scale based on CPU/memory. Redis instances run the `redis-server` process and hold state (driver locations, session locks). Putting them on separate machines ensures that if an App Service crashes from a code bug, cached data in Redis remains intact.
+App instances (Node.js, Go, or Java services such as DISCO) are stateless and
+scale with CPU and memory. Redis instances hold driver locations and locks. On
+separate machines, an app crash does not remove Redis state.
 
 #### Redis Cluster Node Topology
 
-In a production Redis Cluster, each node (Master or Replica) runs as its own process on a dedicated VM. Running 3 masters on the same VM would defeat the purpose of clustering: one hardware failure takes everything down.
+In production, each Redis master or replica runs on its own VM. Putting three
+masters on one VM would make one hardware failure affect the whole cluster.
 
 #### Communication Protocols
 
-**App to Redis (RESP):** The App communicates with Redis over TCP sockets using RESP (REdis Serialization Protocol). The App maintains a connection pool (pre-opened persistent TCP sockets) to all Redis nodes. It hashes the key, determines which Redis Master holds that data slot, and sends the command directly to that specific VM.
+**App to Redis (RESP):** The app uses TCP and RESP (Redis Serialization
+Protocol). A connection pool keeps persistent sockets to the Redis nodes. The
+client hashes each key and sends the command to its master.
 
-**Between Redis Nodes (Gossip Protocol):** Redis Cluster nodes talk to each other on a separate Cluster Bus port (standard port + 10000, e.g., 16379). They use a Gossip Protocol to ping each other every second, exchange cluster state, and detect if a Master has crashed. If Master 1 stops responding, Replicas vote via consensus and automatically promote Replica 1 to become the new Master.
+**Between Redis nodes (gossip):** Nodes use a separate cluster bus to exchange
+state and detect failures. If a master stops responding, replicas vote and one
+is promoted.
 
 #### Why Redis is Still Fast on a Different Machine
 
@@ -364,23 +358,25 @@ In a production Redis Cluster, each node (Master or Replica) runs as its own pro
 | Redis Remote RAM Read + Network Latency | 0.5 ms to 1.5 ms |
 | CPU Memory Read (Internal) | 100 nanoseconds |
 
-Four factors keep it fast:
-- **Sub-millisecond DC latency:** LAN between VMs is 0.2ms-0.8ms.
-- **In-memory speed:** Redis reads from RAM (nanoseconds) vs. disk (milliseconds).
-- **TCP connection pooling:** Reuses existing sockets, avoiding 3-way handshake per request.
-- **Pipelining:** Bundles multiple commands into a single TCP packet.
+Four factors help keep it fast:
+- **Low data-center latency:** LAN between VMs is 0.2–0.8 ms.
+- **In-memory speed:** Redis reads from RAM rather than disk.
+- **TCP connection pooling:** Reuses sockets instead of handshaking per request.
+- **Pipelining:** Bundles multiple commands into one TCP packet.
 
-#### What If All Redis Masters and Replicas in a Region Go Down?
+#### If a region loses its Redis nodes
 
 **Scenario A: Cross-Region Failover (Active-Active)**
-- API Gateway detects Region A is dead and shifts all traffic to Region B.
+- The API Gateway detects the failure and shifts traffic to Region B.
 - Region B runs its own independent Redis Cluster and App Instances.
-- Dynamic location data from the past few seconds in Region A might be lost, but driver apps reconnect to Region B and send a fresh location ping within 4 seconds, repopulating Redis instantly.
+- Recent location data might be lost, but driver apps reconnect and send a fresh
+  ping within 4 seconds.
 
 **Scenario B: Circuit Breaker Fallback**
-- If cross-region routing isn't available, or both region caches crash, the App stops sending requests to Redis (avoids hanging on timeouts).
+- If cross-region routing is unavailable, the app stops sending requests to Redis
+  to avoid timeouts.
 - The App falls back to querying the persistent database (Cassandra, DynamoDB, or Schemaless) directly.
-- Performance degrades (higher latency), but the core feature stays functional rather than throwing a hard error.
+- Latency increases, but the feature can remain available.
 
 ### Scaling & Resiliency
 
@@ -394,40 +390,40 @@ Four factors keep it fast:
 
 ### Data Mesh & Machine Learning Platform (Michelangelo)
 
-Matching drivers and riders isn't purely rule-based; it relies on AI/ML predictions running in real time:
+Matching also uses real-time ML predictions:
 
-- **Michelangelo:** Uber's proprietary ML platform serving thousands of production models. It handles real-time feature stores, model training, and low-latency inference.
-- **Dynamic Pricing (Surge):** Flink processes real-time event streams from Kafka (rider app opens vs. available drivers per H3 grid cell). Michelangelo uses this to update pricing multipliers dynamically to balance market demand.
-- **DeepETA:** Neural networks continuously update estimated trip times by evaluating weather, historical traffic, and micro-routing nuances.
+- **Michelangelo:** Uber's ML platform for feature stores, model training, and inference.
+- **Dynamic pricing (Surge):** Flink compares rider demand with available drivers per H3 cell. Michelangelo uses the result to update pricing multipliers.
+- **DeepETA:** Neural networks estimate trip times from weather, traffic history, and road-level details.
 
 ### High Availability & Multi-Region Resiliency
 
-Uber cannot afford downtime in any city.
+Uber uses multi-region deployment to reduce downtime.
 
-- **Active-Active Datacenters:** Uber runs multi-region deployments. If an entire cloud region or datacenter fails, traffic automatically fails over without losing active trip states.
-- **Stateful Failover:** In-flight trip states are replicated cross-region so a driver mid-trip won't lose navigation or fare tracking if a server cluster dies.
+- **Active-active datacenters:** If a region fails, traffic can fail over to another region.
+- **Stateful failover:** In-flight trip state is replicated across regions so navigation and fare tracking can continue.
 
 ### Payment Processing & Financial Settlement
 
-Handling money across hundreds of currencies, payment methods, and tax jurisdictions is an architectural domain of its own:
+Payments across currencies, methods, and tax jurisdictions require a separate domain:
 
 - **Double-Entry Ledger:** Ensures financial consistency: a dollar charged to a rider must strictly balance across Uber's fee, driver payout, and local tax.
 - **Payout Pipelines:** Real-time risk screening before pushing money to driver bank accounts or debit cards globally.
 
 ### Safety & Telematics Processing
 
-Driver phones stream gyroscope, accelerometer, and GPS sensor data back to Uber:
+Driver phones send gyroscope, accelerometer, and GPS data to Uber:
 
 - Real-time anomaly detection flags sudden stops, crashes, or erratic driving.
 - Safety features like crash detection trigger immediate customer support outreach via automated workflows.
 
 ### Open-Source Ecosystem Originated by Uber
 
-To support this architecture, Uber custom-built several industry-standard tools:
+Uber also built tools used in this architecture:
 
-- **H3:** A hexagonal spatial index (used alongside Google's S2) that makes neighborhood grid boundaries and aggregation visually smooth.
-- **Jaeger:** A distributed tracing tool built to trace a single request as it passes through hundreds of DOMA microservices.
-- **Cadence / Temporal:** Workflow orchestration engines designed to handle complex, long-running transactions (e.g., ride cancellations, refund processing, multi-step onboarding) cleanly without losing state.
+- **H3:** A hexagonal spatial index used alongside Google's S2 for grids and aggregation.
+- **Jaeger:** A distributed tracing tool for following requests across services.
+- **Cadence / Temporal:** Workflow engines for long-running operations such as cancellations, refunds, and onboarding.
 
 | Challenge | Architectural Solution |
 |-----------|----------------------|
@@ -438,59 +434,67 @@ To support this architecture, Uber custom-built several industry-standard tools:
 
 ## Historical Data Storage & Database Scaling
 
-Storing billions of historical trip records is a fundamentally different problem than tracking live drivers in Redis. Live tracking requires ultra-low latency and ephemeral in-memory state, whereas historical data requires infinite scalability, high write throughput, multi-region persistence, and zero data loss.
+Historical trip storage differs from live driver tracking. Live tracking needs low
+latency and temporary memory; historical data needs durable, scalable storage
+and high write throughput.
 
-Uber moved away from monolithic relational databases and built **Schemaless**, an in-house distributed, fault-tolerant datastore layered on top of MySQL, complemented by a Hadoop/Data Lake tier for long-term analytical storage.
+Uber built **Schemaless**, a distributed datastore on MySQL, with a Hadoop/Data
+Lake tier for long-term analysis.
 
 ### Schemaless: The Core Storage Engine
 
-When a trip completes, it transitions from short-lived memory state into a permanent record. Standard relational databases hit a wall when table sizes exceed billions of rows: index maintenance, schema migrations, and cross-node joins degrade performance.
+When a trip completes, it moves from temporary memory state to a permanent
+record. At very large table sizes, indexes, migrations, and cross-node joins can
+slow a relational database.
 
 Schemaless is an append-only, key-value datastore built over clusters of MySQL instances:
 
-```mermaid
-graph TB
-    APP["App services Ride Service, Billing, Receipt"]
-    APP -->|HTTP / gRPC| SW["Schemaless worker Routing, Sharding, Datastore Logic"]
-    SW --> M1["MySQL Instance Shard 1"]
-    SW --> M2["MySQL Instance Shard 2"]
-    SW --> M3["MySQL Instance Shard 3"]
+```text
+App services (Ride / Billing / Receipt)
+                    |
+                    v
+Schemaless worker (routing / sharding / datastore logic)
+                 /          |          \
+                v           v           v
+          MySQL shard 1  MySQL shard 2  MySQL shard 3
 ```
 
 **Key Design Principles:**
 
-- **Append-Only Immutable Rows (No UPDATE):** Trip details are never updated in-place. If a fare is adjusted, Schemaless writes a new version appended to the existing record. This eliminates table lock contention and makes writes fast and predictable.
-- **No Database-Level Indexing or Joins:** MySQL instances are used purely as dumb storage engines. All indexing and relational logic is handled at the application layer.
-- **Cell Entities:** Data is stored as JSON blobs called "cells" identified by three parameters:
-  - **Row Key:** The `trip_uuid`.
-  - **Column Name:** The domain data (e.g., `driver_info`, `fare_breakdown`).
-  - **Ref Key:** An incremental version integer ordering updates chronologically.
+- **Append-only rows:** Trip details are not updated in place. A fare adjustment adds a new version.
+- **No database-level indexes or joins:** MySQL stores data; indexing and relational logic stay in the application.
+- **Cell entities:** Data is stored as JSON blobs called "cells" identified by three fields:
+  - **Row key:** The `trip_uuid`.
+  - **Column name:** Domain data such as `driver_info` or `fare_breakdown`.
+  - **Ref key:** An increasing version number.
 
 ### Horizontal Scaling Strategies
 
-**A. Dynamic Sharding by trip_uuid:**
-Schemaless groups virtual shards across physical MySQL instances. A write request hashes the `trip_uuid` using consistent hashing to map to a specific Shard ID. If a database server approaches capacity, virtual shards migrate to new physical nodes in the background without downtime.
+**A. Dynamic sharding by trip_uuid:**
+Schemaless maps each `trip_uuid` to a virtual shard with consistent hashing.
+Virtual shards can move to new MySQL nodes as capacity changes.
 
-**B. Functional Sharding (Domain Isolation):**
-Trip data is separated logically by domain so high-volume operations don't impact mission-critical billing:
+**B. Functional sharding (domain isolation):**
+Trip data is separated by domain so high-volume work does not affect billing:
 - **Trip Datastore:** Core trip metadata (coordinates, timestamps, state history).
 - **Payment Datastore:** Isolated cluster for strict ACID compliance and financial audit trails.
 - **Driver Partner Datastore:** Earnings, payouts, and tax documentation.
 
 ### Tiered Storage: Hot, Warm, and Cold
 
-Keeping decades of trip history in expensive high-speed transactional databases is not viable. Uber moves data through a tiered lifecycle:
+Keeping decades of history in high-speed transactional storage is expensive, so
+Uber uses tiers:
 
-- **Hot Tier (Schemaless / NVMe SSDs):** Active and recent trips (0-30 days). Optimized for fast API reads (e.g., viewing a recent receipt).
-- **Warm Tier (Cassandra / HBase):** Older trips where high-throughput reads are infrequent, but individual point lookups (e.g., auditing a trip from 2 years ago) must still complete under 100ms.
-- **Cold Tier / Data Lake (Hadoop HDFS, Parquet, Apache Iceberg):** Changes in Schemaless are published to Kafka via Change Data Capture (CDC). Stream ingestion pipelines write these into columnar Parquet files in a Hadoop Data Lake. Data teams query this tier using Presto/Trino or Spark for long-term trends, ETA model retraining, and fraud pattern recognition.
+- **Hot (Schemaless / NVMe SSDs):** Active and recent trips (0–30 days) for fast API reads.
+- **Warm (Cassandra / HBase):** Older trips for occasional point lookups.
+- **Cold (Hadoop HDFS, Parquet, Apache Iceberg):** CDC events are written to columnar files for trends, model retraining, and fraud analysis.
 
 ### Multi-Region Data Replication
 
-Uber operates in an Active-Active configuration across regions:
+Uber uses active-active replication across regions:
 
-- **Asynchronous Multi-Master Replication:** Each region acts as primary master for its local shards while asynchronously replicating writes to other regions via Kafka event pipelines.
-- **Conflict Resolution:** Because Schemaless uses append-only rows with incremental Ref Keys, concurrent writes across two regions do not overwrite each other; they append new versions resolved at read time using deterministic timestamp rules.
+- **Asynchronous multi-master replication:** Each region is primary for its local shards and replicates writes through Kafka.
+- **Conflict resolution:** Append-only rows let concurrent writes add versions instead of overwriting each other. Reads resolve versions by timestamp.
 
 | Need | Solution |
 |------|---------|
@@ -499,64 +503,51 @@ Uber operates in an Active-Active configuration across regions:
 | Cost-Effective Retention | Data Tiering: Hot (Schemaless) → Warm (Cassandra) → Cold (Hadoop/Iceberg) |
 | Analytical Querying | Kafka CDC pipelines streaming into a Parquet-based Data Lake |
 
-### Change Data Capture (CDC): Operational to Analytical Bridge
+### Change Data Capture (CDC): operational to analytical bridge
 
-Change Data Capture is the real-time bridge connecting Uber's operational databases (Schemaless / MySQL) with its downstream analytical systems (Kafka, Apache Hadoop, Apache Pinot, and the Data Lake). Instead of running heavy SQL queries (`SELECT * FROM trips WHERE updated_at > ...`) against the operational database, which degrades performance for live drivers and riders, CDC streams data mutations asynchronously and directly out of the database write log (binlog) with zero impact on database performance.
+CDC connects the operational database to Kafka, analytics, and the data lake.
+It streams mutations from the binlog instead of polling the live database with
+heavy SQL queries.
 
 #### The CDC Pipeline Architecture
 
-```mermaid
-graph TB
-    subgraph STORAGE["Operational Storage"]
-        MYSQL["Schemaless / MySQL Instance"]
-        BINLOG["Transaction Binlog"]
-        MYSQL --> BINLOG
-    end
-    BINLOG -->|reads| ST[StorageTapper CDC]
-    ST -->|publishes| KAFKA[Kafka events]
-    KAFKA -->|real-time| FLINK[Flink / Pinot]
-    KAFKA -->|batch| MH[Marmaray / Hudi]
-    MH --> HDFS[HDFS / S3 Parquet]
+```text
+Schemaless/MySQL → binlog → StorageTapper → Kafka
+                                           ├→ Flink/Pinot
+                                           └→ Marmaray/Hudi → HDFS/S3
 ```
 
 #### Step-by-Step Data Journey
 
-**Step A: Capturing Binlog Events (StorageTapper)**
+**Step A: capture binlog events (StorageTapper)**
 
-When a driver completes a trip, Schemaless writes a row update to MySQL. MySQL writes this mutation to its Binary Log (binlog), a low-level execution log of raw binary changes (INSERT, UPDATE, DELETE). Uber built an internal CDC engine called StorageTapper (now part of the DBEvents framework). StorageTapper acts as a "dummy secondary replica" to the MySQL database. It reads the raw binlog bytes directly from disk without locking database tables or executing CPU-heavy SQL queries.
+When a driver completes a trip, MySQL writes the mutation to its binary log.
+StorageTapper reads the binlog like a secondary replica without locking tables or
+running SQL queries.
 
-**Step B: Schema Enforcement & Serialization (Apache Avro)**
+**Step B: schema enforcement and serialization (Apache Avro)**
 
-Raw binlog data is unorganized binary bytes. To make it usable across the company:
+StorageTapper turns the raw binlog data into a shared event format:
 
-- StorageTapper looks up the Schema-Service to map raw table columns into a standardized Apache Avro format.
-- It converts the database row mutation into a structured event JSON/Avro payload containing:
+- It maps table columns to Apache Avro using the Schema Service.
+- The event contains:
   - **Operation Type:** INSERT, UPDATE, DELETE
   - **Metadata:** Database name, table name, commit timestamp, log position offset
   - **Payload:** before_image (old row values) and after_image (new row values)
 
-**Step C: Streaming to Apache Kafka**
+**Step C: stream to Apache Kafka**
 
-StorageTapper publishes these schematized change events into Apache Kafka topics (e.g., `schemaless.trip_events`). Using Kafka as the CDC message buffer offers major architectural advantages:
+StorageTapper publishes events to Kafka topics such as `schemaless.trip_events`.
+Kafka provides:
 
-- **Decoupling:** Upstream database engineers don't need to know who is consuming the data.
-- **Replayability:** If a downstream data-processing pipeline crashes, it can rewind its Kafka consumer offset and reprocess CDC events without touching the primary database.
-- **Fan-out:** A single database UPDATE event published to Kafka can simultaneously feed real-time analytics (Flink), security audit logs, and the cold storage data lake (Hadoop).
+- **Decoupling:** Producers do not need to know the consumers.
+- **Replayability:** Consumers can rewind offsets and reprocess events.
+- **Fan-out:** One event can feed analytics, audit logs, and cold storage.
 
 #### Ingesting CDC Streams into the Data Lake (Hadoop/Hudi)
 
-Streaming raw CDC updates into Apache Hadoop (HDFS) presents a major challenge: HDFS is designed for immutable, large-file batch processing, whereas CDC streams consist of millions of small, chaotic, out-of-order updates. To solve this, Uber created Apache Hudi (Hadoop Upserts Deletes and Incrementals), now a top-level Apache open-source project.
-
-```mermaid
-graph TB
-    KAFKA["Kafka CDC Stream"] --> MH["Marmaray / Hoodi Processing"]
-    MH --> HUDI
-    subgraph HUDI["Hudi Storage Format on HDFS"]
-        META["Metadata / Indexing"]
-        BASE["Base Files Parquet"]
-        DELTA["Delta Logs Avro"]
-    end
-```
+HDFS is designed for large immutable files, while CDC produces many small,
+out-of-order updates. Apache Hudi combines these updates into queryable files.
 
 **How Hudi Handles CDC Incremental Writes:**
 
@@ -573,45 +564,53 @@ graph TB
 | Data Ordering & Deduplication | Distributed Kafka topics can sometimes deliver events out-of-order or duplicate them. Every CDC event contains the source database transaction timestamp and sequence ID. Hudi uses these fields to apply changes in exact chronological order. |
 | Cross-Region Replication | Uber built uReplicator (an optimized alternative to Kafka MirrorMaker) to mirror CDC Kafka topics between geographically distant datacenters without losing offsets or introducing lag. |
 
-#### Summary Checklist: The Complete Loop
+#### Summary checklist
 
-1. Schemaless / MySQL accepts trip write → Appends to MySQL binlog.
-2. StorageTapper tail-reads binlog → Converts bytes to Avro CDC events.
+1. Schemaless / MySQL accepts the trip write and appends it to the binlog.
+2. StorageTapper reads the binlog and converts it to Avro CDC events.
 3. Events land in Apache Kafka within seconds.
-4. Apache Hudi / Marmaray consumes Kafka CDC messages → Performs incremental upserts into Parquet files on Hadoop HDFS.
-5. Data Engineers / ML Models query the updated Parquet data using Presto, Hive, or Spark.
+4. Apache Hudi / Marmaray consumes CDC messages and upserts Parquet files on HDFS.
+5. Data engineers and ML models query the Parquet data with Presto, Hive, or Spark.
 
-## Durable Execution & Financial Ledger
+## Durable execution and financial ledger
 
-To handle complex multi-step processes and maintain financial accuracy, Uber relies on two fundamental architectural patterns: Durable Execution (Cadence/Temporal) and SOX-Compliant Double-Entry Accounting (Gulfstream).
+Uber uses Durable Execution (Cadence/Temporal) for multi-step processes and
+double-entry accounting (Gulfstream) for financial accuracy.
 
 ### Distributed Workflows: Cadence / Temporal
 
-When a trip is canceled mid-route, several microservices must execute steps in a precise sequence: charge a cancellation fee, notify the driver, update driver availability, issue promo credits, and recalibrate matching algorithms. Standard microservices using HTTP calls or message queues risk losing state if the payment service drops connection halfway through, leading to duplicate charges or orphaned transactions.
+When a trip is canceled, several services must charge a fee, notify the driver,
+update availability, issue credits, and adjust matching. HTTP calls or queues can
+lose state if a service fails midway, causing duplicate charges or unfinished
+transactions.
 
-Uber created Cadence (now evolved in the open-source community as Temporal) to solve this via Durable Execution.
+Cadence, now continued in the open-source community as Temporal, provides
+durable execution for this flow.
 
-**Workflows vs. Activities:**
+**Workflows vs. activities:**
 
-To achieve crash resilience, Cadence strictly splits code into two concepts:
+Cadence splits the code into two concepts:
 
-- **Workflows (State Logic):** Written as standard, imperative code (Go, Java, Python). They must be deterministic: they cannot make API calls, access the system clock, or generate random numbers directly. They dictate order: "Execute Step A, wait for signal X, then execute Step B."
-- **Activities (Side Effects):** Non-deterministic actions live here: charging a credit card, sending an SMS, or calling a third-party API. Activities can fail, time out, and be retried independently using automatic backoff policies defined by the workflow.
+- **Workflows (state logic):** Deterministic code that defines order and waits for signals. It does not call APIs, read the clock, or generate random values directly.
+- **Activities (side effects):** Non-deterministic work such as charging a card, sending an SMS, or calling an API. Activities can fail, time out, and retry independently.
 
-**Replay-Based Recovery (Durable Execution):**
+**Replay-based recovery:**
 
-Cadence does not take memory snapshots of your code. Instead, it uses Event Sourcing:
+Cadence uses event sourcing rather than memory snapshots:
 
 ```
 Event History Stream:
 [1] WorkflowStarted --> [2] ActivityScheduled(ChargeFee) --> [3] ActivityCompleted(Success)
 ```
 
-Every time an Activity completes, Cadence commits an event to an immutable Event History database (Cassandra or MySQL). If the worker host running your workflow dies mid-execution, Cadence spins up a brand new worker node. The new worker re-executes the Workflow code from line 1. When it hits `ChargeFee()`, Cadence checks the Event History, sees `ActivityCompleted(Success)`, skips calling the payment API again, and immediately feeds the stored result directly into the code variable. The workflow resumes at line N without performing duplicate operations.
+After each Activity, Cadence stores an event in the history database. If a worker
+dies, a new worker replays the Workflow. It sees the completed event, skips the
+payment call, and resumes with the stored result.
 
-**Saga Pattern & Compensation Logic:**
+**Saga pattern and compensation:**
 
-In distributed transactions without 2-Phase Commit (2PC), Cadence implements the Saga Pattern for rollback recovery. If an operation fails late in the flow, compensation steps run in reverse:
+Without 2-Phase Commit, Cadence uses the Saga pattern. If a late step fails,
+compensation runs in reverse:
 
 ```go
 func CancellationWorkflow(ctx workflow.Context, tripID string) error {
@@ -630,21 +629,23 @@ func CancellationWorkflow(ctx workflow.Context, tripID string) error {
 }
 ```
 
-### Financial Ledger & Double-Entry Bookkeeping (Gulfstream)
+### Financial ledger and double-entry bookkeeping (Gulfstream)
 
-Handling money across millions of trips requires strict financial auditability (SOX compliance). A single database field like `user_balance = user_balance - $10` is forbidden because it lacks an audit trail and causes catastrophic race conditions. Uber's core financial platform, Gulfstream, enforces Double-Entry Bookkeeping.
+Money movement needs an audit trail. Updating one balance field would not provide
+that, so Gulfstream uses double-entry bookkeeping.
 
-**The Fundamental Rule:** Money Is Neither Created Nor Destroyed
+**Rule:** Money is neither created nor destroyed.
 
-In Gulfstream, every monetary movement is represented as an immutable transaction where:
+Every monetary movement is an immutable transaction where:
 
 $$\sum \text{Debits} = \sum \text{Credits}$$
 
-Every balance is the sum total of its history of ledger entries.
+Every balance is the sum of its ledger entries.
 
-**Example: $20 Fare with a $5 Promo Code**
+**Example: $20 fare with a $5 promo code**
 
-When a rider takes a $20 ride using a $5 promo code, Uber's platform fee is $3, and the driver earns $17. Gulfstream writes a single balanced atomic transaction containing 4 entries:
+For a $20 ride with a $5 promo code, Uber keeps a $3 fee and the driver earns
+$17. Gulfstream writes four entries in one balanced transaction:
 
 | Account | Entry Type | Amount |
 |---------|-----------|--------|
@@ -655,24 +656,29 @@ When a rider takes a $20 ride using a $5 promo code, Uber's platform fee is $3, 
 
 $$\text{Total Debits } (\$15 + \$5 = \$20) \equiv \text{Total Credits } (\$17 + \$3 = \$20)$$
 
-**High-Throughput Account Scaling (Batching & Concurrency):**
+**Account scaling (batching and concurrency):**
 
-A major engineering challenge with double-entry ledgers is hotspot write contention. When thousands of riders finish trips at 5:00 PM, Uber's central accounts (like Uber:Revenue or global driver payout pools) experience tens of thousands of concurrent writes per second. Standard database row-locking causes bottlenecking.
+A ledger can receive concurrent writes to shared accounts. Row locks can become a
+bottleneck.
 
-Uber solved this by building a 250ms User Account Batch Processing Engine:
+Uber groups updates with a 250 ms User Account Batch Processing Engine:
 
-```mermaid
-graph TB
-    REQ["Incoming Ledger Requests"] --> BC["Batch Creator (Redis)"]
-    BC --> BPS["Batch Process Service"]
-    BPS --> UAS["User Account Store"]
-    UAS --> AAS["Async Audit Service (UAC)"]
+```text
+Incoming ledger requests
+          ↓
+Batch creator (Redis)
+          ↓
+Batch process service
+          ↓
+User account store
+          ↓
+Async audit service (UAC)
 ```
 
-- **Sub-Second Aggregation:** Operations targeting the same account are grouped into 250-millisecond windows using Redis coordination.
-- **Single Read/Write Cycle:** Instead of 50 independent SQL reads/writes for 50 updates, the engine reads the current account state once, applies all 50 debit/credit mutations in memory, and writes back the updated balance in a single atomic batch update.
-- **Optimistic Locking:** The batch update validates account versions (`WHERE version = 104`). If a conflict occurs, the batch quickly retries without holding long database locks.
-- **Asynchronous Audit Logging:** Writing the User Account Changelog (UAC) audit trail is decoupled from the critical path using Kafka, reducing database round-trip times to 8-20ms per operation.
+- **Batching:** Updates to one account are grouped into 250 ms windows.
+- **Single read/write:** The engine reads an account once, applies the updates in memory, and writes the result once.
+- **Optimistic locking:** The update checks the account version and retries on conflict.
+- **Asynchronous audit logging:** Kafka moves the User Account Changelog (UAC) off the request path.
 
 ### Architectural Comparison
 
@@ -685,13 +691,20 @@ graph TB
 
 ### Workflow Design Hierarchy: Steps, Flows, and Journeys
 
-Determining how to decompose a system into Steps (Activities), Flows (Child/Parent Workflows), and Journeys (Entities) is the most critical design decision in durable execution. If boundaries are too granular, you hit Event History limits (default 51,200 events per execution). If they are too broad, your code becomes monolithic and hard to recover or test.
+Choosing boundaries for Steps (Activities), Flows (Child/Parent Workflows), and
+Journeys (Entities) affects event-history limits and maintainability. Small
+boundaries can create too many events; large ones become hard to recover or test.
 
-**Tier 2: Step (Activity)** A unit of work that interacts with the real world or performs non-deterministic logic. Make it an Activity if it involves network I/O, non-deterministic operations (time.Now(), random UUID), requires failure retries with exponential backoff, or heavy CPU computation. Keep it inline in the Workflow if it's pure data manipulation (validating input, mapping JSON, basic math).
+**Tier 2: Step (Activity)** A unit that performs I/O, non-deterministic work,
+retriable work, or heavy computation. Keep pure validation, mapping, and math in
+the Workflow.
 
-**Tier 3: Flow (Child / Sub-Workflow)** A self-contained, bounded business sequence. Make it a Sub-Workflow if it is a reusable business unit (e.g., Refund & Cancellation Flow invoked by multiple parents), generates thousands of events (so its history completes independently), needs an independent failure domain, or is owned by a different team.
+**Tier 3: Flow (Child / Sub-Workflow)** A bounded business sequence. Use one for
+reusable work, a separate failure domain, or a history that should be isolated.
 
-**Tier 4: Journey (Entity / Long-Running Workflow)** Models the long-term state machine of a core business entity (e.g., a Driver, a Vehicle). Make it an Entity Journey if it spans months or years, coordinates state via incoming Signals (`for { select { ... } }`), and uses `ContinueAsNew` to atomically truncate event history before hitting the 50,000 event limit.
+**Tier 4: Journey (Entity / Long-Running Workflow)** Models a long-lived entity
+such as a Driver or Vehicle. Use Signals for state changes and `ContinueAsNew` to
+truncate history before the event limit.
 
 **Decision Matrix:**
 
@@ -703,7 +716,7 @@ Determining how to decompose a system into Steps (Activities), Flows (Child/Pare
 | Will generate thousands of events? | No | YES (isolates history) | YES (uses ContinueAsNew) |
 | Listens for signals over months? | No | No | YES |
 
-**Real-World Example: Driver Onboarding**
+**Example: driver onboarding**
 
 ```go
 // TIER 4: JOURNEY (Entity Workflow - Driver Lifetime)
@@ -743,25 +756,39 @@ func DocumentVerificationFlow(ctx workflow.Context, driverID string) error {
 
 ### Concrete Example: Uber Eats Order Fulfillment
 
-The 4-tier hierarchy applied to Uber Eats, where a single order coordinates a customer, restaurant, and courier through a ~45-minute lifecycle.
+The same four tiers can coordinate an Uber Eats order across its roughly
+45-minute lifecycle.
 
 **OrderFulfillmentJourney:**
 
-```mermaid
-graph TB
-    START["Customer Order Placed"] --> PAY["Payment & Authorization Flow"]
-    PAY --> REST["Restaurant Preparation Flow"]
-    REST --> COURIER["Courier Dispatch & Pickup"]
-    COURIER --> DELIVERY["Delivery & Hand-off Flow"]
+```text
+Customer order
+      |
+      v
+Payment & authorization
+      |
+      v
+Restaurant preparation
+      |
+      v
+Courier dispatch & pickup
+      |
+      v
+Delivery & hand-off
 ```
 
-Signals update the active stage asynchronously: restaurant acceptance updates preparation, courier arrival updates pickup, and delivery confirmation closes the flow.
+Signals update the stage asynchronously: restaurant acceptance starts
+preparation, courier arrival updates pickup, and delivery confirmation closes
+the flow.
 
-**Flow A: Payment Authorization** Runs as a child workflow to fail fast before notifying the restaurant. If payment fails, no food waste.
+**Flow A: Payment Authorization** Runs before notifying the restaurant. If
+payment fails, the restaurant is not notified.
 
-**Flow B: Restaurant Fulfillment** Uses a Temporal Selector to wait concurrently for `AcceptOrder(prepTimeMinutes)`, `RejectOrder(reason)`, or a 5-minute timeout (auto-reject if tablet unresponsive).
+**Flow B: Restaurant Fulfillment** Waits for `AcceptOrder(prepTimeMinutes)`,
+`RejectOrder(reason)`, or a five-minute timeout.
 
-**Flow C: Courier Dispatch & Matching** Delayed launch using a workflow timer so the courier arrives as food finishes cooking:
+**Flow C: Courier Dispatch & Matching** Uses a timer so the courier arrives as
+the food finishes cooking:
 
 $$\text{Dispatch Delay} = \text{Target Pickup Time} - \text{Estimated Driver Transit Time}$$
 
@@ -823,40 +850,46 @@ func OrderFulfillmentJourney(ctx workflow.Context, orderID string) error {
 }
 ```
 
-**Key architectural takeaways:**
-- **Failure Isolation:** A restaurant rejection voids the credit card hold without dispatching a courier.
-- **Durable Timers:** `workflow.Sleep` survives server restarts; timer state is preserved in event history.
-- **Decoupled Scaling:** Payment, POS, and Courier workers scale independently on distinct fleets.
+**Key takeaways:**
+- **Failure isolation:** A restaurant rejection voids the card hold without dispatching a courier.
+- **Durable timers:** `workflow.Sleep` survives server restarts.
+- **Independent scaling:** Payment, POS, and courier workers scale separately.
 
 ## Edge Infrastructure, Identity & Rate Limiting
 
-At Uber's scale, handling millions of concurrent mobile clients, web applications, and third-party integrations across the globe, the edge infrastructure serves as the front door to thousands of internal microservices (DOMA architecture). To secure this perimeter, Uber uses a layered defense strategy operating across Edge Routing, Identity & Token Management, and Distributed Rate Limiting.
+The edge serves mobile clients, web apps, and partners before requests reach
+DOMA services. Its layers handle routing, identity, and rate limiting.
 
 ### Edge Architecture Topology
 
-Uber's edge topology relies on a two-tier gateway design to separate threat mitigation from business routing.
+Uber's edge uses two gateway tiers: public threat filtering and internal business routing.
 
 **Tier 1: Anycast & Public Edge (Cloudflare WAF)**
 
-- Anycast IP routing sends traffic to the nearest global PoP, minimizing TCP/TLS handshake latency.
-- DDoS and L7 inspection blocks volumetric L3/L4 SYN floods and L7 HTTP floods before traffic enters Uber's private datacenters.
-- TLS termination near the user establishes optimized long-lived TCP/gRPC connections back to Uber's origin.
+- Anycast routing sends traffic to a nearby global PoP.
+- DDoS and L7 inspection blocks network and HTTP floods before they enter Uber's datacenters.
+- TLS termination near the user supports long-lived TCP/gRPC connections to the origin.
 
 **Tier 2: Core API Gateway (Envoy Proxy)**
 
-Once inside Uber's network, the Envoy-based gateway performs four critical functions:
-- **Protocol Translation:** Converts external REST/JSON or HTTP/2 gRPC into internal gRPC over Thrift or Protobuf.
-- **Path & Tenant Routing:** Routes `/v1/trips` or `/v1/eats` to respective microservice clusters based on header metadata, geo-location, and canary deployment flags.
-- **Edge Authentication (Token Swapping):** Converts public bearer tokens into authenticated internal identity objects.
-- **Resiliency Circuits:** Enforces timeouts, retries with backoff, and circuit breakers (hedged requests) to prevent cascading failures.
+Inside the network, the Envoy gateway handles four functions:
+- **Protocol translation:** Converts external REST/JSON or HTTP/2 gRPC to internal gRPC, Thrift, or Protobuf.
+- **Path and tenant routing:** Sends `/v1/trips` and `/v1/eats` to the right service cluster using request metadata and deployment flags.
+- **Edge authentication:** Converts public bearer tokens into internal identity objects.
+- **Resiliency:** Applies timeouts, backoff retries, and circuit breakers.
 
 ### Security, OAuth2 & Identity Engineering
 
-Managing session state for millions of riders and drivers requires a dual-token identity pipeline: external OAuth2 tokens for public transport and internal Passports for microservices.
+The identity pipeline uses external OAuth2 tokens for clients and internal
+Passports for microservices.
 
-**External Authentication (OAuth2):** When a user logs in, the Identity Service issues a short-lived OAuth2 Access Token (1 hour) and a Refresh Token (stored in device Keychain/Keystore). Mobile clients send the access token in the `Authorization: Bearer <token>` header.
+**External authentication (OAuth2):** On login, the Identity Service issues a
+short-lived access token and a refresh token. Mobile clients send the access
+token in the `Authorization` header.
 
-**The Identity Passport Pattern (Internal Token Swapping):** To prevent downstream microservices from repeatedly calling the Identity Service, the Edge Gateway exchanges the public OAuth2 token for a cryptographically signed Passport, a lightweight binary struct containing validated user metadata:
+**Identity Passport pattern:** The Edge Gateway exchanges the public token for a
+signed Passport containing validated user metadata. Services can verify it
+locally instead of calling the Identity Service.
 
 ```json
 {
@@ -868,27 +901,31 @@ Managing session state for millions of riders and drivers requires a dual-token 
 }
 ```
 
-The Passport is HMAC-signed with a symmetric key shared across the internal mesh. Microservices verify the HMAC signature locally in sub-milliseconds without any network lookup.
+The Passport is HMAC-signed with a key shared across the internal mesh. Services
+verify the signature locally.
 
-**Zero-Trust Service-to-Service Security (SPIFFE/SPIRE & mTLS):** Every microservice workload is assigned a cryptographic identity (`spiffe://uber.com/ns/fulfillment/sa/driver-dispatch`). SPIRE agents issue and rotate short-lived X.509 SVID certificates to application pods. Sidecar proxies enforce zero-trust mTLS ACL policies: Service A can only talk to Service B if explicitly permitted.
+**Service-to-service security (SPIFFE/SPIRE and mTLS):** Each workload receives a
+cryptographic identity. SPIRE issues short-lived X.509 certificates, and sidecar
+proxies enforce which services may communicate.
 
 ### Distributed Rate Limiting (Radix Engine)
 
-Rate limiting at Uber operates at multiple tiers to defend against brute-force credential stuffing, API abuse, and runaway internal clients. Uber built Radix, a custom high-throughput distributed rate-limiting system using Redis Clusters as an in-memory sliding window store.
+Rate limiting runs at multiple tiers against credential stuffing, API abuse, and
+runaway clients. Radix uses Redis Cluster as a sliding-window store.
 
-```mermaid
-flowchart TD
-    REQ["Incoming Request"] --> GW["EDGE GATEWAY"]
-    GW --> REDIS["REDIS CLUSTER Sliding Window Counter"]
-    REDIS -->|Under Limit| FORWARD["Forward to Microservices"]
-    REDIS -->|Exceeded Limit| REJECT["Return HTTP 429"]
+```text
+Incoming request → Edge gateway → Redis sliding-window counter
+                                      ├→ under limit → Microservices
+                                      └→ exceeded   → HTTP 429
 ```
 
-**Sliding Window Counter:** Instead of a fixed window (which suffers from boundary spikes), Radix uses a sliding window via atomic Lua script with INCRBY and EXPIRE over time buckets:
+**Sliding window counter:** Radix uses atomic Lua scripts with `INCRBY` and
+`EXPIRE` over time buckets instead of a fixed window:
 
 $$\text{Current Weight} = \text{Count}_{\text{current}} + \text{Count}_{\text{previous}} \times \left(1 - \frac{\text{Time elapsed in current window}}{\text{Window duration}}\right)$$
 
-**Token Bucket (Burst Management):** Used for endpoints that naturally burst (e.g., driver location pings every 4s). Defines a capacity bucket and refill rate, allowing bursts up to capacity, then smoothing to the refill rate.
+**Token bucket:** Used for bursty endpoints such as driver location pings. It
+allows bursts up to a capacity, then applies the refill rate.
 
 **Multi-Dimensional Rate Limit Keys:**
 

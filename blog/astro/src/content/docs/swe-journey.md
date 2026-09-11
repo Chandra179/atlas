@@ -9,9 +9,8 @@ tags:
   - backend
   - software-design
 description: >-
-  Practical lessons on variable naming, abstraction, data types, logging,
-  idempotency, caching, message brokers, and deployment from real-world
-  engineering experience.
+  Practical lessons on naming, abstraction, data types, logging, idempotency,
+  caching, brokers, and deployment.
 modified: '2026-09-05'
 ---
 
@@ -19,10 +18,11 @@ modified: '2026-09-05'
 
 ## Variable Naming & Function Design
 
-Determine when to use descriptive or short variable names; it depends on how long the function process is. A long function with short variable names will lose context as we navigate the logic in that function.
+Choose descriptive or short variable names based on function scope. Short names lose context in long functions.
 
-A function name should also have a clear intent, like `GetProductDetail`. We don't care how complex the logic is in that function, as long as the intent is GETTING data, not modifying it.
-Use abstraction when needed for example:
+A function name should show its intent, such as `GetProductDetail`. The name should make clear that it reads data, not changes it.
+
+Use abstraction when a dependency may change. For example:
 
 ```go
 func GetNews() (NewsResp) {
@@ -31,7 +31,7 @@ func GetNews() (NewsResp) {
 }
 ```
 
-Later if we need to change news API we will have to refactor the code. This might complicate the function logic as we add new code to handle a different news API. The better approach is using interface
+If the news API changes, this function needs a rewrite. That logic gets harder to maintain when more APIs are added. An interface keeps the function independent of the provider:
 
 ```go
 type NewsReq struct {}
@@ -42,7 +42,7 @@ type NewsAPI interface {
 }
 ```
 
-Here we defined struct like `NewsReq` and `NewsResp`. The purpose is to be a translation layer, because every news API might have a different API response, so we map it to our data format. So if we want to change news API we can change the concrete implementation
+`NewsReq` and `NewsResp` form a translation layer. Each provider maps its response to this shared format, so changing providers only changes the concrete implementation:
 
 ```go
 // news/dependencies.go
@@ -68,7 +68,7 @@ news := news.NewNews(rn)
 
 ## Abstraction with Interfaces
 
-Put a type assertion in the concrete implementation. This way, while we are still coding, we can know immediately if there is an error (meaning the function is not properly implementing the abstraction).
+Add a compile-time type assertion to each concrete implementation. The compiler then catches interface mismatches:
 
 ```go
 // external/news.go
@@ -94,11 +94,11 @@ func (y *YahooNews) GetNews(req news.NewsReq) (news.NewsResp, error) {
 
 ## Data Types & API Contracts
 
-Variable data types is matter. Most of the time, we create API contracts for the frontend (WEB). JavaScript has a maximum safe integer length, and its default data type for numbers is `Number` (which uses 64-bit floating-point math) $9,007,199,254,740,991$ (16 digits).
+Data types matter in API contracts. JavaScript's `Number` type safely represents integers only up to $9,007,199,254,740,991$.
 
-So, returning number bigger than that like **Big Integer** will cause the number to be automatically rounded and corrupted by JavaScript. The solution to this problem is to convert that big integer into a **String** before sending it in the API response.
+Returning a larger integer can round and corrupt it in JavaScript. Send it as a **String** instead.
 
-Another thing related to numbers is floating/decimal numbers. Many companies I worked at before used float data types for money, which results in number inaccuracy. For example, if you add small amounts together using floats, the math will eventually break:
+Floats also cause money calculations to lose precision. For example:
 
 ```go
 package main
@@ -119,7 +119,7 @@ func main() {
 }
 ```
 
-There are ways to handle this properly, like using the Stripe approach. With this method, we use the smallest unit of the currency, like "cents," and use an integer data type. Because integers don't have decimals, there will be no inaccuracy with decimal points. Ref: https://docs.stripe.com/api/charges/object
+Store money in the smallest currency unit, such as cents, using an integer. Integers avoid decimal rounding. See https://docs.stripe.com/api/charges/object.
 
 | **Actual Amount** | **Value Stored in Database / Code (as Integer)** |
 | --- | --- |
@@ -127,9 +127,9 @@ There are ways to handle this properly, like using the Stripe approach. With thi
 | $10.50 | `1050` (cents) |
 | $99.99 | `9999` (cents) |
 
-Next is the return values of the fields in the API. Go has default zero values. For example, an integer defaults to `0`, a float to `0.0`, and a string to `""`.
+Go gives fields default zero values: `0` for integers, `0.0` for floats, and `""` for strings.
 
-In finance, `0` might mean something. Careful when deciding how to handle this, because an admin fee of `0` means something different from a missing or unconfigured admin fee.
+In finance, `0` can be meaningful. An admin fee of `0` differs from a missing or unconfigured fee.
 
 ```go
 type FeeResponse struct {
@@ -138,13 +138,13 @@ type FeeResponse struct {
 }
 ```
 
-Also, check carefully when adding `omitempty` to a struct field. Unlike native data types (like integers or strings), an empty nested struct will **not** be excluded from the JSON payload. Instead, it will return an empty JSON object `{}` filled with its own default zero values.
+Use `omitempty` carefully. Unlike primitive fields, an empty nested struct is **not** omitted; it is returned as `{}` with its zero values.
 
-Go's standard `encoding/json` package determines if a field is "empty" based on a strict list: `false`, `0`, a `nil` pointer, or an array/slice/map/string with a length of 0. An initialized struct value (like `Address{}`) does not fit any of those categories, so Go considers it "not empty" and serializes it as an empty object `{}`.
+The standard `encoding/json` package treats `false`, `0`, a `nil` pointer, or an empty array, slice, map, or string as empty. An initialized struct such as `Address{}` is not on that list, so it serializes as `{}`.
 
 ## Structured Logging
 
-When it comes to logging, if we use third-party tools like CloudWatch or Datadog, their pricing models are by data ingestion per gigabyte (GB) and the total number of indexed log events. Make sure to compact your data. For example, requests formatted in JSON should be compacted into a single line rather than spread across multiple lines.
+CloudWatch and Datadog charge by ingested data and indexed events. Keep structured logs compact; write each JSON event on one line.
 
 ```go
 // BAD: Wasteful multi-line logging (treated as 5+ log events)
@@ -161,11 +161,11 @@ When it comes to logging, if we use third-party tools like CloudWatch or Datadog
 
 ## Idempotency
 
-**Idempotency** is often used in use cases involving **retries and accidental data duplication** whether it is implemented by data hashing, unique ID generation on multiple requests, or other techniques. Its to guarantee that performing the same request multiple times will have the same result as performing it once
+**Idempotency** prevents retries from creating duplicate effects. It can use request hashes, unique IDs, or other keys. Repeating the same request should produce the same result as running it once.
 
 ## Context & Timeouts
 
-Handling the request lifetime by using `context.WithTimeout` in Go. While Go or your web framework might have a global default timeout, we often have strict constraints on how long a specific internal process should be running, for example
+Use `context.WithTimeout` to bound a request's lifetime. A specific internal operation may need a shorter timeout than the global default:
 
 ```go
 func GetUserAccount(db *sql.DB, userID int) (*sql.Rows, error) {
@@ -182,29 +182,29 @@ func GetUserAccount(db *sql.DB, userID int) (*sql.Rows, error) {
 
 ## Caching Strategies
 
-Determining when to use a distributed cache versus local in-memory storage depends heavily on your specific use case.
+Choose between a distributed cache and local memory based on the use case.
 
-For my company blog project, I chose to use **in-memory storage** because I already know the total size of the data being handled. For example, the main page uses less than 2 MB of data. Instead of setting up a separate Redis instance, I used Go's native `//go:embed` directive to load the blog content directly into memory once at compile time.
+For this blog, **in-memory storage** is enough because the data size is known. The main page uses less than 2 MB, so Go's `//go:embed` can load it into memory at compile time instead of using Redis.
 
 ```go
 //go:embed blog_data.json
 var blogContent []byte
 
 func main() {
-	// The 2MB of data is baked right into the binary and ready instantly
+	// The 2MB of data is embedded in the binary.
 	fmt.Println("Blog data size:", len(blogContent))
 }
 ```
 
-While this approach makes the initial application startup a bit slower, it results in much faster runtime performance. Because the data lives inside the application process itself, we eliminate the extra **network hop** required to fetch data from an external database or cache.
+This makes startup a little slower but removes the **network hop** to an external database or cache.
 
-I applied a similar approach to some of our external APIs, like our weather data endpoint. I built an in-memory cache but added strict guardrails like a maximum memory limit and a Time-To-Live (TTL) expiration mechanism to keep memory leaks in check.
+I used the same approach for an external weather API, with a memory limit and Time-To-Live (TTL) expiration to bound cache growth.
 
-Why skip a dedicated cache like Redis here? It comes down to **cost and realism**. A company blog isn't going to get millions of visitors overnight. Setting up, paying for, and maintaining a separate infrastructure piece like Redis for a low-traffic service is over-engineering. Local in-memory storage is faster, cheaper, and sufficient.
+Why skip Redis? A low-traffic company blog does not need another service. Local memory is faster, cheaper, and sufficient.
 
 ## Eager Initialization (Boot-time Singleton)
 
-When the data we depend on is static and predefined, there is no need to use Redis or other cloud storage. Instead, we can fetch it once at startup and keep it in memory as a singleton. However, we must keep in mind the memory footprint, concurrent access, and how to handle a failed API call (e.g., whether to ignore it, throw an error, or panic). It all depends on the system's goals: if it is a non-blocking operation, we can ignore the failure or return an empty default; if it is critical, we should throw an error or panic to fail fast.
+For static, predefined data, fetch it once at startup and keep it in a singleton. Consider memory use, concurrent access, and API failures. Ignore or default non-blocking failures; fail fast for required data.
 
 ```go
 var (
@@ -212,8 +212,7 @@ var (
     configOnce sync.Once
 )
 
-// LoadConfig guarantees the heavy fetch runs exactly once, even if multiple
-// goroutines call it concurrently during boot.
+// LoadConfig runs the fetch once, even with concurrent callers during boot.
 func LoadConfig() *StaticConfig {
     configOnce.Do(func() {
         config = fetchFromRemoteAPI()
@@ -224,29 +223,29 @@ func LoadConfig() *StaticConfig {
 
 ## Message Broker Selection
 
-Choosing the right message broker whether it's Kafka, RabbitMQ, NATS, or AWS SNS/SQS depends on your specific use case, scale requirements, and team expertise. While Kafka is fantastic for real-time data streaming and event replayability due to its append-only log architecture, you have to look at your team.
+Choose Kafka, RabbitMQ, NATS, or AWS SNS/SQS based on the use case, scale, and team experience. Kafka fits real-time streams and replayable append-only logs.
 
-If your company or team only has deep knowledge of AWS SNS/SQS, it often makes more sense to choose that tool to achieve the same business functionality. The main concern is service cost, but setting up and maintaining a complex message broker architecture yourself if not done right can go wrong for the infrastructure scalability and maintenance costs
+If the team knows AWS SNS/SQS well, using it may be the better choice. Operating a complex broker also adds cost and maintenance work.
 
-If your system doesn't require the full, heavy feature set of a traditional message broker, you can opt for a performant, lightweight option like **NATS**. It provides fast pub/sub messaging without the operational footprint of bigger tools.
+If the system needs only pub/sub, **NATS** provides fast messaging with less operational work.
 
-And again it depends on your specific use case and how it scales:
-- **AWS SNS/SQS:** Best for cloud-native, zero-maintenance, standard asynchronous queuing where you want to pay only for what you use.
-- **Kafka:** Best for high-throughput log streaming, event sourcing, and scenarios where multiple consumers need to replay old historical data.
-- **RabbitMQ:** Best when you require complex routing logic (like wildcards, topic matching, and exchange bindings) before messages hit a queue.
-- **NATS:** Best for ultra-low latency, lightweight cloud-native microservices where performance is critical and operational simplicity is preferred.
+Choose based on fit and expected growth:
+- **AWS SNS/SQS:** Managed asynchronous queuing with usage-based cost.
+- **Kafka:** High-throughput streams, event sourcing, and replay for multiple consumers.
+- **RabbitMQ:** Complex routing with exchanges and bindings.
+- **NATS:** Low-latency pub/sub for lightweight services.
 
 ## Infrastructure & Observability
 
-From my perspective, infrastructure is the foundation for long-term and sustainable software. It is something that must be built right first. An application developer's program depends heavily on how the infrastructure is set up, including things like system availability, data durability, and stability. If a company doesn't have proper observability, like distributed tracing to correlate logs between different microservices, or if they have painfully slow deployment times, it makes the software unsustainable for the future.
+Infrastructure affects availability, durability, stability, and delivery speed. Observability such as distributed tracing helps correlate logs across services. Slow deployments and weak observability make software harder to operate.
 
-Application developers also responsible for keeping the system healthy. Our role is to ensure the code follows best practices. For example, even if the infrastructure is stable, bad code without proper timeouts can still crash the system.
+Application developers also help keep the system healthy. Stable infrastructure cannot prevent code without timeouts from exhausting the system.
 
 ## Overthinking vs Underthinking
 
-How deep should you dive into a problem? When do you decide you are overthinking or underthinking?
+How far should you take a design before it becomes overthinking or underthinking?
 
-I believe there is a specific level where you must stop because diving deeper is not worth the time, effort, or cost. A classic example of overthinking is designing an idempotency cache:
+Stop when more complexity is not worth the time, effort, or cost. An idempotency cache can grow like this:
 
 1. You start with an **in-memory cache** for idempotency, but realize it won't survive an app crash.
 2. So, you decide to use **Redis**. But what if Redis crashes?
@@ -254,27 +253,27 @@ I believe there is a specific level where you must stop because diving deeper is
 4. You plan for **Redis Sharding**. But what if an entire AWS region goes down?
 5. You start designing **Geo-Sharding** and a full **Disaster Recovery plan**.
 
-While this covers every single disaster scenario, it is complete overkill to do all at once.
+Planning for every failure at once is overkill.
 
 | **Approach**      | **What it looks like**                                                                                                                                   | **The Risk**                                                                                                                         |
 | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------ |
 | **Underthinking** | Throwing a quick fix together without considering basic failures (e.g., using a local map for idempotency in a multi-instance, autoscaling environment). | The app breaks immediately under standard production conditions.                                                                     |
 | **Overthinking**  | Designing for "Six Nines" ($99.9999\%$) availability for a service that has low traffic or low business criticality.                                     | You waste months building complex infrastructure, delay the product launch, and create a system that is too complicated to maintain. |
 
-You need to stop at a reasonable level that satisfies your **current business constraints and immediate next phase of growth**. The best approach is to build the simplest version that safely handles standard production requirements, and then **gradually improve it step-by-step** if you encounter issues related to that scale. Don't solve problems you don't have yet. Solve the problems you have today, design the system so it is flexible enough to change tomorrow.
+Stop at the level that meets your **current constraints and next stage of growth**. Build the simplest safe version, then improve it when scale exposes a real problem. Do not solve problems you do not have yet; keep the design flexible.
 
 ## Choosing a SQL Database
 
-When choosing an SQL database, it is important to evaluate its storage architecture and indexing mechanics. PostgreSQL uses a heap storage engine, meaning that table data is stored independently of its indexes. For example choosing PostgreSQL vs SqlServer
+When choosing an SQL database, compare its storage and indexing. PostgreSQL uses heap storage, so table data is stored separately from indexes. For example, compare PostgreSQL with SQL Server.
 
-Indexing in Postgres uses a B-Tree structure, so a query lookup requires the engine to find the tuple identifier (CTID) in the index and then perform a secondary lookup in the heap to retrieve the row data.
+PostgreSQL indexes use a B-tree. A lookup finds the tuple ID (CTID), then reads the row from the heap.
 
-For SQL Server, the engine defaults to a clustered index architecture, where the table data itself is physically stored directly inside the B-Tree leaf nodes. As a result, SQL Server performs exceptionally well with sequential primary keys, as new inserts can be cleanly appended to the end of the clustered B-Tree without causing heavy page splits.
+SQL Server defaults to clustered indexes, where table data lives in the B-tree leaf nodes. Sequential primary keys can append new rows to the end and reduce page splits.
 
 
 ## Error Wrapping and Centered Logging
 
-When building layered applications, adding log statements to every layer creates code noise and duplicate logs. A better approach is to wrap errors with contextual information at each layer, letting the error chain move upward. By logging the accumulated error chain once at the presentation layer (such as the HTTP API handler), you eliminate redundant logs while preserving the execution context.
+Logging every layer creates duplicate logs. Wrap errors with context as they move upward, then log the full chain once at the presentation layer, such as an HTTP handler.
 
 ```go
 package main
@@ -325,14 +324,14 @@ func main() {
 
 ## Concurrency Lifecycles and Failure Strategies
 
-When writing concurrent code you need to check traps like deadlocks, operations that hang forever without a timeout, out of memory issues, data races, and accessing corrupted or deleted data. 
+Concurrent code must account for deadlocks, missing timeouts, out-of-memory errors, data races, and invalid data access.
 
-For instance, if you need to fire off one hundred API calls at once, your approach depends on your design requirements. If you allow partial failures so one bad call does not block the others, you can log the errors and let the remaining calls finish. But if a single failure means the whole batch should stop immediately, an error group is the perfect tool to manage the context cancellation.
+For one hundred API calls, choose the failure behavior first. Allow partial failures and let other calls finish, or cancel the whole batch on the first error with an error group.
 
-You also need to evaluate if each API call requires an independent timeout context, and whether they are separate or dependent on each other. When API calls depend on the output of previous ones, you can use channels to coordinate it. Remember to always clean up your resources using defer to cancel your contexts, check for channel closure before processing data, and define default fallback behaviors so your app never sits around doing nothing.
+Decide whether each call needs its own timeout and whether calls depend on one another. Use channels for dependent calls. Cancel contexts with `defer`, check channel closure, and define fallback behavior.
 
 #### Example 1: Handling Partial Failures
-Use this approach when you want to run all API calls to completion, even if some of them fail. A failure in one call does not stop the others.
+Use this approach when all calls should finish, even if some fail.
 
 ```go
 package main
@@ -391,7 +390,7 @@ func main() {
 
 #### Example 2: Stop Everything on First Error (Using errgroup.Group)
 
-Use this approach when you want an all-or-nothing operation. If any API call returns an error, the error group automatically cancels the context, which tells all other active workers to abort immediately.
+Use this approach for an all-or-nothing operation. An error group cancels the context when one call fails, so other workers can stop.
 
 ```go
 package main
@@ -452,22 +451,22 @@ func main() {
 
 ## Memory and Pointers
 
- the `&` operator retrieves the memory address of a variable, while the `*` operator dereferences a pointer to access the actual value stored at that specific memory location.
+The `&` operator gets a variable's address. The `*` operator dereferences a pointer to read its value.
 
-A common misunderstanding is how pointers become `nil`. A pointer does not dynamically turn `nil` because the garbage collector cleared the underlying data, nor does it become `nil` during an out-of-memory event or an application crash. Go's tracing garbage collector guarantees that as long as an active pointer points to a memory allocation, that data will never be collected.
+A pointer does not become `nil` because the garbage collector clears its data, or because of an out-of-memory event or crash. Go keeps pointed-to data alive while an active pointer references it.
 
-	Instead, a nil pointer exception occurs because a pointer variable was never initialized to point to a valid memory address in the first place. If an application encounters an unmanaged out-of-memory error or a severe internal system fault, the entire application process terminates immediately rather than resetting individual pointer values.
+A nil pointer error occurs when the pointer was never initialized to a valid address. An unmanaged out-of-memory error or severe system fault terminates the process; it does not reset pointer values.
 
-Invalid pointer when it holds the default zero-value address (`0x0`). Attempting to read it forces the runtime to panic instantly to prevent system corruption.
+The zero-value pointer has address `0x0`. Dereferencing it causes a runtime panic.
 
 ## String Header
 
-When you initialize a basic string variable, such as `test := "apple"`, Go allocates memory using string header. On a 64-bit architecture, this header consumes 16 bytes of storage on the stack, split into two distinct fields:
+When you initialize `test := "apple"`, Go represents the string with a 16-byte header on a 64-bit system:
 
-- **Data Pointer (8 bytes):** Stores the memory address pointing to the underlying immutable byte array where the character text is kept.
-- **Length (8 bytes):** Stores the total size of the string in bytes.
+- **Data pointer (8 bytes):** Address of the immutable byte array.
+- **Length (8 bytes):** String size in bytes.
 
-When you pass a string to a function or assign it to another variable without using a pointer, Go does not copy the entire body text of the string. Because strings are designed to be immutable, multiple string headers can safely point to the same backing array. Therefore, copying a string value only copies the lightweight 16-byte header, making it an efficient operation.
+Passing or assigning a string copies its 16-byte header, not the text. Multiple headers can point to the same immutable backing array.
 
 ```go
 package main
@@ -491,20 +490,20 @@ func main() {
 }
 ```
 
-Go applies this same design principle to other structural types
+Go uses similar representations for other structural types:
 
-- **Slices:** Like strings, passing a slice by value only copies a small 24-byte header containing a data pointer, length, and capacity. It points to a shared backing array. Slices are mutable. If you modify the elements of a copied slice, you will directly alter the data in the original backing array.
-- **Maps and Channels:** Under the hood, maps and channels are direct pointers to complex internal runtime structures (`hmap` and `hchan`). Copying a map or channel variable only copies a tiny 8-byte memory address. Both the original variable and the copy point to the same live data buckets.
+- **Slices:** Passing a slice copies a 24-byte header containing a pointer, length, and capacity. Copies share the backing array, so changing elements changes the shared data.
+- **Maps and channels:** Copies contain an address to shared runtime data.
 
-**Note on Primitives:** Primitives like integers, floats, and booleans do not use headers or pointer descriptors at all. Because their raw values are already tiny (1 to 8 bytes), Go duplicates the value directly from one stack slot to another. It fits inside a single CPU register, making it fast.
+**Primitives:** Integers, floats, and booleans are copied directly because their values are small.
 
-Because strings, slices, and maps are already lightweight headers or pointers under the hood, **you almost never need to pass them as pointers (`*string`, `*[]int`, `*map`) for performance reasons.** You only use a pointer if you explicitly need to change the header itself, like reallocating a new slice or replacing the entire map reference.
+Because strings, slices, and maps already use lightweight headers or pointers, **do not pass them as pointers (`*string`, `*[]int`, `*map`) just for performance.** Use a pointer only when you need to change the header itself.
 
 ## Stack vs. Heap
-Deciding whether to pass a data structure by value or by pointer requires an understanding of how the Go compiler conducts escape analysis to choose between stack and heap distribution:
+Whether a value uses the stack or heap depends on Go's escape analysis:
 
-- **Passing by Value (Stack Allocation):** Copying values keeps data isolated within the local execution stack frame. The moment the function finishes its execution, the entire stack frame is discarded. This releases the memory with zero processing overhead and places no strain on the garbage collector.
-- **Passing by Pointer (Heap Allocation):** When you pass a pointer, the compiler often cannot verify if the memory will be referenced elsewhere after the current function exits. This causes the data to escape to the heap. Heap allocations must be actively tracked and cleaned up by the garbage collector.
+- **Passing by value:** Small values can remain in the local stack frame, which is discarded when the function returns.
+- **Passing by pointer:** If the value may outlive the function, it escapes to the heap and is tracked by the garbage collector.
 
 ```go
 package main
@@ -527,20 +526,20 @@ func main() {
 }
 ```
 
-Overusing pointers to avoid value copying can backfire. Flooding the heap with unnecessary pointers forces the garbage collector to run more frequently, which spikes CPU utilization. If long-running application loops continuously create heap references faster than the garbage collector can reclaim them, memory usage will compound over time, leading to an out-of-memory crash.
+Using unnecessary pointers can increase heap allocations and garbage-collector work. In long-running loops, that can increase memory use and cause an out-of-memory crash.
 
-**As a general rule**: pass basic types, small structures, and header types by value, and reserve pointers for large custom data objects or states that require direct modification.
+**Rule of thumb**: pass small values and header types by value; use pointers for large objects or state that must be modified.
 
-## Rest API
-Use HTTP status codes correctly (like `400` for bad requests). For further handling on the client side, we can return a business error code, for example, `"error_code: 23"`. Keep it informative while not displaying sensitive information to the user.
+## REST API
+Use HTTP status codes correctly, such as `400` for bad requests. You can also return a business error code such as `"error_code: 23"`; keep it useful without exposing sensitive data.
 
-Clients can read `404 Not Found` or read directly from the response body (like `cats: []`). It all depends on each company’s standards, as there are no global rules.
+Clients can use `404 Not Found` or read an application error from the response body, such as `cats: []`. The choice depends on the team's API standard.
 
-Carefully design how the fields behave in the API response. For example:
+Define the meaning of response fields clearly. For example:
 
 - `"admin_fee: 0"` could mean something specific in finance.
-- Multi-platform clients (mobile, web) handling existing logic might have different mechanisms. While Client A treats `"jelly: {}"` as an unhandled empobject, another client treats it as valid object. We in the backend need to communicate clearly to the client how we handle it
+- Mobile and web clients may interpret `"jelly: {}"` differently. Document whether an empty object is valid.
 
-We need to consider the worst-case scenario if we depend on an API, whether communicating between internal company services or external services. We cannot be sure that their service is consistent or free of production bugs. By using schema validation, we define what the structure is so that only API responses matching our definition will be parsed, allowing us to validate data early (such as checking whether they return `null` or empty data).
+Treat every API dependency as unreliable. Schema validation defines the expected shape and catches `null`, empty, or invalid data early.
 
-Each API may originate from the same base URL, but their response times and authentication can be different. Other things like headers can vary too, so we need to make them independent for timeouts, headers, cookies, and related settings.
+Even APIs under one base URL may differ in response time, authentication, headers, and cookies. Configure timeouts and request settings independently.
