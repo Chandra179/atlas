@@ -31,7 +31,7 @@
 3. use modular monolith, use standard libary instead of manual implementation if it can, or use big tech open source libary but check if its actively maintainable, security, total stars
 4. create system design or system architecture first in "docs", the mandatory section is: tech stack, tradeoffs
 5. document the architecture decisions in "docs/adr" using markdown file
-6. 
+6. make sure the implementation is conccurency and parallel safe since it will not be just single node application since we will scale it
 
 ## Scaling
 
