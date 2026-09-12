@@ -17,9 +17,11 @@ For every problem, record:
 - the current workaround or competing product; and
 - source, date, and evidence strength.
 
-Talk to representative users about recent behavior. Ask what happened the last
-time they faced the problem, what they did, and what it cost them. Do not treat
-requests for a specific feature as proof that the feature is the right solution.
+Before building, study how the target customer handles the problem today. Ask
+about the last time they faced it, what they did, and what it cost them. Use
+interviews, calls, observation, support conversations, or written feedback.
+After creating a prototype, observe whether users can understand and complete
+the proposed workflow. Treat feature requests as clues, not requirements.
 
 **Required output:** a problem brief with a clear customer, problem, context,
 evidence, current alternatives, and unanswered questions.
