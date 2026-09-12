@@ -11,7 +11,7 @@ tags:
 description: >-
   Practical lessons on naming, abstraction, data types, logging, idempotency,
   caching, brokers, and deployment.
-modified: '2026-09-05'
+modified: '2026-09-12'
 ---
 
 # Software Engineering

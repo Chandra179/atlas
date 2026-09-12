@@ -8,7 +8,7 @@ tags:
 links:
   github: https://github.com/Chandra179/ohara
 created: 2026-09-11T00:00:00.000Z
-modified: '2026-09-11'
+modified: '2026-09-12'
 ---
 
 # Ohara
@@ -39,17 +39,17 @@ lifecycle actions are still in progress.
 ## The architecture in one picture
 
 ```text
-user
+User
   │
   v
-local interface
+Local interface
   │
   v
-runtime / operators
-  ├─ control: durable state
-  ├─ pipeline: coordinates work
-  ├─ fetch: network input
-  └─ knowledge: vectors + graph
+Runtime / operators
+  ├─ Control: durable state
+  ├─ Pipeline: coordinates work
+  ├─ Fetch: network input
+  └─ Knowledge: vectors + graph
 ```
 
 The control area tracks pending and completed work. The pipeline coordinates

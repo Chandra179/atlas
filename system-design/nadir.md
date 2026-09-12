@@ -25,9 +25,9 @@ Nadir can run locally; documents and questions stay in your environment.
 ## How it works
 
 ```text
-Documents → index → search → grounded answer
-                         ↑          ↓
-                    question ← history
+Documents → Index → Search → Grounded answer
+Question  → Search
+Follow-up question ← Conversation history ← Answer
 ```
 
 ### 1. Add documents

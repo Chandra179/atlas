@@ -58,9 +58,11 @@ real time:
 
 ```text
 Broadcaster
-  └─ RTMP/WebRTC → live ingress
-      ├─ transcoder → LL-DASH → CDN → viewer (1–3s)
-      └─ DVR store
+     │ RTMP/WebRTC
+     v
+Live ingress → Transcoder → LL-DASH → CDN → Viewer (1–3 s)
+                   │
+                   └─→ DVR store
 ```
 
 - **Ingress protocols**: Broadcasters push raw streams using RTMP, WebRTC, SRT, or DASH-PUT.
@@ -95,8 +97,8 @@ frames must be processed as they arrive.
 - **Live (push / chunked transfer)**: A 2-second chunk is split into ~100 ms sub-chunks and streamed to the CDN while it is being recorded.
 
 ```text
-VOD:  Transcoder -- full 4s chunks --> Origin → CDN edge → Viewer
-Live: Transcoder -- 100ms sub-chunks -------------> CDN edge → Viewer
+VOD:  full 4 s chunks → Origin → CDN edge → Viewer
+Live: 100 ms chunks    → CDN edge → Viewer
 ```
 
 **3. State & Storage: Static Blobs vs. the "DVR Loop".**
@@ -146,15 +148,13 @@ deliveries per second. The design uses decoupled ingestion, server-side
 sampling, tiered fan-out, and adaptive polling.
 
 ```text
-User message → API gateway → moderation → Kafka / Pub/Sub
-                                      ↓
-                                stream partition
-                                      ↓
-                                batch sampler
-                                      ↓
-                         edge cache + continuation token
-                                      ↓
-                                  viewer app
+User message → API gateway → Moderation → Kafka/Pub/Sub
+                                               ↓
+                                         Batch sampler
+                                               ↓
+                                    Edge cache + continuation token
+                                               ↓
+                                           Viewer app
 ```
 
 **Write path (ingestion & moderation):**
@@ -245,9 +245,9 @@ cycles. One upload creates tasks that can run in parallel:
 
 ```text
 Upload raw video
-├─ split into chunks → encode 1080p / 720p / 360p → manifest
-├─ extract audio → speech-to-text captions
-└─ sample frames → Content ID scan
+├─→ split into chunks → encode 1080p / 720p / 360p → manifest
+├─→ extract audio → speech-to-text captions
+└─→ sample frames → Content ID scan
 ```
 
 **Why DAG is crucial:**

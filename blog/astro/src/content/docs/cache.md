@@ -14,7 +14,7 @@ tags:
   - system-design/caching
   - redis
 created: 2026-06-13T00:00:00.000Z
-modified: '2026-09-08'
+modified: '2026-09-12'
 ---
 
 # Cache
@@ -71,33 +71,12 @@ When Redis executes a command or Lua script:
 - The Redis engine does not need thread locks or context switches for this loop.
 - An atomic operation or Lua script runs from start to finish before the next queued command.
 
-```mermaid
-flowchart LR
-    subgraph App["Application Server"]
-        A1[Client A]
-        A2[Client B]
-    end
-
-    subgraph Redis["Redis Server"]
-        direction TB
-        NIC[TCP socket]
-        Q[FIFO queue]
-        CPU[CPU event loop]
-        RAM[Working data in RAM]
-        BG[Async persistence]
-    end
-
-    subgraph Disk["Disk (SSD)"]
-        RDB[(RDB / AOF)]
-    end
-
-    A1 -->|"Request A (1-5ms network)"| NIC
-    A2 -->|"Request B (1-5ms network)"| NIC
-    NIC -->|enqueue| Q
-    Q -->|dequeue one by one| CPU
-    CPU -->|"read/write (~0.1ms)"| RAM
-    CPU -->|"periodic async save"| BG
-    BG -->|write| RDB
+```text
+Application server
+Client A ─┐
+          ├─→ TCP socket → FIFO queue → CPU event loop → RAM
+Client B ─┘                                      │
+                                                 └─→ async save → SSD (RDB/AOF)
 ```
 
 **3. Network and disk**
@@ -147,15 +126,11 @@ Memcached uses a different CPU model: classic Redis runs its command loop on one
 
 Memcached uses a worker pool, often sized to the server's CPU cores:
 
-```mermaid
-flowchart TD
-    NET[Incoming Network Requests] --> ACC[Main Acceptor Thread]
-    ACC --> W1[Worker Thread 1]
-    ACC --> W2[Worker Thread 2]
-    ACC --> W3[Worker Thread 3]
-    W1 --> RAM[Shared System RAM Slab Allocator + Hash Table]
-    W2 --> RAM
-    W3 --> RAM
+```text
+Incoming requests → acceptor thread
+                         ├─→ worker 1 ─┐
+                         ├─→ worker 2 ─┼─→ shared RAM slab + hash table
+                         └─→ worker 3 ─┘
 ```
 
 - **Main thread**: Listens for TCP connections and distributes sockets to workers.
@@ -318,15 +293,12 @@ Separate two concepts when discussing atomicity in a Redis cluster:
 
 Redis achieves this on a single node through its Single-Threaded Event Loop:
 
-```mermaid
-flowchart LR
-    CA[Client A Request] --> Q[In-Memory Queue]
-    CB[Client B Request] --> Q
-    CC[Client C Request] --> Q
-    Q --> CPU[Single CPU Core]
-    CPU --> R1[Command 1: GET driver:123]
-    CPU --> R2[Command 2: Lua Script]
-    CPU --> R3[Command 3: INCR views]
+```text
+Client A ─┐
+Client B ─┼─→ in-memory queue → one CPU core
+Client C ─┘                         ├─→ GET driver:123
+                                    ├─→ Lua script
+                                    └─→ INCR views
 ```
 
 - **Sequential queue**: Every command or script enters an in-memory queue.
@@ -372,17 +344,10 @@ Because both keys share `{group_123}`, Redis guarantees they map to the same Has
 
 When keys must live on different servers or datacenters, use a distributed consensus lock such as Redlock.
 
-```
-Application Worker
-   |
-   +---> 1. Acquire Lock on Redis Node 1 (Success)
-   +---> 2. Acquire Lock on Redis Node 2 (Success)
-   +---> 3. Acquire Lock on Redis Node 3 (Success)
-   |
-   |  [ Majority (3/5) Locks Acquired within TTL ]
-   |
-   +---> 4. Perform Multi-Node Mutation
-   +---> 5. Release All Locks
+```text
+Application worker → Redis node 1 ─┐
+                     Redis node 2 ─┼─→ majority (3 of 5) → mutation → release
+                     Redis node 3 ─┘
 ```
 
 The client tries to acquire `SET lock_key uuid NX PX 1000` on N independent Redis primaries. If it gets a majority within the timeout, the application performs its work and releases the locks.

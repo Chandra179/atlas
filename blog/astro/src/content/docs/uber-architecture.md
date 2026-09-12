@@ -10,7 +10,7 @@ tags:
 description: >-
   A concise overview of Uber's ride matching, storage, workflows, and edge
   services.
-modified: '2026-09-08'
+modified: '2026-09-12'
 ---
 
 # Uber Architecture
@@ -37,7 +37,7 @@ queries that cell and its eight neighbors instead of the whole database.
 
 ```text
 Driver app -- location --> Supply service --\
-                                               DISCO --> ETA / routing
+                                             DISCO --> ETA / routing
 Rider app  -- request  --> Demand service --/
 ```
 
@@ -226,13 +226,13 @@ After the driver accepts:
 
 ```text
 Rider  → DISCO: request ride
-DISCO  → Redis: find drivers in nearby S2 cells
+DISCO  → Redis: find nearby drivers
 DISCO  → ETA: rank candidates
 ETA    → DISCO: return ETAs
-DISCO  → Redis: lock the top driver
+DISCO  → Redis: lock top driver
 DISCO  → Driver: send offer
 Driver → DISCO: accept
-DISCO  → Redis: save match state
+DISCO  → Redis: save match
 DISCO  → Rider: push driver details
 ```
 
@@ -450,13 +450,13 @@ slow a relational database.
 Schemaless is an append-only, key-value datastore built over clusters of MySQL instances:
 
 ```text
-App services (Ride / Billing / Receipt)
-                    |
-                    v
-Schemaless worker (routing / sharding / datastore logic)
-                 /          |          \
-                v           v           v
-          MySQL shard 1  MySQL shard 2  MySQL shard 3
+App services: Ride / Billing / Receipt
+              |
+              v
+Schemaless worker: route, shard, datastore logic
+           /          |          \
+          v           v           v
+      MySQL 1      MySQL 2      MySQL 3
 ```
 
 **Key Design Principles:**
@@ -513,8 +513,8 @@ heavy SQL queries.
 
 ```text
 Schemaless/MySQL → binlog → StorageTapper → Kafka
-                                           ├→ Flink/Pinot
-                                           └→ Marmaray/Hudi → HDFS/S3
+                                             ├─→ Flink / Pinot
+                                             └─→ Hudi/Marmaray → HDFS/S3
 ```
 
 #### Step-by-Step Data Journey
@@ -598,9 +598,12 @@ Cadence splits the code into two concepts:
 
 Cadence uses event sourcing rather than memory snapshots:
 
-```
-Event History Stream:
-[1] WorkflowStarted --> [2] ActivityScheduled(ChargeFee) --> [3] ActivityCompleted(Success)
+```text
+Workflow started
+      ↓
+Activity scheduled: ChargeFee
+      ↓
+Activity completed: success
 ```
 
 After each Activity, Cadence stores an event in the history database. If a worker
@@ -763,17 +766,13 @@ The same four tiers can coordinate an Uber Eats order across its roughly
 
 ```text
 Customer order
-      |
-      v
+      ↓
 Payment & authorization
-      |
-      v
+      ↓
 Restaurant preparation
-      |
-      v
+      ↓
 Courier dispatch & pickup
-      |
-      v
+      ↓
 Delivery & hand-off
 ```
 
@@ -914,9 +913,9 @@ Rate limiting runs at multiple tiers against credential stuffing, API abuse, and
 runaway clients. Radix uses Redis Cluster as a sliding-window store.
 
 ```text
-Incoming request → Edge gateway → Redis sliding-window counter
-                                      ├→ under limit → Microservices
-                                      └→ exceeded   → HTTP 429
+Incoming request → Edge gateway → Redis counter
+                                      ├─ under limit → Microservices
+                                      └─ exceeded   → HTTP 429
 ```
 
 **Sliding window counter:** Radix uses atomic Lua scripts with `INCRBY` and
