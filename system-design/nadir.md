@@ -1,23 +1,22 @@
 ---
 title: "Nadir"
-description: "Private document search with Qdrant, hybrid retrieval, and optional grounded language-model answers."
-seoTitle: "Private Document Search with Qdrant"
-seoDescription: "Build private document search with Qdrant, hybrid retrieval, conversation history, and optional grounded language-model answers."
-answerSummary: "Nadir indexes private documents, retrieves relevant passages with hybrid search, and optionally generates answers grounded in that evidence."
+description: "Nadir is a private-document RAG chat app with hybrid search."
+seoTitle: "Nadir: Private-Document RAG Chat with Hybrid Search"
+seoDescription: "Nadir is a private-document RAG chat app with hybrid search."
+answerSummary: "Nadir is a private-document RAG chat app with hybrid search."
 tags: [system-design, llm, rag]
 links:
   github: "https://github.com/Chandra179/nadir"
 created: 2026-09-10
 ---
 
-# How Private Document Search Uses Qdrant and Grounded Answers
+# Nadir: A Private-Document RAG Chat with Hybrid Search
 
-Nadir is a private document search app. It indexes documents and answers
-questions from relevant passages.
+Nadir is a private-document RAG chat app with hybrid search.
 
-The workflow is designed for people who need searchable notes, manuals, papers,
-or internal knowledge without sending the source collection to a hosted search
-service.
+The workflow is designed for people who need to chat with notes, manuals,
+papers, or internal knowledge without sending the source collection to a hosted
+search service.
 
 Use it for:
 
@@ -25,14 +24,14 @@ Use it for:
 - technical documentation;
 - research papers and manuals;
 - internal knowledge bases; and
-- any text collection that needs document-grounded answers.
+- any text collection where answers should link back to source passages.
 
 Nadir can run locally; documents and questions stay in your environment.
 
 ## How private document search works
 
 ```text
-Documents → Index → Search → Grounded answer
+Documents → Index → Search → Chat response with source context
 Question  → Search
 Follow-up question ← Conversation history ← Answer
 ```
@@ -62,8 +61,8 @@ the supporting context. It streams the answer as it is generated.
 - **Hybrid retrieval** — combines semantic and keyword results for better
   coverage.
 - **Optional reranking** — uses a stronger model to reorder the best matches.
-- **Grounded answers** — answers from retrieved passages instead of only model
-  memory.
+- **Cited answers** — responses include the retrieved passages used to form
+  them instead of relying only on model memory.
 - **Conversation history** — keeps sessions and allows follow-up questions.
 - **In-place editing** — edit an earlier question and replace that turn and
   all later turns.
@@ -108,10 +107,10 @@ reads the question and each leading passage together to refine their order.
 Nadir compares a new question with cached questions by vector similarity. If
 the meaning is close enough, it reuses the previous retrieval result.
 
-### Grounded generation
+### Answer generation from retrieved passages
 
 The selected passages and source context are placed in a prompt. The language
-model answers from that material, reducing unsupported claims.
+model writes the response from that material and exposes the supporting context.
 
 ## Conversations and data management
 
@@ -125,9 +124,8 @@ document index does not need to delete conversation history.
 
 ## What Nadir is designed for
 
-Nadir is designed for private, document-grounded search on one machine or a
-small local network. It prioritizes clear results, local data control, and
-simple operation.
+Nadir is designed for private document chat on one machine or a small local
+network. It prioritizes clear results, local data control, and simple operation.
 
 For a larger deployment, search and storage can scale separately. Live answer
 streaming also needs a shared event backend so any app instance can deliver the

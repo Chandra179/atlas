@@ -1,24 +1,27 @@
 ---
 title: "Ohara"
-description: "A private document pipeline for extraction, relationship discovery, search, and grounded answers."
-seoTitle: "Private Document Pipeline for Grounded Search"
-seoDescription: "A private document pipeline for extracting text and relationships, combining search methods, and producing grounded answers with evidence."
-answerSummary: "Ohara extracts text and relationships from local documents, then combines exact, semantic, and graph-aware retrieval to support grounded answers."
+description: "A Rust-based document data pipeline that scrapes, cleans, vectorizes, and indexes content for retrieval and graph-based knowledge discovery."
+seoTitle: "Ohara: Rust Data Pipeline for Scraping, Vectors & Graphs"
+seoDescription: "Ohara is a Rust document pipeline for scraping sources, cleaning content, generating vectors, and building retrieval and relationship graphs."
+answerSummary: "Ohara is a Rust-based document data pipeline: it scrapes sources, cleans and chunks content, generates vectors, and combines keyword, semantic, and graph retrieval for citation-ready search."
 tags: [system-design, llm, rag]
 links:
   github: "https://github.com/Chandra179/ohara"
 created: 2026-09-11
 ---
 
-# How to Build a Private Document Pipeline for Search and Grounded Answers
+# Ohara: A Rust Document Pipeline for Scraping, Cleaning, Vectors, Retrieval, and Graphs
 
-Ohara is a private knowledge app. It extracts text and relationships from
-documents, then lets you query the resulting knowledge base.
+Ohara is a Rust-based document data pipeline. It scrapes sources, cleans and
+chunks their content, generates vectors, and builds retrieval indexes and a
+knowledge graph for citation-ready search.
 
-It targets personal collections on one computer. Local files and models are
-the default; cloud models are opt-in.
+It is the ingestion and knowledge-building layer, rather than a chat-first RAG
+interface: the pipeline turns messy documents into evidence that a search or
+answering application can retrieve. Local files and models are the default;
+cloud models are opt-in.
 
-## What the private document pipeline does
+## What the Rust data pipeline does
 
 - Fetch web pages within robots rules and local-network limits.
 - Remove boilerplate while keeping headings, lists, tables, and code.
