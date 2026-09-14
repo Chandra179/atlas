@@ -18,10 +18,6 @@ const ALLOWED_FILES = new Set([
   'system-design/ohara.md',
 ]);
 
-const rootFiles = readdirSync(ROOT, { withFileTypes: true })
-  .filter(e => e.isFile() && e.name.endsWith('.md') && ALLOWED_FILES.has(e.name))
-  .map(e => e.name);
-
 function titleFromFilename(name) {
   return name
     .replace(/\.md$/, '')
@@ -72,51 +68,9 @@ function lastCommitDate(file) {
 let synced = 0;
 let cleaned = 0;
 
-for (const file of rootFiles) {
-  const rootPath = path.join(ROOT, file);
-  const blogPath = path.join(BLOG_DIR, file);
-
-  const rootContent = readFileSync(rootPath, 'utf-8');
-  const rootBody = stripFrontmatter(rootContent);
-  const rootFm = parseFrontmatter(extractFrontmatterBlock(rootContent));
-
-  let blogFm = {};
-  if (existsSync(blogPath)) {
-    const blogContent = readFileSync(blogPath, 'utf-8');
-    blogFm = parseFrontmatter(extractFrontmatterBlock(blogContent));
-  }
-
-  // Root frontmatter is authoritative (content is authored at the repo
-  // root); destination-only fields are preserved as a fallback so nothing
-  // set previously just for the site (and never mirrored to root) is lost.
-  const merged = { ...blogFm, ...rootFm };
-  if (!merged.title) merged.title = titleFromFilename(file);
-  merged.modified = lastCommitDate(file);
-
-  const frontmatter = yaml.dump(merged).trim();
-
-  const newContent = `---\n${frontmatter}\n---\n\n${rootBody}`;
-  writeFileSync(blogPath, newContent);
-  console.log(`  ✓ ${file}`);
-  synced++;
-}
-
-// Remove any .md files in blog dir that aren't in allowed list
-const blogFiles = readdirSync(BLOG_DIR, { withFileTypes: true })
-  .filter(e => e.isFile() && e.name.endsWith('.md') && e.name !== 'README.md');
-
-for (const entry of blogFiles) {
-  if (!rootFiles.includes(entry.name)) {
-    unlinkSync(path.join(BLOG_DIR, entry.name));
-    console.log(`  ✗ removed: ${entry.name}`);
-    cleaned++;
-  }
-}
-
-// Sync allowed files from subdirectories (e.g. system-design/cache.md) — flattened to root
-const subdirFiles = [...ALLOWED_FILES].filter(f => f.includes('/'));
-
-for (const file of subdirFiles) {
+// Root Markdown is authoritative. The site collection flattens the published
+// allow-list into src/content/docs so Astro can use clean one-segment routes.
+for (const file of [...ALLOWED_FILES]) {
   const rootPath = path.join(ROOT, file);
   const destName = path.basename(file);
   const blogPath = path.join(BLOG_DIR, destName);
@@ -145,6 +99,19 @@ for (const file of subdirFiles) {
   writeFileSync(blogPath, newContent);
   console.log(`  ✓ ${file} → ${destName}`);
   synced++;
+}
+
+// Remove generated Markdown files outside the published allow-list.
+const allowedDestNames = new Set([...ALLOWED_FILES].map((file) => path.basename(file)));
+const blogFiles = readdirSync(BLOG_DIR, { withFileTypes: true })
+  .filter((entry) => entry.isFile() && entry.name.endsWith('.md') && entry.name !== 'README.md');
+
+for (const entry of blogFiles) {
+  if (!allowedDestNames.has(entry.name)) {
+    unlinkSync(path.join(BLOG_DIR, entry.name));
+    console.log(`  ✗ removed: ${entry.name}`);
+    cleaned++;
+  }
 }
 
 // Remove any subdirectories (we only want flat files)

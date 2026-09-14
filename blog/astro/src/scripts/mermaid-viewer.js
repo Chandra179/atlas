@@ -230,8 +230,7 @@ class MermaidViewport {
   }
 }
 
-async function renderDiagrams() {
-  const wrappers = Array.from(document.querySelectorAll('.mermaid-diagram'));
+async function renderDiagrams(wrappers = Array.from(document.querySelectorAll('.mermaid-diagram'))) {
   const todo = wrappers.filter((w) => !w.dataset.mermaidRendered);
   if (!todo.length) return;
 
@@ -249,8 +248,8 @@ async function renderDiagrams() {
   });
 
   for (const wrapper of todo) {
-    // Re-check here: concurrent callers (module eval + astro:page-load) can
-    // both reach this loop, so guard again after the await above.
+    // Re-check here: queued viewport callbacks can reach this loop after the
+    // Mermaid module has loaded, so guard again after the await above.
     if (wrapper.dataset.mermaidRendered) continue;
     const pre = wrapper.querySelector('pre.mermaid');
     if (!pre || !pre.textContent.trim()) continue;
@@ -269,10 +268,9 @@ async function renderDiagrams() {
   }
 }
 
-// Coalesce concurrent invocations: Astro fires `astro:page-load` on initial
-// load too, right after the module-eval render starts, so both would render
-// each diagram twice. Share one in-flight pass; reset after it resolves so
-// later SPA navigations still trigger fresh renders.
+// Coalesce concurrent invocations and share one in-flight pass. Normal links
+// use full-page navigation, while this also keeps theme-triggered rerenders
+// from rendering the same diagram twice.
 let renderInFlight = null;
 function renderDiagramsOnce() {
   if (!renderInFlight) {
@@ -283,15 +281,58 @@ function renderDiagramsOnce() {
   return renderInFlight;
 }
 
+let diagramObserver = null;
+let queuedWrappers = new Set();
+let queuedRenderInFlight = null;
+
+function queueDiagram(wrapper) {
+  queuedWrappers.add(wrapper);
+  if (!queuedRenderInFlight) {
+    queuedRenderInFlight = (async () => {
+      while (queuedWrappers.size) {
+        const batch = [...queuedWrappers];
+        queuedWrappers = new Set();
+        await renderDiagrams(batch);
+      }
+    })().finally(() => {
+      queuedRenderInFlight = null;
+    });
+  }
+  return queuedRenderInFlight;
+}
+
+function observeDiagrams() {
+  const wrappers = Array.from(document.querySelectorAll('.mermaid-diagram'));
+  if (!wrappers.length) return;
+  if (!('IntersectionObserver' in window)) {
+    renderDiagramsOnce();
+    return;
+  }
+
+  diagramObserver?.disconnect();
+  diagramObserver = new IntersectionObserver((entries) => {
+    for (const entry of entries) {
+      if (!entry.isIntersecting) continue;
+      diagramObserver?.unobserve(entry.target);
+      queueDiagram(entry.target);
+    }
+  }, { rootMargin: '800px 0px' });
+
+  wrappers.forEach((wrapper) => diagramObserver.observe(wrapper));
+}
+
 function rerenderAll() {
   for (const wrapper of document.querySelectorAll('.mermaid-diagram')) {
     const pre = wrapper.querySelector('pre.mermaid');
     if (!pre) continue;
     pre.hidden = false;
     wrapper.querySelector('.mermaid-viewport')?.remove();
+    for (const viewport of activeViewports) {
+      if (viewport.wrapper === wrapper) activeViewports.delete(viewport);
+    }
     delete wrapper.dataset.mermaidRendered;
   }
-  renderDiagrams();
+  renderDiagramsOnce();
 }
 
 // In pdf-mode, render with a top-level await so the window `load` event
@@ -302,11 +343,9 @@ if (shouldRender) {
   if (isPdfMode()) {
     await renderDiagramsOnce().catch((err) => console.error('Mermaid render failed:', err));
   } else {
-    renderDiagramsOnce();
+    observeDiagrams();
   }
 }
-
-document.addEventListener('astro:page-load', () => renderDiagramsOnce());
 
 let lastDark = prefersDark();
 let themeTimer = 0;

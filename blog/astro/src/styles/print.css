@@ -4,8 +4,6 @@
 .pdf-mode header,
 .pdf-mode [class*="fixed top-0"],
 .pdf-mode [class*="fixed top-16"],
-.pdf-mode #sidebar,
-.pdf-mode #toc,
 .pdf-mode nav[aria-label="Breadcrumb"],
 .pdf-mode nav[aria-label="Previous and next articles"],
 .pdf-mode .pdf-hide,
@@ -58,8 +56,6 @@
 
 @media print {
   /* Hide UI chrome */
-  #sidebar,
-  #toc,
   header,
   [class*="fixed top-0"],
   [class*="fixed top-16"],

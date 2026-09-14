@@ -4,6 +4,7 @@ Run these checks after deploying the verified build. They require access to the 
 
 ## Crawler discovery
 
+- Run `npm run check:live` from the Astro app and investigate any route, cache, or feed failure before submitting the site.
 - Submit `https://chan179.com/sitemap-index.xml` in Google Search Console.
 - Submit the same sitemap in Bing Webmaster Tools if the site is registered there.
 - Confirm `https://chan179.com/robots.txt` returns HTTP 200 and advertises the canonical sitemap.
@@ -23,3 +24,7 @@ Run these checks after deploying the verified build. They require access to the 
 - Check that social previews use the 1200×630 `og-image.png` asset.
 - Review Search Console queries and pages after 2–4 weeks; do not infer ranking changes from a single manual search.
 
+## Performance follow-up
+
+- Use Lighthouse or PageSpeed Insights for LCP, INP, and CLS; the live smoke check reports server response timing only.
+- After a deployment, verify that HTML and machine-readable endpoints have short revalidation policies and purge an older CDN version only if the live response still contains stale branding.

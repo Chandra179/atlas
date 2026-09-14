@@ -10,7 +10,7 @@ seoDescription: "Practical guidance on Go API contracts, interfaces, idempotency
 answerSummary: "These notes explain practical design choices that make Go backends easier to change, debug, operate, and scale."
 ---
 	
-# Software Engineering
+# Software Engineering Practices for Reliable Go Backends
 
 These notes explain practical design choices that make Go backends easier to change, debug, operate, and scale, from naming and interfaces to idempotency, caching, messaging, and deployment.
 

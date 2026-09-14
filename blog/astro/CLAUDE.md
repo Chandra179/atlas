@@ -40,7 +40,7 @@ Custom remark/rehype plugins in `src/lib/` run in this pipeline order:
 
 These plugins port behavior from an earlier non-Astro build (`blog/scripts/lib/*.js` — see comments referencing "Ported from" / "gen-nav.js").
 
-Mermaid diagrams are rendered **client-side**: `remark-mermaid-preserve.js` escapes each ` ```mermaid ` fence into a `<pre class="mermaid">` inside a `.mermaid-diagram` wrapper (no build-time SVG). `src/scripts/mermaid-viewer.js` (loaded in `DocLayout.astro`) lazily imports the mermaid runtime, renders the source in the browser, and wraps each diagram in a pan/zoom viewport (wheel zoom, drag pan, pinch, on-hover controls, fullscreen). It re-renders when the `.dark` class toggles. In pdf-mode (the worker stamps a `pdf-mode` class on `<html>`) it renders statically with the light theme and no viewport.
+Mermaid diagrams are rendered **client-side**: `remark-mermaid-preserve.js` escapes each ` ```mermaid ` fence into a `<pre class="mermaid">` inside a `.mermaid-diagram` wrapper (no build-time SVG). `src/scripts/mermaid-viewer.js` (loaded only for documents containing a Mermaid block) lazily imports the mermaid runtime, renders diagrams near the viewport, and wraps them in a pan/zoom viewport (wheel zoom, drag pan, pinch, on-hover controls, fullscreen). It re-renders when the `.dark` class toggles. In pdf-mode (the worker stamps a `pdf-mode` class on `<html>`) it renders statically with the light theme and no viewport.
 
 When writing mermaid diagrams in content:
 - `<br>` in node labels is fine — it's escaped to literal text and mermaid interprets it client-side.
@@ -50,7 +50,7 @@ When writing mermaid diagrams in content:
 ### PDF generation Worker
 
 - `src/worker/index.ts` is the Cloudflare Worker entry (`wrangler.jsonc`: `main`), serving only `GET/POST /api/pdf?slug=...&title=...`. Everything else falls through to the static `ASSETS` binding.
-- Flow: fetch the static page HTML via `env.ASSETS`, strip nav/sidebar/TOC/breadcrumbs with `linkedom` (`cleanHtmlForPdf`), rewrite relative URLs to absolute, then render via Cloudflare Browser Run `quickAction('pdf', ...)`, retrying on 429.
+- Flow: fetch the static page HTML via `env.ASSETS`, strip navigation and breadcrumbs with `linkedom` (`cleanHtmlForPdf`), rewrite relative URLs to absolute, then render via Cloudflare Browser Run `quickAction('pdf', ...)`, retrying on 429.
 - Results are cached in the `PDF_CACHE` KV namespace for 24h (`CACHE_KEY_PREFIX = 'pdf:v3:'` — bump this prefix if the cleaning/rendering logic changes incompatibly, to avoid serving stale cached PDFs).
 - See `README.md` for full details on KV namespace setup and Browser Run's daily free-tier limits.
 

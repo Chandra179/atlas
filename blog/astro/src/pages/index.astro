@@ -166,7 +166,7 @@ const homepageJsonLd = [
 ---
 
 <BaseLayout
-  title={siteName}
+  title={`${siteName} Engineering Portfolio`}
   description={baseDescription}
   canonical="/"
   noNav={true}
@@ -228,33 +228,6 @@ const homepageJsonLd = [
         if (p >= 1 && p <= this.totalProjectPages) this.projectPage = p;
       },
 
-      writingPage: 1,
-      writingPageSize: 5,
-      totalPosts: ${posts.length},
-      get totalWritingPages() {
-        if (this.writingPageSize === 'all') return 1;
-        return Math.ceil(this.totalPosts / this.writingPageSize);
-      },
-      isWritingVisible(idx) {
-        if (this.writingPageSize === 'all') return true;
-        const start = (this.writingPage - 1) * this.writingPageSize;
-        return idx >= start && idx < (start + this.writingPageSize);
-      },
-      get writingStartIdx() {
-        if (this.totalPosts === 0) return 0;
-        return (this.writingPage - 1) * (this.writingPageSize === 'all' ? this.totalPosts : this.writingPageSize) + 1;
-      },
-      get writingEndIdx() {
-        if (this.writingPageSize === 'all') return this.totalPosts;
-        return Math.min(this.writingPage * this.writingPageSize, this.totalPosts);
-      },
-      setWritingPageSize(s) {
-        this.writingPageSize = s;
-        this.writingPage = 1;
-      },
-      goToWritingPage(p) {
-        if (p >= 1 && p <= this.totalWritingPages) this.writingPage = p;
-      }
     }`}
     :class="projectCols === 2 ? 'max-w-5xl' : (projectCols === 3 ? 'max-w-6xl' : 'max-w-7xl')"
     class="mx-auto px-6 py-20 lg:py-24 transition-all duration-300"
@@ -304,9 +277,8 @@ const homepageJsonLd = [
 
       <!-- Editorial Rows: article title/summary is the primary link; actions are external resources only. -->
       <div class="divide-y divide-zinc-200 dark:divide-zinc-800/60 border-b border-zinc-200 dark:border-zinc-800/60">
-        {posts.map((post, idx) => (
+        {posts.map((post) => (
           <div
-            x-show={`isWritingVisible(${idx})`}
             class="group block py-4 px-3 -mx-3 rounded-xl hover:bg-zinc-100/80 dark:hover:bg-zinc-800/30 transition-all duration-200"
           >
             <!-- Desktop Layout -->
@@ -426,73 +398,9 @@ const homepageJsonLd = [
         ))}
       </div>
 
-      <!-- WRITING PAGINATION TOOLBAR (Matches Selected Projects bottom toolbar) -->
+      <!-- All published articles remain in the initial HTML for crawlers and LLM scrapers. -->
       <div class="mt-6 pt-4 flex flex-col sm:flex-row items-center justify-between gap-4 font-mono text-xs">
-        <div class="flex flex-wrap items-center gap-3">
-          <div class="text-zinc-500 dark:text-zinc-400">
-            Showing <span class="font-medium text-zinc-800 dark:text-zinc-200" x-text="writingStartIdx"></span>–<span class="font-medium text-zinc-800 dark:text-zinc-200" x-text="writingEndIdx"></span> of <span class="font-medium text-zinc-800 dark:text-zinc-200">{posts.length}</span> articles
-          </div>
-          <span class="text-zinc-300 dark:text-zinc-700">|</span>
-          <div class="flex items-center gap-1 text-zinc-500">
-            <span class="text-[11px] text-zinc-400">Page size:</span>
-            <button
-              type="button"
-              @click="setWritingPageSize(2)"
-              :class="writingPageSize === 2 ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold' : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'"
-              class="px-2 py-0.5 rounded cursor-pointer transition"
-            >2</button>
-            <button
-              type="button"
-              @click="setWritingPageSize(3)"
-              :class="writingPageSize === 3 ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold' : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'"
-              class="px-2 py-0.5 rounded cursor-pointer transition"
-            >3</button>
-            <button
-              type="button"
-              @click="setWritingPageSize(5)"
-              :class="writingPageSize === 5 ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold' : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'"
-              class="px-2 py-0.5 rounded cursor-pointer transition"
-            >5</button>
-            <button
-              type="button"
-              @click="setWritingPageSize('all')"
-              :class="writingPageSize === 'all' ? 'bg-zinc-200 dark:bg-zinc-800 text-zinc-900 dark:text-zinc-100 font-semibold' : 'text-zinc-400 hover:bg-zinc-100 dark:hover:bg-zinc-800/60'"
-              class="px-2 py-0.5 rounded cursor-pointer transition"
-            >All</button>
-          </div>
-        </div>
-
-        <!-- Prev / Next & Page Buttons -->
-        <div class="flex items-center gap-1.5">
-          <button
-            type="button"
-            @click="goToWritingPage(writingPage - 1)"
-            :disabled="writingPage <= 1"
-            class="px-2.5 py-1 rounded-md border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
-          >
-            ← Prev
-          </button>
-          
-          <template x-for="p in totalWritingPages" :key="p">
-            <button
-              type="button"
-              @click="goToWritingPage(p)"
-              :class="writingPage === p ? 'bg-zinc-900 text-white dark:bg-zinc-100 dark:text-zinc-900 font-semibold' : 'border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 text-zinc-600 dark:text-zinc-400'"
-              class="w-7 h-7 flex items-center justify-center rounded-md text-xs font-mono transition cursor-pointer"
-              x-text="p"
-            >
-            </button>
-          </template>
-
-          <button
-            type="button"
-            @click="goToWritingPage(writingPage + 1)"
-            :disabled="writingPage >= totalWritingPages"
-            class="px-2.5 py-1 rounded-md border border-zinc-200 dark:border-zinc-800 hover:bg-zinc-100 dark:hover:bg-zinc-800 disabled:opacity-40 disabled:cursor-not-allowed transition cursor-pointer"
-          >
-            Next →
-          </button>
-        </div>
+        <div class="text-zinc-500 dark:text-zinc-400">Showing all {posts.length} articles</div>
       </div>
     </section>
 

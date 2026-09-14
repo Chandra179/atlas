@@ -1,12 +1,9 @@
 ---
 import SEO from '../components/SEO.astro';
-import { ClientRouter } from 'astro:transitions';
 import { DEFAULT_OG_IMAGE, SITE_NAME, getImageType } from '../lib/seo';
 import '../styles/global.css';
 
 import interLatinWoff2 from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2';
-import jetbrainsLatin400 from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff2';
-import jetbrainsLatin600 from '@fontsource/jetbrains-mono/files/jetbrains-mono-latin-600-normal.woff2';
 
 interface Props {
   title: string;
@@ -64,10 +61,6 @@ const resolvedOgImageType = getImageType(resolvedOgImage);
   <link rel="alternate" hreflang="en" href={canonicalUrl} />
   <link rel="alternate" hreflang="x-default" href={canonicalUrl} />
   <link rel="preload" as="font" href={interLatinWoff2} type="font/woff2" crossorigin />
-  <link rel="preload" as="font" href={jetbrainsLatin400} type="font/woff2" crossorigin />
-  <link rel="preload" as="font" href={jetbrainsLatin600} type="font/woff2" crossorigin />
-
-  <ClientRouter />
 
   <SEO
     title={fullTitle}
@@ -107,22 +100,6 @@ const resolvedOgImageType = getImageType(resolvedOgImage);
       }
 
       applyThemeToDocument(document, initialDark);
-
-      // Astro swaps the document during client-side navigation. Carry the
-      // current theme class to the incoming document so the preference does
-      // not flash back to light mode on article pages.
-      document.addEventListener('astro:before-swap', function (event) {
-        var isDark = document.documentElement.classList.contains('dark');
-        applyThemeToDocument(event.newDocument, isDark);
-        event.newDocument.documentElement.classList.remove('theme-transition');
-      });
-
-      document.addEventListener('astro:page-load', function () {
-        document.documentElement.classList.remove('theme-transition');
-        var saved = localStorage.getItem('darkMode');
-        var isDark = saved === 'true' || (saved === null && window.matchMedia('(prefers-color-scheme: dark)').matches);
-        applyThemeToDocument(document, isDark);
-      });
     })();
   </script>
 </head>
@@ -229,10 +206,9 @@ const resolvedOgImageType = getImageType(resolvedOgImage);
     <slot />
   </div>
 
-  <!-- Pagefind search UI: (re)mount on initial load and after every
-       client-side transition, since the #search element is replaced
-       on each navigation and won't otherwise pick up a widget. -->
-  <script is:inline>
+  <!-- Pagefind is only needed on the navigable shell; article and landing
+       pages keep their initial HTML and avoid loading the search bundle. -->
+  {!noNav && !minimal && <script is:inline>
     function mountPagefindUi() {
       if (!window.PagefindUI) return;
       var el = document.getElementById('search');
@@ -245,9 +221,8 @@ const resolvedOgImageType = getImageType(resolvedOgImage);
       });
     }
     window.addEventListener('load', mountPagefindUi);
-    document.addEventListener('astro:page-load', mountPagefindUi);
-  </script>
-  {import.meta.env.PROD && (
+  </script>}
+  {import.meta.env.PROD && !noNav && !minimal && (
     <>
       <script src="/pagefind/pagefind-ui.js" defer></script>
       <link rel="stylesheet" href="/pagefind/pagefind-ui.css" media="print" onload="this.media='all'" />

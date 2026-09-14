@@ -3,7 +3,7 @@ title: Ohara
 description: >-
   A private document pipeline for extraction, relationship discovery, search,
   and grounded answers.
-seoTitle: Build a Private Document Pipeline for Search and Grounded Answers
+seoTitle: Private Document Pipeline for Grounded Search
 seoDescription: >-
   A private document pipeline for extracting text and relationships, combining
   search methods, and producing grounded answers with evidence.
@@ -17,10 +17,10 @@ tags:
 links:
   github: https://github.com/Chandra179/ohara
 created: 2026-09-11T00:00:00.000Z
-modified: '2026-09-12'
+modified: '2026-09-14'
 ---
 
-# Ohara
+# How to Build a Private Document Pipeline for Search and Grounded Answers
 
 Ohara is a private knowledge app. It extracts text and relationships from
 documents, then lets you query the resulting knowledge base.

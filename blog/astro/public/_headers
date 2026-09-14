@@ -1,18 +1,27 @@
 # Cloudflare Pages cache headers
 
-# Security headers + default HTML caching (applied to all responses).
+# Security headers + revalidation policy (applied to all responses).
 # Clean URLs (e.g. /introduction) never match a /*.html pattern, so the
-# default Cache-Control lives here and gets overridden below by the
-# more specific rules for hashed assets, images, etc.
+# default Cache-Control lives here and gets overridden below by the more
+# specific rules for machine-readable endpoints, assets, and images.
 /*
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
-  Cache-Control: public, max-age=21600, stale-while-revalidate=86400
+  Cache-Control: public, max-age=0, must-revalidate, stale-while-revalidate=300
 
-# Sitemap: 1 day, SWR 1 week
+# Machine-readable endpoints: short cache, so content and deployment changes
+# become visible without waiting for a long CDN cache lifetime.
+/robots.txt
+  Cache-Control: public, max-age=300, stale-while-revalidate=600
+/rss.xml
+  Cache-Control: public, max-age=300, stale-while-revalidate=600
+/llms.txt
+  Cache-Control: public, max-age=300, stale-while-revalidate=600
 /sitemap-index.xml
-  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+  Cache-Control: public, max-age=300, stale-while-revalidate=600
+/sitemap.xml
+  Cache-Control: public, max-age=300, stale-while-revalidate=600
 
 # JS/CSS/WebFont with hash: 1 year (immutable)
 /_astro/*

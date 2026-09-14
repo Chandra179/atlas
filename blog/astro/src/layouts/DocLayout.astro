@@ -1,17 +1,9 @@
 ---
 import BaseLayout from './BaseLayout.astro';
-import Sidebar from '../components/Sidebar.astro';
-import TOC from '../components/TOC.astro';
 import type { NavSection } from '../lib/nav';
 import { buildBreadcrumb, flattenNav, getPrevNext } from '../lib/nav';
 import { extractDescription } from '../lib/description';
 import { DEFAULT_OG_IMAGE, SITE_NAME, absoluteUrl, getAuthorProfileUrl } from '../lib/seo';
-
-interface Heading {
-  depth: number;
-  slug: string;
-  text: string;
-}
 
 interface Props {
   title: string;
@@ -20,7 +12,7 @@ interface Props {
   answerSummary?: string;
   ogImage?: string;
   body: string;
-  headings: Heading[];
+  hasMermaid?: boolean;
   url: string;
   nav: NavSection[];
   created?: Date;
@@ -40,7 +32,7 @@ const {
   answerSummary,
   ogImage,
   body,
-  headings,
+  hasMermaid = false,
   url,
   nav,
   created,
@@ -336,9 +328,11 @@ const modifiedDiffersFromCreated =
     });
   </script>
 
-  <script>
-    import '../scripts/mermaid-viewer.js';
-  </script>
+  {hasMermaid && (
+    <script>
+      import '../scripts/mermaid-viewer.js';
+    </script>
+  )}
 
   <script>
     async function downloadPdf() {

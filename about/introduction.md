@@ -1,7 +1,7 @@
 ---
 title: "About Me"
 description: "Software engineer in fintech building Go services, data pipelines, identity systems, and workflow automation."
-seoTitle: "Chandra179 — Software Engineer in Go, Rust, Fintech & Distributed Systems"
+seoTitle: "Chandra179 — Go, Rust & Distributed Systems Engineer"
 seoDescription: "Software engineer building Go backends, data pipelines, identity systems, and workflow automation for fintech and commerce."
 answerSummary: "I am a software engineer who builds Go backend services, data pipelines, identity systems, and workflow automation for fintech and commerce."
 author: "Chandra179"
@@ -10,7 +10,7 @@ tags: [about, career, fintech, distributed-systems]
 created: 2026-06-21
 ---
 
-# Experience
+# About Chandra179 — Software Engineer in Go, Rust, Fintech & Distributed Systems
 
 I am a software engineer focused on reliable backend systems, data-heavy workflows, and fintech products. My work spans Go services, identity and authentication, order and booking systems, document automation, and operational tooling.
  

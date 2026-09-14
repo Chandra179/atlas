@@ -1,7 +1,7 @@
 ---
 title: "Caching & Redis Internals"
 description: "Learn when to use Redis atomic operations, Lua scripts, distributed locks, caching, and cluster hash slots in backend systems."
-seoTitle: "Redis Caching and Distributed Locks: Atomic Operations Explained"
+seoTitle: "Redis Caching vs Distributed Locks"
 seoDescription: "Learn when to use Redis atomic operations, Lua scripts, distributed locks, caching, and cluster hash slots in backend systems."
 answerSummary: "Use Redis atomic operations when a state check and update fit inside Redis; use distributed locks when work spans slow external systems."
 aliases: [redis, memcached, lua-scripting, distributed-atomicity, cache-stampede]
@@ -9,7 +9,7 @@ tags: [system-design, system-design/caching, redis]
 created: 2026-06-13
 ---
 
-# Cache
+# Redis Caching and Distributed Locks: When to Use Each
 
 Use Redis atomic operations when a state check and update fit inside Redis. Use a distributed lock when the workflow crosses slow SQL queries, external APIs, or multiple services.
 

@@ -11,7 +11,7 @@ tags:
 description: >-
   A conceptual ride-hailing architecture covering geospatial indexing, dispatch,
   storage, streaming workflows, and service boundaries.
-seoTitle: 'Uber-Style Ride Matching System Design: Storage and Dispatch'
+seoTitle: Ride-Matching System Design with Geospatial Search
 seoDescription: >-
   A conceptual ride-hailing architecture covering geospatial indexing,
   low-latency dispatch, storage, streaming workflows, and service boundaries.
@@ -19,10 +19,10 @@ answerSummary: >-
   This conceptual design shows how a ride-hailing platform can match supply to
   demand with geospatial indexing, low-latency dispatch, and separate storage
   paths.
-modified: '2026-09-12'
+modified: '2026-09-14'
 ---
 
-# Uber Architecture
+# Ride-Matching System Design: Geospatial Search and Dispatch
 
 This conceptual ride-hailing design matches driver supply with rider demand using geospatial indexing, low-latency dispatch, and storage paths separated by access pattern.
 

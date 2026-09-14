@@ -19,10 +19,10 @@ seoDescription: >-
 answerSummary: >-
   These notes explain practical design choices that make Go backends easier to
   change, debug, operate, and scale.
-modified: '2026-09-12'
+modified: '2026-09-14'
 ---
 
-# Software Engineering
+# Software Engineering Practices for Reliable Go Backends
 
 These notes explain practical design choices that make Go backends easier to change, debug, operate, and scale, from naming and interfaces to idempotency, caching, messaging, and deployment.
 

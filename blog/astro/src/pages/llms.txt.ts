@@ -47,7 +47,7 @@ export async function GET({ site }: { site: URL | undefined }) {
   for (const entry of entries) {
     const slug = entry.id.split('/').pop()!;
     const title = entry.data.seoTitle || entry.data.title || deriveTitle(slug, entry.data.title);
-    const desc = entry.data.answerSummary || entry.data.seoDescription || entry.data.description || extractDescription(entry.body);
+    const desc = entry.data.answerSummary || entry.data.seoDescription || entry.data.description || extractDescription(entry.body || '') || '';
     const url = absoluteUrl(entryIdToUrl(entry.id), site);
     const date = entry.data.created ? entry.data.created.toISOString().slice(0, 10) : 'undated';
     const author = entry.data.author || 'Chandra179';
@@ -60,7 +60,7 @@ export async function GET({ site }: { site: URL | undefined }) {
   return new Response(lines.join('\n') + '\n', {
     headers: {
       'Content-Type': 'text/plain; charset=utf-8',
-      'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
+      'Cache-Control': 'public, max-age=300, stale-while-revalidate=600',
     },
   });
 }

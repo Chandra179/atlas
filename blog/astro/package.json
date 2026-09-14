@@ -10,6 +10,7 @@
     "build": "astro build && pagefind --site dist",
     "generate:og": "node scripts/generate-og-image.mjs",
     "check:seo": "node scripts/check-seo.mjs",
+    "check:live": "node scripts/check-live.mjs",
     "preview": "astro preview",
     "astro": "astro",
     "deploy": "astro build && pagefind --site dist && wrangler deploy"

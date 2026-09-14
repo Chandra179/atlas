@@ -1,16 +1,18 @@
+import type { APIRoute } from 'astro';
 import rss from '@astrojs/rss';
-import { buildNav, deriveTitle, entryIdToUrl } from '../lib/nav';
+import { buildNav, deriveTitle, entryIdToUrl, type NavSection } from '../lib/nav';
 import { extractDescription } from '../lib/description';
 import { getValidEntries } from '../lib/entries';
-import { SITE_NAME, absoluteUrl, normalizePath } from '../lib/seo';
+import { SITE_NAME, SITE_URL, absoluteUrl, normalizePath } from '../lib/seo';
 
-export async function GET(context) {
+export const GET: APIRoute = async (context) => {
   const validEntries = await getValidEntries();
+  const site = context.site || new URL(SITE_URL);
 
   const nav = buildNav(validEntries);
   const navUrls = new Set<string>();
 
-  function collectUrls(section) {
+  function collectUrls(section: NavSection) {
     navUrls.add(section.url);
     if (section.pages) {
       for (const page of section.pages) {
@@ -41,7 +43,7 @@ export async function GET(context) {
       return {
         title,
         description: desc.substring(0, 300),
-        link: absoluteUrl(url, context.site),
+        link: absoluteUrl(url, site),
         pubDate: e.data.created!,
         author: e.data.author || 'Chandra179',
         customData: e.data.tags?.length ? e.data.tags.map((t) => `<category>${t}</category>`).join('') : '',
@@ -51,9 +53,9 @@ export async function GET(context) {
   return rss({
     title: SITE_NAME,
     description: baseDescription,
-    site: context.site,
+    site,
     trailingSlash: false,
     items,
     customData: `<language>en-us</language>`,
   });
-}
+};

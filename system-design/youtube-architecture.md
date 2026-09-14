@@ -1,13 +1,13 @@
 ---
 title: "YouTube Architecture"
 description: "A conceptual video platform architecture covering ingestion, DAG transcoding, adaptive bitrate, live streaming, and global delivery."
-seoTitle: "YouTube-Style Video Ingestion and Transcoding Architecture"
+seoTitle: "YouTube-Style Video Architecture"
 seoDescription: "A conceptual design for video uploads, DAG transcoding, adaptive bitrate packaging, live streaming, storage, CDN delivery, and recommendations."
 answerSummary: "This conceptual architecture explains how a video platform can turn uploads into multiple renditions and deliver them efficiently through asynchronous processing and edge caching."
 tags: [system-design, distributed-systems]
 created: 2026-09-05
 ---
-# YouTube Architecture
+# YouTube-Style Video Ingestion and Delivery Architecture
 
 This conceptual video-platform architecture turns uploads into multiple renditions
 through asynchronous processing, then uses manifests, storage tiers, and edge

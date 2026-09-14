@@ -81,8 +81,6 @@ function cleanHtmlForPdf(html: string, origin: string, slug: string): string {
   // Remove UI chrome
   const selectors = [
     'header',
-    'aside#sidebar',
-    'aside#toc',
     '#search',
     'nav[aria-label="Breadcrumb"]',
     'nav[aria-label="Previous and next articles"]',
@@ -111,9 +109,8 @@ function cleanHtmlForPdf(html: string, origin: string, slug: string): string {
     style.paddingTop = '0';
   }
 
-  // The content column is capped at max-w-3xl (768px) for the web, where
-  // it's flanked by the sidebar/TOC we just removed above. Left alone, that
-  // cap leaves the PDF's content sitting narrow with dead space on both
+  // The content column is capped at max-w-3xl (768px) for the web. Left alone,
+  // that cap leaves the PDF's content sitting narrow with dead space on both
   // sides, since Browser Run lays the page out at a wider viewport before
   // flattening it onto the A4 page. Let it use the full printable width.
   const contentWrapper = document.querySelector('#doc-content-wrapper');
@@ -199,6 +196,11 @@ async function generatePdf(env: Env, cleanedHtml: string, attempt = 1): Promise<
 export default {
   async fetch(request, env, ctx): Promise<Response> {
     const url = new URL(request.url);
+
+    if (url.protocol === 'http:') {
+      url.protocol = 'https:';
+      return Response.redirect(url.toString(), 301);
+    }
 
     if (url.pathname !== '/api/pdf') {
       return new Response('Not found', { status: 404 });

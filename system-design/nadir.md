@@ -1,7 +1,7 @@
 ---
 title: "Nadir"
 description: "Private document search with Qdrant, hybrid retrieval, and optional grounded language-model answers."
-seoTitle: "Private Document Search with Qdrant and Grounded LLM Answers"
+seoTitle: "Private Document Search with Qdrant"
 seoDescription: "Build private document search with Qdrant, hybrid retrieval, conversation history, and optional grounded language-model answers."
 answerSummary: "Nadir indexes private documents, retrieves relevant passages with hybrid search, and optionally generates answers grounded in that evidence."
 tags: [system-design, llm, rag]
@@ -10,7 +10,7 @@ links:
 created: 2026-09-10
 ---
 
-# Nadir
+# How Private Document Search Uses Qdrant and Grounded Answers
 
 Nadir is a private document search app. It indexes documents and answers
 questions from relevant passages.

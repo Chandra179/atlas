@@ -71,8 +71,7 @@ export function sitemapResponse(xml: string): Response {
   return new Response(xml, {
     headers: {
       'Content-Type': 'application/xml',
-      'Cache-Control': 'public, max-age=86400, stale-while-revalidate=604800',
+      'Cache-Control': 'public, max-age=300, stale-while-revalidate=600',
     },
   });
 }
-
