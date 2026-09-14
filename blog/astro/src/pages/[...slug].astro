@@ -30,7 +30,7 @@ function findRelatedPosts(
 
   return scored.map(({ entry: e }) => {
     const slug = e.id.split('/').pop()!;
-    return { title: e.data.title || deriveTitle(slug, e.data.title), url: entryIdToUrl(e.id) };
+    return { title: e.data.seoTitle || e.data.title || deriveTitle(slug, e.data.title), url: entryIdToUrl(e.id) };
   });
 }
 
@@ -87,13 +87,17 @@ const currentUrl = '/' + (Astro.params.slug || '');
 let Content: any = null;
 let headings: { depth: number; slug: string; text: string }[] = [];
 let title = indexTitle;
+let seoTitle: string | undefined;
 let description: string | undefined;
+let answerSummary: string | undefined;
 let body = '';
 let created: Date | undefined;
 let modified: Date | undefined;
 let tags: string[] = [];
 let ogImage: string | undefined;
 let author: string | undefined;
+let authorProfile: string | undefined;
+let sources: { title: string; url: string }[] = [];
 let entryNoindex = false;
 let relatedPosts: { title: string; url: string }[] = [];
 
@@ -107,13 +111,17 @@ if (!isIndex && entryId) {
   headings = rendered.headings;
   const slug = currentUrl.split('/').pop() || currentUrl;
   title = entry.data.title || deriveTitle(slug, entry.data.title);
-  description = entry.data.description;
+  seoTitle = entry.data.seoTitle;
+  description = entry.data.seoDescription || entry.data.description;
+  answerSummary = entry.data.answerSummary;
   body = entry.body;
   created = entry.data.created;
   modified = entry.data.modified;
   tags = entry.data.tags || [];
   ogImage = (entry.data as any).ogImage;
   author = entry.data.author;
+  authorProfile = entry.data.authorProfile;
+  sources = entry.data.sources || [];
   entryNoindex = entry.data.noindex ?? false;
   relatedPosts = findRelatedPosts(entry, Object.values(entryMap));
 }
@@ -125,7 +133,9 @@ if (isIndex) {
 
 <DocLayout
   title={title}
+  seoTitle={seoTitle}
   description={description}
+  answerSummary={answerSummary}
   ogImage={ogImage}
   body={body}
   headings={headings}
@@ -135,6 +145,8 @@ if (isIndex) {
   modified={modified}
   tags={tags}
   author={author}
+  authorProfile={authorProfile}
+  sources={sources}
   noindex={isIndex || entryNoindex}
   relatedPosts={relatedPosts}
 >

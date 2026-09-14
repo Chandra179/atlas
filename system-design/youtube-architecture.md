@@ -1,13 +1,20 @@
 ---
 title: "YouTube Architecture"
-description: "How YouTube handles video ingestion, DAG transcoding, adaptive bitrate, and global delivery."
+description: "A conceptual video platform architecture covering ingestion, DAG transcoding, adaptive bitrate, live streaming, and global delivery."
+seoTitle: "YouTube-Style Video Ingestion and Transcoding Architecture"
+seoDescription: "A conceptual design for video uploads, DAG transcoding, adaptive bitrate packaging, live streaming, storage, CDN delivery, and recommendations."
+answerSummary: "This conceptual architecture explains how a video platform can turn uploads into multiple renditions and deliver them efficiently through asynchronous processing and edge caching."
 tags: [system-design, distributed-systems]
 created: 2026-09-05
 ---
 # YouTube Architecture
 
-YouTube uses distributed services to ingest over 500 hours of video per minute
-and serve billions of hours daily with low latency.
+This conceptual video-platform architecture turns uploads into multiple renditions
+through asynchronous processing, then uses manifests, storage tiers, and edge
+caches to deliver the right stream for each viewer.
+
+It uses YouTube as a reference model; the implementation details below are an
+engineering explanation, not an official description of YouTube's current systems.
 
 ## Video Ingestion & DAG Transcoding
 

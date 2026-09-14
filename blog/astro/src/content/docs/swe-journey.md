@@ -2,6 +2,7 @@
 title: Software Engineering
 created: 2026-07-12T00:00:00.000Z
 author: Koala
+authorProfile: /about/introduction#author-koala
 tags:
   - go
   - architecture
@@ -9,12 +10,21 @@ tags:
   - backend
   - software-design
 description: >-
-  Practical lessons on naming, abstraction, data types, logging, idempotency,
+  Practical guidance on Go API contracts, interfaces, idempotency, logging,
   caching, brokers, and deployment.
+seoTitle: Software Engineering Practices for Reliable Go Backends
+seoDescription: >-
+  Practical guidance on Go API contracts, interfaces, idempotency, logging,
+  caching, brokers, and deployment.
+answerSummary: >-
+  These notes explain practical design choices that make Go backends easier to
+  change, debug, operate, and scale.
 modified: '2026-09-12'
 ---
 
 # Software Engineering
+
+These notes explain practical design choices that make Go backends easier to change, debug, operate, and scale, from naming and interfaces to idempotency, caching, messaging, and deployment.
 
 ## Variable Naming & Function Design
 

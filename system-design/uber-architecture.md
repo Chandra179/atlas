@@ -2,15 +2,19 @@
 title: "Uber Architecture"
 created: 2026-08-08
 author: "Koala"
+authorProfile: "/about/introduction#author-koala"
 tags: [uber, architecture, backend, software-design]
-description: "A concise overview of Uber's ride matching, storage, workflows, and edge services."
+description: "A conceptual ride-hailing architecture covering geospatial indexing, dispatch, storage, streaming workflows, and service boundaries."
+seoTitle: "Uber-Style Ride Matching System Design: Storage and Dispatch"
+seoDescription: "A conceptual ride-hailing architecture covering geospatial indexing, low-latency dispatch, storage, streaming workflows, and service boundaries."
+answerSummary: "This conceptual design shows how a ride-hailing platform can match supply to demand with geospatial indexing, low-latency dispatch, and separate storage paths."
 ---
 
 # Uber Architecture
 
-Uber's system matches driver supply with rider demand in real time at low latency and high availability.
+This conceptual ride-hailing design matches driver supply with rider demand using geospatial indexing, low-latency dispatch, and storage paths separated by access pattern.
 
-Uber evolved from one monolithic server into a Domain-Oriented Microservice Architecture (DOMA) with thousands of services.
+It uses Uber's publicly discussed terminology as a reference point, but the diagrams and capacity choices below are an engineering model rather than an official description of Uber's current implementation.
 
 The sections below cover the main parts.
 

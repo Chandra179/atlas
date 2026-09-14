@@ -1,6 +1,7 @@
 ---
 import SEO from '../components/SEO.astro';
 import { ClientRouter } from 'astro:transitions';
+import { DEFAULT_OG_IMAGE, SITE_NAME, getImageType } from '../lib/seo';
 import '../styles/global.css';
 
 import interLatinWoff2 from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2';
@@ -30,7 +31,7 @@ const {
   description,
   canonical,
   ogType = 'website',
-  ogImage = '/og-image.svg',
+  ogImage = DEFAULT_OG_IMAGE,
   jsonLd,
   minimal = false,
   noNav = false,
@@ -43,10 +44,11 @@ const {
   noindex = false,
 } = Astro.props;
 
-const siteName = 'Chandra';
-const fullTitle = title === siteName ? title : `${title} · ${siteName}`;
+const siteName = SITE_NAME;
+const fullTitle = title === siteName || title.includes(siteName) ? title : `${title} · ${siteName}`;
 const canonicalUrl = new URL(canonical, Astro.site).href;
 const resolvedOgImage = new URL(ogImage, Astro.site).href;
+const resolvedOgImageType = getImageType(resolvedOgImage);
 ---
 
 <!DOCTYPE html>
@@ -58,7 +60,6 @@ const resolvedOgImage = new URL(ogImage, Astro.site).href;
   <meta id="theme-color" name="theme-color" content="#1e40af" />
   {noindex && <meta name="robots" content="noindex, follow" />}
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-  <link rel="icon" type="image/png" href="/favicon.svg" />
   <link rel="apple-touch-icon" href="/favicon.svg" />
   <link rel="alternate" hreflang="en" href={canonicalUrl} />
   <link rel="alternate" hreflang="x-default" href={canonicalUrl} />
@@ -75,6 +76,7 @@ const resolvedOgImage = new URL(ogImage, Astro.site).href;
     siteName={siteName}
     ogType={ogType}
     ogImage={resolvedOgImage}
+    ogImageType={resolvedOgImageType}
     ogImageAlt={`${fullTitle} — ${siteName}`}
     jsonLd={jsonLd}
     created={created}

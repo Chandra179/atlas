@@ -5,6 +5,7 @@ import TOC from '../components/TOC.astro';
 import type { NavSection } from '../lib/nav';
 import { buildBreadcrumb, flattenNav, getPrevNext } from '../lib/nav';
 import { extractDescription } from '../lib/description';
+import { DEFAULT_OG_IMAGE, SITE_NAME, absoluteUrl, getAuthorProfileUrl } from '../lib/seo';
 
 interface Heading {
   depth: number;
@@ -14,7 +15,9 @@ interface Heading {
 
 interface Props {
   title: string;
+  seoTitle?: string;
   description?: string;
+  answerSummary?: string;
   ogImage?: string;
   body: string;
   headings: Heading[];
@@ -24,13 +27,17 @@ interface Props {
   modified?: Date;
   tags?: string[];
   author?: string;
+  authorProfile?: string;
+  sources?: { title: string; url: string }[];
   noindex?: boolean;
   relatedPosts?: { title: string; url: string }[];
 }
 
 const {
   title,
+  seoTitle,
   description,
+  answerSummary,
   ogImage,
   body,
   headings,
@@ -40,38 +47,61 @@ const {
   modified,
   tags = [],
   author = 'Chandra179',
+  authorProfile,
+  sources = [],
   noindex = false,
   relatedPosts = [],
 } = Astro.props;
 
-const siteName = 'Chan179';
+const siteName = SITE_NAME;
 const breadcrumb = buildBreadcrumb(nav, url);
-const pageTitle = title || breadcrumb;
+const pageTitle = seoTitle || title || breadcrumb;
 const pageDescription = description || extractDescription(body);
-const baseDescription = 'Personal blog on software engineering, system design.';
+const baseDescription = 'Engineering notes on Go, Rust, distributed systems, data pipelines, fintech, and workflow automation.';
 const metaDescription = pageDescription || `Notes on ${breadcrumb}. ${baseDescription}`;
 
 const wordCount = body ? body.split(/\s+/).filter(Boolean).length : 0;
 
-const resolvedOgImage = ogImage
-  ? new URL(ogImage, Astro.site).href
-  : new URL('/og-image.svg', Astro.site).href;
+const resolvedOgImage = new URL(ogImage || DEFAULT_OG_IMAGE, Astro.site).href;
+const authorUrl = getAuthorProfileUrl(author, authorProfile, Astro.site);
+const publisherUrl = absoluteUrl('/#publisher', Astro.site);
+const websiteUrl = absoluteUrl('/#website', Astro.site);
+const publisherLogoUrl = absoluteUrl(DEFAULT_OG_IMAGE, Astro.site);
 
 const jsonLd = {
   '@context': 'https://schema.org',
-  '@type': 'Article',
+  '@type': 'BlogPosting',
   headline: pageTitle,
   description: metaDescription,
   wordCount,
+  inLanguage: 'en',
+  image: resolvedOgImage,
+  ...(tags.length > 0 && { articleSection: tags[0], keywords: tags }),
   mainEntityOfPage: {
     '@type': 'WebPage',
     '@id': new URL(url, Astro.site).href,
   },
+  isPartOf: {
+    '@type': 'WebSite',
+    '@id': websiteUrl,
+    name: siteName,
+    url: new URL('/', Astro.site).href,
+  },
   ...(created && { datePublished: created.toISOString() }),
   ...((modified || created) && { dateModified: (modified || created)!.toISOString() }),
-  author: { '@type': 'Person', name: author, '@id': new URL('/', Astro.site).href + '#author' },
-  publisher: { '@type': 'Organization', name: siteName, '@id': new URL('/', Astro.site).href + '#publisher' },
-  ...(ogImage && { image: resolvedOgImage }),
+  author: { '@type': 'Person', name: author, url: authorUrl, '@id': authorUrl },
+  publisher: {
+    '@type': 'Organization',
+    name: siteName,
+    url: new URL('/', Astro.site).href,
+    '@id': publisherUrl,
+    logo: {
+      '@type': 'ImageObject',
+      url: publisherLogoUrl,
+      width: 1200,
+      height: 630,
+    },
+  },
 };
 
 const crumbs = breadcrumb.split(' / ');
@@ -214,9 +244,26 @@ const modifiedDiffersFromCreated =
         </p>
       )}
 
+      {answerSummary && (
+        <p class="mb-8 rounded-lg border-l-4 border-emerald-500 bg-emerald-50/70 px-5 py-4 text-base leading-7 text-zinc-700 dark:bg-emerald-950/30 dark:text-zinc-300">
+          <strong class="font-semibold text-zinc-900 dark:text-zinc-100">Short answer:</strong>{' '}{answerSummary}
+        </p>
+      )}
+
       <article id="content" class="prose prose-lg prose-blue max-w-none">
         <slot />
       </article>
+
+      {sources.length > 0 && (
+        <section aria-labelledby="sources-heading" class="mt-12 border-t border-gray-200 pt-8 dark:border-gray-700">
+          <h2 id="sources-heading" class="text-xs font-semibold uppercase tracking-wider text-gray-400 dark:text-gray-500 mb-3 font-mono">Sources and further reading</h2>
+          <ul class="list-disc pl-5 text-sm text-gray-600 dark:text-gray-400">
+            {sources.map((source) => (
+              <li><a href={source.url} target="_blank" rel="noopener noreferrer" class="underline decoration-gray-300 underline-offset-2 hover:text-emerald-600 dark:hover:text-emerald-400">{source.title}</a></li>
+            ))}
+          </ul>
+        </section>
+      )}
 
       {relatedPosts.length > 0 && (
         <nav aria-label="Related articles" class="mt-12 pt-8 border-t border-gray-200 dark:border-gray-700">

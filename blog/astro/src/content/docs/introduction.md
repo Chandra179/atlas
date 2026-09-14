@@ -1,8 +1,17 @@
 ---
 title: About Me
 description: >-
-  Software engineer with 4 years in fintech, distributed systems, and workflow
-  automation.
+  Software engineer in fintech building Go services, data pipelines, identity
+  systems, and workflow automation.
+seoTitle: Chandra179 — Software Engineer in Go, Rust, Fintech & Distributed Systems
+seoDescription: >-
+  Software engineer building Go backends, data pipelines, identity systems, and
+  workflow automation for fintech and commerce.
+answerSummary: >-
+  I am a software engineer who builds Go backend services, data pipelines,
+  identity systems, and workflow automation for fintech and commerce.
+author: Chandra179
+authorProfile: /#author
 tags:
   - about
   - career
@@ -13,6 +22,8 @@ modified: '2026-09-12'
 ---
 
 # Experience
+
+I am a software engineer focused on reliable backend systems, data-heavy workflows, and fintech products. My work spans Go services, identity and authentication, order and booking systems, document automation, and operational tooling.
  
 ### Book Cabin, Software Engineer
 * Core Order & Booking Engine: Rewrote the legacy order system from C# to Go for prebook and postbook flight checkout and fulfillment.
@@ -38,7 +49,7 @@ modified: '2026-09-12'
 
 ---
 
-# Project
+## Projects
 
 ### Nadir
 - RAG and LLM chat

@@ -1,6 +1,15 @@
 ---
 title: Ohara
-description: Private document pipeline for search, relationships, and grounded answers.
+description: >-
+  A private document pipeline for extraction, relationship discovery, search,
+  and grounded answers.
+seoTitle: Build a Private Document Pipeline for Search and Grounded Answers
+seoDescription: >-
+  A private document pipeline for extracting text and relationships, combining
+  search methods, and producing grounded answers with evidence.
+answerSummary: >-
+  Ohara extracts text and relationships from local documents, then combines
+  exact, semantic, and graph-aware retrieval to support grounded answers.
 tags:
   - system-design
   - llm
@@ -19,7 +28,7 @@ documents, then lets you query the resulting knowledge base.
 It targets personal collections on one computer. Local files and models are
 the default; cloud models are opt-in.
 
-## Capabilities
+## What the private document pipeline does
 
 - Fetch web pages within robots rules and local-network limits.
 - Remove boilerplate while keeping headings, lists, tables, and code.
@@ -36,7 +45,7 @@ The interface includes overview, documents, queries, entity review, and
 operations. Health, metrics, and query are connected; document, entity, and
 lifecycle actions are still in progress.
 
-## The architecture in one picture
+## How the document pipeline works
 
 ```text
 User

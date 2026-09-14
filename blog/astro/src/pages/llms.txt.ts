@@ -5,6 +5,7 @@
 import { buildNav, deriveTitle, entryIdToUrl } from '../lib/nav';
 import { extractDescription } from '../lib/description';
 import { getValidEntries } from '../lib/entries';
+import { SITE_NAME, absoluteUrl } from '../lib/seo';
 
 export async function GET({ site }: { site: URL | undefined }) {
   if (!site) return new Response(null, { status: 500 });
@@ -36,19 +37,24 @@ export async function GET({ site }: { site: URL | undefined }) {
     });
 
   const lines: string[] = [];
-  lines.push('# Chan179');
+  lines.push(`# ${SITE_NAME}`);
   lines.push('');
-  lines.push('> Personal blog on software engineering, system design, and mathematics, written by Chandra179.');
+  lines.push('> Engineering portfolio covering Go, Rust, distributed systems, data pipelines, fintech, and workflow automation.');
   lines.push('');
   lines.push('## Articles');
   lines.push('');
 
   for (const entry of entries) {
     const slug = entry.id.split('/').pop()!;
-    const title = entry.data.title || deriveTitle(slug, entry.data.title);
-    const desc = entry.data.description || extractDescription(entry.body);
-    const url = new URL(entryIdToUrl(entry.id), site).href;
-    lines.push(desc ? `- [${title}](${url}): ${desc}` : `- [${title}](${url})`);
+    const title = entry.data.seoTitle || entry.data.title || deriveTitle(slug, entry.data.title);
+    const desc = entry.data.answerSummary || entry.data.seoDescription || entry.data.description || extractDescription(entry.body);
+    const url = absoluteUrl(entryIdToUrl(entry.id), site);
+    const date = entry.data.created ? entry.data.created.toISOString().slice(0, 10) : 'undated';
+    const author = entry.data.author || 'Chandra179';
+    const tags = entry.data.tags?.length ? `; tags: ${entry.data.tags.join(', ')}` : '';
+    lines.push(desc
+      ? `- [${title}](${url}): ${desc} (published: ${date}; author: ${author}${tags})`
+      : `- [${title}](${url}) (published: ${date}; author: ${author}${tags})`);
   }
 
   return new Response(lines.join('\n') + '\n', {
