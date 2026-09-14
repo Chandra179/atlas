@@ -88,9 +88,7 @@ let Content: any = null;
 let title = indexTitle;
 let seoTitle: string | undefined;
 let description: string | undefined;
-let answerSummary: string | undefined;
 let body = '';
-let hasMermaid = false;
 let created: Date | undefined;
 let modified: Date | undefined;
 let tags: string[] = [];
@@ -112,9 +110,7 @@ if (!isIndex && entryId) {
   title = entry.data.title || deriveTitle(slug, entry.data.title);
   seoTitle = entry.data.seoTitle;
   description = entry.data.seoDescription || entry.data.description;
-  answerSummary = entry.data.answerSummary;
   body = entry.body;
-  hasMermaid = /```mermaid\b/.test(body);
   created = entry.data.created;
   modified = entry.data.modified;
   tags = entry.data.tags || [];
@@ -135,10 +131,8 @@ if (isIndex) {
   title={title}
   seoTitle={seoTitle}
   description={description}
-  answerSummary={answerSummary}
   ogImage={ogImage}
   body={body}
-  hasMermaid={hasMermaid}
   url={currentUrl}
   nav={nav}
   created={created}

@@ -1,6 +1,7 @@
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import path from 'node:path';
 import { parseHTML } from 'linkedom';
+import yaml from 'js-yaml';
 
 const ROOT = path.resolve(new URL('.', import.meta.url).pathname, '..');
 const DIST = path.join(ROOT, 'dist');
@@ -88,6 +89,13 @@ function xmlLocations(xml) {
   return [...xml.matchAll(/<loc>([^<]+)<\/loc>/g)].map((match) => match[1].trim());
 }
 
+function sourceFrontmatter(file) {
+  const source = readFileSync(file, 'utf8');
+  const match = source.match(/^---\n([\s\S]*?)\n---/);
+  if (!match) return {};
+  return yaml.load(match[1]) || {};
+}
+
 if (!existsSync(DIST)) fail('dist/ does not exist; run npm run build first');
 
 if (existsSync(DIST)) {
@@ -149,8 +157,6 @@ if (existsSync(DIST)) {
     const initialCssBytes = localAssetBytes(document, 'link[rel="stylesheet"]', 'href');
     if (initialJsBytes > MAX_INITIAL_JS_BYTES) fail(`${page}: initial JavaScript is ${initialJsBytes} bytes; budget is ${MAX_INITIAL_JS_BYTES}`);
     if (initialCssBytes > MAX_INITIAL_CSS_BYTES) fail(`${page}: initial CSS is ${initialCssBytes} bytes; budget is ${MAX_INITIAL_CSS_BYTES}`);
-    if (!isArticle && document.documentElement.outerHTML.includes('mermaid-viewer')) fail(`${page}: Mermaid viewer is loaded on a page without an article diagram`);
-
     if (isArticle) {
       articlePages.add(page);
       if (!article) fail(`${page}: article page is missing Article/BlogPosting JSON-LD`);
@@ -159,7 +165,8 @@ if (existsSync(DIST)) {
       }
       if (!article?.publisher?.logo) fail(`${page}: article JSON-LD publisher is missing a logo`);
       if (!jsonLd.some((node) => node?.['@type'] === 'BreadcrumbList')) fail(`${page}: article is missing BreadcrumbList JSON-LD`);
-      if (!document.body.textContent?.includes('Short answer:')) fail(`${page}: article is missing a visible Short answer block`);
+      const openingParagraph = document.querySelector('#content h1 ~ p, #content p');
+      if (!openingParagraph?.textContent?.trim()) fail(`${page}: article is missing a meaningful opening paragraph`);
       if (article?.url && internalPath(article.url) !== page) fail(`${page}: article JSON-LD URL does not match canonical path`);
       if (article?.author?.url && !internalPath(article.author.url)) fail(`${page}: article author URL is not a valid internal profile URL`);
     }
@@ -241,6 +248,20 @@ if (existsSync(DIST)) {
     }
     for (const articlePage of articlePages) if (!llmsPages.has(articlePage)) fail(`${articlePage}: article missing from llms.txt`);
     for (const page of noindexPages) if (llmsPages.has(page)) fail(`${page}: noindex page is present in llms.txt`);
+
+    const normalizedLlms = llms.replace(/\s+/g, ' ');
+    const contentRoot = path.join(ROOT, 'src/content/docs');
+    if (existsSync(contentRoot)) {
+      for (const file of walk(contentRoot).filter((candidate) => candidate.endsWith('.md'))) {
+        const frontmatter = sourceFrontmatter(file);
+        const summary = typeof frontmatter.answerSummary === 'string'
+          ? frontmatter.answerSummary.replace(/\s+/g, ' ').trim()
+          : '';
+        if (summary && !normalizedLlms.includes(summary)) {
+          fail(`${path.relative(ROOT, file)}: answerSummary is missing from llms.txt`);
+        }
+      }
+    }
   }
 
   for (const [page, { document, isNoindex }] of pages) {

@@ -4,7 +4,6 @@ import mdx from '@astrojs/mdx';
 import astroExpressiveCode from 'astro-expressive-code';
 import tailwindcss from '@tailwindcss/vite';
 import { rewriteLinks } from './src/lib/remark-rewrite-links.js';
-import { remarkMermaidPreserve } from './src/lib/remark-mermaid-preserve.js';
 import { remarkCallouts } from './src/lib/remark-callouts.js';
 import { rehypeRewriteAssets } from './src/lib/rehype-rewrite-assets.js';
 import remarkMath from 'remark-math';
@@ -31,7 +30,6 @@ export default defineConfig({
     remarkPlugins: [
       remarkMath,
       [rewriteLinks, {}],
-      remarkMermaidPreserve,
       remarkDirective,
       remarkCallouts,
     ],

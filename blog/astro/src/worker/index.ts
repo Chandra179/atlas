@@ -1,7 +1,5 @@
 /// <reference types="@cloudflare/workers-types" />
 import { parseHTML } from 'linkedom';
-import yaml from 'js-yaml';
-import mermaidConfigYaml from '../config/mermaid.config.yaml';
 
 interface Env {
   BROWSER: BrowserRun;
@@ -9,33 +7,9 @@ interface Env {
   ASSETS: Fetcher;
 }
 
-interface MermaidConfig {
-  cacheVersion: number;
-  page: {
-    widthMm: number;
-    heightMm: number;
-    marginTopMm: number;
-    marginBottomMm: number;
-    marginLeftMm: number;
-    marginRightMm: number;
-  };
-  vertical: { maxHeightPercent: number };
-  horizontal: { constrain: boolean };
-}
-
-const mermaidConfig = yaml.load(mermaidConfigYaml) as MermaidConfig;
-
-const MM_TO_PX = 96 / 25.4;
-
-/** Printable page height (page height minus top/bottom margins), in px. */
-function verticalMaxHeightPx(cfg: MermaidConfig): number {
-  const usableHeightMm = cfg.page.heightMm - cfg.page.marginTopMm - cfg.page.marginBottomMm;
-  return Math.round(usableHeightMm * MM_TO_PX * (cfg.vertical.maxHeightPercent / 100));
-}
-
 const CACHE_TTL_SECONDS = 86400; // 24 hours
 const RATE_LIMIT_RETRIES = 3;
-const CACHE_KEY_PREFIX = `pdf:v${mermaidConfig.cacheVersion}:`;
+const CACHE_KEY_PREFIX = 'pdf:v12:';
 
 async function hashHtml(html: string): Promise<string> {
   const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(html));
@@ -73,9 +47,7 @@ async function sleep(ms: number): Promise<void> {
 function cleanHtmlForPdf(html: string, origin: string, slug: string): string {
   const { document } = parseHTML(html);
 
-  // Mark the document as PDF mode. The client-side mermaid renderer
-  // (src/scripts/mermaid-viewer.js) reads this class to render diagrams
-  // statically with the light theme and skip the pan/zoom viewport.
+  // Mark the document as PDF mode so print-specific layout rules apply.
   document.documentElement.classList.add('pdf-mode');
 
   // Remove UI chrome
@@ -118,30 +90,6 @@ function cleanHtmlForPdf(html: string, origin: string, slug: string): string {
     (contentWrapper as HTMLElement).style.maxWidth = 'none';
   }
 
-  // Cap mermaid diagram size for print via injected CSS instead of DOM
-  // mutation: diagrams render client-side inside Browser Run (which doesn't
-  // honor @media print), so static styling rules are the only reliable way
-  // to size them. Config lives in src/config/mermaid.config.yaml.
-  //
-  // Vertical (TB/TD) diagrams tend to run tall, so they're capped by height
-  // (a % of the printable page height) rather than width. Horizontal
-  // (LR/RL) diagrams are already short and are left untouched unless
-  // `horizontal.constrain` is set.
-  const maxHeightPx = verticalMaxHeightPx(mermaidConfig);
-  const capRules = [
-    '.mermaid-diagram{max-width:none!important;width:auto!important;text-align:center!important}',
-    '.mermaid-diagram svg{display:inline-block!important;max-width:100%!important;height:auto!important;width:auto!important}',
-  ];
-  if (mermaidConfig.horizontal.constrain) {
-    capRules.push(`.mermaid-diagram svg{max-height:${maxHeightPx}px!important}`);
-  }
-  capRules.push(`.mermaid-diagram[data-orientation="vertical"] svg{max-height:${maxHeightPx}px!important}`);
-
-  const styleEl = document.createElement('style');
-  styleEl.setAttribute('data-mermaid-print-cap', '');
-  styleEl.textContent = capRules.join('');
-  document.head.appendChild(styleEl);
-
   // Convert relative URLs to absolute so resources load when using html option
   for (const el of Array.from(document.querySelectorAll('[href^="/"], [src^="/"]'))) {
     const href = el.getAttribute('href');
@@ -171,10 +119,10 @@ async function generatePdf(env: Env, cleanedHtml: string, attempt = 1): Promise<
       printBackground: true,
       preferCSSPageSize: false,
       margin: {
-        top: `${mermaidConfig.page.marginTopMm}mm`,
-        bottom: `${mermaidConfig.page.marginBottomMm}mm`,
-        left: `${mermaidConfig.page.marginLeftMm}mm`,
-        right: `${mermaidConfig.page.marginRightMm}mm`,
+        top: '20mm',
+        bottom: '20mm',
+        left: '15mm',
+        right: '15mm',
       },
     },
   });

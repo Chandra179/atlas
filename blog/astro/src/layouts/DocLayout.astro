@@ -9,10 +9,8 @@ interface Props {
   title: string;
   seoTitle?: string;
   description?: string;
-  answerSummary?: string;
   ogImage?: string;
   body: string;
-  hasMermaid?: boolean;
   url: string;
   nav: NavSection[];
   created?: Date;
@@ -29,10 +27,8 @@ const {
   title,
   seoTitle,
   description,
-  answerSummary,
   ogImage,
   body,
-  hasMermaid = false,
   url,
   nav,
   created,
@@ -236,12 +232,6 @@ const modifiedDiffersFromCreated =
         </p>
       )}
 
-      {answerSummary && (
-        <p class="mb-8 rounded-lg border-l-4 border-emerald-500 bg-emerald-50/70 px-5 py-4 text-base leading-7 text-zinc-700 dark:bg-emerald-950/30 dark:text-zinc-300">
-          <strong class="font-semibold text-zinc-900 dark:text-zinc-100">Short answer:</strong>{' '}{answerSummary}
-        </p>
-      )}
-
       <article id="content" class="prose prose-lg prose-blue max-w-none">
         <slot />
       </article>
@@ -327,12 +317,6 @@ const modifiedDiffersFromCreated =
       if (bar) bar.style.width = scrolled + '%';
     });
   </script>
-
-  {hasMermaid && (
-    <script>
-      import '../scripts/mermaid-viewer.js';
-    </script>
-  )}
 
   <script>
     async function downloadPdf() {

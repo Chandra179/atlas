@@ -61,12 +61,6 @@ function normalizedText(value) {
   return value?.replace(/\s+/g, ' ').trim() || '';
 }
 
-function answerText(document) {
-  const strong = [...document.querySelectorAll('strong')]
-    .find((element) => normalizedText(element.textContent).toLowerCase() === 'short answer:');
-  return strong ? normalizedText(strong.parentElement?.textContent) : '';
-}
-
 function assertHtml(pathname, result) {
   if (!result) return;
   const { response, text } = result;
@@ -79,7 +73,7 @@ function assertHtml(pathname, result) {
   if (!canonical || canonicalPath(canonical) !== canonicalPath(pathname)) fail(`${pathname}: canonical does not match route`);
   if (!document.querySelector('title')?.textContent?.includes('Chandra179')) fail(`${pathname}: title does not contain Chandra179`);
   if (!document.body.textContent?.includes('Chandra179')) fail(`${pathname}: visible page content does not contain Chandra179`);
-  if (pathname !== '/' && !document.body.textContent?.includes('Short answer:')) fail(`${pathname}: visible answer summary is missing`);
+  if (pathname !== '/' && !document.querySelector('#content h1 ~ p, #content p')?.textContent?.trim()) fail(`${pathname}: article opening paragraph is missing`);
 
   const expected = expectedDocument(pathname);
   if (!expected) {
@@ -95,9 +89,6 @@ function assertHtml(pathname, result) {
   const liveDescription = document.querySelector('meta[name="description"]')?.getAttribute('content') || '';
   const expectedDescription = expected.querySelector('meta[name="description"]')?.getAttribute('content') || '';
   if (liveDescription !== expectedDescription) fail(`${pathname}: live description is stale`);
-  const liveAnswer = answerText(document);
-  const expectedAnswer = answerText(expected);
-  if (expectedAnswer && liveAnswer !== expectedAnswer) fail(`${pathname}: live Short answer block is stale`);
 }
 
 function assertEndpoint(pathname, result, contentType, marker) {

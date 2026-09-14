@@ -71,9 +71,6 @@
 
 /* Code block dark theme is handled by astro-expressive-code via .dark CSS variables */
 
-/* Mermaid diagrams are rendered client-side with the native dark theme;
-   their viewport chrome is styled in mermaid.css. */
-
 .dark .prose blockquote {
     color: #94a3b8;
     border-left-color: #334155;
