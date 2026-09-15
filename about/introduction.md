@@ -10,7 +10,7 @@ tags: [about, career, fintech, distributed-systems]
 created: 2026-06-21
 ---
 
-# About Chandra179 — Software Engineer in Go, Rust, Fintech & Distributed Systems
+# About Chandra179 · Software Engineer in Go, Rust, Fintech & Distributed Systems
 
 I am a software engineer focused on reliable backend systems, data-heavy workflows, and fintech products. My work spans Go services, identity and authentication, order and booking systems, document automation, and operational tooling.
  
