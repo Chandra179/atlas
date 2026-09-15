@@ -5,6 +5,21 @@ tags: [system-design]
 created: 2026-09-05
 ---
 # System Design Core
+
+## Level 0
+| Pillar | What it is | Key tradeoff |
+|---|---|---|
+| **CPU** | Compute + its own cache (L1/L2/L3) | Cycles vs. power/heat |
+| **Memory (RAM)** | Fast, volatile, shared | Capacity vs. speed |
+| **Storage (SSD/HDD)** | Persistent, slow, cheap | Durability vs. latency |
+| **Network** | Moving data between machines | Bandwidth vs. latency |
+
+## Level 1
+- Atomic operation
+- Locking mechanism mutex/pesimmistic and optimistic in (memory, DB row) for safe conccurent/critical operation
+- 
+
+
 ## Fundamentals
 
 - Requirements gathering / scoping
