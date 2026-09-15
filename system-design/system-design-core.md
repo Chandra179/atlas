@@ -28,7 +28,7 @@ Before choosing components, define the limits of the system.
 These are the basic resources that every design places and connects.
 
 | Resource | Role | Main tradeoff |
-|---|---|---|
+|---|---|---|---|
 | **CPU and CPU cache** | Runs instructions and keeps frequently used data close to the core | Throughput versus power and heat |
 | **Memory (RAM)** | Fast, temporary working state shared by processes | Capacity versus speed |
 | **Storage (SSD or HDD)** | Keeps data after a process or machine stops | Durability and cost versus latency |
