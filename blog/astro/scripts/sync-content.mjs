@@ -16,6 +16,7 @@ const ALLOWED_FILES = new Set([
   'system-design/cache.md',
   'system-design/nadir.md',
   'system-design/ohara.md',
+  'system-design/system-design-core.md',
 ]);
 
 function titleFromFilename(name) {

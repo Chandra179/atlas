@@ -1,8 +1,13 @@
 ---
-title: "System Design Core"
-description: "A layered system design checklist for defining requirements, choosing basic building blocks, protecting correctness, coordinating work, scaling traffic, and handling failures."
-tags: [system-design]
-created: 2026-09-05
+title: System Design Core
+description: >-
+  A layered system design checklist for defining requirements, choosing basic
+  building blocks, protecting correctness, coordinating work, scaling traffic,
+  and handling failures.
+tags:
+  - system-design
+created: 2026-09-05T00:00:00.000Z
+modified: '2026-09-15'
 ---
 
 # System Design Core
