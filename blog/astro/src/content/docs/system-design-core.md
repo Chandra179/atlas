@@ -12,74 +12,36 @@ modified: '2026-09-15'
 
 # System Design Core
 
-Use these levels in order. Each level answers a different design question. Each
-topic appears once so the checklist stays clear during a design review or
-interview.
+- Check if the operation is CPU/Processor or GPU (matrix, neural network, etc..) heavy
+- Choose strategy for in-memory read, write, invalidation
+- Analyze network latency inbound/outbound and bandwith
+- When choosing a data structure or storage, check the internal architecture whether its suitable for our problems or not, i.e, for faster key value access data we can use (in-memory) redis store
 
-## Level 0: Define the problem
+---
 
-Before choosing components, define the limits of the system.
+- Clarrify the requirements and scope, also the effort it takes for development, whether its worth doing or no based on impact of the  output
+- estimate average and peak requests per second, object size, storage growth, read and write volume, bandwidth, concurrent users, and retention time.
+- identify which cost limit matters most: compute, memory, storage, bandwidth, operations, or third-party usage.
 
-- **Requirements and scope**: identify users, important flows, correctness
-  needs, availability, latency, and what is out of scope.
-- **Capacity estimate**: estimate average and peak requests per second, object
-  size, storage growth, read and write volume, bandwidth, concurrent users, and
-  retention time.
-- **Cost limits**: identify which limit matters most: compute, memory, storage,
-  bandwidth, operations, or third-party usage.
+---
 
-## Level 1: Compute, memory, storage, and network
+- strong, causal, or eventual consistency 
+- use atomic operations, mutexes, database row locks, version checks, etc.. for critical operation
+- CAP tradeoff
+- Temporary state and recovery: decide what may be lost from memory and how a node, database, or cache outage rebuilds state or falls back to durable storage.
+- Source of truth
 
-These are the basic resources that every design places and connects.
+---
 
-| Resource | Role | Main tradeoff |
-|---|---|---|---|
-| **CPU and CPU cache** | Runs instructions and keeps frequently used data close to the core | Throughput versus power and heat |
-| **Memory (RAM)** | Fast, temporary working state shared by processes | Capacity versus speed |
-| **Storage (SSD or HDD)** | Keeps data after a process or machine stops | Durability and cost versus latency |
-| **Network** | Moves data between processes and machines | Bandwidth versus latency |
+- Push and pull event
+- at-least-once vs. exactly-once delivery
+- Backpressure: limit queues and concurrent work when producers are faster
+than consumers. Decide whether to delay, drop, or reject work.
+- Reservation or hold with expiry: protect scarce inventory
+- Transactional outbox
+- Change Data Capture (CDC)
 
-## Level 2: State and correctness
-
-Decide what must remain true when operations overlap, fail, or see different
-versions of data.
-
-- **Consistency**: choose strong, causal, or eventual consistency for each read
-  path. Do not make every read strong by default.
-- **Atomic changes and concurrency control**: use atomic operations, mutexes,
-  database row locks, version checks, or another method to protect a critical
-  section.
-- **CAP tradeoff**: when a network partition occurs, make the choice between
-  consistency and availability explicit for the affected operation.
-- **Temporary state and recovery**: decide what may be lost from memory and how
-  a node, database, or cache outage rebuilds state or falls back to durable
-  storage.
-- **Source of truth**: decide which system wins when multiple asynchronous
-  systems report different values.
-
-## Level 3: Data movement and work coordination
-
-Choose how work moves through the system and how retries affect its result.
-
-- **Synchronous and asynchronous work**: keep the user request small. Move slow
-  or retryable work to queues and workers.
-- **Push and pull fan-out**: push sends an update to each recipient. Pull lets
-  each reader request updates when needed. Choose based on recipient count and
-  delivery needs.
-- **Delivery and safe retries**: at-least-once delivery may process a message
-  more than once, so handlers must make repeated processing safe. An exactly-once
-  result needs deduplication or transaction support.
-- **Backpressure**: limit queues and concurrent work when producers are faster
-  than consumers. Decide whether to delay, drop, or reject work.
-- **Reservation or hold with expiry**: protect scarce inventory or capacity
-  while handling expiry, cancellation, and races.
-- **Transactional outbox**: save a state change and the event to publish in one
-  local database transaction before sending the event.
-- **Change Data Capture (CDC)**: create downstream events from committed data
-  changes when the source database is authoritative.
-- **Saga and compensating actions**: coordinate several local transactions when
-  one global transaction is not available. Add an action that reverses each
-  completed step when a later step fails.
+---
 
 ## Level 4: Caching, distribution, and uneven load
 
