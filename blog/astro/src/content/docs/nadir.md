@@ -141,7 +141,7 @@ signal rather than production release evidence.
 | Hybrid Retrieval, no reranker | HitRate@5 **0.797**, MRR@10 **0.651**, p50/p95 **22/47 ms**  |
 | EmbeddingGemma experiment | HitRate@5 **0.932**, MRR@10 **0.735**, p50/p95 **98/118 ms**; default remains Nomic pending release-gated evidence  |
 | BGE reranker on GPU | MRR@10 **0.962**, nDCG@5 **0.971**, p50/p95 **30/132 ms**; peak VRAM about **2.37 GiB** |
-| Answer-quality judge | 129/133 queries evaluated: faithfulness **0.485**, answer relevancy **0.780**, context precision/recall **0.615/0.622**; 4 failures  |
+| Answer-quality judge baseline | 129/133 queries evaluated: faithfulness **0.485**, answer relevancy **0.780**, context precision/recall **0.615/0.622**; 4 failures; |
 | PDF intake | 18/18 successful conversions, p50/p95 **2.62/25.94 s**, peak RSS about **3.28 GiB**  |
 
 The results show that Retrieval is fast without reranking, while reranking and
