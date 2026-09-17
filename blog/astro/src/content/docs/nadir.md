@@ -11,7 +11,7 @@ tags:
 links:
   github: https://github.com/Chandra179/nadir
 created: 2026-09-10T00:00:00.000Z
-modified: '2026-09-15'
+modified: '2026-09-16'
 ---
 
 # Nadir: A Private-Document RAG Chat with Hybrid Search
