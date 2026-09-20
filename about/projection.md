@@ -3,19 +3,14 @@
 2. Build one complete architecture project
 3. Learn Rust as a secondary skill
 
-With four years of Go, switching immediately to Rust may dilute your existing advantage. Your strongest profile would be:
-Go backend engineer who can design reliable distributed systems, with Rust capability for performance- or safety-critical components.
-
-## Recommended allocation
-- 50%: advanced Go and production engineering
-- 35%: system design and architecture
-- 15%: Rust
+Go for reliable distributed systems, 
+Rust for performance- or safety-critical components
 
 Go deep into concurrency, networking, profiling, memory behavior, database performance, observability, testing, and API/module design. The official Go documentation specifically covers diagnostics, race detection, profiling, PGO, modules, and concurrency.
 
 Learn Rust enough to understand ownership, borrowing, async, concurrency, and performance. Rust becomes especially valuable if you target infrastructure, storage engines, networking, embedded systems, WebAssembly, or high-performance services. 
 
-## Best portfolio project
+## Portfolio project
 Design and partially implement a serious system, for example:
 A multi-tenant event-processing platform in Go
 

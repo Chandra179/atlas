@@ -21,7 +21,7 @@ created: 2026-06-21T00:00:00.000Z
 modified: '2026-09-15'
 ---
 
-# About Chandra179 · Software Engineer in Go, Rust, Fintech & Distributed Systems
+# About Chandra179 · Software Engineer in Go, Fintech & Distributed Systems
 
 I am a software engineer focused on reliable backend systems, data-heavy workflows, and fintech products. My work spans Go services, identity and authentication, order and booking systems, document automation, and operational tooling.
  

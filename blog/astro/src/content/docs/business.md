@@ -1,9 +1,15 @@
 ---
-title: "How Business Works: From Scarcity to Industries"
-description: "A knowledge map of business models, industries, and market trends, following the path from scarcity to the changes reshaping industries today."
-tags: [business, frameworks]
-created: 2026-08-08
+title: 'How Business Works: From Scarcity to Industries'
+description: >-
+  A knowledge map of business models, industries, and market trends, following
+  the path from scarcity to the changes reshaping industries today.
+tags:
+  - business
+  - frameworks
+created: 2026-08-08T00:00:00.000Z
+modified: '2026-09-05'
 ---
+
 # How Business Works
 
 ## Scarcity makes exchange necessary

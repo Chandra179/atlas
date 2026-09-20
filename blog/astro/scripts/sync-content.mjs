@@ -10,6 +10,7 @@ const BLOG_DIR = path.join(ROOT, 'blog/astro/src/content/docs');
 
 const ALLOWED_FILES = new Set([
   'about/introduction.md',
+  'business/business.md',
   'swe/swe-journey.md',
   'system-design/uber-architecture.md',
   'system-design/youtube-architecture.md',
