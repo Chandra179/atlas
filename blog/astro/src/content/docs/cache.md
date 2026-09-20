@@ -1,15 +1,17 @@
 ---
 title: Caching & Redis Internals
 description: >-
-  Learn when to use Redis atomic operations, Lua scripts, distributed locks,
-  caching, and cluster hash slots in backend systems.
-seoTitle: Redis Caching vs Distributed Locks
+  Understand how Redis executes commands, how it is deployed and used, and how
+  clustering, cache patterns, locks, and Lua fit together.
+seoTitle: Redis Internals, Cluster, Caching Patterns, and Lua
 seoDescription: >-
-  Learn when to use Redis atomic operations, Lua scripts, distributed locks,
-  caching, and cluster hash slots in backend systems.
+  A practical guide to Redis command execution, deployment, data operations,
+  Cluster routing, cache patterns, atomic operations, locks, and Lua scripts.
 answerSummary: >-
-  Use Redis atomic operations when a state check and update fit inside Redis;
-  use distributed locks when work spans slow external systems.
+  Redis processes commands on a main execution thread, stores data in memory,
+  and can scale across nodes with Redis Cluster. Use native commands for
+  single-step updates, Lua for short multi-command operations on one shard, and
+  locks only when work must remain coordinated outside Redis.
 aliases:
   - redis
   - memcached
@@ -24,347 +26,167 @@ created: 2026-06-13T00:00:00.000Z
 modified: '2026-09-14'
 ---
 
-# Redis Caching and Distributed Locks: When to Use Each
+# Redis: Internals, Deployment, Operations, and Patterns
 
-Use Redis atomic operations when a state check and update fit inside Redis. Use a distributed lock when the workflow crosses slow SQL queries, external APIs, or multiple services.
+Redis is a separate in-memory data store that applications access through a client library. Understanding how it executes commands helps explain where to run it, how to use it safely, and when to add clustering or server-side scripts.
 
-## Locks vs. Atomic Operations: When to Use Which?
+## How Redis executes commands
 
-If 1,000 requests compete for a lock, 999 wait for the lock holder. This can cause thread starvation and database timeouts.
+Redis keeps its active data in memory. Its command execution is mostly single-threaded: the server handles one command at a time on its main execution thread. Network I/O and background work can use other threads, depending on the Redis version and configuration.
 
-- **Atomic Operation**: One CPU/Redis operation that runs without interruption. No other process can read or modify the data midway through.
-- **Distributed Lock**: A temporary ownership marker used across machines while a slow, multi-step, or external operation runs.
+~~~text
+Application clients
+   │ commands and replies over TCP
+   ▼
+Redis process
+   ├─ network I/O ─────────────── optional I/O threads
+   ├─ command execution ───────── main thread
+   │                                  │
+   │                                  ▼
+   │                            data structures in RAM
+   └─ persistence work ───────── background work and disk
+~~~
 
-**Decision Matrix: How to Choose**
+Sequential command execution means one command can finish without another client's command changing the same Redis data halfway through it. It also avoids the need for locks around each command's in-memory changes. The tradeoff is that a slow command or long-running script delays other commands on that node.
 
-| Use Case Scenario | Use Atomic Operation | Use Distributed Lock | Why? |
-|---|---|---|---|
-| Increment a view counter / balance | YES (INCRBY) | No | Single numeric mutation in Redis memory ($<1\text{ms}$). |
-| Claim an available driver | YES (Lua Script) | No | Reading status + setting status happens inside Redis memory in sub-milliseconds. |
-| Charge a credit card via Stripe | No | YES (SETNX) | Calling Stripe's API takes $500\text{ms}$ over the internet. You cannot hold Redis atomic operations during external network I/O. |
-| Multi-database write across 3 services | No | YES | You need to lock the resource while multiple microservices complete slow SQL/HTTP steps. |
+Redis can also save data using snapshots or an append-only file (AOF). These persistence options are separate from serving commands, and the durability you get depends on the configuration.
 
-**Rule of thumb**: If the state check and update happen inside Redis, use an atomic Lua script. If the process calls an external API, slow SQL, or disk, use a distributed lock with a time-to-live (TTL).
+## Where Redis runs
 
-## What is a Redis Lua Script?
+An application normally uses a Redis client library to send commands to a Redis server. Running Redis separately also adds a network hop and another service that can fail. Applications need connection timeouts, retry limits, and a plan for what to do when Redis is unavailable.
 
-Redis is single-threaded. It executes commands one by one in a FIFO queue.
-
-Normally, if your app runs two separate commands:
-
-```
-GET driver:status
-SET driver:status "BUSY"
-```
-
-Another server can run a command between the two steps, causing a race condition.
-
-A Lua script packages several steps into one request. Redis runs the script atomically, without another command running between its steps.
-
-## Redis Internals: Why It's So Fast
-
-Redis operations mainly use CPU and RAM.
-
-When Redis executes a command or Lua script:
-
-**1. In-Memory Execution (RAM + CPU)**
-
-- **No disk I/O during execution**: Redis keeps its working data in RAM instead of reading from disk.
-- **Faster memory access**: RAM access is measured in nanoseconds; disk access is measured in milliseconds.
-- **CPU logic**: The CPU changes data structures such as hashes, skip lists, and sets in RAM. A simple operation usually takes less than 1 millisecond.
-
-**2. Single-Threaded Event Loop (No CPU Context Switching)**
-
-- Redis handles requests with a single-threaded event loop.
-- It processes requests sequentially.
-- The Redis engine does not need thread locks or context switches for this loop.
-- An atomic operation or Lua script runs from start to finish before the next queued command.
-
-```text
-Application server
-Client A ─┐
-          ├─→ TCP socket → FIFO queue → CPU event loop → RAM
-Client B ─┘                                      │
-                                                 └─→ async save → SSD (RDB/AOF)
-```
-
-**3. Network and disk**
-
-Redis still uses the network and disk in two places:
-
-- **Network I/O**: Data travels over TCP/IP from the app to Redis before the operation runs. This 1–5 ms network latency is often slower than the Redis operation.
-- **Disk persistence**: Redis can save RDB snapshots or AOF logs in the background, so disk writes do not block the main command loop.
-
-**Summary Checklist for System Design**
-
-| Operation Type             | Where It Happens                   | Speed                                  |
-| -------------------------- | ---------------------------------- | -------------------------------------- |
-| Redis Command / Lua Script | CPU executing logic over RAM       | Sub-millisecond ($\sim 0.1\text{ ms}$) |
-| Network Request to Redis   | Network Interface Card (NIC) / TCP | $1 - 5\text{ ms}$                      |
-| Traditional SQL Query      | CPU reading/writing to SSD Disk    | $10 - 100\text{ ms}$                   |
-
-## CPU Threads vs. RAM Memory
-
-"Single-threaded" describes how Redis uses the CPU, not how RAM works. A simple analogy:
-
-**1. What is a CPU Thread vs. RAM Memory?**
-
-Think of a computer as a kitchen:
-
-- **CPU = chef**: A single-threaded system has one chef handling orders one by one.
-- **RAM = countertop**: It holds data. It does not run code or have threads.
-
-**2. How Redis Uses the CPU and RAM**
-
-- **One CPU core**: Redis processes requests one by one in a queue.
-- **Shared RAM**: That thread reads and writes data across RAM.
-
-**3. Why Being Single-Threaded Makes Redis So Fast**
-
-Why use one CPU core when most applications use more?
-
-- **No locking needed**: One thread avoids concurrent writes to the same memory.
-- **No context switching**: A continuous loop avoids switching between threads.
-- **RAM is fast**: One core can process many requests because memory access is fast.
-
-## Memcached vs. Redis: Multi-Threaded vs. Single-Threaded
-
-Memcached uses a different CPU model: classic Redis runs its command loop on one thread, while Memcached is natively multi-threaded.
-
-**1. The Multi-Threaded Architecture**
-
-Memcached uses a worker pool, often sized to the server's CPU cores:
-
-```text
-Incoming requests → acceptor thread
-                         ├─→ worker 1 ─┐
-                         ├─→ worker 2 ─┼─→ shared RAM slab + hash table
-                         └─→ worker 3 ─┘
-```
-
-- **Main thread**: Listens for TCP connections and distributes sockets to workers.
-- **Worker threads**: Multiple cores process GET and SET commands in parallel.
-- **Memory locking**: Memcached uses fine-grained mutexes to protect shared memory.
-
-**2. Memcached vs. Redis: Head-to-Head Comparison**
-
-| Feature | Memcached | Redis |
+| Deployment | Why use it | Main tradeoff |
 |---|---|---|
-| CPU Thread Model | Multi-threaded (Uses all available CPU cores) | Single-threaded for core command loop (Uses 1 CPU core) |
-| Data Structures | Strings/Bytes only (Flat key-value cache) | Rich Data Types (Hashes, Lists, Sets, Sorted Sets, Geospatial/H3) |
-| Scripting / Logic | None (Basic GET, SET, INCR, CAS) | Atomic Lua Scripts & Modules |
-| Disk Persistence | ❌ No (Volatile cache only; rebooting wipes everything) | ✅ Yes (AOF logs & RDB snapshots) |
-| Memory Allocation | Fixed Slab Allocator (Prevents RAM fragmentation) | Dynamic Memory Allocation |
+| Separate process on the app's machine | Simple for development or a small deployment; traffic can use the local host | Competes for machine memory and CPU, and shares its failure boundary |
+| Container | Packages Redis configuration and runtime separately from the app | Needs deliberate memory limits, storage, networking, and restart behavior |
+| Managed cloud service | Provider may handle provisioning, monitoring, backups, and failover options | Adds provider cost and network dependency; available guarantees vary by service and plan |
+| Dedicated VM or physical host | Gives direct control over resources and configuration | Your team operates upgrades, monitoring, backups, and recovery |
 
-**3. Why choose Memcached over Redis?**
+Even when Redis and the app run on one machine or in one container host, they remain separate processes communicating over a socket. A separate Redis service is useful when app instances need shared state or when Redis needs independent memory, scaling, and operations.
 
-Memcached fits these cases because it is simple and multi-threaded:
+## Reading and changing data
 
-- **Scaling one node**: Memcached can use all CPU cores on a large server. A single Redis instance uses one core for its command loop.
-- **Simple key-value caching**: It fits rendered HTML fragments, SQL results, or JSON blobs that only need GET and SET.
+Redis stores keys with values. A string key can be read, created, replaced, given an expiration, or deleted:
 
-**4. Why is Redis common in system design?**
+~~~text
+SET user:42:name "Ayu"
+GET user:42:name
 
-Redis is often preferred when the cache also needs computation, scripting, or richer data types:
+SET cache:product:123 "..." EX 300
+SET signup:token:abc "used" NX
+DEL user:42:name
+TTL cache:product:123
+~~~
 
-- **In-memory computation**: Redis can filter, sort, or modify data in RAM. Memcached sends the value to the app for this work.
-- **Atomic logic and Lua**: Redis supports scripts for multi-step operations.
-- **Data structures**: Redis supports structures useful for geospatial indexes and leaderboards.
+For a cache, a common flow is cache-aside: read Redis first, load the source database on a miss, then store the result in Redis with a TTL. On a source-data update, the application commonly invalidates the corresponding cache key so a later read refreshes it.
 
-## Lua and Redis: The Embedded Scripting Engine
+## Scaling from one node to Redis Cluster
 
-Lua lets you run custom, multi-step code inside Redis with atomic, single-threaded execution.
+A single Redis node is simplest. When its memory or command capacity is not enough, Redis Cluster distributes keys among primary nodes. Cluster divides the key space into 16,384 hash slots. It calculates a key's slot as:
 
-Instead of sending several requests from the app to Redis, you send one script. Redis runs all steps in RAM without interruption.
+~~~text
+slot = CRC16(key) mod 16384
+~~~
 
-**Why embed Lua?**
+Each primary owns a range of slots. A cluster-aware client calculates a key's slot and sends the command to its owner.
 
-Before Lua support, reading data, making a decision, and writing it required multiple network round-trips:
+~~~text
+Application client
+  │ calculate slot for key
+  ├── slot 0–5,000 ──────► Primary A
+  ├── slot 5,001–10,500 ─► Primary B
+  └── remaining slots ───► Primary C
+                              │
+                         assigned keys
+~~~
 
-That approach has two problems:
+Redis Cluster can also use replicas, which hold copies of a primary's data and can take over if that primary fails. Most multi-key commands, transactions, and scripts require their keys to be in the same slot. Hash tags make related keys share a slot by hashing only the text inside braces:
 
-- **Network latency**: Each round-trip adds delay.
-- **Race conditions**: Another server can change `user:123:balance` between the read and write.
+~~~text
+driver:{123}:status
+driver:{123}:match
+~~~
 
-**How Lua helps**
+Both keys above use `{123}` for slot calculation. See the official [Redis Cluster specification](https://redis.io/docs/latest/operate/oss_and_stack/reference/cluster-spec/) for routing and redirection details.
 
-Lua moves the logic to the data instead of moving the data to the application:
+## Making operations safe
 
-**Three benefits of Redis + Lua**
+A single Redis command is processed without another command interleaving on that node. Commands such as `INCR` and conditional `SET ... NX` can handle common single-key updates directly.
 
-1. **Atomicity**: Redis blocks other commands while a Lua script runs, so no client can change its keys midway. This avoids distributed locks for in-memory operations.
+The problem appears when an application performs a read, makes a decision, then sends a separate write. Another client can change the value between those requests:
 
-2. **Less network latency**: One request can replace several round-trips. Redis runs the commands locally and returns the result.
+~~~text
+Client A                    Redis                    Client B
+   │── GET status ───────────►│
+   │◄─ AVAILABLE ─────────────│
+                               │◄──────── GET status ──│
+                               │───────── AVAILABLE ──►│
+   │── SET BUSY ─────────────►│
+                               │◄──────── SET BUSY ───│
+~~~
 
-3. **Custom atomic operations**: Lua combines Redis primitives such as `INCR`, `HSET`, and `ZADD` into one business operation.
+Both clients may act on the same AVAILABLE state. The right fix depends on the scope of the work:
 
-**Example: rate limiting**
+- **One command :** use a native Redis command such as `INCR` or `SET ... NX`.
+- **Several Redis commands must act together:** use a Redis transaction or a short Lua script. A transaction runs its queued commands without another client's commands interleaving, but it does not roll back earlier commands if a later command fails.
+- **One application process needs mutual exclusion:** a process mutex can coordinate its own threads, but does not coordinate other app processes.
+- **Several app processes need to coordinate longer work:** a distributed lock can help, but it is a lease with failure and expiry cases, not a transaction across Redis, SQL, or an external API.
 
-This script limits a user to five requests per minute:
+A Redis lock is a temporary marker that lets one worker claim a job. 
+`SET lock:resource <token> NX PX <milliseconds>` creates the marker only if it does not exist (`NX`) and sets an expiry time (`PX`). Give each attempt a different token so Redis can tell which worker owns the marker.
 
-```lua
--- KEYS[1]: "rate:user_9921"
--- ARGV[1]: Max limit (5)
--- ARGV[2]: Window TTL in seconds (60)
+When the worker finishes, it should delete the marker only if the token still matches. Otherwise, a worker whose lock has expired could accidentally delete a newer worker's lock. The lock can also expire while work is still running, allowing another worker to start the same job. For important changes, make the operation safe to repeat or enforce uniqueness in the database that stores the result. A lock alone cannot prevent duplicate work after it expires. The [Redis distributed-lock guide](https://redis.io/docs/latest/develop/clients/patterns/distributed-locks/) explains the safety assumptions and failure cases.
 
-local current = redis.call("GET", KEYS[1])
+## Common cache patterns
 
-if current and tonumber(current) >= tonumber(ARGV[1]) then
-    return 0 -- Limit exceeded! Block request.
-else
-    redis.call("INCR", KEYS[1])
-    if not current then
-        redis.call("EXPIRE", KEYS[1], ARGV[2]) -- Set 60s TTL on first request
-    end
-    return 1 -- Allowed!
+### Warm the cache before traffic
+
+Cache warmup loads frequently needed values before users request them, for example after a service starts or a cache is replaced. It can reduce misses during a traffic spike. Loading too much at once can overload the source database, so warm only useful data and control the rate.
+
+### Handle a hot key
+
+A hot key, sometimes called the celebrity problem, is requested far more often than other keys. One popular profile, post, or product can concentrate traffic on its key and the Redis node that owns it.
+
+Possible responses include a short-lived in-process cache, replicating or splitting read-heavy data, and caching precomputed results. Each adds a tradeoff: local copies can be stale, and split keys need aggregation. Measure the hot key and its effect before adding complexity.
+
+### Choose when writes update the cache
+
+With a synchronous cache update, the application updates the database and cache as part of the request. Readers see the cache update sooner, but the two writes can disagree if one succeeds and the other fails. Redis and a separate database do not share an automatic transaction.
+
+With an asynchronous update, the application queues work for a background worker to apply to the cache or source. This can shorten request handling, but readers may see old data until the worker catches up. The queue or event path must handle retries and duplicate messages, and the application must decide whether acknowledging the request before the update is durable is acceptable.
+
+**Cache-aside** is another common choice: the application reads through Redis and fills the cache only after a miss. It avoids preloading the entire dataset, but requires a clear TTL and invalidation policy.
+
+## When to use Lua
+
+Lua lets an application send a short program to Redis. The script can read and update Redis data in one server-side execution. No other command runs between the script's Redis operations, so it can protect a check-and-update sequence without separate application round-trips.
+
+Consider two riders trying to claim the same driver. A plain `GET` followed by `SET` can race. A Lua script can check the status and write the match in one execution:
+
+~~~lua
+-- KEYS[1]: driver:{123}:status
+-- KEYS[2]: driver:{123}:match
+-- ARGV[1]: rider ID
+
+local status = redis.call("GET", KEYS[1])
+
+if status ~= "AVAILABLE" then
+    return 0
 end
-```
 
-Because this runs inside Redis via Lua:
+redis.call("SET", KEYS[1], "MATCHING")
+redis.call("SET", KEYS[2], ARGV[1])
+return 1
+~~~
 
-- Checking the count, incrementing it, and setting the expiration happen as one operation.
-- Two simultaneous requests cannot bypass the limit.
+The shared `{123}` hash tag keeps both keys in one Redis Cluster slot. The first script claims the driver; a later script sees that the status is no longer AVAILABLE. This protects the Redis update, not a later action in a separate database or service.
 
-**How Redis executes Lua (EVAL vs. EVALSHA)**
+| Approach         | Best fit                                                                | Main cost or limit                                                                                       |
+| ---------------- | ----------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------- |
+| Native command   | One atomic update, such as incrementing a counter                       | Cannot express a multi-step condition by itself                                                          |
+| Lua script       | Several short Redis reads and writes that must not interleave           | Blocks command execution on that node while it runs; keep it short and use keys from one slot in Cluster |
+| Distributed lock | Coordinating a longer workflow across app processes or external systems | More network steps and lease handling; does not make external writes atomic                              |
 
-To avoid sending the full script on every request:
+Use the simplest option that protects the state transition. A script is not inherently faster for every operation: it can save round-trips when it replaces several client-server exchanges, but script execution also uses the Redis command thread. 
 
-- **SCRIPT LOAD**: Send the script once; Redis stores it and returns a SHA1 hash.
-- **EVALSHA**: Send the hash on later requests instead of the full script.
-
-**Summary**
-
-- Lua is embedded in the Redis server.
-- Redis + Lua provides atomic execution in RAM.
-- Never use slow or infinite loops in Redis Lua scripts. Redis blocks other commands while a script runs, so keep scripts small and fast.
-
-## Case study: preventing ride double-booking
-
-Use a Redis Lua script so two riders cannot match with the same driver, without extra network round-trips.
-
-**The problem: simultaneous requests**
-
-Suppose Rider A and Rider B request a ride at the same time. Driver 123 is available and nearby for both.
-
-**Approach 1: application-level logic**
-
-If your app server handles the checking and setting logic using standard Redis commands:
-
-Outcome: both riders can be assigned Driver 123.
-
-**Approach 2: distributed locks (SETNX or Redlock)**
-
-To fix double-booking without Lua, developers often wrap the operation in a distributed lock:
-
-1. Acquire lock on `lock:driver:123`.
-2. Send network request to fetch `GET driver:123:status`.
-3. If available, send network request to `SET driver:123:status "BUSY"`.
-4. Release lock on `lock:driver:123`.
-
-Outcome: it works, but adds four network round-trips. At high request rates, connection pools and latency become bottlenecks.
-
-**Approach 3: Redis Lua script**
-
-Package the check and assignment into one atomic Lua script that runs in Redis:
-
-```lua
--- KEYS[1]: "driver:status:123"
--- ARGV[1]: "MATCHING"
--- ARGV[2]: "rider_456" (Rider ID)
-
-local current_status = redis.call("GET", KEYS[1])
-
-if current_status == "AVAILABLE" then
-    redis.call("SET", KEYS[1], ARGV[1])
-    redis.call("SET", "driver:match:123", ARGV[2])
-    return 1 -- SUCCESS: Rider 456 gets the driver
-else
-    return 0 -- FAILURE: Driver already claimed
-end
-```
-
-**Why Lua fits**
-
-- **Consistent assignment**: Redis runs one script at a time, so the second request sees the updated status.
-- **Low execution time**: The check and update happen in Redis without a network hop between them.
-- **Less lock overhead**: The script avoids a separate lock, heartbeat, and expiration flow.
-
-## Distributed Atomicity: Single Node vs. Redis Cluster
-
-Separate two concepts when discussing atomicity in a Redis cluster:
-
-- atomicity on one Redis node, where the data lives;
-- atomicity across multiple Redis nodes.
-
-**1. Single-Node Atomicity: The Single-Threaded Event Loop**
-
-"Atomic" means an operation runs as one indivisible unit. It succeeds or fails without another client changing the data midway.
-
-Redis achieves this on a single node through its Single-Threaded Event Loop:
-
-```text
-Client A ─┐
-Client B ─┼─→ in-memory queue → one CPU core
-Client C ─┘                         ├─→ GET driver:123
-                                    ├─→ Lua script
-                                    └─→ INCR views
-```
-
-- **Sequential queue**: Every command or script enters an in-memory queue.
-- **Lock-free execution**: Redis completes one command before starting the next.
-- **No interruption**: One thread touches the data, so another client cannot modify it during a command or script.
-
-**2. Distributed Atomicity: How Redis Cluster Handles Scale**
-
-When you scale Redis to a Distributed Cluster (across 10, 50, or 100 machines), data is split across nodes using Hash Slots (16,384 total slots).
-
-Each key is mapped to a slot via CRC16 hashing:
-
-```
-Slot = CRC16(Key) mod 16384
-```
-
-This leads to two distinct scenarios for atomic operations in a distributed system:
-
-**Scenario A: Single-Key Atomicity (Always Works Built-in)**
-
-If your atomic operation or Lua script only touches one key (e.g., INCR user:101:balance or updating `driver:99:status`), the distributed cluster forwards the request to the exact single primary node that owns that key's hash slot. That node executes the command using its local single-threaded event loop. Single-key operations are always 100% atomic across the cluster.
-
-**Scenario B: Multi-Key Atomicity and The Cross-Slot Error**
-
-What happens if a Lua script needs to atomically update two keys (e.g., transfer money from `user:101` to `user:202`)?
-
-If `user:101` lives on Node 1 and user:202 lives on Node 2, Redis cannot execute the Lua script atomically. A single-threaded Redis engine cannot reach across the network to lock memory on another server during a single execution step. If you attempt this, Redis throws a CROSSSLOT error.
-
-**How to Achieve Multi-Key Atomicity in Distributed Redis**
-
-For atomic operations across multiple keys, use two techniques:
-
-**1. Hash Tags (Force Keys onto the Same Node)**
-
-Wrapping part of a key in `{...}` tells Redis Cluster to hash only the text inside the braces.
-
-- Key A: `user:{group_123}:balance`
-- Key B: `user:{group_123}:discount_coupon`
-
-Because both keys share `{group_123}`, Redis guarantees they map to the same Hash Slot and the same physical node. Now, a multi-key Lua script can run atomically over both keys without network hops.
-
-**2. Distributed Locks (Redlock Algorithm for Multi-Node Systems)**
-
-When keys must live on different servers or datacenters, use a distributed consensus lock such as Redlock.
-
-```text
-Application worker → Redis node 1 ─┐
-                     Redis node 2 ─┼─→ majority (3 of 5) → mutation → release
-                     Redis node 3 ─┘
-```
-
-The client tries to acquire `SET lock_key uuid NX PX 1000` on N independent Redis primaries. If it gets a majority within the timeout, the application performs its work and releases the locks.
-
-**Summary Checklist for System Design**
-
-| Scale Scope                        | How Atomicity is Maintained                     | Cost / Latency                        |
-| ---------------------------------- | ----------------------------------------------- | ------------------------------------- |
-| Single Key on 1 Node               | Native Single-Threaded Event Loop (RAM)         | Sub-millisecond (~0.1 ms)             |
-| Multi-Key on 1 Node (or Hash Tags) | Atomic Lua Script on the target node            | Sub-millisecond (~0.5 ms)             |
-| Multi-Node / Multi-Cluster         | Distributed Locking (Redlock) or 2-Phase Commit | Higher latency (5-20 ms network hops) |
+Redis scripts provide atomic execution, not general rollback or a transaction with another service. For Redis 7 and later, Redis Functions are also available for server-side logic. See the official [Lua scripting documentation](https://redis.io/docs/latest/develop/programmability/eval-intro/) and [Redis Functions overview](https://redis.io/docs/latest/develop/programmability/functions-intro/).

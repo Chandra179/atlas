@@ -6,7 +6,7 @@ created: '2026-06-13'
 tags:
   - cs
 ---
-
+	
 # Kafka
 
 You have 50 microservices. Orders need to reach inventory, billing, shipping, and analytics. With point-to-point HTTP, each service needs its own connection to every other service 200 connections. When one service is slow, failures cascade. You cannot replay messages after a crash. The more services you add, the more tangled the graph becomes.
