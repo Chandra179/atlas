@@ -1,4 +1,4 @@
-# Tech
+	# Tech
 1. Go deeper + system design
 2. Build one complete architecture project
 3. Learn Rust as a secondary skill
