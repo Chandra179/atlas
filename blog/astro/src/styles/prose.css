@@ -132,6 +132,12 @@
     word-break: normal;
 }
 
+/* Keep Unicode diagram glyphs on one monospace family on mobile browsers. */
+.prose .expressive-code {
+    --ec-codeFontFml: "Noto Sans Mono", "Roboto Mono", "DejaVu Sans Mono",
+        "JetBrains Mono", ui-monospace, monospace;
+}
+
 /* ========== Lists ========== */
 .prose ul {
     list-style-type: disc;
