@@ -33,5 +33,6 @@ Personal knowledge base (Obsidian vault) + Astro static blog (`blog/astro`, depl
 ## Conventions
 
 - `blog/astro/CLAUDE.md` + `blog/astro/README.md` (KV setup, Browser Run limits) override this file on blog details.
+- For ASCII diagrams in fenced code blocks, use only plain ASCII symbols such as `+`, `-`, `|`, `v`, `>`, and `<` plus spaces; avoid Unicode box-drawing and arrow characters so alignment remains stable across mobile fonts.
 - `.obsidian/workspace.json`, `.claude/`, `.agents/` are git-ignored and machine-local — never commit them.
 - `trailingSlash: 'never'`, `site: 'https://chan179.com'`; vite watcher ignores `dist/`, `.astro/`, `public/assets/`.
