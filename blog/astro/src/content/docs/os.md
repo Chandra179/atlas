@@ -18,18 +18,18 @@ resources that applications use.
 
 ```text
 Applications
-    ↓
+    v
 System calls (abstraction)
-    ↓
+    v
 Operating system
- ┌────────────────┐
- │ Virtualization │
- │ Concurrency    │
- │ Persistence    │
- │ Protection     │
- │ Scheduling     │
- └────────────────┘
-    ↓
+ +----------------+
+ | Virtualization |
+ | Concurrency    |
+ | Persistence    |
+ | Protection     |
+ | Scheduling     |
+ +----------------+
+    v
 Hardware
 CPU   RAM   Disk   Devices
 ```
@@ -46,10 +46,10 @@ Virtualization gives each program the illusion that it has its own resources.
 Even with one CPU core, multiple programs can appear to run at the same time:
 
 ```text
-Program A runs → timer interrupt → OS pauses A
-                  ↓
-                Program B runs → timer interrupt → OS pauses B
-                  ↓
+Program A runs -> timer interrupt -> OS pauses A
+                  v
+Program B runs -> timer interrupt -> OS pauses B
+                  v
                 ...
 ```
 
@@ -65,24 +65,24 @@ address without referring to the same physical address.
 ```text
 Process A                         Process B
 Virtual address space             Virtual address space
-┌───────────────┐                 ┌───────────────┐
-│ 0x0000        │──────┐     ┌────│ 0x0000        │
-│ ...           │      │     │    │ ...           │
-│ 0x1000        │──┐   │     │ ┌──│ 0x1000        │
-└───────────────┘  │   │     │ │  └───────────────┘
-                   ▼   ▼     ▼ ▼
-                 ┌─────────────────┐
-                 │ Page tables     │
-                 │ OS + hardware   │
-                 └─────────────────┘
-                   │   │     │ │
-                   ▼   ▼     ▼ ▼
-Physical memory   ┌─────────────────┐
-                  │ Frame 0         │
-                  │ Frame 1         │
-                  │ Frame 2         │
-                  │ ...             │
-                  └─────────────────┘
++---------------+                 +---------------+
+| 0x0000        |---+         +---| 0x0000        |
+| ...           |   |         |   | ...           |
+| 0x1000        |---+         +---| 0x1000        |
++---------------+   |         |   +---------------+
+                    v         v
+                  +-----------------+
+                  | Page tables     |
+                  | OS + hardware   |
+                  +-----------------+
+                    |         |
+                    v         v
+Physical memory   +-----------------+
+                  | Frame 0         |
+                  | Frame 1         |
+                  | Frame 2         |
+                  | ...             |
+                  +-----------------+
 ```
 
 If physical memory is insufficient, the OS can use paging or swapping to move
@@ -94,17 +94,17 @@ The memory of one process is shared by all of its threads, but each thread has i
 
 ```text
 Process A: one shared address space
-┌──────────────────────────────────────┐
-│ Shared by Thread A and Thread B      │
-│                                      │
-│ Code                                 │
-│ Global / static variables            │
-│ Heap                                 │
-├──────────────────────────────────────┤
-│ Thread A: private stack              │
-├──────────────────────────────────────┤
-│ Thread B: private stack              │
-└──────────────────────────────────────┘
++--------------------------------------+
+| Shared by Thread A and Thread B      |
+|                                      |
+| Code                                 |
+| Global / static variables            |
+| Heap                                 |
++--------------------------------------+
+| Thread A: private stack              |
++--------------------------------------+
+| Thread B: private stack              |
++--------------------------------------+
 ```
 
 Each thread uses its stack for local variables, function calls, and return
@@ -126,13 +126,13 @@ Same process / shared address space
 
 Goroutine 1       Goroutine 2       Goroutine 3
 (private stack)   (private stack)   (private stack)
-      │                 │                 │
-      └─────────┬───────┴───────┬─────────┘
-                ▼               ▼
+      |                 |                 |
+      +---------+-------+-------+---------+
+                v               v
           Shared heap      Global variables
-                │               │
-                └───────┬───────┘
-                        ▼
+                |               |
+                +-------+-------+
+                        v
               Mutex / channel / atomic
                  synchronization
 ```
@@ -176,13 +176,13 @@ The abstraction looks like this:
 
 ```text
 Filename
-   ↓
+   v
 Directory entry
-   ↓
+   v
 Inode / metadata
-   ↓
+   v
 Disk blocks
-   ↓
+   v
 Actual data
 ```
 
@@ -223,9 +223,9 @@ system load, and whether the task blocks.
 ```text
 0 ms      Task A runs
 5 ms      Switch
-5–10 ms   Task B runs
+5-10 ms   Task B runs
 10 ms     Switch
-10–15 ms  Task C runs
+10-15 ms  Task C runs
 ```
 
 - **Time slice / scheduling interval:** Often measured in milliseconds.
@@ -237,11 +237,11 @@ A task typically follows this lifecycle:
 
 ```text
 Task is runnable
-      ↓
+      v
 Scheduler chooses it
-      ↓
+      v
 Task executes
-      ↓
+      v
 One of these happens:
   - Task finishes
   - Task blocks
@@ -256,11 +256,11 @@ from the OS kernel.
 
 ```text
 Application
-    ↓
+    v
 System call
-    ↓
+    v
 Operating-system kernel
-    ↓
+    v
 Hardware / resource
 ```
 
