@@ -21,7 +21,7 @@ Run these checks after deploying the verified build. They require access to the 
 ## Search appearance
 
 - Check the title and description preview for the homepage and the three highest-priority articles.
-- Check that social previews use the 1200×630 `og-image.png` asset.
+- Check that social previews use the 1424×752 `og-image.jpeg` asset.
 - Review Search Console queries and pages after 2–4 weeks; do not infer ranking changes from a single manual search.
 
 ## Performance follow-up

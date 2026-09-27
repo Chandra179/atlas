@@ -3,12 +3,13 @@ import BaseLayout from './BaseLayout.astro';
 import type { NavSection } from '../lib/nav';
 import { buildBreadcrumb, flattenNav, getPrevNext } from '../lib/nav';
 import { extractDescription } from '../lib/description';
-import { DEFAULT_OG_IMAGE, SITE_NAME, absoluteUrl, getAuthorProfileUrl } from '../lib/seo';
+import { DEFAULT_OG_IMAGE, OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH, SITE_NAME, absoluteUrl, getAuthorProfileUrl } from '../lib/seo';
 
 interface Props {
   title: string;
   seoTitle?: string;
   description?: string;
+  answerSummary?: string;
   ogImage?: string;
   body: string;
   url: string;
@@ -27,6 +28,7 @@ const {
   title,
   seoTitle,
   description,
+  answerSummary,
   ogImage,
   body,
   url,
@@ -61,6 +63,7 @@ const jsonLd = {
   '@type': 'BlogPosting',
   headline: pageTitle,
   description: metaDescription,
+  ...(answerSummary && { abstract: answerSummary }),
   wordCount,
   inLanguage: 'en',
   image: resolvedOgImage,
@@ -86,8 +89,8 @@ const jsonLd = {
     logo: {
       '@type': 'ImageObject',
       url: publisherLogoUrl,
-      width: 1200,
-      height: 630,
+      width: OG_IMAGE_WIDTH,
+      height: OG_IMAGE_HEIGHT,
     },
   },
 };
@@ -191,7 +194,7 @@ const modifiedDiffersFromCreated =
         </nav>
         {body && (
           <div
-            x-data={`{ copied: false, body: ${JSON.stringify(body)}, async copy() { await navigator.clipboard.writeText(this.body); this.copied = true; setTimeout(() => this.copied = false, 2000); }, async downloadPdf() { await window.downloadPdf(); } }`}
+            x-data={`{ copied: false, body: ${JSON.stringify(body).replaceAll('<', '\\u003c')}, async copy() { await navigator.clipboard.writeText(this.body); this.copied = true; setTimeout(() => this.copied = false, 2000); }, async downloadPdf() { await window.downloadPdf(); } }`}
             class="shrink-0 flex items-center gap-2 pdf-hide"
           >
             <button

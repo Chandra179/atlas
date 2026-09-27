@@ -1,6 +1,9 @@
 ---
 title: "How Business Works: From Scarcity to Industries"
 description: "A knowledge map of business models, industries, and market trends, following the path from scarcity to the changes reshaping industries today."
+seoTitle: "How Business Works: From Scarcity to Industries"
+seoDescription: "A first-principles map of business: scarcity drives exchange, institutions solve trust and coordination, and tools combine into banking, logistics, and software industries."
+answerSummary: "Business grows out of scarcity: people exchange goods, institutions like money, contracts, and markets solve trust, coordination, information, and incentive problems, and those institutions become the tools and industries that software now runs."
 tags: [business, frameworks]
 created: 2026-08-08
 ---

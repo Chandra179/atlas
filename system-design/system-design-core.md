@@ -1,11 +1,18 @@
 ---
 title: "System Design Core"
 description: "A layered system design checklist for defining requirements, choosing basic building blocks, protecting correctness, coordinating work, scaling traffic, and handling failures."
+seoTitle: "System Design Core: The Layered Checklist"
+seoDescription: "A layered checklist for system design: clarify requirements, size the load, choose storage, protect correctness, coordinate events, and scale with sharding and CDNs."
+answerSummary: "System design is approached in layers: first clarify requirements and estimate load, then choose storage and data structures, protect correctness with consistency and locking, coordinate work with events and backpressure, and finally scale through partitioning, autoscaling, and CDNs."
 tags: [system-design]
 created: 2026-09-05
 ---
 
 # System Design Core
+
+A layered checklist for designing and reviewing systems: define the
+requirements, choose the building blocks, protect correctness, coordinate the
+work, scale the traffic, and handle the failures.
 
 - Check if the operation is CPU/Processor or GPU (matrix, neural network, etc..) heavy
 - Choose strategy for in-memory (read, write, eviciton, invalidation, stale data)

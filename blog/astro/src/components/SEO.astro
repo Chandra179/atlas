@@ -1,4 +1,6 @@
 ---
+import { OG_IMAGE_WIDTH, OG_IMAGE_HEIGHT } from '../lib/seo';
+
 interface Props {
   title: string;
   description: string;
@@ -26,8 +28,8 @@ const {
   siteName,
   ogType = 'website',
   ogImage,
-  ogImageWidth = 1200,
-  ogImageHeight = 630,
+  ogImageWidth = OG_IMAGE_WIDTH,
+  ogImageHeight = OG_IMAGE_HEIGHT,
   ogImageAlt,
   ogImageType = 'image/png',
   jsonLd,

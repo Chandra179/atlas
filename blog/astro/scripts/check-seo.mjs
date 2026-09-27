@@ -141,7 +141,9 @@ if (existsSync(DIST)) {
     const ogType = document.querySelector('meta[property="og:image:type"]')?.getAttribute('content');
     const ogFile = ogImage ? fileForUrl(ogImage) : null;
     if (!ogFile) fail(`${page}: OG image is missing from dist`);
-    if (ogImage && ogType && path.extname(new URL(ogImage, SITE).pathname).toLowerCase() === '.png' && ogType !== 'image/png') fail(`${page}: PNG OG image has incorrect MIME type ${ogType}`);
+    const ogExt = ogImage ? path.extname(new URL(ogImage, SITE).pathname).toLowerCase() : '';
+    const ogExpectedMime = { '.png': 'image/png', '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.webp': 'image/webp' }[ogExt];
+    if (ogImage && ogType && ogExpectedMime && ogType !== ogExpectedMime) fail(`${page}: OG image has incorrect MIME type ${ogType}; expected ${ogExpectedMime} for ${ogExt}`);
 
     const favicon = document.querySelector('link[rel="icon"]');
     if (!favicon || !fileForUrl(favicon.getAttribute('href') || '')) fail(`${page}: favicon is missing from dist`);
@@ -274,9 +276,9 @@ if (existsSync(DIST)) {
     }
   }
 
-  const ogPath = path.join(DIST, 'og-image.png');
-  if (!existsSync(ogPath)) fail('og-image.png: missing from dist');
-  else if (readFileSync(ogPath).subarray(0, 8).toString('hex') !== '89504e470d0a1a0a') fail('og-image.png: invalid PNG signature');
+  const ogPath = path.join(DIST, 'og-image.jpeg');
+  if (!existsSync(ogPath)) fail('og-image.jpeg: missing from dist');
+  else if (readFileSync(ogPath).subarray(0, 3).toString('hex') !== 'ffd8ff') fail('og-image.jpeg: invalid JPEG signature');
   const headersPath = path.join(DIST, '_headers');
   if (!existsSync(headersPath)) fail('_headers: missing from dist');
   else {

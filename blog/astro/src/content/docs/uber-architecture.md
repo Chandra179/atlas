@@ -1,8 +1,6 @@
 ---
 title: Uber Architecture
 created: 2026-08-08T00:00:00.000Z
-author: Koala
-authorProfile: /about/introduction#author-koala
 tags:
   - uber
   - architecture

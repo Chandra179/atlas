@@ -88,6 +88,7 @@ let Content: any = null;
 let title = indexTitle;
 let seoTitle: string | undefined;
 let description: string | undefined;
+let answerSummary: string | undefined;
 let body = '';
 let created: Date | undefined;
 let modified: Date | undefined;
@@ -110,6 +111,7 @@ if (!isIndex && entryId) {
   title = entry.data.title || deriveTitle(slug, entry.data.title);
   seoTitle = entry.data.seoTitle;
   description = entry.data.seoDescription || entry.data.description;
+  answerSummary = entry.data.answerSummary;
   body = entry.body;
   created = entry.data.created;
   modified = entry.data.modified;
@@ -131,6 +133,7 @@ if (isIndex) {
   title={title}
   seoTitle={seoTitle}
   description={description}
+  answerSummary={answerSummary}
   ogImage={ogImage}
   body={body}
   url={currentUrl}

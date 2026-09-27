@@ -8,6 +8,16 @@ tags:
   - frameworks
 created: 2026-08-08T00:00:00.000Z
 modified: '2026-09-20'
+seoTitle: 'How Business Works: From Scarcity to Industries'
+seoDescription: >-
+  A first-principles map of business: scarcity drives exchange, institutions
+  solve trust and coordination, and tools combine into banking, logistics, and
+  software industries.
+answerSummary: >-
+  Business grows out of scarcity: people exchange goods, institutions like
+  money, contracts, and markets solve trust, coordination, information, and
+  incentive problems, and those institutions become the tools and industries
+  that software now runs.
 ---
 
 # How Business Works

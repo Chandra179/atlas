@@ -1,13 +1,14 @@
 export const SITE_NAME = 'Chandra179';
 export const SITE_URL = 'https://chan179.com';
-export const DEFAULT_OG_IMAGE = '/og-image.png';
-export const DEFAULT_OG_IMAGE_TYPE = 'image/png';
+export const DEFAULT_OG_IMAGE = '/og-image.jpeg';
+export const DEFAULT_OG_IMAGE_TYPE = 'image/jpeg';
+export const OG_IMAGE_WIDTH = 1424;
+export const OG_IMAGE_HEIGHT = 752;
 export const DEFAULT_DESCRIPTION =
   'Engineering portfolio covering Go, Rust, distributed systems, data pipelines, fintech, and workflow automation.';
 
 const AUTHOR_PROFILE_PATHS: Record<string, string> = {
   Chandra179: '/#author',
-  Koala: '/about/introduction#author-koala',
 };
 
 export function absoluteUrl(pathOrUrl: string, site: URL | string = SITE_URL): string {

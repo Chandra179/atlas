@@ -1,8 +1,6 @@
 ---
 title: "Uber Architecture"
 created: 2026-08-08
-author: "Koala"
-authorProfile: "/about/introduction#author-koala"
 tags: [uber, architecture, backend, software-design]
 description: "A conceptual ride-hailing architecture covering geospatial indexing, dispatch, storage, streaming workflows, and service boundaries."
 seoTitle: "Ride-Matching System Design with Geospatial Search"

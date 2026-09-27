@@ -8,6 +8,7 @@
   X-Content-Type-Options: nosniff
   X-Frame-Options: DENY
   Referrer-Policy: strict-origin-when-cross-origin
+  Strict-Transport-Security: max-age=31536000; includeSubDomains
   Cache-Control: public, max-age=0, must-revalidate, stale-while-revalidate=300
 
 # Machine-readable endpoints: short cache, so content and deployment changes
@@ -33,6 +34,8 @@
 /*.svg
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 /*.jpg
+  Cache-Control: public, max-age=86400, stale-while-revalidate=604800
+/*.jpeg
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800
 /*.ico
   Cache-Control: public, max-age=86400, stale-while-revalidate=604800

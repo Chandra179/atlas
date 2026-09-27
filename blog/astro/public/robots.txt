@@ -1,4 +1,9 @@
+# /api/pdf triggers an on-demand headless-browser render (Cloudflare Browser
+# Rendering); crawling it wastes paid render quota, so it is disallowed for
+# every crawler group below. Named groups override "User-agent: *", so the
+# Disallow is repeated in each block.
 User-agent: *
+Disallow: /api/pdf
 Allow: /
 
 # AI crawlers/agents: explicitly allowed (covered by the wildcard above too,
@@ -6,66 +11,87 @@ Allow: /
 # access separately from general search indexing and don't always fall back
 # to "User-agent: *").
 User-agent: GPTBot
+Disallow: /api/pdf
 Allow: /
 
 User-agent: ChatGPT-User
+Disallow: /api/pdf
 Allow: /
 
 User-agent: OAI-SearchBot
+Disallow: /api/pdf
 Allow: /
 
 User-agent: ClaudeBot
+Disallow: /api/pdf
 Allow: /
 
 User-agent: Claude-Web
+Disallow: /api/pdf
 Allow: /
 
 User-agent: anthropic-ai
+Disallow: /api/pdf
 Allow: /
 
 User-agent: Google-Extended
+Disallow: /api/pdf
 Allow: /
 
 User-agent: Applebot-Extended
+Disallow: /api/pdf
 Allow: /
 
 User-agent: PerplexityBot
+Disallow: /api/pdf
 Allow: /
 
 User-agent: CCBot
+Disallow: /api/pdf
 Allow: /
 
 User-agent: Bytespider
+Disallow: /api/pdf
 Allow: /
 
 User-agent: Amazonbot
+Disallow: /api/pdf
 Allow: /
 
 User-agent: cohere-ai
+Disallow: /api/pdf
 Allow: /
 
 User-agent: Meta-ExternalAgent
+Disallow: /api/pdf
 Allow: /
 
 User-agent: Meta-ExternalFetcher
+Disallow: /api/pdf
 Allow: /
 
 User-agent: DeepSeekBot
+Disallow: /api/pdf
 Allow: /
 
 User-agent: Google-CloudVertexBot
+Disallow: /api/pdf
 Allow: /
 
 User-agent: Diffbot
+Disallow: /api/pdf
 Allow: /
 
 User-agent: YouBot
+Disallow: /api/pdf
 Allow: /
 
 User-agent: Timpibot
+Disallow: /api/pdf
 Allow: /
 
 User-agent: ImagesiftBot
+Disallow: /api/pdf
 Allow: /
 
 Sitemap: https://chan179.com/sitemap-index.xml

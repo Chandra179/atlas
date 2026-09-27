@@ -167,5 +167,4 @@ control, and a simple operating model.
 
 Retrieval and storage can be scaled separately when needed. Horizontal scaling
 of live Chat streaming and concurrent Indexing requires a shared event backend
-and coordination layer. See the [scaling and concurrency guide](SCALING.md)
-for the current guarantees and future deployment path.
+and coordination layer.

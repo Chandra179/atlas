@@ -1,6 +1,9 @@
 ---
 title: Operating System
-description: Operating System
+description: "Operating System: CPU, Memory, Virtualization, Concurrency, Syscall, etc.."
+seoTitle: "Operating Systems: Virtualization, Concurrency, Syscalls"
+seoDescription: "How operating systems abstract hardware: CPU and memory virtualization, concurrency and scheduling, and syscalls as the controlled entry point into the kernel."
+answerSummary: "An operating system turns raw hardware into usable abstractions: it virtualizes the CPU and memory so many programs run safely at once, coordinates concurrent access to resources, and exposes the kernel to applications only through system calls."
 aliases: []
 tags:
   - cs

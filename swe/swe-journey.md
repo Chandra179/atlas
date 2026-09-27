@@ -1,8 +1,6 @@
 ---
 title: "Software Engineering"
 created: 2026-07-12
-author: "Koala"
-authorProfile: "/about/introduction#author-koala"
 tags: [go, architecture, best-practices, backend, software-design]
 description: "Practical guidance on Go API contracts, interfaces, idempotency, logging, caching, brokers, and deployment."
 seoTitle: "Software Engineering Practices for Reliable Go Backends"

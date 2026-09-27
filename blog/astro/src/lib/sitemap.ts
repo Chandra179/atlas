@@ -1,7 +1,9 @@
 import { buildNav, entryIdToUrl } from './nav';
 import { getValidEntries } from './entries';
 
-export async function buildSitemapXml(site: URL): Promise<string> {
+export type SitemapUrl = { loc: string; lastmod?: string };
+
+export async function collectSitemapUrls(site: URL): Promise<SitemapUrl[]> {
   const validEntries = await getValidEntries();
   const nav = buildNav(validEntries);
   const navUrls = new Set<string>(['/']);
@@ -33,7 +35,7 @@ export async function buildSitemapXml(site: URL): Promise<string> {
     }
   }
 
-  const urls: Array<{ loc: string; lastmod?: string }> = [];
+  const urls: SitemapUrl[] = [];
   for (const url of navUrls) {
     const date = urlDates.get(url);
     urls.push({
@@ -41,6 +43,11 @@ export async function buildSitemapXml(site: URL): Promise<string> {
       ...(date && { lastmod: date.toISOString() }),
     });
   }
+  return urls;
+}
+
+export async function buildSitemapXml(site: URL): Promise<string> {
+  const urls = await collectSitemapUrls(site);
 
   function getPriority(path: string): string {
     const depth = path.split('/').filter(Boolean).length;

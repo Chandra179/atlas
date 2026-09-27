@@ -1,8 +1,6 @@
 ---
 title: Software Engineering
 created: 2026-07-12T00:00:00.000Z
-author: Koala
-authorProfile: /about/introduction#author-koala
 tags:
   - go
   - architecture
