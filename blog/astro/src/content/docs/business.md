@@ -7,7 +7,7 @@ tags:
   - business
   - frameworks
 created: 2026-08-08T00:00:00.000Z
-modified: '2026-09-20'
+modified: '2026-09-27'
 seoTitle: 'How Business Works: From Scarcity to Industries'
 seoDescription: >-
   A first-principles map of business: scarcity drives exchange, institutions

@@ -151,7 +151,10 @@ export default {
     }
 
     if (url.pathname !== '/api/pdf') {
-      return new Response('Not found', { status: 404 });
+      // Worker-first mode (run_worker_first in wrangler.jsonc): every request
+      // reaches this handler, so non-PDF paths must fall through to the static
+      // assets, which also applies _headers and the 404-page behavior.
+      return env.ASSETS.fetch(request);
     }
 
     if (request.method !== 'GET' && request.method !== 'POST') {

@@ -17,7 +17,7 @@ answerSummary: >-
   This conceptual design shows how a ride-hailing platform can match supply to
   demand with geospatial indexing, low-latency dispatch, and separate storage
   paths.
-modified: '2026-09-14'
+modified: '2026-09-27'
 ---
 
 # Ride-Matching System Design: Geospatial Search and Dispatch

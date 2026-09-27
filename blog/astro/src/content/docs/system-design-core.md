@@ -7,7 +7,7 @@ description: >-
 tags:
   - system-design
 created: 2026-09-05T00:00:00.000Z
-modified: '2026-09-16'
+modified: '2026-09-27'
 seoTitle: 'System Design Core: The Layered Checklist'
 seoDescription: >-
   A layered checklist for system design: clarify requirements, size the load,

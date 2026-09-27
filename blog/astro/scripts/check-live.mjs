@@ -14,7 +14,6 @@ const fallbackRoutes = [
   '/swe-journey',
   '/cache',
   '/nadir',
-  '/ohara',
   '/uber-architecture',
   '/youtube-architecture',
 ];
