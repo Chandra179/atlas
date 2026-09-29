@@ -1,16 +1,18 @@
 ---
-title: Operating System
-description: 'Operating System: CPU, Memory, Virtualization, Concurrency, Syscall, etc..'
-seoTitle: 'Operating Systems: Virtualization, Concurrency, Syscalls'
+title: OS Scheduling
+description: >-
+  How N:1, 1:1, and M:N threading models map logical tasks to OS threads —
+  goroutines, virtual threads, async tasks, and BEAM processes.
+seoTitle: How N:1, 1:1, and M:N Thread Scheduling Works
 seoDescription: >-
-  How operating systems abstract hardware: CPU and memory virtualization,
-  concurrency and scheduling, and syscalls as the controlled entry point into
-  the kernel.
+  How language runtimes schedule work: N:1, 1:1, and M:N threading models, the
+  Go GMP scheduler, Java virtual threads, Rust async, and BEAM processes.
 answerSummary: >-
-  An operating system turns raw hardware into usable abstractions: it
-  virtualizes the CPU and memory so many programs run safely at once,
-  coordinates concurrent access to resources, and exposes the kernel to
-  applications only through system calls.
+  Language runtimes map many lightweight logical tasks onto a small pool of OS
+  threads. N:1 stacks every task on one thread, 1:1 gives each task its own OS
+  thread, and M:N multiplexes many tasks over many threads — Go, Java virtual
+  threads, Rust async, and BEAM all use M:N, differing in where tasks can pause
+  and how blocked threads are handled.
 aliases: []
 tags:
   - cs
