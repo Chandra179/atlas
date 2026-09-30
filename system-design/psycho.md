@@ -253,6 +253,6 @@ that produced it — local data control, and a simple operating model: give it
 text, get an honest, explainable profile back.
 
 The deeper material is there if you want it: the
-[product requirements](prd.md) describe what Psycho aims to do and explicitly
-what it does not, and the [system design](system-design.md) explains how the
+[product requirements](https://github.com/Chandra179/psycho/blob/main/docs/prd.md) describe what Psycho aims to do and explicitly
+what it does not, and the [system design](https://github.com/Chandra179/psycho/blob/main/docs/system-design.md) explains how the
 pieces fit together.

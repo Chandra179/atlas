@@ -17,7 +17,7 @@ tags:
 links:
   github: https://github.com/Chandra179/psycho
 created: 2026-09-29T00:00:00.000Z
-modified: '2026-09-29'
+modified: '2026-09-30'
 ---
 
 # Psycho:  Personality Profiling with Full Auditability
@@ -263,6 +263,6 @@ that produced it — local data control, and a simple operating model: give it
 text, get an honest, explainable profile back.
 
 The deeper material is there if you want it: the
-[product requirements](prd.md) describe what Psycho aims to do and explicitly
-what it does not, and the [system design](system-design.md) explains how the
+[product requirements](https://github.com/Chandra179/psycho/blob/main/docs/prd.md) describe what Psycho aims to do and explicitly
+what it does not, and the [system design](https://github.com/Chandra179/psycho/blob/main/docs/system-design.md) explains how the
 pieces fit together.
