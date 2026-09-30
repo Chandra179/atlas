@@ -26,7 +26,7 @@ Personal knowledge base (Obsidian vault) + Astro static blog (`blog/astro`, depl
 
 - Route: `src/pages/[...slug].astro` (single catch-all) → `DocLayout`; collection defined in `src/content.config.ts` (glob over `src/content/docs`).
 - Nav/filtering: `src/lib/ordering.ts` (`NAME_OVERRIDES`, `ROOT_PAGE_ORDER`, `IGNORE_FILES`/`IGNORE_IDS`), `src/lib/nav.ts`, `src/lib/entries.ts`. Glob loader lowercases names — match that casing in ignore lists.
-- Markdown pipeline order matters (`astro.config.mjs`): remark `math → rewrite-links → directive → callouts`; rehype `raw → katex → rewrite-assets`. Ported from legacy `blog/scripts/lib/*` ("gen-nav") behavior.
+- Markdown pipeline order matters (`astro.config.mjs`): remark `math → rewrite-links → directive → callouts → directive-rescue`; rehype `raw → katex → rewrite-assets`. Ported from legacy `blog/scripts/lib/*` ("gen-nav") behavior. The final `directive-rescue` step restores prose colons like `N:1` that `remark-directive` would otherwise swallow as unknown inline `:name` directives.
 - Styling: Tailwind v4 via Vite plugin (no config file); `src/styles/print.css` is the PDF path — keep screen styles out of it.
 - PDF Worker (`src/worker/index.ts`, `wrangler.jsonc`): only `GET/POST /api/pdf`, everything else falls through to `ASSETS`. KV `PDF_CACHE` TTL 24h, key prefix `pdf:v12:` — bump on incompatible cleaner/render changes. Browser Run free tier ≈ 10 min/day.
 

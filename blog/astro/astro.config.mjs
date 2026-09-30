@@ -5,6 +5,7 @@ import astroExpressiveCode from 'astro-expressive-code';
 import tailwindcss from '@tailwindcss/vite';
 import { rewriteLinks } from './src/lib/remark-rewrite-links.js';
 import { remarkCallouts } from './src/lib/remark-callouts.js';
+import { rescueDirectives } from './src/lib/remark-rescue-directives.js';
 import { rehypeRewriteAssets } from './src/lib/rehype-rewrite-assets.js';
 import remarkMath from 'remark-math';
 import remarkDirective from 'remark-directive';
@@ -32,6 +33,7 @@ export default defineConfig({
       [rewriteLinks, {}],
       remarkDirective,
       remarkCallouts,
+      [rescueDirectives, {}],
     ],
     rehypePlugins: [
       rehypeRaw,

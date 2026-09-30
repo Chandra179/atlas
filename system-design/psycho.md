@@ -1,19 +1,18 @@
 ---
 title: "Psycho"
-description: "Psycho is a local-first personality profiler that extracts auditable psychological traits from text."
-seoTitle: "Psycho: Local-First, Auditable Personality Profiling from Text"
-seoDescription: "Psycho is a local-first personality profiler that extracts Big Five traits, motivations, and values from writing with a transparent, fully auditable method."
-answerSummary: "Psycho is a local-first personality profiler that extracts auditable psychological traits from text."
+description: "Psycho is a personality profiler that extracts auditable psychological traits from text."
+seoTitle: "Psycho: Auditable Personality Profiling from Text"
+seoDescription: "Psycho is a  personality profiler that extracts Big Five traits, motivations, and values from writing with a transparent, fully auditable method."
+answerSummary: "Psycho is a personality profiler that extracts auditable psychological traits from text."
 tags: [system-design, nlp, psycholinguistics]
 links:
   github: "https://github.com/Chandra179/psycho"
 created: 2026-09-29
 ---
 
-# Psycho: Local-First Personality Profiling with Full Auditability
+# Psycho:  Personality Profiling with Full Auditability
 
-Psycho is a local-first application that reads a sample of someone's writing
-and describes the psychological structure behind it: Big Five trait scores,
+Psycho reads someone's writing and describes the psychological structure behind it: Big Five trait scores,
 motivational and cognitive tendencies, and value orientations. Every score
 comes with an honest confidence level and the linguistic evidence that
 produced it, so nothing is a verdict handed down by a black box.
