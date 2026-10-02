@@ -35,24 +35,14 @@ Over time, people developed institutions to address these problems.
 ## Institutions become tools
 
 Institutions become business tools when people apply them to everyday needs.
-
-| Institution | Business tool |
-|---|---|
-| Trust, through money and contracts | Banking, credit, buy now, pay later (BNPL), payments |
-| Coordination, through markets | Trade and exchange, logistics, supply chains |
-| Incentives, through property rights | Ownership models, leasing, subscriptions |
-| Institutions applied to physical output | Production, factories, robotics, automation |
-
 Software plays a different role in each activity:
 
-| Applied concept | Software's role |
-|---|---|
-| Trade and exchange | Ecommerce platforms and marketplaces deliver the service through software. |
-| Money and credit | Banking, payments, and BNPL run on software. |
-| Property and ownership | Software tracks and manages assets, while the asset remains physical or legal. |
-| Production | Software increasingly controls robotics and automation. |
-| Movement and logistics | Software supports routing, tracking, and fleet management. |
-| Information systems | Software is the product. |
+| Institution | Business tool | Software's role |
+|---|---|---|
+| Trust, through money and contracts | Banking, credit, buy now, pay later (BNPL), payments | Banking, payments, and BNPL run on software. |
+| Coordination, through markets | Trade and exchange, logistics, supply chains | Ecommerce platforms and marketplaces deliver the service through software; routing, tracking, and fleet management tools coordinate movement. |
+| Incentives, through property rights | Ownership models, leasing, subscriptions | Software tracks and manages assets, while the asset remains physical or legal. |
+| Institutions applied to physical output | Production, factories, robotics, automation | Software increasingly controls robotics and automation. |
 
 ## Tools combine into industries
 
@@ -115,14 +105,13 @@ logistics still depend on shops, warehouses, and delivery. Software changes how
 businesses manage inventory, orders, customer conversations, compliance, and
 payments. The following trends are expected over the next 5 to 10 years:
 
-| Trend                                              | What changes                                                                                                                          |
-| -------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| Warehouse automation                               | Robotics and AI inventory management become standard beyond Amazon-scale companies, reaching mid-sized retailers.                     |
+| Trend | What changes |
+|---|---|
+| Warehouse automation | Robotics and AI inventory management become standard beyond Amazon-scale companies, reaching mid-sized retailers. |
 | Last-mile delivery, the final trip to the customer | Drones and autonomous ground robots take dense urban short-range delivery, while people continue to handle rural and complex terrain. |
-| Same-day delivery                                  | Same-day service becomes standard, supported by dark stores (used only to fill online orders) and small local fulfillment centers.    |
-| Social commerce                                    | More purchases happen in apps such as TikTok and Instagram rather than on separate retail websites.                                   |
-| Supply chain resilience                            | After disruptions, companies diversify manufacturing beyond China and toward regional or nearby production.                           |
-| AI-driven personalization                          | Dynamic pricing, stock predictions, and targeted recommendations become more advanced.                                                |
+| Same-day delivery | Same-day service becomes standard, supported by dark stores (used only to fill online orders) and small local fulfillment centers. |
+| Supply chain resilience | After disruptions, companies diversify manufacturing beyond China and toward regional or nearby production. |
+| AI-driven personalization | Dynamic pricing, stock predictions, and targeted recommendations become more advanced. |
 
 These trends can create demand for tools that handle business tasks.
 Providers earn revenue in different ways:
@@ -159,13 +148,11 @@ and Taiwan) earn subscriptions and a share of social gross merchandise value
 
 A purchase can follow these steps:
 
-| Step | What changes |
-|---|---|
-| Find | Brands create shops on Instagram, TikTok, or Facebook Marketplace and sync catalogs with inventory systems. |
-| Discover | Posts, videos, livestreams, and ads tag products with a link or button to buy. |
-| Check out | Customers pay in-app, sometimes with saved payment details such as Instagram Pay or TikTok Pay. The platform sends order details to the seller for packing and shipping. |
-| Watch and buy | Hosts demonstrate products live. Viewers buy during the stream, often with limited-time deals. Live shopping is dominant in China through Taobao Live and growing in the United States through TikTok Live. |
-| Share and attribute | Creators tag products. The platform tracks purchases, credits the creator, and pays commissions in-app. |
+1. **Find** — Brands create shops on Instagram, TikTok, or Facebook Marketplace and sync catalogs with inventory systems.
+2. **Discover** — Posts, videos, livestreams, and ads tag products with a link or button to buy.
+3. **Check out** — Customers pay in-app, sometimes with saved payment details such as Instagram Pay or TikTok Pay. The platform sends order details to the seller for packing and shipping.
+4. **Watch and buy** — Hosts demonstrate products live. Viewers buy during the stream, often with limited-time deals. Live shopping is dominant in China through Taobao Live and growing in the United States through TikTok Live.
+5. **Share and attribute** — Creators tag products. The platform tracks purchases, credits the creator, and pays commissions in-app.
 
 Saved payment and shipping details shorten checkout, reduce friction, and can
 increase impulse purchases.
@@ -183,5 +170,5 @@ The trends below are expected over the next 5 to 10 years:
 | Grid updates | Smart grids and energy storage are needed to absorb changes in renewable power supply. |
 | Geopolitics | Supplies of lithium, cobalt, and rare earth minerals affect competition in batteries and electric vehicles. |
 
-These trends show possible changes, but not who pays or how providers earn
-revenue.
+Who earns from these changes — utilities upgrading grids, battery and storage
+makers, or the software coordinating them — is still taking shape.
