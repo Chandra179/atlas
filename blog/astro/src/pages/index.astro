@@ -7,14 +7,16 @@ import { DEFAULT_DESCRIPTION, DEFAULT_OG_IMAGE, OG_IMAGE_HEIGHT, OG_IMAGE_WIDTH,
 
 const validEntries = await getValidEntries();
 
-// Sort entries by created date (newest first)
+// Sort entries by last-updated date (newest first); sync stamps `modified`
+// from git, falling back to `created` for pages never touched since publish
 const posts = validEntries
   .filter((e) => !e.data.noindex && e.id.toLowerCase() !== 'readme')
   .map((e) => {
     const slug = e.id.split('/').pop() || e.id;
     const title = e.data.seoTitle || e.data.title || deriveTitle(slug, e.data.title);
     const url = entryIdToUrl(e.id);
-    const date = e.data.created ? new Date(e.data.created) : undefined;
+    const lastUpdated = e.data.modified || e.data.created;
+    const date = lastUpdated ? new Date(lastUpdated) : undefined;
     const formattedDate = date
       ? `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`
       : '';
