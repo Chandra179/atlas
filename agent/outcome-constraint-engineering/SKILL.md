@@ -488,6 +488,11 @@ Choose the simplest implementation that satisfies
 the specification and optimize remaining preferences.
 ```
 
+## Pipeline Position
+
+- Upstream: `/problem-definition` supplies the validated problem and success signal this skill hardens into outcomes, invariants, and constraints.
+- Downstream: `/to-prd` and `/to-issues` carry the specification into delivery. After implementation, `/fitness-verification` executes the fitness functions and reports evidence.
+
 ## Summary
 
 ```text

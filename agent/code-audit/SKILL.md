@@ -124,3 +124,5 @@ For each finding, report:
 - A suggested fix, marked as a suggestion only
 
 Do not treat an unconfirmed suspicion as a finding — verify against the code first.
+
+This audit can also serve as the code-health evidence source for `/fitness-verification` when the project runs on an `/outcome-constraint-engineering` specification.
