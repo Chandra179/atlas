@@ -18,7 +18,7 @@ tags:
   - fintech
   - distributed-systems
 created: 2026-06-21T00:00:00.000Z
-modified: '2026-09-20'
+modified: '2026-10-02'
 ---
 
 # About Chandra179 · Software Engineer in Go, Fintech & Distributed Systems
@@ -55,10 +55,6 @@ I am a software engineer focused on reliable backend systems, data-heavy workflo
 - RAG and LLM chat
 - [https://github.com/Chandra179/nadir](https://github.com/Chandra179/nadir)
 
-### GoSys
-- Go memory anti-pattern analyzer
-- [https://github.com/Chandra179/pyro](https://github.com/Chandra179/pyro)
-
-### Ohara
-- Multimodal pipeline for scraping, cleaning, and GraphRAG
-- [https://github.com/Chandra179/ohara](https://github.com/Chandra179/ohara)
+### Psycho
+- Personality analysis from text
+- [https://github.com/Chandra179/psycho](https://github.com/Chandra179/psycho)

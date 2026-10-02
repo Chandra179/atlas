@@ -47,3 +47,11 @@ I am a software engineer focused on reliable backend systems, data-heavy workflo
 ### Psycho
 - Personality analysis from text
 - [https://github.com/Chandra179/psycho](https://github.com/Chandra179/psycho)
+
+### Clover
+- News aggregator
+- [https://github.com/Chandra179/clover](https://github.com/Chandra179/clover)
+
+### Trafae
+- All about books
+- [https://github.com/Chandra179/trafae](https://github.com/Chandra179/trafae)
