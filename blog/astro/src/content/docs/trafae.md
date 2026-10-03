@@ -71,16 +71,17 @@ language, publication year range, a popularity floor, or a minimum rating.
 ### 2. Every collection at once
 
 The question goes out to all connected collections simultaneously, each
-with its own time budget. A slow or unreachable collection never holds the
-others hostage, and the page shows honestly which collections answered and
-which did not.
+with its own time budget. This is a pattern called scatter-gather: ask
+everyone at once, then gather whatever came back. A slow or unreachable
+collection never holds the others hostage, and the page shows honestly
+which collections answered and which did not.
 
 ### 3. One merged list
 
 The same book found in several collections appears once, keeping every
 source's evidence — downloads, ratings, links. The rankings from the
-separate collections are then combined so that books several collections
-agree on rise to the top.
+separate collections are then combined — a technique called Reciprocal
+Rank Fusion — so that books several collections agree on rise to the top.
 
 ### 4. Open and read
 
