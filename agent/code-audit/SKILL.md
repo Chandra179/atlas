@@ -1,128 +1,32 @@
 ---
 name: code-audit
-description: Systematic read-only audit of existing code for bugs, race conditions, missing validation, architectural drift, performance problems, and dead code. Use when the user asks to audit, review, or check the health of a codebase, find problems or weak spots, or asks what is wrong with an implementation — even without naming a specific concern.
+description: Review existing code for correctness, reliability, architecture, performance, validation gaps, and dead code. Use when asked to audit, review, or assess code health; report evidence-backed findings without fixing them unless asked.
 ---
 
 # Code Audit
 
-Perform a systematic technical audit of the current implementation. This is a read-only review: report findings, do not fix anything unless explicitly asked.
+Perform a read-only review of the current implementation. Report findings and suggested fixes; do not change code unless explicitly asked. Inspect each relevant area below and explain when an area does not apply.
 
-Work through each area below. If an area does not apply to the code under review, say so rather than silently skipping it.
+## Review areas
 
-## Technical Health Audit
+- **Correctness and reliability:** incorrect behavior, edge cases, races, error handling, validation gaps, inconsistent state, and fragile patterns.
+- **Architecture:** module boundaries, separation of concerns, dependency direction, data flow and ownership, APIs, persistence, concurrency, background work, external services, deployment assumptions, observability, and extensibility. Assess fit for the intended product; prefer incremental improvements and recommend a rewrite only when smaller changes cannot solve the problem.
+- **Performance:** meaningful costs in algorithms, queries, network or disk I/O, serialization, caching, memory, CPU, startup/build time, latency, rendering, polling, or background work. Prefer measured issues; avoid speculative micro-optimization.
+- **Dead or obsolete code:** unused or unreachable code, replaced implementations, unsupported legacy paths, duplicate behavior, stale flags/configuration, unused dependencies, and outdated compatibility layers.
 
-Evaluate:
+## Evidence and safety
 
-- Bugs
-- Incorrect behavior
-- Unhandled edge cases
-- Fragile implementation patterns
-- Race conditions
-- Error-handling problems
-- Reliability issues
-- Missing validation
-- Inconsistent state
-- Excessive complexity
-- Duplicated logic
-- Unnecessary abstractions
-- Large functions or classes
-- Tight coupling
-- Poor separation of concerns
-- Difficult-to-understand control flow
-- Inconsistent implementation patterns
-- Deprecated APIs
-- Deprecated dependencies
-
-## Architecture
-
-Determine whether the current architecture remains appropriate for the intended product end state.
-
-Review:
-
-- Module boundaries
-- Separation of concerns
-- Dependency direction
-- Data flow
-- State ownership
-- API boundaries
-- Persistence strategy
-- Error handling
-- Concurrency model
-- Background processing
-- External service dependencies
-- Deployment assumptions
-- Observability
-- Extensibility
-
-Identify architectural decisions that:
-
-- Block product completion
-- Make future development unnecessarily difficult
-- Create excessive coupling
-- Cause repeated bugs
-- Prevent scaling where scaling is actually required
-
-Prefer incremental architectural improvements.
-
-Do not recommend a major rewrite unless incremental improvement is insufficient and the benefit clearly justifies the cost.
-
-## Performance and Efficiency
-
-Identify meaningful performance problems involving:
-
-- Algorithmic complexity
-- Database queries
-- Network requests
-- Serialization
-- Caching
-- Memory usage
-- CPU usage
-- Disk I/O
-- Startup time
-- Build time
-- Request latency
-- Frontend rendering
-- Repeated computation
-- Unnecessary polling
-- Excessive background processing
-
-Optimize based on evidence when possible.
-
-Avoid speculative micro-optimization that increases complexity without meaningful product benefit.
-
-## Dead and Obsolete Code
-
-Identify:
-
-- Unused code
-- Unreachable code
-- Replaced implementations
-- Code left behind after refactoring
-- Unsupported legacy behavior
-- Duplicate implementations
-- Unused feature flags
-- Obsolete configuration
-- Unused dependencies
-- Outdated compatibility layers
-
-Removal is safe only when it can be done without behavior change. If removal is requested, also remove or update related:
-
-- Tests
-- Configuration
-- Documentation
-- Comments
-- Dependencies
-- Feature flags
+- Verify each suspected issue against code or available evidence before reporting it. Separate confirmed findings from unknowns; do not present suspicion as fact.
+- Recommend removal only when behavior can be preserved. If removal is requested, check related tests, configuration, documentation, comments, dependencies, and feature flags.
+- Keep recommendations proportionate to demonstrated impact and the product's actual needs.
 
 ## Output
 
-For each finding, report:
+For each finding, include:
 
-- Location (file and line reference)
-- Area (technical health / architecture / performance / dead code)
-- What is wrong and why it matters
-- A suggested fix, marked as a suggestion only
+- File and line location.
+- Area: correctness/reliability, architecture, performance, or dead code.
+- What is wrong and why it matters.
+- A suggested fix, clearly marked as a suggestion.
 
-Do not treat an unconfirmed suspicion as a finding — verify against the code first.
-
-This audit can also serve as the code-health evidence source for `/fitness-verification` when the project runs on an `/outcome-constraint-engineering` specification.
+Order findings by severity. If no actionable issues are found, say so and note any review limits. This audit can supply code-health evidence to `/fitness-verification` when an `/outcome-constraint-engineering` specification is in use.

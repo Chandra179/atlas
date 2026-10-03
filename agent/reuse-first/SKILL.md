@@ -1,83 +1,28 @@
 ---
 name: reuse-first
-description: Before implementing anything new, search the codebase for existing reusable functions, modules, components, and abstractions, and prefer the simplest proven approach over custom code. Use whenever about to write a new feature, utility, component, or script — even if the user did not ask about reuse.
+description: Before adding a feature, utility, component, or script, search for reusable project code and proven platform capabilities; prefer the simplest approach that fits. Use when beginning implementation work that might duplicate existing behavior or add a dependency.
 ---
 
 # Reuse First
 
-Before implementing new functionality, determine whether the problem is already solved elsewhere. New code is the last resort, not the first.
+Before implementing new functionality, check whether the codebase or platform already solves the problem. Extend proven project behavior when that is simpler and safe.
 
-## Reuse Before Reimplementing
+## Search and choose
 
-Search the existing codebase for reusable:
+Look for existing functions, modules, components, utilities, APIs, services, abstractions, data structures, and established project patterns. Then use this order of preference:
 
-- Functions
-- Modules
-- Components
-- Utilities
-- APIs
-- Services
-- Abstractions
-- Data structures
-- Existing patterns
+1. Existing project functionality.
+2. Standard library.
+3. Framework-native functionality.
+4. A mature, maintained dependency.
+5. A custom implementation.
 
-Prefer extending existing well-designed functionality rather than duplicating behavior.
+Do not add a dependency when existing code or the standard library provides a sufficiently simple, reliable solution. Avoid custom implementations of established algorithms, protocols, or framework patterns without a concrete reason.
 
-Use this implementation preference order:
+## Simplify
 
-1. Existing project functionality
-2. Standard library
-3. Framework-native functionality
-4. Mature and well-maintained dependency
-5. Custom implementation
+Check whether complexity exceeds the problem: excessive abstraction or indirection, tangled responsibilities, repeated transformations, complex state or control flow, bespoke infrastructure, or unnecessary branching. Prefer a simpler proven design when it improves correctness, clarity, reliability, maintainability, testability, or performance. Do not simplify for its own sake when it would weaken a requirement.
 
-Avoid manually implementing functionality already solved reliably by existing tools.
+## Report before implementation
 
-Do not introduce a dependency when the standard library or existing project code provides a sufficiently simple solution.
-
-## Simplify Unnecessary Complexity
-
-Look for implementations that are more complicated than the underlying problem requires.
-
-Examples:
-
-- Overengineering
-- Excessive abstraction
-- Deep indirection
-- Complicated state management
-- Custom infrastructure replacing framework functionality
-- Large multi-responsibility modules
-- Excessive branching
-- Repeated transformations
-- Difficult control flow
-- Bespoke algorithms
-- Manual implementations of established patterns
-
-Before maintaining a complex custom implementation, determine whether there is a proven:
-
-- Algorithm
-- Data structure
-- Design pattern
-- Framework convention
-- Architectural pattern
-- Protocol
-- Library
-- Industry-standard blueprint
-
-Prefer the simpler proven approach when it improves:
-
-- Correctness
-- Clarity
-- Reliability
-- Maintainability
-- Testability
-- Performance
-
-## Output
-
-State what was found before writing new code:
-
-- What existing code (if any) covers the problem, and how it will be reused or extended
-- If nothing exists, which option in the preference order applies and why
-
-If reuse or simplification would change behavior the user may depend on, surface it first instead of silently replacing the implementation.
+State what existing code or platform capability covers the problem and how it will be reused. If nothing applies, identify the simplest option from the preference order and why it fits. If reuse or simplification may change behavior users depend on, surface that impact before replacing it.

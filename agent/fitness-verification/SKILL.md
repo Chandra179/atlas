@@ -1,34 +1,33 @@
 ---
 name: fitness-verification
-description: Verify delivered work against an outcome-constraint-engineering specification by executing its fitness functions and emitting an EVIDENCE report with VERIFIED, FAILED, UNVERIFIED, or NOT APPLICABLE per requirement. Use after implementing a feature, refactor, or fix whose requirements were specified as outcomes, invariants, constraints, and fitness functions — when the user asks whether the work meets the spec, is ready to ship, or actually delivers the intended outcomes.
+description: Verify implemented work against an outcome-constraint-engineering specification by running its fitness functions and reporting evidence for every requirement. Use after a feature, refactor, or fix when asked whether it meets the spec or is ready to ship.
 ---
 
 # Fitness Verification
 
-Execute the specification's own checks and report the evidence. The specification — outcomes, invariants, hard constraints, fitness functions — is owned by `/outcome-constraint-engineering`; this skill runs it after implementation and reports the result.
+Run the specification's checks and report evidence. `/outcome-constraint-engineering` owns the requirements; this skill verifies them after implementation. This is not a generic code review.
 
-## Inputs
+## Inputs and scope
 
-- The specification: requirement entries (`id`, `type`, `statement`, `fitness_function`) or the equivalent list.
-- The implemented change to verify: branch, diff, or deployment.
+- A specification with requirement entries (`id`, `type`, `statement`, `fitness_function`) or equivalent.
+- The change to verify: a diff, branch, or deployment.
 
-If no specification with fitness functions exists, STOP. Help create one with `/outcome-constraint-engineering` first. Verifying without a spec degrades into a generic code review — that is `/code-audit`'s job.
+If no specification with fitness functions exists, stop and help create one with `/outcome-constraint-engineering`. Enumerate every requirement; do not skip any. Mark non-applicable requirements with a reason.
 
-## Process
+## Verification
 
-1. Enumerate every requirement from the specification. None may be skipped; mark requirements that do not apply to this change as NOT APPLICABLE, with a reason.
-2. For each fitness function: run it if it is executable (test, benchmark, static check, script, cost query). Otherwise locate the strongest available evidence and name what is missing.
-3. Record exactly one status per requirement, backed by evidence:
+1. Run each executable fitness function (for example, tests, benchmarks, static checks, scripts, or cost queries).
+2. For non-executable checks, find the strongest available evidence and state what is missing.
+3. Assign exactly one status to each requirement:
 
 ```text
-VERIFIED       check ran and passed — cite the run (command, date)
-FAILED         check ran and did not pass — quote the observed value
-UNVERIFIED     no reliable check exists — do not guess
-NOT APPLICABLE requirement does not apply here — state why
+VERIFIED       check passed; cite the run and date
+FAILED         check ran and failed; report the observed result
+UNVERIFIED     no reliable check or evidence exists
+NOT APPLICABLE requirement does not apply; explain why
 ```
 
-4. Do not treat an unmeasured property as verified. A plausible implementation is not evidence.
-5. Emit the report (template below) and recommend: ship, fix-first, or spec-change.
+Never treat an unmeasured property as verified. Cite only evidence run or referenced for this verification, and date stale evidence.
 
 ## Report
 
@@ -39,22 +38,17 @@ NOT APPLICABLE requirement does not apply here — state why
 |----|------|-------------|--------|----------|
 
 ## Conflicts
-<Any requirement satisfiable only by weakening another — surfaced per the
-OCE Change Rule, never silently traded.>
+<Requirements that cannot all be satisfied, surfaced under the OCE Change Rule.>
 
 ## Recommendation
-<ship | fix-first | spec-change — with the shortest list of blockers.>
+<ship | fix-first | spec-change — list the shortest blockers>
 ```
+
+A FAILED outcome, invariant, or hard constraint blocks shipping. UNVERIFIED requirements must be listed; whether to ship with them is the user's decision. Recommend `ship`, `fix-first`, or `spec-change` based on the evidence.
 
 ## Routing
 
-- Code-health concerns outside the specification (bugs, races, dead code) → `/code-audit`
-- A FAILED check that is a bug or regression → `/diagnose`
-- A fitness function that should exist but does not → propose it as a test via `/tdd`
-- A requirement that is wrong or outdated → explicit spec change via `/outcome-constraint-engineering`, never quiet reinterpretation
-
-## Rules
-
-- A FAILED outcome, invariant, or hard constraint blocks shipping, regardless of what improved.
-- UNVERIFIED does not block, but must be listed — shipping with unverified requirements is the user's decision, not the agent's.
-- Cite only evidence from runs performed or referenced during this verification; label stale results with their date.
+- Code-health findings outside the specification → `/code-audit`.
+- A failed check caused by a bug or regression → `/diagnose`.
+- A missing fitness function → propose adding one via `/tdd`.
+- An outdated or incorrect requirement → explicit change through `/outcome-constraint-engineering`; never reinterpret it silently.

@@ -1,63 +1,57 @@
 ---
 name: problem-definition
-description: Turn discovery evidence or raw context into a validated problem specification before any solution work. Produces a durable problem statement with affected users, evidence separated from assumptions, a measurable success signal, and explicit non-goals. Use when moving from an idea or discovery findings to defining the problem to solve, writing a problem statement, or preparing for requirements, constraints, or PRD work.
+description: Turn discovery evidence or user context into a problem specification with affected users, evidence separated from assumptions, a measurable success signal, and explicit non-goals. Use before solution work when defining a problem, writing a problem statement, or preparing requirements or a PRD.
 ---
 
 # Problem Definition
 
-Consolidate what is known about a problem into a specification, before any solution work. Weak problem definitions propagate forward — every downstream artifact inherits their assumptions.
+Consolidate what is known about a problem before designing a solution. Weak or assumed premises spread into every downstream artifact.
 
 ## Inputs
 
-- Discovery evidence from `/inspired-product-discovery` (interview findings, hypotheses, opportunity assessments), or
-- direct user context when discovery has not been run.
+- Discovery evidence such as interview findings, hypotheses, or opportunity assessments from `/inspired-product-discovery`; or
+- Direct user context when discovery has not been run.
 
-If the evidence is thin, say so and record what is assumed. Do not invent user statements, quotes, or data.
+If evidence is thin, state what is unknown and record assumptions. Never invent user quotes, observations, or data.
 
 ## Process
 
-1. Restate the problem in the users' words. Quote evidence where it exists. Paraphrase only what has no quote, and mark it as inference.
-2. Identify the affected users: who has the problem, how often, and what they do today. Current workarounds count as evidence of pain.
-3. Separate evidence from assumption. Every load-bearing claim gets exactly one of:
+1. State the problem in users' words. Quote evidence when available; label paraphrases or interpretations as inference.
+2. Identify affected users, how often the problem occurs, and their current workarounds.
+3. Mark every load-bearing claim as exactly one of:
 
 ```text
-EVIDENCE   observed — interview, data, log, reproduction
-ASSUMPTION believed but unobserved
+EVIDENCE   observed in an interview, data, log, or reproduction
+ASSUMPTION believed but not yet observed
 ```
 
-4. Define the success signal: the observable change that would show the problem is solved. Keep it measurable — it is the raw material the outcome spec will harden into outcomes, invariants, and constraints.
-5. List explicit non-goals: adjacent problems that will not be addressed, so scope debates end here instead of during design.
-6. Write the artifact (template below) to `docs/agents/problem-<slug>.md` and review it with the user.
-
-## Artifact
+4. Define a measurable, observable success signal.
+5. List adjacent problems that are explicitly out of scope.
+6. Write `docs/agents/problem-<slug>.md` using this template, then review it with the user:
 
 ```md
 # Problem: <slug>
 
 ## Problem statement
-<The problem, in the users' words.>
+<The problem in users' words.>
 
 ## Affected users
-<Segments, frequency, current workarounds.>
+<Segments, frequency, and current workarounds.>
 
 ## Evidence
 - [EVIDENCE] <claim — source>
 - [ASSUMPTION] <claim — how it could be validated>
 
 ## Success signal
-<Observable change that indicates the problem is solved.>
+<Observable change indicating the problem is solved.>
 
 ## Non-goals
-- <Adjacent problem explicitly not addressed.>
+- <Adjacent problem explicitly out of scope.>
 ```
 
-## Rules
+## Rules and handoffs
 
-- Do NOT design solutions, name technologies, or sketch architecture. Solution work starts at `/outcome-constraint-engineering`.
-- Do NOT convert assumptions into facts. An unvalidated load-bearing assumption blocks the handoff — either validate it or hand off with it flagged.
-- Prefer fewer, stronger claims over a long weak document.
-
-## Handoffs
-
-- Upstream: `/inspired-product-discovery` supplies the evidence; this skill consolidates it into one artifact.
-- Downstream: `/outcome-constraint-engineering` turns the success signal into outcomes, invariants, hard constraints, and fitness functions. `/to-prd` reuses the problem statement verbatim.
+- Do not design solutions, name technologies, or sketch architecture. Solution specification starts at `/outcome-constraint-engineering`.
+- Do not promote assumptions to facts. Hand off unresolved load-bearing assumptions explicitly; validate them first when possible.
+- Prefer a few strong claims over a long, weak document.
+- Upstream: `/inspired-product-discovery` supplies evidence. Downstream: `/outcome-constraint-engineering` defines outcomes, invariants, constraints, and fitness functions; `/to-prd` can reuse the problem statement.
