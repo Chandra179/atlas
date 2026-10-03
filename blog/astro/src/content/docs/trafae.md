@@ -1,13 +1,24 @@
 ---
-title: "Trafae"
-description: "Trafae is a book discovery service that searches several open book catalogs at once and merges them into one ranked list of free, legal reads."
-seoTitle: "Trafae: One Search Across the Open Book Collections"
-seoDescription: "Trafae searches multiple free book catalogs at once, removes duplicates, and fuses the results into a single ranked list."
-answerSummary: "Trafae is a book discovery service that searches several open book catalogs at once and merges them into one ranked list of free, legal reads."
-tags: [books, search, open-access, aggregation]
+title: Trafae
+description: >-
+  Trafae is a book discovery service that searches several open book catalogs at
+  once and merges them into one ranked list of free, legal reads.
+seoTitle: 'Trafae: One Search Across the Open Book Collections'
+seoDescription: >-
+  Trafae searches multiple free book catalogs at once, removes duplicates, and
+  fuses the results into a single ranked list.
+answerSummary: >-
+  Trafae is a book discovery service that searches several open book catalogs at
+  once and merges them into one ranked list of free, legal reads.
+tags:
+  - books
+  - search
+  - open-access
+  - aggregation
 links:
-  github: "https://github.com/Chandra179/trafae"
-created: 2026-10-03
+  github: https://github.com/Chandra179/trafae
+created: 2026-10-03T00:00:00.000Z
+modified: '2026-10-04'
 ---
 
 # Trafae: One Search Across the Open Book Collections
@@ -60,17 +71,16 @@ language, publication year range, a popularity floor, or a minimum rating.
 ### 2. Every collection at once
 
 The question goes out to all connected collections simultaneously, each
-with its own time budget. This is a pattern called scatter-gather: ask
-everyone at once, then gather whatever came back. A slow or unreachable
-collection never holds the others hostage, and the page shows honestly
-which collections answered and which did not.
+with its own time budget. A slow or unreachable collection never holds the
+others hostage, and the page shows honestly which collections answered and
+which did not.
 
 ### 3. One merged list
 
 The same book found in several collections appears once, keeping every
 source's evidence — downloads, ratings, links. The rankings from the
-separate collections are then combined — a technique called Reciprocal
-Rank Fusion — so that books several collections agree on rise to the top.
+separate collections are then combined so that books several collections
+agree on rise to the top.
 
 ### 4. Open and read
 
