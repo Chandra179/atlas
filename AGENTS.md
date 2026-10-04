@@ -4,8 +4,8 @@ Personal knowledge base (Obsidian vault) + Astro static blog (`blog/astro`, depl
 
 ## Content ownership
 
-- Author Markdown in root topic dirs (`about/`, `system-design/`, `swe/`, `math/`, `business/`). Never edit `blog/astro/src/content/docs/` — it is regenerated and non-allowlisted files are deleted.
-- Publishing is an allow-list: `blog/astro/scripts/sync-content.mjs` `ALLOWED_FILES` (currently 7 files), flattened to basename. To publish a new page, add it there; sync runs automatically as `predev`/`prebuild`.
+- Author Markdown in root topic dirs (`about/`, `business/`, `career/`, `chemist/`, `general/`, `math/`, `projects/`, `swe/`, `system-design/`). Keep personal software project case studies in `projects/`; career plans and learning roadmaps in `career/`; reusable architecture concepts and interview examples in `system-design/`; use `general/` for cross-topic knowledge maps. Never edit `blog/astro/src/content/docs/` — it is regenerated and non-allowlisted files are deleted.
+- Publishing is an allow-list: `blog/astro/scripts/sync-content.mjs` `ALLOWED_FILES` (currently 12 files), flattened to basename. To publish a new page, add it there; sync runs automatically as `predev`/`prebuild`.
 - Sync merges frontmatter and stamps `modified` from `git log`; untracked files fall back to today. Commit a file before trusting its `modified` date.
 - Keep Markdown Obsidian-readable: relative image paths (`../assets/foo.png`), no hard `/assets/optimized/` links in source.
 

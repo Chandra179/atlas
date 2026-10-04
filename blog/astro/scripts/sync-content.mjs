@@ -17,9 +17,9 @@ const ALLOWED_FILES = new Set([
   'swe/fundamentals/os.md',
   'swe/fundamentals/os-scheduler.md',
   'system-design/cache.md',
-  'system-design/nadir.md',
-  'system-design/trafae.md',
-  'system-design/psycho.md',
+  'projects/nadir.md',
+  'projects/trafae.md',
+  'projects/psycho.md',
   'system-design/system-design-core.md',
 ]);
 
