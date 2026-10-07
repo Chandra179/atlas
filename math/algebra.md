@@ -42,14 +42,6 @@ Use order of operations: grouping symbols, exponents, multiplication and divisio
 
 Addition and multiplication are commutative ($a+b=b+a$, $ab=ba$), and have identities 0 and 1 ($a+0=a$, $a\cdot1=a$). The additive inverse $-a$ undoes adding $a$; for $a\ne0$, the reciprocal $1/a$ undoes multiplying by $a$.
 
-#### Division Algorithm and Modulo
-
-For integers $a$ and positive integer $n$, there are unique integers $q$ and $r$ such that
-
-$$a=nq+r, \qquad 0\le r<n.$$
-
-The remainder is $r$, also written $a\bmod n$. For example, $29=6\cdot4+5$, so $29\bmod6=5$. The condition $0\le r<n$ matters; without it, the quotient and remainder are not uniquely specified.
-
 ***
 
 #### **Distributive Property**
@@ -60,21 +52,21 @@ The remainder is $r$, also written $a\bmod n$. For example, $29=6\cdot4+5$, so $
 
 Imagine you are buying items for a school trip:
 
-* First Group ($\mathbf{a+b}$): The number of people going.
+First Group ($\mathbf{a+b}$): The number of people going.
 * $a = 10$ students.
 * $b = 2$ teachers.
 * $\mathbf{a+b = 12}$ people.
-* Second Group ($\mathbf{x+y}$): The cost per person.
+Second Group ($\mathbf{x+y}$): The cost per person.
 * $x = 5$ dollars for lunch.
 * $y = 3$ dollars for a drink/snack.
 * $\mathbf{x+y = 8}$ dollars total cost per person.
 
 The total cost is the product of the two: $(10 + 2)(5 + 3)$
 
-|                 | Lunch (5 dollars)           | Snack (3 dollars)           |
-| --------------- | --------------------------- | --------------------------- |
-| Students (10)   | $10 \times 5 = \mathbf{50}$ | $10 \times 3 = \mathbf{30}$ |
-| Teachers (2)    | $2 \times 5 = \mathbf{10}$  | $2 \times 3 = \mathbf{6}$   |
+|               | Lunch (5 dollars)           | Snack (3 dollars)           |
+| ------------- | --------------------------- | --------------------------- |
+| Students (10) | $10 \times 5 = \mathbf{50}$ | $10 \times 3 = \mathbf{30}$ |
+| Teachers (2)  | $2 \times 5 = \mathbf{10}$  | $2 \times 3 = \mathbf{6}$   |
 
 Total Cost = $50 + 30 + 10 + 6 = \mathbf{96}$ dollars
 
