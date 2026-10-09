@@ -39,8 +39,6 @@ Question -> Query rewrite (optional) -+-> Embed question  -> Dense search (cosin
 
 ## Chat Architecuture
 
-## Chat architecture
-
 A POST request rewrites the question, searches and returns the sources. A
 background worker then runs the language model and writes the answer to an event
 log. The browser watches that log over Server-Sent Events (SSE), so a dropped
