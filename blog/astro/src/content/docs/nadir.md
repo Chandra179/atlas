@@ -20,7 +20,7 @@ modified: '2026-10-09'
 updated: 2026-10-09T00:00:00.000Z
 ---
 
-# Nadir: Retrieval Augmented Genration
+# Nadir: Retrieval Augmented Generation
 
 RAG as a service with chat-based conversation, using an LLM as the answer generator.
 
