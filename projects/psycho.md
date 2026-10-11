@@ -7,7 +7,7 @@ answerSummary: "Psycho estimates psychological traits from text and shows the ev
 tags: [system-design, nlp, psycholinguistics]
 links:
   github: "https://github.com/Chandra179/psycho"
-created: 2026-09-29
+  demo: "http://psycho.chan179.com/"created: 2026-09-29
 updated: 2026-10-10
 ---
 
@@ -62,10 +62,6 @@ Writing -> Normalize -> Dictionary match -> Score (9 measures) -> Rank vs 2004 b
 The Openness interval is from before the 2026-10-10 rescale, which moved its AUC from 0.533 to 0.532. These numbers are modestly above chance. They do not validate any single word category, the scale factors or the score ranges, and they apply only to this dictionary, corpus and labeling.
 
 What did not help, tested on the same essays: more dictionary words (coverage rose, AUC did not move), letter-based word length and print cleanup (AUC moved by at most 0.004), the word-sense audit (mean AUC 0.542 to 0.545, inside the intervals) and a stricter word-sense filter (reverted, no gain). A second essay study (Mairesse et al., 2007) uses the same kind of essays, so it cannot serve as independent support. Fitted weights (`cmd/train`) scored 0.57 to 0.63 on 489 held-out authors against 0.52 to 0.58 for the heuristic, but every 99% interval includes zero, so they are not shipped. See the [offline supervised experiment](offline-supervised.md).
-
-## How scores are calibrated
-
-`cmd/calibrate` runs the production path over 3,992 reference blog posts and writes `config/calibration.json`: an offset that centres each score at 0.50 and 99 quantiles for ranking. A dictionary or weight change needs a recalibration, and a test fails if the two disagree. The score range comes from each measure's own sampling error, scaled by how far two halves of 375 reference posts differ. It shows repeatability within a text, not accuracy about a person.
 
 ## Your data
 
