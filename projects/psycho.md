@@ -7,7 +7,8 @@ answerSummary: "Psycho estimates psychological traits from text and shows the ev
 tags: [system-design, nlp, psycholinguistics]
 links:
   github: "https://github.com/Chandra179/psycho"
-  demo: "http://psycho.chan179.com/"created: 2026-09-29
+  demo: "http://psycho.chan179.com/"
+created: 2026-09-29
 updated: 2026-10-10
 ---
 
