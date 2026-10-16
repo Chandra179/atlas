@@ -20,7 +20,7 @@ const ALLOWED_FILES = new Set([
   'system-design/cache.md',
   'projects/nadir.md',
   'projects/trafae.md',
-  'projects/sabaody.md',
+  'projects/baltigo.md',
   'projects/psycho.md',
   'system-design/system-design-core.md',
 ]);
