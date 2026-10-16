@@ -1,14 +1,14 @@
 ---
-title: Sabaody
+title: Baltigo
 description: >-
-  Sabaody is a terminal chat where peers talk directly, with a small public
+  Baltigo is a terminal chat where peers talk directly, with a small public
   relay as fallback.
-seoTitle: 'Sabaody: Private Peer-to-Peer Chat'
+seoTitle: 'Baltigo: Private Peer-to-Peer Chat'
 seoDescription: >-
-  How Sabaody connects peers directly or through a relay, and delivers messages
+  How Baltigo connects peers directly or through a relay, and delivers messages
   end to end encrypted.
 answerSummary: >-
-  Sabaody is a terminal chat where peers connect directly when they can and
+  Baltigo is a terminal chat where peers connect directly when they can and
   through a small public relay when they cannot. Identity is a key pair, there
   are no accounts, and the relay never sees message contents.
 tags:
@@ -22,7 +22,7 @@ updated: 2026-10-16T00:00:00.000Z
 modified: '2026-10-16'
 ---
 
-# Sabaody: Private Peer-to-Peer Chat
+# Baltigo: Private Peer-to-Peer Chat
 
 Terminal chat where peers talk directly when they can and through a small public relay when they cannot. Identity is a key pair, there are no accounts, and the relay never sees message contents.
 

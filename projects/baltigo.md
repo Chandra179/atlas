@@ -1,9 +1,9 @@
 ---
-title: "Sabaody"
-description: "Sabaody is a terminal chat where peers talk directly, with a small public relay as fallback."
-seoTitle: "Sabaody: Private Peer-to-Peer Chat"
-seoDescription: "How Sabaody connects peers directly or through a relay, and delivers messages end to end encrypted."
-answerSummary: "Sabaody is a terminal chat where peers connect directly when they can and through a small public relay when they cannot. Identity is a key pair, there are no accounts, and the relay never sees message contents."
+title: "Baltigo"
+description: "Baltigo is a terminal chat where peers talk directly, with a small public relay as fallback."
+seoTitle: "Baltigo: Private Peer-to-Peer Chat"
+seoDescription: "How Baltigo connects peers directly or through a relay, and delivers messages end to end encrypted."
+answerSummary: "Baltigo is a terminal chat where peers connect directly when they can and through a small public relay when they cannot. Identity is a key pair, there are no accounts, and the relay never sees message contents."
 tags: [system-design, p2p, networking]
 links:
   github: "https://github.com/Chandra179/baltigo"
@@ -11,7 +11,7 @@ created: 2026-10-16
 updated: 2026-10-16
 ---
 
-# Sabaody: Private Peer-to-Peer Chat
+# Baltigo: Private Peer-to-Peer Chat
 
 Terminal chat where peers talk directly when they can and through a small public relay when they cannot. Identity is a key pair, there are no accounts, and the relay never sees message contents.
 
