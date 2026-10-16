@@ -52,10 +52,10 @@ Receipt (signed acknowledgement, live or via the mailbox)
 
 ```text
 Peer A (behind NAT)                  Relay (public IP)                  Peer B (behind NAT)
-   |-- reserve a slot ----------------->|                                  |
-   |                                    |<----------------- reserve a slot-|
+   |-- reserve a slot ----------------->|                                   |
+   |                                    |<----------------- reserve a slot--|
    |<============ encrypted circuit through the relay =====================>|
-   |                                    |                                  |
+   |                                    |                                   |
    |<-- exchange observed addresses over the circuit ---------------------->|
    |== both dial each other at the same moment (hole punch) ===============>|
    |<============== direct encrypted connection ===========================>|
