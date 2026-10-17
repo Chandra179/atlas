@@ -8,8 +8,7 @@ seoDescription: >-
   Software engineer building Go backends, data pipelines, identity systems, and
   workflow automation for fintech and commerce.
 answerSummary: >-
-  I am a software engineer who builds Go backend services, data pipelines,
-  identity systems, and workflow automation for fintech and commerce.
+  Deep Dive: Memory models, Games, Scraping and Software Architecture
 author: Chandra179
 authorProfile: /#author
 tags:
@@ -23,8 +22,8 @@ modified: '2026-10-17'
 
 # About Chandra179 · Software Engineer in Go, Fintech & Distributed Systems
 
-I am a software engineer focused on reliable backend systems, data-heavy workflows, and fintech products. My work spans Go services, identity and authentication, order and booking systems, document automation, and operational tooling.
- 
+Deep Dive: Memory models, Games, Scraping and Software Architecture
+
 ### Book Cabin, Software Engineer
 * Core Order & Booking Engine: Rewrote the legacy order system from C# to Go for prebook.
 * Identity & Authentication: Built a Go service for central authentication with JWT, OTP, and RBAC.
