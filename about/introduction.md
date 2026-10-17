@@ -15,11 +15,10 @@ created: 2026-06-21
 I am a software engineer focused on reliable backend systems, data-heavy workflows, and fintech products. My work spans Go services, identity and authentication, order and booking systems, document automation, and operational tooling.
  
 ### Book Cabin, Software Engineer
-* Core Order & Booking Engine: Rewrote the legacy order system from C# to Go for prebook and postbook flight checkout and fulfillment.
+* Core Order & Booking Engine: Rewrote the legacy order system from C# to Go for prebook.
 * Identity & Authentication: Built a Go service for central authentication with JWT, OTP, and RBAC.
 * CMS & SEO: Built a block-editor CMS and SEO data pipelines.
-* Event Orchestration & Documents: Built AWS SQS listeners and a multilingual PDF/email template service for payments and ticketing.
-* Resolved OOM and SQL deadlock incidents. Added CI/CD standards (Lefthook, golangci-lint) and structured logging.
+* Event Orchestration: Built even driven PDF/email template service for payments and ticketing.
 
 ### BFI Finance, Software Engineer, Jul 2022 – Feb 2026
 * Migrated the loan system from one product to multiple asset types, allowing multiple collateral assets per application.
@@ -35,23 +34,3 @@ I am a software engineer focused on reliable backend systems, data-heavy workflo
 * Programming: Golang, JavaScript, SQL
 * Infrastructure & Tools: AWS, Docker, Redis, PostgreSQL, SQL Server, RabbitMQ, SQS/SNS, Lambda, GCP
 * Architectures & tools: gRPC, Temporal, OIDC, SolidJS, OpenTelemetry
-
----
-
-## Projects
-
-### Nadir
-- RAG and LLM chat
-- [https://github.com/Chandra179/nadir](https://github.com/Chandra179/nadir)
-
-### Psycho
-- Personality analysis from text
-- [https://github.com/Chandra179/psycho](https://github.com/Chandra179/psycho)
-
-### Clover
-- News aggregator
-- [https://github.com/Chandra179/clover](https://github.com/Chandra179/clover)
-
-### Trafae
-- All about books
-- [https://github.com/Chandra179/trafae](https://github.com/Chandra179/trafae)
