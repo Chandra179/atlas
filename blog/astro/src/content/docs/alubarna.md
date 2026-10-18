@@ -1,5 +1,5 @@
 ---
-title: Night Parade
+title: 'Night Parade: a Samurai Survivor Game'
 description: >-
   A low-poly isometric action survivor: one samurai, one night, a parade of
   yokai.
@@ -16,6 +16,7 @@ modified: '2026-10-18'
 ---
 
 # Night Parade: a Samurai Survivor Game
+![demo](/assets/demo_alubarna.png)
 
 Night Parade is a low-poly isometric action survivor. A lone samurai fights waves of yokai (Japanese folklore monsters) from dusk until dawn.
 
