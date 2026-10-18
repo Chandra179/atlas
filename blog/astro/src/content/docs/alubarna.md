@@ -20,8 +20,6 @@ modified: '2026-10-18'
 
 Night Parade is a low-poly isometric action survivor. A lone samurai fights waves of yokai (Japanese folklore monsters) from dusk until dawn.
 
-It is single player, built by one person, and at prototype stage: playable, but not finished. Nothing here claims the game *feels* right; that needs a human playing it.
-
 ## The game
 
 A night lasts 3, 5, 10 or 15 minutes. There is also a Duel mode: no horde, just one boss.
