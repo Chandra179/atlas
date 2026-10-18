@@ -16,7 +16,7 @@ modified: '2026-10-18'
 ---
 
 # Night Parade: a Samurai Survivor Game
-![demo](/assets/demo_alubarna.png)
+![Night Parade](https://chan179.com/assets/demo_alubarna.png)
 
 Night Parade is a low-poly isometric action survivor. A lone samurai fights waves of yokai (Japanese folklore monsters) from dusk until dawn.
 
