@@ -21,6 +21,7 @@ const ALLOWED_FILES = new Set([
   'projects/nadir.md',
   'projects/trafae.md',
   'projects/baltigo.md',
+  'projects/alubarna.md',
   'projects/psycho.md',
   'system-design/system-design-core.md',
 ]);

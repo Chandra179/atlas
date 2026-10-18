@@ -7,8 +7,7 @@ seoTitle: Chandra179 · Go, Rust & Distributed Systems Engineer
 seoDescription: >-
   Software engineer building Go backends, data pipelines, identity systems, and
   workflow automation for fintech and commerce.
-answerSummary: >-
-  Deep Dive: Memory models, Games, Scraping and Software Architecture
+answerSummary: 'Deep Dive: Memory models, Games, Scraping and Software Architecture'
 author: Chandra179
 authorProfile: /#author
 tags:
@@ -23,7 +22,7 @@ modified: '2026-10-17'
 # About Chandra179 · Software Engineer in Go, Fintech & Distributed Systems
 
 Deep Dive: Memory models, Games, Scraping and Software Architecture
-
+ 
 ### Book Cabin, Software Engineer
 * Core Order & Booking Engine: Rewrote the legacy order system from C# to Go for prebook.
 * Identity & Authentication: Built a Go service for central authentication with JWT, OTP, and RBAC.
