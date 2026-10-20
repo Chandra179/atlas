@@ -22,7 +22,7 @@ Night Parade is a low-poly isometric action survivor. A lone samurai fights wave
 
 ## Demo WASM
 
-Godot can export the whole game to WebAssembly: a compact program format that browsers run at near-native speed. The game then runs inside a web page using WebGL 2, with the simpler Compatibility renderer (the web does not support the desktop one).
+The game then runs inside a web page using WebGL 2, with the simpler Compatibility renderer (the web does not support the desktop one).
 
 - **Single-threaded:** no special server settings are needed, so any static host works.
 - **Hosting:** Cloudflare Workers, as plain static files, planned for a custom subdomain.
