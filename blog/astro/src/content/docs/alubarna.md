@@ -12,34 +12,13 @@ links:
   demo: http://alubarna.chan179.com/
 created: 2026-10-18T00:00:00.000Z
 updated: 2026-10-18T00:00:00.000Z
-modified: '2026-10-18'
+modified: '2026-10-20'
 ---
 
 # Night Parade: a Samurai Survivor Game
-![Night Parade](https://chan179.com/assets/demo_alubarna.png)
+![demo](demo_alubarna.png)
 
-Night Parade is a low-poly isometric action survivor. A lone samurai fights waves of yokai (Japanese folklore monsters) from dusk until dawn.
-
-## The game
-
-A night lasts 3, 5, 10 or 15 minutes. There is also a Duel mode: no horde, just one boss.
-
-```text
-Slash the horde -> Orbs and coins drop -> Level up -> Pick 1 of 3 cards -> Boss -> ... -> Dawn
-                                                              |
-                                          Coins buy permanent upgrades at the shrine
-```
-
-| Area | What it is |
-|---|---|
-| Combat | Hold to chain a 3-hit slash combo, dash through attacks with brief invulnerability, deflect projectiles back |
-| Build | Five Rings schools (Earth, Water, Fire, Wind, Void) from Musashi's book; 26 upgrade cards |
-| Skills | 7 active skills (Whirlwind, Ofuda Throw, Spirit Vortex, Dragon's Roar, Kekkai, Meteor, Tidal Wave), 4 supports, and the Dawnbreaker ultimate |
-| Weapons | Katana, bow, matchlock, giant sword, each with its own signature skill |
-| Combos | Pairing certain skills makes a stronger third effect (for example a fire tornado) |
-| Enemies | 7 yokai, each with its own behavior: umbrellas, lanterns, kappa, tengu, fox fire, long-neck, spider woman |
-| Bosses | Oni, Gashadokuro, Shuten-dōji, and the dragon Ryūjin in the Duel |
-| Between runs | A shrine where banked coins buy permanent stats and a revive |
+Night Parade is a low-poly isometric action survivor. A lone samurai fights waves of yokai (Japanese folklore monsters) from dusk until dawn. A night lasts 3, 5, 10 or 15 minutes. There is also a Duel mode: no horde, just one boss.
 
 ## Demo WASM
 
