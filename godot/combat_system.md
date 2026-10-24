@@ -20,3 +20,11 @@
 - Hit confirmation and duplicate-hit prevention
 - Frame-rate-independent combat timing
 - Debug visualization for hitboxes and hurtboxes
+
+## Learning Resources
+
+- [Game Programming Patterns: State](https://gameprogrammingpatterns.com/state.html) - combat state machines
+- [Game Programming Patterns: Command](https://gameprogrammingpatterns.com/command.html) - input buffering and action queues
+- [Shoryuken: Fighting game glossary and frame data](https://shoryuken.com/) - windup, active, and recovery frames
+- [Official: Using Tweens](https://docs.godotengine.org/en/stable/classes/class_tween.html) - hit feedback and timed effects
+- [Official: Timers](https://docs.godotengine.org/en/stable/classes/class_timer.html) - attack windows and cooldowns

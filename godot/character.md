@@ -466,3 +466,11 @@ These systems should be independent of individual character configurations.
 15. Validate anatomical constraints, combat spacing, and extreme combat poses.
 16. Polish combat timing, movement, audio, visual effects, and animation transitions.
 17. Perform final tests across all characters, weapons, and supported combat states.
+
+## Learning Resources
+
+- [Official: Skeletal animation](https://docs.godotengine.org/en/stable/tutorials/animation/skeletal_animation.html) - rig and skeleton setup for shared character systems
+- [Official: Using inverse kinematics](https://docs.godotengine.org/en/stable/tutorials/animation/using_inverse_kinematics.html) - IK for hand and foot placement
+- [Official: Using AnimationTree](https://docs.godotengine.org/en/stable/tutorials/animation/animation_tree.html) - animation state and blending for locomotion
+- [Game Programming Patterns: State](https://gameprogrammingpatterns.com/state.html) - character state machines
+- [Blender Manual: Armatures and rigging](https://docs.blender.org/manual/en/latest/animation/armatures/index.html) - building the rig in Blender

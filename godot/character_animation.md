@@ -26,3 +26,12 @@
 - Synchronizing animation with combat phases
 - Inverse kinematics and SkeletonModifier3D
 - Procedural animation and pose layering
+
+## Learning Resources
+
+- [Official: Animation basics](https://docs.godotengine.org/en/stable/tutorials/animation/introduction.html) - AnimationPlayer and keyframes
+- [Official: AnimationTree](https://docs.godotengine.org/en/stable/tutorials/animation/animation_tree.html) - state machines and blend spaces
+- [Official: Skeletal animation](https://docs.godotengine.org/en/stable/tutorials/animation/skeletal_animation.html) - skeletons, bones, and skinning
+- [Official: Retargeting (Godot 4)](https://docs.godotengine.org/en/stable/tutorials/animation/retargeting.html) - reusing animations across skeletons
+- [Blender Manual: Armatures and rigging](https://docs.blender.org/manual/en/latest/animation/armatures/index.html) - building and weighting rigs
+- [Mixamo](https://www.mixamo.com/) - auto-rigging and sample animations to study

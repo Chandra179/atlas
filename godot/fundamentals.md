@@ -134,3 +134,11 @@ Fighter (CharacterBody3D)
 - Document required character animations and weapon attachment points.
 - Identify the placeholder systems that need replacement or extension.
 - Proceed to character modeling, rigging, animation, materials, lighting, and visual effects.
+
+## Learning Resources
+
+- [Official: Nodes and scenes](https://docs.godotengine.org/en/stable/getting_started/step_by_step/nodes_and_scenes.html) - the scene tree, nodes, and reusable scenes
+- [Official: Introduction to 3D](https://docs.godotengine.org/en/stable/tutorials/3d/introduction_to_3d.html) - Node3D, transforms, and the 3D workspace
+- [Official: Using 3D transforms](https://docs.godotengine.org/en/stable/tutorials/3d/using_3d_transforms.html) - position, rotation, scale, and parent-child inheritance
+- [Official: Importing 3D scenes](https://docs.godotengine.org/en/stable/tutorials/assets_pipeline/importing_3d_scenes/index.html) - meshes, materials, and UV-based textures
+- [GDQuest: Godot 4 tutorials](https://www.gdquest.com/) - beginner-friendly video and written lessons on nodes and 3D
