@@ -23,7 +23,8 @@
 | Parent-child relationships | Organize related nodes | Group a character's model, camera target, and equipment under appropriate parent nodes |
 | Scenes and reusable scenes | Build reusable game objects | Create a fighter scene that can be instantiated for both duelists |
 
-Parent Child examples:
+### Parent Child examples
+
 ```gd
 Fighter (CharacterBody3D)
 ├── CollisionShape3D
@@ -71,8 +72,65 @@ Fighter (CharacterBody3D)
 
 ## Prototyping and Greyboxing
 
-- Build a basic level using primitive shapes
-- Test movement and collision
-- Check camera positioning
-- Test level scale and navigation
-- Build functionality before polishing visuals
+### 1. Define the Prototype
+- Define the core gameplay loop: approach, face the opponent, attack, defend, and recover.
+- Identify the minimum features required to test a duel.
+- Use placeholder assets instead of final models and animations.
+
+### 2. Create the Basic Arena
+- Create a new 3D scene with a suitable root node.
+- Add a flat floor using a `StaticBody3D` and collision shape, or another appropriate static floor setup.
+- Add simple walls or boundaries.
+- Use primitive meshes to make the arena boundaries visible.
+- Establish the approximate arena dimensions.
+
+### 3. Add Two Placeholder Fighters
+- Create a reusable fighter scene using `CharacterBody3D`.
+- Add a `CollisionShape3D` and a simple capsule or box mesh.
+- Place two fighters at opposite starting positions.
+- Verify that both fighters stand on the floor and face the intended direction.
+
+### 4. Implement Basic Movement
+- Add input actions for forward, backward, left, and right.
+- Implement movement, acceleration, deceleration, and turning.
+- Add floor detection and gravity.
+- Test movement in all directions.
+- Verify that fighters cannot move through arena boundaries.
+
+### 5. Configure the Camera
+- Add a `Camera3D` and establish the intended viewing angle.
+- Frame both fighters during approach, retreat, and strafing.
+- Test camera follow, smoothing, and rotation.
+- Verify that neither fighter frequently leaves the frame.
+- Adjust the arena size and camera distance as necessary.
+
+### 6. Test Scale and Combat Spacing
+- Establish approximate character height and weapon length.
+- Test starting distance, engagement distance, and sword reach.
+- Check whether fighters can circle each other without becoming trapped.
+- Verify that arena boundaries leave enough room for movement and dodging.
+
+### 7. Add Basic Interaction and Combat Probes
+- Add a temporary weapon model or simple line representing the sword.
+- Create a basic attack input.
+- Use a temporary hitbox to test attack range and hit detection.
+- Add a simple health value or hit indicator to confirm successful hits.
+- Test collision between fighters separately from weapon hit detection.
+
+### 8. Test the Duel Loop
+- Test approaching, facing, attacking, defending, and retreating.
+- Verify that hits register only during valid attack windows.
+- Check that both fighters can move and attack without becoming stuck.
+- Repeat tests at different distances and arena positions.
+
+### 9. Evaluate and Refine the Greybox
+- Adjust arena dimensions, starting positions, movement speed, and camera framing.
+- Fix collision, spacing, and targeting problems.
+- Use simple debug visuals to inspect movement and hitboxes.
+- Repeat playtests until the basic duel feels consistent.
+
+### 10. Prepare for Production Assets
+- Finalize the basic arena layout and approximate scale.
+- Document required character animations and weapon attachment points.
+- Identify the placeholder systems that need replacement or extension.
+- Proceed to character modeling, rigging, animation, materials, lighting, and visual effects.
